@@ -1,55 +1,8 @@
-from datetime import datetime, date
-from sqlalchemy import String, Text, Date, DateTime, Float, ForeignKey, Boolean
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from .database import Base
-
-class User(Base):
-    __tablename__ = 'users'
-    id: Mapped[int] = mapped_column(primary_key=True)
-    username: Mapped[str] = mapped_column(String(80), unique=True, index=True)
-    password_hash: Mapped[str] = mapped_column(String(255))
-    full_name: Mapped[str] = mapped_column(String(120), default='')
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-
-class Owner(Base):
-    __tablename__ = 'owners'
-    id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(180), index=True)
-    phone: Mapped[str] = mapped_column(String(80), default='', index=True)
-    whatsapp: Mapped[str] = mapped_column(String(80), default='')
-    email: Mapped[str] = mapped_column(String(180), default='')
-    address: Mapped[str] = mapped_column(String(255), default='')
-    notes: Mapped[str] = mapped_column(Text, default='')
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    patients: Mapped[list['Patient']] = relationship(back_populates='owner')
-
-class Patient(Base):
-    __tablename__ = 'patients'
-    id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(140), index=True)
-    species: Mapped[str] = mapped_column(String(80), default='')
-    breed: Mapped[str] = mapped_column(String(120), default='')
-    sex: Mapped[str] = mapped_column(String(50), default='')
-    birth_date: Mapped[date | None] = mapped_column(Date, nullable=True)
-    weight: Mapped[float | None] = mapped_column(Float, nullable=True)
-    color: Mapped[str] = mapped_column(String(80), default='')
-    microchip: Mapped[str] = mapped_column(String(100), default='')
-    alerts: Mapped[str] = mapped_column(Text, default='')
-    notes: Mapped[str] = mapped_column(Text, default='')
-    owner_id: Mapped[int] = mapped_column(ForeignKey('owners.id'))
-    owner: Mapped['Owner'] = relationship(back_populates='patients')
-    events: Mapped[list['ClinicalEvent']] = relationship(back_populates='patient', order_by='desc(ClinicalEvent.event_date)')
-
-class ClinicalEvent(Base):
-    __tablename__ = 'clinical_events'
-    id: Mapped[int] = mapped_column(primary_key=True)
-    patient_id: Mapped[int] = mapped_column(ForeignKey('patients.id'), index=True)
-    event_date: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
-    event_type: Mapped[str] = mapped_column(String(80), default='Consulta')
-    title: Mapped[str] = mapped_column(String(200), default='')
-    description: Mapped[str] = mapped_column(Text, default='')
-    diagnosis: Mapped[str] = mapped_column(Text, default='')
-    treatment: Mapped[str] = mapped_column(Text, default='')
-    reminder_date: Mapped[date | None] = mapped_column(Date, nullable=True)
-    created_by: Mapped[str] = mapped_column(String(100), default='admin')
-    patient: Mapped['Patient'] = relationship(back_populates='events')
+fastapi==0.115.6
+uvicorn[standard]==0.32.1
+jinja2==3.1.4
+python-multipart==0.0.19
+sqlalchemy==2.0.36
+psycopg2-binary==2.9.10
+passlib[bcrypt]==1.7.4
+itsdangerous==2.2.0

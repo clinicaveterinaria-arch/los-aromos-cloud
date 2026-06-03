@@ -1,0 +1,136 @@
+from datetime import datetime
+import os
+from typing import Optional
+from fastapi import FastAPI, Request, Form, Depends, HTTPException
+from fastapi.responses import RedirectResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from sqlalchemy.orm import Session
+from sqlalchemy import or_
+from passlib.context import CryptContext
+from starlette.middleware.sessions import SessionMiddleware
+
+from .database import Base, engine, get_db
+from .models import User, Owner, Patient, ClinicalEvent
+
+app = FastAPI(title='Los Aromos Cloud')
+app.add_middleware(SessionMiddleware, secret_key=os.getenv('SECRET_KEY', 'dev-secret-change-me'))
+app.mount('/static', StaticFiles(directory='app/static'), name='static')
+templates = Jinja2Templates(directory='app/templates')
+pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
+
+EVENT_TYPES = ['Consulta clínica','Control','Vacuna','Desparasitación','Radiografía','ECG','Ecografía','Laboratorio','Cirugía','Anestesia','Internación','Alta','Otro procedimiento']
+
+def init_db():
+    Base.metadata.create_all(bind=engine)
+    db = next(get_db())
+    try:
+        admin = db.query(User).filter(User.username == 'admin').first()
+        if not admin:
+            admin = User(username='admin', full_name='Carolina', password_hash=pwd_context.hash('losaromos'))
+            db.add(admin)
+            db.commit()
+    finally:
+        db.close()
+
+@app.on_event('startup')
+def on_startup():
+    init_db()
+
+def current_user(request: Request, db: Session = Depends(get_db)):
+    username = request.session.get('user')
+    if not username:
+        return None
+    return db.query(User).filter(User.username == username, User.is_active == True).first()
+
+def require_user(request: Request, db: Session = Depends(get_db)):
+    user = current_user(request, db)
+    if not user:
+        raise HTTPException(status_code=303, headers={'Location': '/login'})
+    return user
+
+@app.get('/login', response_class=HTMLResponse)
+def login_form(request: Request):
+    return templates.TemplateResponse('login.html', {'request': request, 'error': None})
+
+@app.post('/login')
+def login(request: Request, username: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.username == username).first()
+    if not user or not pwd_context.verify(password, user.password_hash):
+        return templates.TemplateResponse('login.html', {'request': request, 'error': 'Usuario o clave incorrectos'})
+    request.session['user'] = user.username
+    return RedirectResponse('/', status_code=303)
+
+@app.get('/logout')
+def logout(request: Request):
+    request.session.clear()
+    return RedirectResponse('/login', status_code=303)
+
+@app.get('/', response_class=HTMLResponse)
+def home(request: Request, db: Session = Depends(get_db), user: User = Depends(require_user)):
+    stats = {
+        'owners': db.query(Owner).count(),
+        'patients': db.query(Patient).count(),
+        'events': db.query(ClinicalEvent).count(),
+    }
+    latest_events = db.query(ClinicalEvent).order_by(ClinicalEvent.event_date.desc()).limit(6).all()
+    return templates.TemplateResponse('home.html', {'request': request, 'user': user, 'stats': stats, 'latest_events': latest_events})
+
+@app.get('/owners', response_class=HTMLResponse)
+def owners(request: Request, q: str = '', db: Session = Depends(get_db), user: User = Depends(require_user)):
+    query = db.query(Owner)
+    if q:
+        like = f'%{q}%'
+        query = query.filter(or_(Owner.name.ilike(like), Owner.phone.ilike(like), Owner.whatsapp.ilike(like)))
+    return templates.TemplateResponse('owners.html', {'request': request, 'owners': query.order_by(Owner.name).limit(200).all(), 'q': q})
+
+@app.post('/owners')
+def owner_create(name: str = Form(...), phone: str = Form(''), whatsapp: str = Form(''), email: str = Form(''), address: str = Form(''), notes: str = Form(''), db: Session = Depends(get_db), user: User = Depends(require_user)):
+    owner = Owner(name=name, phone=phone, whatsapp=whatsapp, email=email, address=address, notes=notes)
+    db.add(owner); db.commit()
+    return RedirectResponse('/owners', status_code=303)
+
+@app.get('/patients/new', response_class=HTMLResponse)
+def patient_new(request: Request, owner_id: Optional[int] = None, db: Session = Depends(get_db), user: User = Depends(require_user)):
+    owners = db.query(Owner).order_by(Owner.name).limit(500).all()
+    return templates.TemplateResponse('patient_new.html', {'request': request, 'owners': owners, 'owner_id': owner_id})
+
+@app.post('/patients')
+def patient_create(name: str = Form(...), owner_id: int = Form(...), species: str = Form(''), breed: str = Form(''), sex: str = Form(''), weight: str = Form(''), alerts: str = Form(''), notes: str = Form(''), db: Session = Depends(get_db), user: User = Depends(require_user)):
+    w = float(weight.replace(',', '.')) if weight.strip() else None
+    p = Patient(name=name, owner_id=owner_id, species=species, breed=breed, sex=sex, weight=w, alerts=alerts, notes=notes)
+    db.add(p); db.commit()
+    return RedirectResponse(f'/patients/{p.id}', status_code=303)
+
+@app.get('/search', response_class=HTMLResponse)
+def search(request: Request, q: str = '', db: Session = Depends(get_db), user: User = Depends(require_user)):
+    results = []
+    if q:
+        like = f'%{q}%'
+        results = db.query(Patient).join(Owner).filter(or_(Patient.name.ilike(like), Owner.name.ilike(like), Owner.phone.ilike(like), Owner.whatsapp.ilike(like))).order_by(Patient.name).limit(100).all()
+    return templates.TemplateResponse('search.html', {'request': request, 'q': q, 'results': results})
+
+@app.get('/patients/{patient_id}', response_class=HTMLResponse)
+def patient_detail(request: Request, patient_id: int, db: Session = Depends(get_db), user: User = Depends(require_user)):
+    patient = db.get(Patient, patient_id)
+    if not patient:
+        raise HTTPException(404)
+    events = db.query(ClinicalEvent).filter(ClinicalEvent.patient_id == patient.id).order_by(ClinicalEvent.event_date.desc()).all()
+    return templates.TemplateResponse('patient_detail.html', {'request': request, 'patient': patient, 'events': events, 'event_types': EVENT_TYPES})
+
+@app.post('/patients/{patient_id}/events')
+def event_create(patient_id: int, event_type: str = Form(...), title: str = Form(''), description: str = Form(''), diagnosis: str = Form(''), treatment: str = Form(''), reminder_date: str = Form(''), db: Session = Depends(get_db), user: User = Depends(require_user)):
+    rd = None
+    if reminder_date:
+        rd = datetime.strptime(reminder_date, '%Y-%m-%d').date()
+    event = ClinicalEvent(patient_id=patient_id, event_type=event_type, title=title, description=description, diagnosis=diagnosis, treatment=treatment, reminder_date=rd, created_by=user.username)
+    db.add(event); db.commit()
+    return RedirectResponse(f'/patients/{patient_id}', status_code=303)
+
+@app.get('/migration', response_class=HTMLResponse)
+def migration(request: Request, user: User = Depends(require_user)):
+    return templates.TemplateResponse('migration.html', {'request': request})
+
+@app.get('/health')
+def health():
+    return {'status': 'ok', 'app': 'Los Aromos Cloud'}
