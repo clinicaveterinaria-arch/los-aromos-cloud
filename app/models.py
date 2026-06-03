@@ -1,4 +1,5 @@
 from datetime import datetime, date
+from typing import Optional
 from sqlalchemy import String, Text, Date, DateTime, Float, ForeignKey, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .database import Base
@@ -30,8 +31,8 @@ class Patient(Base):
     species: Mapped[str] = mapped_column(String(80), default='')
     breed: Mapped[str] = mapped_column(String(120), default='')
     sex: Mapped[str] = mapped_column(String(50), default='')
-    birth_date: Mapped[date | None] = mapped_column(Date, nullable=True)
-    weight: Mapped[float | None] = mapped_column(Float, nullable=True)
+    birth_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
+    weight: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     color: Mapped[str] = mapped_column(String(80), default='')
     microchip: Mapped[str] = mapped_column(String(100), default='')
     alerts: Mapped[str] = mapped_column(Text, default='')
@@ -50,6 +51,6 @@ class ClinicalEvent(Base):
     description: Mapped[str] = mapped_column(Text, default='')
     diagnosis: Mapped[str] = mapped_column(Text, default='')
     treatment: Mapped[str] = mapped_column(Text, default='')
-    reminder_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    reminder_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     created_by: Mapped[str] = mapped_column(String(100), default='admin')
     patient: Mapped['Patient'] = relationship(back_populates='events')
