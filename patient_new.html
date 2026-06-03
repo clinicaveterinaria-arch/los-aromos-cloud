@@ -1,1 +1,24 @@
-{% extends 'base.html' %}{% block content %}<h1>Historia clínica</h1><div class="card"><form method="get"><label>Buscar por paciente, propietario o teléfono</label><div class="row"><input name="q" value="{{ q }}" placeholder="Ej: Luna, Pérez, 345..."><button class="btn">Buscar</button></div></form></div><div class="card"><h2>Resultados</h2><table><tr><th>Paciente</th><th>Propietario</th><th>Teléfono</th><th></th></tr>{% for p in results %}<tr><td>{{ p.name }}</td><td>{{ p.owner.full_name }}</td><td>{{ p.owner.phone }}</td><td><a class="btn" href="/patients/{{ p.id }}">Abrir</a></td></tr>{% endfor %}</table></div>{% endblock %}
+{% extends 'base.html' %}{% block content %}
+<section class="hero">
+  <img src="/static/logo.jpg" class="hero-logo">
+  <h1>Bienvenida, {{ user.full_name or user.username }}</h1>
+  <p>¿Qué deseas hacer hoy?</p>
+</section>
+<div class="grid cards">
+  <a class="card" href="/search"><h3>Historia clínica</h3><p>Buscar paciente, propietario o teléfono.</p></a>
+  <a class="card" href="/owners"><h3>Propietarios</h3><p>Alta y búsqueda de clientes.</p></a>
+  <a class="card" href="/patients/new"><h3>Nuevo paciente</h3><p>Cargar mascota asociada a propietario.</p></a>
+  <a class="card" href="/migration"><h3>Migración MyVete</h3><p>Módulo administrativo inicial.</p></a>
+</div>
+<div class="grid stats">
+  <div class="panel"><b>{{ stats.owners }}</b><span>Propietarios</span></div>
+  <div class="panel"><b>{{ stats.patients }}</b><span>Pacientes</span></div>
+  <div class="panel"><b>{{ stats.events }}</b><span>Eventos clínicos</span></div>
+</div>
+<div class="panel wide">
+  <h2>Últimos eventos</h2>
+  {% for e in latest_events %}
+  <div class="timeline-item"><b>{{ e.event_type }}</b> — {{ e.patient.name }} <small>{{ e.event_date.strftime('%d/%m/%Y %H:%M') }}</small><br>{{ e.title }}</div>
+  {% else %}<p>No hay eventos cargados todavía.</p>{% endfor %}
+</div>
+{% endblock %}

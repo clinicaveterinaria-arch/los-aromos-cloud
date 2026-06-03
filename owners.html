@@ -1,1 +1,14 @@
-{% extends 'base.html' %}{% block content %}<div class="card" style="text-align:center"><img src="/static/logo.jpg" style="width:210px;border-radius:50%" onerror="this.style.display='none'"><h1>Bienvenida, Carolina</h1><p class="muted">Los Aromos Cloud · V1 Base</p></div><div class="grid"><div class="card"><div class="stat">{{ owners_count }}</div><h3>Propietarios</h3><a class="btn" href="/owners">Ver propietarios</a></div><div class="card"><div class="stat">{{ patients_count }}</div><h3>Pacientes</h3><a class="btn" href="/search">Buscar paciente</a></div><div class="card"><div class="stat">{{ events_count }}</div><h3>Eventos clínicos</h3><a class="btn" href="/search">Historia clínica</a></div></div>{% endblock %}
+<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Login - Los Aromos</title><link rel="stylesheet" href="/static/style.css"></head>
+<body class="login-body">
+  <div class="login-card">
+    <img src="/static/logo.jpg" class="login-logo">
+    <h1>Los Aromos Cloud</h1>
+    <p>Sistema de gestión veterinaria</p>
+    {% if error %}<div class="alert">{{ error }}</div>{% endif %}
+    <form method="post" action="/login">
+      <label>Usuario</label><input name="username" value="admin" required>
+      <label>Clave</label><input name="password" type="password" required>
+      <button>Ingresar</button>
+    </form>
+  </div>
+</body></html>

@@ -1,1 +1,26 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Los Aromos Cloud</title><link rel="stylesheet" href="/static/style.css"></head><body><div class="topbar"><img src="/static/logo.jpg" class="logo-small" onerror="this.style.display='none'"><div class="brand">LOS AROMOS<small>CLÍNICA VETERINARIA</small></div><div style="margin-left:auto">{{ user.full_name if user else '' }} &nbsp; <a href="/logout">Salir</a></div></div><div class="layout"><nav class="sidebar"><a href="/">Inicio</a><a href="/search">Historia clínica</a><a href="/owners">Propietarios</a><a href="/patients/new">Nuevo paciente</a><a href="/migration">Migración MyVete</a></nav><main class="content">{% block content %}{% endblock %}</main></div></body></html>
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Los Aromos Cloud</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand"><img src="/static/logo.jpg"><div><b>LOS AROMOS</b><span>Clínica Veterinaria</span></div></div>
+    <nav>
+      <a href="/">Inicio</a>
+      <a href="/search">Historia clínica</a>
+      <a href="/owners">Propietarios</a>
+      <a href="/patients/new">Nuevo paciente</a>
+      <a href="/migration">Migración MyVete</a>
+      <a href="/logout">Salir</a>
+    </nav>
+  </aside>
+  <main class="content">
+    <header class="topbar"><span>Los Aromos Cloud</span></header>
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

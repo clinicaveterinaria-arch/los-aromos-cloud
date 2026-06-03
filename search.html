@@ -1,1 +1,10 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Login Los Aromos</title><link rel="stylesheet" href="/static/style.css"></head><body class="login"><div class="login-card"><img src="/static/logo.jpg" class="login-logo" onerror="this.style.display='none'"><h1>Los Aromos Cloud</h1><p class="muted">Sistema veterinario</p>{% if error %}<div class="error">{{ error }}</div>{% endif %}<form method="post" action="/login"><label>Usuario</label><input name="username" value="admin"><label>Clave</label><input name="password" type="password" value="losaromos"><button class="btn" style="width:100%">Ingresar</button></form></div></body></html>
+{% extends 'base.html' %}{% block content %}
+<h1>Propietarios</h1>
+<form class="searchbar" method="get"><input name="q" value="{{ q }}" placeholder="Buscar por nombre, teléfono o WhatsApp"><button>Buscar</button></form>
+<div class="panel">
+<h2>Nuevo propietario</h2>
+<form method="post" action="/owners" class="form-grid">
+<input name="name" placeholder="Nombre y apellido" required><input name="phone" placeholder="Teléfono"><input name="whatsapp" placeholder="WhatsApp"><input name="email" placeholder="Email"><input name="address" placeholder="Dirección"><textarea name="notes" placeholder="Observaciones"></textarea><button>Guardar propietario</button>
+</form></div>
+<div class="panel"><h2>Listado</h2><table><tr><th>Nombre</th><th>Teléfono</th><th>WhatsApp</th><th></th></tr>{% for o in owners %}<tr><td>{{ o.name }}</td><td>{{ o.phone }}</td><td>{{ o.whatsapp }}</td><td><a class="btn" href="/patients/new?owner_id={{ o.id }}">Agregar paciente</a></td></tr>{% endfor %}</table></div>
+{% endblock %}

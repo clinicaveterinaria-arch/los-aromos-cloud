@@ -1,18 +1,21 @@
-services:
-  - type: web
-    name: los-aromos-cloud
-    runtime: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
-    envVars:
-      - key: DATABASE_URL
-        fromDatabase:
-          name: los-aromos-db
-          property: connectionString
-      - key: SECRET_KEY
-        generateValue: true
+import os
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, DeclarativeBase
 
-databases:
-  - name: los-aromos-db
-    databaseName: los_aromos
-    user: los_aromos_user
+DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:///./los_aromos_local.db')
+if DATABASE_URL.startswith('postgres://'):
+    DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
+
+connect_args = {'check_same_thread': False} if DATABASE_URL.startswith('sqlite') else {}
+engine = create_engine(DATABASE_URL, connect_args=connect_args, pool_pre_ping=True)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+class Base(DeclarativeBase):
+    pass
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
