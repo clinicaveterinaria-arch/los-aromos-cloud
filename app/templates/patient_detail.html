@@ -109,9 +109,29 @@
     {% if e.attachments %}
   <div class="attachments">
     <b>Adjuntos:</b><br>
-    {% for a in e.attachments %}
-    📎 <a href="{{ a.file_path }}" target="_blank">{{ a.filename }}</a><br>
-    {% endfor %}
+{% for a in e.attachments %}
+
+{% if a.filename.lower().endswith(('.jpg','.jpeg','.png','.gif','.webp')) %}
+
+<a href="{{ a.file_path }}" target="_blank">
+    <img src="{{ a.file_path }}"
+         alt="{{ a.filename }}"
+         style="max-width:300px;
+                max-height:300px;
+                border-radius:8px;
+                margin:10px 0;
+                display:block;">
+</a>
+
+{% else %}
+
+<a href="{{ a.file_path }}" target="_blank">
+    {{ a.filename }}
+</a><br>
+
+{% endif %}
+
+{% endfor %}
   </div>
 {% endif %}
 
