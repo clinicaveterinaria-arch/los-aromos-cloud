@@ -122,13 +122,25 @@
                 margin:10px 0;
                 display:block;">
 </a>
-
+<form method="post" action="/attachment/{{ a.id }}/delete"
+      onsubmit="return confirm('¿Eliminar este adjunto?');">
+    <button type="submit"
+            style="background:#dc3545;color:white;border:none;padding:5px 10px;border-radius:4px;cursor:pointer;margin-bottom:10px;">
+        Eliminar adjunto
+    </button>
+</form>
 {% else %}
 
 <a href="{{ a.file_path }}" target="_blank">
     {{ a.filename }}
 </a><br>
-
+<form method="post" action="/attachment/{{ a.id }}/delete"
+      onsubmit="return confirm('¿Eliminar este adjunto?');">
+    <button type="submit"
+            style="background:#dc3545;color:white;border:none;padding:5px 10px;border-radius:4px;cursor:pointer;margin-bottom:10px;">
+        Eliminar adjunto
+    </button>
+</form>
 {% endif %}
 
 {% endfor %}
