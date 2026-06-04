@@ -55,16 +55,33 @@ img{
 
 </head>
 
+
+
 <body>
 
 <button onclick="window.print()">
     Imprimir / Guardar PDF
 </button>
 
-<div class="header">
+<div class="header" style="border-bottom:2px solid #d85b9f;padding-bottom:15px;margin-bottom:25px;">
 
-<h1>{{ patient.name }}</h1>
+    <div style="display:flex;align-items:center;gap:20px;">
+        <img src="/static/logo.jpg" style="width:90px;height:auto;">
 
+        <div>
+            <h2 style="margin:0;">Clínica Veterinaria Los Aromos</h2>
+            <p style="margin:4px 0;">
+                Médica Veterinaria Carolina Villani — MP 1525<br>
+                Concordia, Entre Ríos
+            </p>
+        </div>
+    </div>
+
+</div>
+
+<h1>Historia Clínica</h1>
+
+<h2>{{ patient.name }}</h2>
 <p>
 <b>Especie:</b> {{ patient.species or '' }}<br>
 <b>Raza:</b> {{ patient.breed or '' }}<br>
@@ -138,6 +155,12 @@ img{
 </div>
 
 {% endfor %}
-
+<div style="margin-top:50px;text-align:right;">
+    <p>______________________________</p>
+    <p>
+        Médica Veterinaria Carolina Villani<br>
+        MP 1525
+    </p>
+</div>
 </body>
 </html>
