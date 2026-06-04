@@ -11,14 +11,55 @@
   <a class="card" href="/migration"><h3>Migración MyVete</h3><p>Módulo administrativo inicial.</p></a>
 </div>
 <div class="grid stats">
-  <div class="panel"><b>{{ stats.owners }}</b><span>Propietarios</span></div>
-  <div class="panel"><b>{{ stats.patients }}</b><span>Pacientes</span></div>
-  <div class="panel"><b>{{ stats.events }}</b><span>Eventos clínicos</span></div>
+    <div class="panel">
+        <b>{{ stats.owners }}</b>
+        <span>Propietarios</span>
+    </div>
+
+    <div class="panel">
+        <b>{{ stats.patients }}</b>
+        <span>Pacientes</span>
+    </div>
+
+    <div class="panel">
+        <b>{{ stats.events }}</b>
+        <span>Eventos clínicos</span>
+    </div>
+
+    <div class="panel">
+        <b>{{ stats.pending }}</b>
+        <span>Recordatorios</span>
+    </div>
+
+    <div class="panel">
+        <b>{{ stats.today }}</b>
+        <span>Hoy</span>
+    </div>
+
+    <div class="panel">
+        <b>{{ stats.overdue }}</b>
+        <span>Vencidos</span>
+    </div>
 </div>
 <div class="panel wide">
   <h2>Últimos eventos</h2>
   {% for e in latest_events %}
   <div class="timeline-item"><b>{{ e.event_type }}</b> — {{ e.patient.name }} <small>{{ e.event_date.strftime('%d/%m/%Y %H:%M') }}</small><br>{{ e.title }}</div>
   {% else %}<p>No hay eventos cargados todavía.</p>{% endfor %}
+</div>
+<div class="panel wide">
+    <h2>Próximos recordatorios</h2>
+
+    {% for e in upcoming %}
+        <div class="timeline-item">
+            <b>{{ e.reminder_date.strftime('%d/%m/%Y') }}</b>
+            -
+            {{ e.patient.name }}
+            <br>
+            {{ e.description }}
+        </div>
+    {% else %}
+        <p>No hay recordatorios pendientes.</p>
+    {% endfor %}
 </div>
 {% endblock %}
