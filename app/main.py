@@ -197,26 +197,26 @@ def event_create(
         created_by=user.username
     )
 
-   db.add(event)
-db.commit()
-db.refresh(event)
-
-if attachment and attachment.filename:
-    file_path = f"app/uploads/{event.id}_{attachment.filename}"
-
-    with open(file_path, "wb") as buffer:
-        buffer.write(attachment.file.read())
-
-    attach = EventAttachment(
-        event_id=event.id,
-        filename=attachment.filename,
-        file_path=file_path
-    )
-
-    db.add(attach)
+     db.add(event)
     db.commit()
+    db.refresh(event)
 
-return RedirectResponse(f'/patients/{patient_id}', status_code=303)
+    if attachment and attachment.filename:
+        file_path = f"app/uploads/{event.id}_{attachment.filename}"
+
+        with open(file_path, "wb") as buffer:
+            buffer.write(attachment.file.read())
+
+        attach = EventAttachment(
+            event_id=event.id,
+            filename=attachment.filename,
+            file_path=file_path
+        )
+
+        db.add(attach)
+        db.commit()
+
+    return RedirectResponse(f'/patients/{patient_id}', status_code=303)
 
 @app.get('/migration', response_class=HTMLResponse)
 def migration(request: Request, user: User = Depends(require_user)):
