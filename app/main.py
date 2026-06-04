@@ -16,6 +16,7 @@ from .models import User, Owner, Patient, ClinicalEvent, EventAttachment
 app = FastAPI(title='Los Aromos Cloud')
 app.add_middleware(SessionMiddleware, secret_key=os.getenv('SECRET_KEY', 'dev-secret-change-me'))
 app.mount('/static', StaticFiles(directory='app/static'), name='static')
+os.makedirs("app/uploads", exist_ok=True)
 os.makedirs('app/uploads', exist_ok=True)
 app.mount('/uploads', StaticFiles(directory='app/uploads'), name='uploads')
 templates = Jinja2Templates(directory='app/templates')
