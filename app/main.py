@@ -237,7 +237,32 @@ def event_create(
 @app.get('/migration', response_class=HTMLResponse)
 def migration(request: Request, user: User = Depends(require_user)):
     return templates.TemplateResponse('migration.html', {'request': request})
+@app.post('/attachment/{attachment_id}/delete')
+def delete_attachment(
+    attachment_id: int,
+    db: Session = Depends(get_db)
+):
+    attachment = db.query(EventAttachment).filter(
+        EventAttachment.id == attachment_id
+    ).first()
 
+    if not attachment:
+        raise HTTPException(status_code=404, detail="Adjunto no encontrado")
+
+    patient_id = attachment.event.patient_id
+
+    try:
+        path_parts = attachment.file_path.split("/storage/v1/object/public/adjuntos/")
+        if len(path_parts) > 1:
+            storage_path = path_parts[1]
+            supabase.storage.from_("adjuntos").remove([storage_path])
+    except Exception:
+        pass
+
+    db.delete(attachment)
+    db.commit()
+
+    return RedirectResponse(f"/patients/{patient_id}", status_code=303)
 @app.get('/health')
 def health():
     return {'status': 'ok', 'app': 'Los Aromos Cloud'}
