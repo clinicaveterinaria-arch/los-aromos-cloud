@@ -44,6 +44,7 @@ class Patient(Base):
 
 class ClinicalEvent(Base):
     __tablename__ = 'clinical_events'
+
     id: Mapped[int] = mapped_column(primary_key=True)
     patient_id: Mapped[int] = mapped_column(ForeignKey('patients.id'), index=True)
     event_date: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
@@ -54,18 +55,33 @@ class ClinicalEvent(Base):
     treatment: Mapped[str] = mapped_column(Text, default='')
     reminder_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     created_by: Mapped[str] = mapped_column(String(100), default='admin')
-    patient: Mapped['Patient'] = relationship(back_populates='events')
-    # Signos vitales
-    weight: Mapped[float | None] = mapped_column(Float, nullable=True)
-    temperature: Mapped[float | None] = mapped_column(Float, nullable=True)
+
+    weight: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    temperature: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     heart_rate: Mapped[Optional[int]] = mapped_column(nullable=True)
     respiratory_rate: Mapped[Optional[int]] = mapped_column(nullable=True)
 
-    # Examen físico
     mucous_membranes: Mapped[str] = mapped_column(String(100), default='')
     crt: Mapped[str] = mapped_column(String(50), default='')
     hydration: Mapped[str] = mapped_column(String(100), default='')
 
-    # Historia clínica
     anamnesis: Mapped[str] = mapped_column(Text, default='')
     physical_exam: Mapped[str] = mapped_column(Text, default='')
+
+    patient: Mapped['Patient'] = relationship(back_populates='events')
+    attachments: Mapped[list['EventAttachment']] = relationship(
+        back_populates='event',
+        cascade='all, delete-orphan'
+    )
+
+
+class EventAttachment(Base):
+    __tablename__ = 'event_attachments'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    event_id: Mapped[int] = mapped_column(ForeignKey('clinical_events.id'), index=True)
+    filename: Mapped[str] = mapped_column(String(255))
+    file_path: Mapped[str] = mapped_column(String(500))
+
+    event: Mapped['ClinicalEvent'] = relationship(back_populates='attachments')
+   
