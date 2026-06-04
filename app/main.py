@@ -197,7 +197,7 @@ def event_create(
         created_by=user.username
     )
 
-     db.add(event)
+    db.add(event)
     db.commit()
     db.refresh(event)
 
