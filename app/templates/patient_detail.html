@@ -55,7 +55,7 @@
   <h2>Línea de tiempo</h2>
 
   {% for e in events %}
-  <div class="timeline-item">
+  <div class="timeline-item tipo-{{ e.event_type|lower|replace(' ', '-')|replace('í','i')|replace('ó','o')|replace('á','a') }}">
     <b>{{ e.event_type }}</b>
     <small>{{ e.event_date.strftime('%d/%m/%Y %H:%M') }}</small>
 
