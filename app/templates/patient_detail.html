@@ -48,6 +48,13 @@
     <textarea name="treatment" placeholder="Tratamiento / indicaciones"></textarea>
 
     <label>Recordatorio opcional</label>
+    <div style="margin-top:10px;">
+    <b>Recordatorios rápidos:</b><br>
+    <button type="button" onclick="setReminderDays(7)">7 días</button>
+    <button type="button" onclick="setReminderDays(15)">15 días</button>
+    <button type="button" onclick="setReminderDays(30)">30 días</button>
+    <button type="button" onclick="setReminderDays(365)">1 año</button>
+</div>
     <input type="date" name="reminder_date">
 
     <div style="margin-top:10px;">
@@ -162,3 +169,9 @@ function setEventType(type) {
 }
 </script>
 {% endblock %}
+function setReminderDays(days) {
+    const input = document.querySelector('input[name="reminder_date"]');
+    const date = new Date();
+    date.setDate(date.getDate() + days);
+    input.value = date.toISOString().split('T')[0];
+}
