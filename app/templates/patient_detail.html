@@ -19,7 +19,10 @@
   <button type="button" onclick="setEventType('Laboratorio')">🧪 Laboratorio</button>
   <button type="button" onclick="setEventType('Informe')">📄 Informe</button>
 </div>
-  <form method="post" action="/patients/{{ patient.id }}/events" class="form-grid">
+  <form method="post"
+      action="/patients/{{ patient.id }}/events"
+      enctype="multipart/form-data"
+      class="form-grid">
 
     <select name="event_type" id="event_type">
       {% for t in event_types %}
@@ -47,8 +50,13 @@
     <label>Recordatorio opcional</label>
     <input type="date" name="reminder_date">
 
+    <div style="margin-top:10px;">
+    <label><b>Adjuntar archivo</b></label><br>
+    <input type="file" name="attachment">
+</div>
+
+<div style="margin-top:10px;">
     <button type="submit">Guardar evento</button>
-  </form>
 </div>
 
 <div class="panel">
