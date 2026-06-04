@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>Recordatorios pendientes</h2>
+
+{% if eventos %}
+
+<table style="width:100%;border-collapse:collapse;background:white;">
+    <tr style="background:#f3f3f3;">
+        <th style="padding:10px;border:1px solid #ddd;">Fecha</th>
+        <th style="padding:10px;border:1px solid #ddd;">Paciente</th>
+        <th style="padding:10px;border:1px solid #ddd;">Descripción</th>
+        <th style="padding:10px;border:1px solid #ddd;">Acción</th>
+    </tr>
+
+    {% for e in eventos %}
+    <tr>
+        <td style="padding:10px;border:1px solid #ddd;">
+            {{ e.reminder_date.strftime('%d/%m/%Y') }}
+        </td>
+
+        <td style="padding:10px;border:1px solid #ddd;">
+            {{ e.patient.name }}
+        </td>
+
+        <td style="padding:10px;border:1px solid #ddd;">
+            {{ e.description }}
+        </td>
+
+        <td style="padding:10px;border:1px solid #ddd;">
+            <a href="/patients/{{ e.patient.id }}">
+                Ver ficha
+            </a>
+        </td>
+    </tr>
+    {% endfor %}
+
+</table>
+
+{% else %}
+
+<p>No hay recordatorios pendientes.</p>
+
+{% endif %}
+
+{% endblock %}
