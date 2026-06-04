@@ -51,14 +51,34 @@
     <h2>Próximos recordatorios</h2>
 
     {% for e in upcoming %}
-        <div class="timeline-item">
-            <b>{{ e.reminder_date.strftime('%d/%m/%Y') }}</b>
-            -
-            {{ e.patient.name }}
-            <br>
-            {{ e.description }}
-        </div>
-    {% else %}
+<div class="timeline-item">
+
+{% if e.reminder_date < today %}
+<span style="color:#dc3545;font-weight:bold;">
+🔴 {{ e.reminder_date.strftime('%d/%m/%Y') }}
+</span>
+
+{% elif e.reminder_date == today %}
+<span style="color:#fd7e14;font-weight:bold;">
+🟡 {{ e.reminder_date.strftime('%d/%m/%Y') }}
+</span>
+
+{% else %}
+<span style="color:#198754;font-weight:bold;">
+🟢 {{ e.reminder_date.strftime('%d/%m/%Y') }}
+</span>
+
+{% endif %}
+
+- {{ e.patient.name }}
+
+<br>
+
+{{ e.description }}
+
+</div>
+
+{% else %}
         <p>No hay recordatorios pendientes.</p>
     {% endfor %}
 </div>
