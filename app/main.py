@@ -208,21 +208,21 @@ def event_create(
 
     for attachment in attachments:
 
-    if not attachment or not attachment.filename:
+        if not attachment or not attachment.filename:
         continue
 
-    safe_filename = attachment.filename.replace(" ", "_")
-    storage_path = f"{patient_id}/{event.id}_{safe_filename}"
+        safe_filename = attachment.filename.replace(" ", "_")
+        storage_path = f"{patient_id}/{event.id}_{safe_filename}"
 
-    file_bytes = attachment.file.read()
+        file_bytes = attachment.file.read()
 
-    supabase.storage.from_("adjuntos").upload(
-        storage_path,
-        file_bytes,
-        {
-            "content-type": attachment.content_type or "application/octet-stream",
-            "upsert": "true"
-        }
+        supabase.storage.from_("adjuntos").upload(
+            storage_path,
+            file_bytes,
+            {
+                "content-type": attachment.content_type or "application/octet-stream",
+                "upsert": "true"
+            }
     )
 
     public_url = supabase.storage.from_("adjuntos").get_public_url(storage_path)
