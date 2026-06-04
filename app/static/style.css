@@ -1,1 +1,28 @@
 :root{--pink:#df6aa0;--pink2:#f3a9c8;--gray:#3d4550;--light:#faf7f9;--border:#ead7e1;--text:#27303b}*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--light);color:var(--text)}.sidebar{position:fixed;left:0;top:0;bottom:0;width:250px;background:linear-gradient(180deg,#343c46,#48515d);color:#fff}.brand{display:flex;gap:12px;align-items:center;padding:20px;background:var(--pink)}.brand img{width:54px;height:54px;border-radius:50%;background:#fff}.brand span{display:block;font-size:12px;letter-spacing:2px}.sidebar nav{padding:18px}.sidebar a{display:block;color:#fff;text-decoration:none;padding:13px 14px;border-radius:12px;margin:6px 0}.sidebar a:hover,.sidebar a.active{background:var(--pink)}.content{margin-left:250px;min-height:100vh}.topbar{height:68px;background:var(--pink);color:#fff;display:flex;align-items:center;justify-content:flex-end;padding:0 28px;font-weight:bold}.hero{text-align:center;padding:30px}.hero-logo{width:230px;height:230px;border-radius:50%;border:5px solid var(--pink);object-fit:cover;background:#fff}.hero h1{margin:15px 0 0}.hero p{color:#777}.grid{display:grid;gap:20px;margin:0 28px 20px}.cards{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}.card,.panel{background:white;border:1px solid var(--border);border-radius:18px;padding:22px;box-shadow:0 4px 18px rgba(0,0,0,.04)}.card{text-decoration:none;color:var(--text);display:block}.card h3{color:var(--pink);margin-top:0}.stats{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}.stats b{font-size:38px;color:var(--pink);display:block}.wide{margin:25px 28px}.panel{margin:24px 28px}h1{margin:28px 28px 10px}.searchbar{display:flex;gap:10px;margin:0 28px 20px}.searchbar input{flex:1}.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}input,select,textarea{width:100%;padding:12px;border:1px solid var(--border);border-radius:10px;font-family:inherit}textarea{min-height:90px;grid-column:1/-1}button,.btn{background:var(--pink);color:white;border:none;border-radius:10px;padding:12px 18px;text-decoration:none;display:inline-block;font-weight:bold;cursor:pointer}button:hover,.btn:hover{background:#c95488}table{width:100%;border-collapse:collapse}th,td{padding:11px;border-bottom:1px solid var(--border);text-align:left}.result{display:block;text-decoration:none;color:var(--text);padding:15px;border-bottom:1px solid var(--border)}.result:hover{background:#fff2f8}.timeline-item{border-left:5px solid var(--pink);padding:14px 18px;margin:14px 0;background:#fff8fb;border-radius:12px}.timeline-item small{color:#777}.reminder,.alert{background:#fff0f6;border:1px solid var(--pink2);border-radius:12px;padding:12px;color:#9d2f64}.patient-head{display:flex;justify-content:space-between;gap:16px}.login-body{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#f7d9e7,#f9f9f9)}.login-card{width:380px;background:#fff;border-radius:24px;padding:30px;text-align:center;box-shadow:0 10px 35px rgba(0,0,0,.12)}.login-logo{width:150px;height:150px;border-radius:50%;border:4px solid var(--pink);object-fit:cover}.login-card label{display:block;text-align:left;margin-top:12px}.login-card button{width:100%;margin-top:18px}.login-card h1{margin:12px 0 0}.login-card p{color:#777}
+.tipo-radiografia {
+    border-left: 6px solid #4a90e2;
+}
+
+.tipo-ecg {
+    border-left: 6px solid #e74c3c;
+}
+
+.tipo-ecografia {
+    border-left: 6px solid #2ecc71;
+}
+
+.tipo-laboratorio {
+    border-left: 6px solid #9b59b6;
+}
+
+.tipo-informe {
+    border-left: 6px solid #f39c12;
+}
+
+.tipo-vacuna {
+    border-left: 6px solid #d85b9f;
+}
+
+.tipo-consulta-clinica {
+    border-left: 6px solid #d85b9f;
+}
