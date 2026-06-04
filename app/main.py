@@ -100,13 +100,50 @@ def logout(request: Request):
 
 @app.get('/', response_class=HTMLResponse)
 def home(request: Request, db: Session = Depends(get_db), user: User = Depends(require_user)):
+    today = datetime.now().date()
+
     stats = {
         'owners': db.query(Owner).count(),
         'patients': db.query(Patient).count(),
         'events': db.query(ClinicalEvent).count(),
+        'pending': db.query(ClinicalEvent).filter(
+            ClinicalEvent.reminder_date != None
+        ).count(),
+        'overdue': db.query(ClinicalEvent).filter(
+            ClinicalEvent.reminder_date != None,
+            ClinicalEvent.reminder_date < today
+        ).count(),
+        'today': db.query(ClinicalEvent).filter(
+            ClinicalEvent.reminder_date == today
+        ).count()
     }
-    latest_events = db.query(ClinicalEvent).order_by(ClinicalEvent.event_date.desc()).limit(6).all()
-    return templates.TemplateResponse('home.html', {'request': request, 'user': user, 'stats': stats, 'latest_events': latest_events})
+
+    latest_events = (
+        db.query(ClinicalEvent)
+        .order_by(ClinicalEvent.event_date.desc())
+        .limit(8)
+        .all()
+    )
+
+    upcoming = (
+        db.query(ClinicalEvent)
+        .filter(ClinicalEvent.reminder_date != None)
+        .order_by(ClinicalEvent.reminder_date.asc())
+        .limit(8)
+        .all()
+    )
+
+    return templates.TemplateResponse(
+        'home.html',
+        {
+            'request': request,
+            'user': user,
+            'stats': stats,
+            'latest_events': latest_events,
+            'upcoming': upcoming,
+            'today': today
+        }
+    )
 
 @app.get('/owners', response_class=HTMLResponse)
 def owners(request: Request, q: str = '', db: Session = Depends(get_db), user: User = Depends(require_user)):
