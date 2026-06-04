@@ -168,7 +168,7 @@ def event_create(
     mucous_membranes: str = Form(''),
     crt: str = Form(''),
     hydration: str = Form(''),
-    attachment: UploadFile = File(None),
+    attachments: list[UploadFile] = File(default=[]),
     db: Session = Depends(get_db),
     user: User = Depends(require_user)
 ):
@@ -206,31 +206,37 @@ def event_create(
     db.commit()
     db.refresh(event)
 
-    if attachment and attachment.filename:
-        safe_filename = attachment.filename.replace(" ", "_")
-        storage_path = f"{patient_id}/{event.id}_{safe_filename}"
+    for attachment in attachments:
 
-        file_bytes = attachment.file.read()
+    if not attachment or not attachment.filename:
+        continue
 
-        supabase.storage.from_("adjuntos").upload(
-            storage_path,
-            file_bytes,
-            {
-                "content-type": attachment.content_type or "application/octet-stream",
-                "upsert": "true"
-            }
-        )
+    safe_filename = attachment.filename.replace(" ", "_")
+    storage_path = f"{patient_id}/{event.id}_{safe_filename}"
 
-        public_url = supabase.storage.from_("adjuntos").get_public_url(storage_path)
+    file_bytes = attachment.file.read()
 
-        attach = EventAttachment(
-            event_id=event.id,
-            filename=attachment.filename,
-            file_path=public_url
-        )
+    supabase.storage.from_("adjuntos").upload(
+        storage_path,
+        file_bytes,
+        {
+            "content-type": attachment.content_type or "application/octet-stream",
+            "upsert": "true"
+        }
+    )
 
-        db.add(attach)
-        db.commit()
+    public_url = supabase.storage.from_("adjuntos").get_public_url(storage_path)
+
+    attach = EventAttachment(
+        event_id=event.id,
+        filename=attachment.filename,
+        file_path=public_url
+    )
+
+    db.add(attach)
+
+db.commit()
+
 
     return RedirectResponse(f'/patients/{patient_id}', status_code=303)
 
