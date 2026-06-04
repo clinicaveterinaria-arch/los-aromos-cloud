@@ -56,7 +56,22 @@
 
   {% for e in events %}
   <div class="timeline-item tipo-{{ e.event_type|lower|replace(' ', '-')|replace('í','i')|replace('ó','o')|replace('á','a') }}">
-    <b>{{ e.event_type }}</b>
+    <b>
+  {% if e.event_type == 'Radiografía' %}📷
+  {% elif e.event_type == 'ECG' %}❤️
+  {% elif e.event_type == 'Ecografía' %}🔊
+  {% elif e.event_type == 'Laboratorio' %}🧪
+  {% elif e.event_type == 'Informe' %}📄
+  {% elif e.event_type == 'Vacuna' %}💉
+  {% elif e.event_type == 'Desparasitación' %}🪱
+  {% elif e.event_type == 'Cirugía' %}🔪
+  {% elif e.event_type == 'Anestesia' %}💤
+  {% elif e.event_type == 'Internación' %}🏥
+  {% elif e.event_type == 'Consulta clínica' %}🩺
+  {% else %}📌
+  {% endif %}
+  {{ e.event_type }}
+</b>
     <small>{{ e.event_date.strftime('%d/%m/%Y %H:%M') }}</small>
 
     <h3>{{ e.title }}</h3>
