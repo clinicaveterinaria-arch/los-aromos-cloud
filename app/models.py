@@ -1,5 +1,6 @@
 from datetime import datetime, date
 from typing import Optional
+
 from sqlalchemy import String, Text, Date, DateTime, Float, ForeignKey, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .database import Base
@@ -54,3 +55,17 @@ class ClinicalEvent(Base):
     reminder_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     created_by: Mapped[str] = mapped_column(String(100), default='admin')
     patient: Mapped['Patient'] = relationship(back_populates='events')
+    # Signos vitales
+    weight: Mapped[float | None] = mapped_column(Float, nullable=True)
+    temperature: Mapped[float | None] = mapped_column(Float, nullable=True)
+    heart_rate: Mapped[Optional[int]] = mapped_column(nullable=True)
+    respiratory_rate: Mapped[Optional[int]] = mapped_column(nullable=True)
+
+    # Examen físico
+    mucous_membranes: Mapped[str] = mapped_column(String(100), default='')
+    crt: Mapped[str] = mapped_column(String(50), default='')
+    hydration: Mapped[str] = mapped_column(String(100), default='')
+
+    # Historia clínica
+    anamnesis: Mapped[str] = mapped_column(Text, default='')
+    physical_exam: Mapped[str] = mapped_column(Text, default='')
