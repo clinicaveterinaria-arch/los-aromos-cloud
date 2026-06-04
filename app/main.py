@@ -209,7 +209,7 @@ def event_create(
     for attachment in attachments:
 
         if not attachment or not attachment.filename:
-        continue
+            continue
 
         safe_filename = attachment.filename.replace(" ", "_")
         storage_path = f"{patient_id}/{event.id}_{safe_filename}"
