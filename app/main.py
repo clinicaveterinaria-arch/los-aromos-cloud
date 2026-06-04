@@ -1,7 +1,7 @@
 from datetime import datetime
 import os
 from typing import Optional
-from fastapi import FastAPI, Request, Form, Depends, HTTPException
+from fastapi import FastAPI, Request, Form, Depends, HTTPException, UploadFile, File
 from fastapi.responses import RedirectResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -11,11 +11,13 @@ from passlib.context import CryptContext
 from starlette.middleware.sessions import SessionMiddleware
 
 from .database import Base, engine, get_db
-from .models import User, Owner, Patient, ClinicalEvent
+from .models import User, Owner, Patient, ClinicalEvent, EventAttachment
 
 app = FastAPI(title='Los Aromos Cloud')
 app.add_middleware(SessionMiddleware, secret_key=os.getenv('SECRET_KEY', 'dev-secret-change-me'))
 app.mount('/static', StaticFiles(directory='app/static'), name='static')
+os.makedirs('app/uploads', exist_ok=True)
+app.mount('/uploads', StaticFiles(directory='app/uploads'), name='uploads')
 templates = Jinja2Templates(directory='app/templates')
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 
@@ -35,6 +37,14 @@ def init_db():
         conn.execute(text("ALTER TABLE clinical_events ADD COLUMN IF NOT EXISTS hydration TEXT DEFAULT ''"))
         conn.execute(text("ALTER TABLE clinical_events ADD COLUMN IF NOT EXISTS anamnesis TEXT DEFAULT ''"))
         conn.execute(text("ALTER TABLE clinical_events ADD COLUMN IF NOT EXISTS physical_exam TEXT DEFAULT ''"))
+        conn.execute(text("""
+CREATE TABLE IF NOT EXISTS event_attachments (
+    id SERIAL PRIMARY KEY,
+    event_id INTEGER REFERENCES clinical_events(id),
+    filename VARCHAR(255) NOT NULL,
+    file_path VARCHAR(500) NOT NULL
+)
+"""))
 
     try:
         admin = db.query(User).filter(User.username == 'admin').first()
