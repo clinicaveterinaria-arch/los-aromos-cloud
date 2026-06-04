@@ -114,14 +114,7 @@
     {% endfor %}
   </div>
 {% endif %}
-    {% if e.attachments %}
-  <div class="attachments">
-    <b>Adjuntos:</b><br>
-    {% for a in e.attachments %}
-      📎 <a href="/uploads/{{ a.file_path.split('/')[-1] }}" target="_blank">{{ a.filename }}</a><br>
-    {% endfor %}
-  </div>
-{% endif %}
+
 
     {% if e.reminder_date %}
     <div class="reminder">Recordatorio: {{ e.reminder_date.strftime('%d/%m/%Y') }}</div>
