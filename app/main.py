@@ -1,5 +1,6 @@
 from datetime import datetime
 import os
+
 from typing import Optional
 from fastapi import FastAPI, Request, Form, Depends, HTTPException, UploadFile, File
 from fastapi.responses import RedirectResponse, HTMLResponse
@@ -9,7 +10,11 @@ from sqlalchemy.orm import Session
 from sqlalchemy import or_, text
 from passlib.context import CryptContext
 from starlette.middleware.sessions import SessionMiddleware
+from supabase import create_client
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 from .database import Base, engine, get_db
 from .models import User, Owner, Patient, ClinicalEvent, EventAttachment
 
