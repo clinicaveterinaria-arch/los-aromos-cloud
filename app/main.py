@@ -235,7 +235,7 @@ def event_create(
 
     db.add(attach)
 
-db.commit()
+    db.commit()
 
 
     return RedirectResponse(f'/patients/{patient_id}', status_code=303)
