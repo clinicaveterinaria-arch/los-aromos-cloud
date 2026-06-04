@@ -1,7 +1,7 @@
 from datetime import datetime
 import os
 from typing import Optional
-from fastapi import FastAPI, Request, Form, Depends, HTTPException, UploadFile, File, UploadFile, File
+from fastapi import FastAPI, Request, Form, Depends, HTTPException, UploadFile, File
 from fastapi.responses import RedirectResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
