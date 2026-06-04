@@ -319,6 +319,33 @@ def pendientes(request: Request, db: Session = Depends(get_db), user: User = Dep
         'pendientes.html',
         {'request': request, 'eventos': eventos}
     )
+@app.get('/patients/{patient_id}/print', response_class=HTMLResponse)
+def patient_print(
+    request: Request,
+    patient_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    patient = db.get(Patient, patient_id)
+
+    if not patient:
+        raise HTTPException(status_code=404, detail="Paciente no encontrado")
+
+    events = (
+        db.query(ClinicalEvent)
+        .filter(ClinicalEvent.patient_id == patient.id)
+        .order_by(ClinicalEvent.event_date.desc())
+        .all()
+    )
+
+    return templates.TemplateResponse(
+        'patient_print.html',
+        {
+            'request': request,
+            'patient': patient,
+            'events': events
+        }
+    )
 @app.get('/health')
 def health():
     return {'status': 'ok', 'app': 'Los Aromos Cloud'}
