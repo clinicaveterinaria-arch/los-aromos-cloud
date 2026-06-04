@@ -110,7 +110,7 @@
   <div class="attachments">
     <b>Adjuntos:</b><br>
     {% for a in e.attachments %}
-      📎 <a href="/uploads/{{ a.file_path.split('/')[-1] }}" target="_blank">{{ a.filename }}</a><br>
+      <a href="{{ a.file_path }}" target="_blank">{{ a.filename }}</a>
     {% endfor %}
   </div>
 {% endif %}
