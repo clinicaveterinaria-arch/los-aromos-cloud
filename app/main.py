@@ -119,12 +119,58 @@ def patient_detail(request: Request, patient_id: int, db: Session = Depends(get_
     return templates.TemplateResponse('patient_detail.html', {'request': request, 'patient': patient, 'events': events, 'event_types': EVENT_TYPES})
 
 @app.post('/patients/{patient_id}/events')
-def event_create(patient_id: int, event_type: str = Form(...), title: str = Form(''), description: str = Form(''), diagnosis: str = Form(''), treatment: str = Form(''), reminder_date: str = Form(''), db: Session = Depends(get_db), user: User = Depends(require_user)):
+def event_create(
+    patient_id: int,
+    event_type: str = Form(...),
+    title: str = Form(''),
+    description: str = Form(''),
+    anamnesis: str = Form(''),
+    physical_exam: str = Form(''),
+    diagnosis: str = Form(''),
+    treatment: str = Form(''),
+    reminder_date: str = Form(''),
+    weight: str = Form(''),
+    temperature: str = Form(''),
+    heart_rate: str = Form(''),
+    respiratory_rate: str = Form(''),
+    mucous_membranes: str = Form(''),
+    crt: str = Form(''),
+    hydration: str = Form(''),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
     rd = None
     if reminder_date:
         rd = datetime.strptime(reminder_date, '%Y-%m-%d').date()
-    event = ClinicalEvent(patient_id=patient_id, event_type=event_type, title=title, description=description, diagnosis=diagnosis, treatment=treatment, reminder_date=rd, created_by=user.username)
-    db.add(event); db.commit()
+
+    def to_float(value):
+        return float(value.replace(',', '.')) if value and value.strip() else None
+
+    def to_int(value):
+        return int(value) if value and value.strip() else None
+
+    event = ClinicalEvent(
+        patient_id=patient_id,
+        event_type=event_type,
+        title=title,
+        description=description,
+        anamnesis=anamnesis,
+        physical_exam=physical_exam,
+        diagnosis=diagnosis,
+        treatment=treatment,
+        reminder_date=rd,
+        weight=to_float(weight),
+        temperature=to_float(temperature),
+        heart_rate=to_int(heart_rate),
+        respiratory_rate=to_int(respiratory_rate),
+        mucous_membranes=mucous_membranes,
+        crt=crt,
+        hydration=hydration,
+        created_by=user.username
+    )
+
+    db.add(event)
+    db.commit()
     return RedirectResponse(f'/patients/{patient_id}', status_code=303)
 
 @app.get('/migration', response_class=HTMLResponse)
