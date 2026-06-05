@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 
 from typing import Optional
@@ -334,6 +334,30 @@ def pendientes(request: Request, db: Session = Depends(get_db), user: User = Dep
     'pending_count': len(eventos)
 }
     )
+    @app.get('/patients/{patient_id}/quick-pendiente')
+def quick_pendiente(
+    patient_id: int,
+    type: str,
+    days: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    patient = db.get(Patient, patient_id)
+
+    if not patient:
+        raise HTTPException(status_code=404, detail="Paciente no encontrado")
+
+    event = ClinicalEvent(
+        patient_id=patient.id,
+        event_type=type,
+        title=type,
+        reminder_date=datetime.now().date() + timedelta(days=days)
+    )
+
+    db.add(event)
+    db.commit()
+
+    return RedirectResponse(f"/patients/{patient.id}", status_code=303)
 @app.post('/events/{event_id}/done')
 def event_done(
     event_id: int,
