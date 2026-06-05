@@ -50,11 +50,25 @@
   {% endif %}
 
   <div style="margin-top:12px;">
-    <a href="/patients/{{ e.patient.id }}" 
+
+    <a href="/patients/{{ e.patient.id }}"
        style="background:#df5b9a;color:white;text-decoration:none;padding:8px 14px;border-radius:10px;display:inline-block;">
        Ver ficha
     </a>
-  </div>
+
+    <form method="post"
+          action="/events/{{ e.id }}/done"
+          style="display:inline-block;margin-left:8px;">
+
+        <button type="submit"
+                onclick="return confirm('¿Marcar este recordatorio como realizado?')"
+                style="background:#28a745;color:white;border:none;padding:8px 14px;border-radius:10px;cursor:pointer;">
+            Realizado
+        </button>
+
+    </form>
+
+</div>
 
 </div>
 
