@@ -43,9 +43,15 @@
 </div>
 <div class="panel wide">
   <h2>Últimos eventos</h2>
-  {% for e in latest_events %}
-  <div class="timeline-item"><b>{{ e.event_type }}</b> — {{ e.patient.name }} <small>{{ e.event_date.strftime('%d/%m/%Y %H:%M') }}</small><br>{{ e.title }}</div>
-  {% else %}<p>No hay eventos cargados todavía.</p>{% endfor %}
+ {% for e in latest_events %}
+<a href="/patients/{{ e.patient.id }}" class="timeline-item" style="display:block;text-decoration:none;color:inherit;">
+    <b>{{ e.event_type }}</b> — {{ e.patient.name }}
+    <small>{{ e.event_date.strftime('%d/%m/%Y %H:%M') }}</small>
+    {% if e.title %}<br>{{ e.title }}{% endif %}
+</a>
+{% else %}
+<p>No hay eventos cargados todavía.</p>
+{% endfor %}
 </div>
 <div class="panel wide">
     <h2>Próximos recordatorios</h2>
