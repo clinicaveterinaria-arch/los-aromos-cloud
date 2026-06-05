@@ -255,8 +255,7 @@ def to_int(value):
     db.commit()
     db.refresh(event)
 
-    for attachment in attachments:
-
+      for attachment in attachments:
         if not attachment or not attachment.filename:
             continue
 
@@ -272,19 +271,19 @@ def to_int(value):
                 "content-type": attachment.content_type or "application/octet-stream",
                 "upsert": "true"
             }
-    )
+        )
 
-    public_url = f"{SUPABASE_URL}/storage/v1/object/public/adjuntos/{storage_path}"
+        public_url = f"{SUPABASE_URL}/storage/v1/object/public/adjuntos/{storage_path}"
 
-    attach = EventAttachment(
-        event_id=event.id,
-        filename=attachment.filename,
-        file_path=public_url
-    )
+        attach = EventAttachment(
+            event_id=event.id,
+            filename=attachment.filename,
+            file_path=public_url
+        )
 
-    db.add(attach)
+        db.add(attach)
 
-db.commit()
+    db.commit()
 
     return RedirectResponse(url=f"/patients/{patient_id}", status_code=303)
 
