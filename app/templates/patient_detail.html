@@ -57,7 +57,15 @@
     <button type="button" onclick="setReminderDays(30)">30 días</button>
     <button type="button" onclick="setReminderDays(365)">1 año</button>
 </div>
-    <input type="date" name="reminder_date">
+<div class="quick-reminders" style="margin:10px 0;">
+    <b>Recordatorio rápido:</b><br>
+
+    <button type="button" onclick="setReminderDays(7)">7 días</button>
+    <button type="button" onclick="setReminderDays(30)">30 días</button>
+    <button type="button" onclick="setReminderMonths(6)">6 meses</button>
+    <button type="button" onclick="setReminderDays(365)">1 año</button>
+</div>
+      <input type="date" name="reminder_date">
 
     <div style="margin-top:10px;">
     <label><b>Adjuntar archivo</b></label><br>
@@ -167,13 +175,22 @@
 </div>
 <script>
 function setEventType(type) {
-  document.getElementById('event_type').value = type;
+    document.getElementById('event_type').value = type;
 }
-</script>
-{% endblock %}
+
 function setReminderDays(days) {
     const input = document.querySelector('input[name="reminder_date"]');
     const date = new Date();
     date.setDate(date.getDate() + days);
     input.value = date.toISOString().split('T')[0];
 }
+
+function setReminderMonths(months) {
+    const input = document.querySelector('input[name="reminder_date"]');
+    const date = new Date();
+    date.setMonth(date.getMonth() + months);
+    input.value = date.toISOString().split('T')[0];
+}
+</script>
+
+{% endblock %}
