@@ -15,7 +15,9 @@
         <a href="/owners">Propietarios</a>
         <a href="/patients/new">Nuevo paciente</a>
         <a href="/migration">Migración MyVete</a>
-        <a href="/pendientes">Pendientes</a>
+        <a href="/pendientes">
+  Pendientes{% if pending_count is defined and pending_count > 0 %} ({{ pending_count }}){% endif %}
+</a>
         <a href="/logout">Salir</a>
     </nav>
   </aside>
