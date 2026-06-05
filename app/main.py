@@ -319,7 +319,12 @@ def pendientes(request: Request, db: Session = Depends(get_db), user: User = Dep
 
     return templates.TemplateResponse(
         'pendientes.html',
-        {'request': request, 'eventos': eventos, 'today': today}
+       {
+    'request': request,
+    'eventos': eventos,
+    'today': today,
+    'pending_count': len(eventos)
+}
     )
 @app.post('/events/{event_id}/done')
 def event_done(
