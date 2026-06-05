@@ -255,7 +255,7 @@ def to_int(value):
     db.commit()
     db.refresh(event)
 
-      for attachment in attachments:
+    for attachment in attachments:
         if not attachment or not attachment.filename:
             continue
 
@@ -281,11 +281,9 @@ def to_int(value):
             file_path=public_url
         )
 
-        db.add(attach)
-
-    db.commit()
-
-    return RedirectResponse(url=f"/patients/{patient_id}", status_code=303)
+db.add(attach)
+db.commit()
+return RedirectResponse(url=f"/patients/{patient_id}", status_code=303)
 
 @app.get('/migration', response_class=HTMLResponse)
 def migration(request: Request, user: User = Depends(require_user)):
