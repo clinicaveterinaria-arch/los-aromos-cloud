@@ -262,7 +262,7 @@ def event_create(
             }
     )
 
-    public_url = supabase.storage.from_("adjuntos").get_public_url(storage_path)
+    public_url = f"{SUPABASE_URL}/storage/v1/object/public/adjuntos/{storage_path}"
 
     attach = EventAttachment(
         event_id=event.id,
