@@ -334,7 +334,7 @@ def pendientes(request: Request, db: Session = Depends(get_db), user: User = Dep
     'pending_count': len(eventos)
 }
     )
-    @app.get('/patients/{patient_id}/quick-pendiente')
+@app.get('/patients/{patient_id}/quick-pendiente')
 def quick_pendiente(
     patient_id: int,
     type: str,
