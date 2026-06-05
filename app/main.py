@@ -349,7 +349,7 @@ def event_done(
     db.commit()
 
     return RedirectResponse('/pendientes', status_code=303)
-    @app.get('/events/{event_id}/whatsapp')
+@app.get('/events/{event_id}/whatsapp')
 def event_whatsapp(
     event_id: int,
     db: Session = Depends(get_db),
