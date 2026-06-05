@@ -346,7 +346,10 @@ def quick_pendiente(
     patient = db.get(Patient, patient_id)
 
     if not patient:
-        raise HTTPException(status_code=404, detail="Paciente no encontrado")
+        raise HTTPException(
+            status_code=404,
+            detail="Paciente no encontrado"
+        )
 
     reminder_date = datetime.now().date() + timedelta(days=days)
 
@@ -360,7 +363,10 @@ def quick_pendiente(
     )
 
     if existing_event:
-        return RedirectResponse(f"/patients/{patient.id}", status_code=303)
+        return RedirectResponse(
+            f"/patients/{patient.id}",
+            status_code=303
+        )
 
     event = ClinicalEvent(
         patient_id=patient.id,
@@ -372,7 +378,10 @@ def quick_pendiente(
     db.add(event)
     db.commit()
 
-    return RedirectResponse(f"/patients/{patient.id}", status_code=303)
+    return RedirectResponse(
+        f"/patients/{patient.id}",
+        status_code=303
+    )
 @app.post('/events/{event_id}/done')
 def event_done(
     event_id: int,
