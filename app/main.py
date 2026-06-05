@@ -249,7 +249,7 @@ def event_create(
             continue
 
         safe_filename = attachment.filename.replace(" ", "_")
-        storage_path = f"{patient_id}/{event.id}_{safe_filename}"
+        storage_path = f"{event.id}/{safe_filename}"
 
         file_bytes = attachment.file.read()
 
