@@ -321,18 +321,21 @@ def pendientes(request: Request, db: Session = Depends(get_db), user: User = Dep
         'pendientes.html',
         {'request': request, 'eventos': eventos, 'today': today}
     )
-def pendientes(request: Request, db: Session = Depends(get_db), user: User = Depends(require_user)):
-    eventos = (
-        db.query(ClinicalEvent)
-        .filter(ClinicalEvent.reminder_date != None)
-        .order_by(ClinicalEvent.reminder_date.asc())
-        .all()
-    )
+@app.post('/events/{event_id}/done')
+def event_done(
+    event_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    event = db.get(ClinicalEvent, event_id)
 
-    return templates.TemplateResponse(
-        'pendientes.html',
-        {'request': request, 'eventos': eventos}
-    )
+    if not event:
+        raise HTTPException(status_code=404, detail="Evento no encontrado")
+
+    event.reminder_date = None
+    db.commit()
+
+    return RedirectResponse('/pendientes', status_code=303)
 @app.get('/patients/{patient_id}/print', response_class=HTMLResponse)
 def patient_print(
     request: Request,
