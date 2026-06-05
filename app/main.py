@@ -368,10 +368,10 @@ event = ClinicalEvent(
     reminder_date=reminder_date
 )
 
-    db.add(event)
-    db.commit()
+db.add(event)
+db.commit()
 
-    return RedirectResponse(f"/patients/{patient.id}", status_code=303)
+return RedirectResponse(f"/patients/{patient.id}", status_code=303)
 @app.post('/events/{event_id}/done')
 def event_done(
     event_id: int,
