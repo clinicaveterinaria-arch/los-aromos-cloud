@@ -220,13 +220,17 @@ def event_create(
     rd = None
     if reminder_date:
         rd = datetime.strptime(reminder_date, '%Y-%m-%d').date()
-
-    def to_float(value):
+def to_float(value):
+    try:
         return float(value.replace(',', '.')) if value and value.strip() else None
+    except ValueError:
+        return None
 
-    def to_int(value):
+def to_int(value):
+    try:
         return int(value) if value and value.strip() else None
-
+    except ValueError:
+        return None
     event = ClinicalEvent(
         patient_id=patient_id,
         event_type=event_type,
