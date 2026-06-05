@@ -308,6 +308,20 @@ def delete_attachment(
     return RedirectResponse(f"/patients/{patient_id}", status_code=303)
 @app.get('/pendientes', response_class=HTMLResponse)
 def pendientes(request: Request, db: Session = Depends(get_db), user: User = Depends(require_user)):
+    today = datetime.now().date()
+
+    eventos = (
+        db.query(ClinicalEvent)
+        .filter(ClinicalEvent.reminder_date != None)
+        .order_by(ClinicalEvent.reminder_date.asc())
+        .all()
+    )
+
+    return templates.TemplateResponse(
+        'pendientes.html',
+        {'request': request, 'eventos': eventos, 'today': today}
+    )
+def pendientes(request: Request, db: Session = Depends(get_db), user: User = Depends(require_user)):
     eventos = (
         db.query(ClinicalEvent)
         .filter(ClinicalEvent.reminder_date != None)
