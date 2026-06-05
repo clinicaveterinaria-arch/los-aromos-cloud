@@ -23,6 +23,11 @@
     <b>Próximos</b><br>{{ proximos }}
   </div>
 </div>
+<input type="text"
+       id="pendingSearch"
+       placeholder="Buscar por paciente, tipo, título o descripción..."
+       onkeyup="filterPendingCards()"
+       style="width:100%;padding:12px 14px;margin:0 0 18px 0;border:1px solid #ddd;border-radius:12px;font-size:15px;">
 <div style="display:grid;gap:14px;margin-top:20px;">
 
 {% for e in eventos %}
@@ -41,7 +46,7 @@
   {% set fondo = "#f4f8ff" %}
 {% endif %}
 
-<div style="background:{{ fondo }};border-left:6px solid {{ color }};padding:16px;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+<div class="pending-card" style="background:{{ fondo }};border-left:6px solid {{ color }};padding:16px;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
 
   <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
     <div>
@@ -98,5 +103,16 @@
 <p>No hay recordatorios pendientes.</p>
 
 {% endif %}
+<script>
+function filterPendingCards() {
+  const input = document.getElementById("pendingSearch");
+  const filter = input.value.toLowerCase();
+  const cards = document.querySelectorAll(".pending-card");
 
+  cards.forEach(card => {
+    const text = card.innerText.toLowerCase();
+    card.style.display = text.includes(filter) ? "block" : "none";
+  });
+}
+</script>
 {% endblock %}
