@@ -287,7 +287,10 @@ def to_int(value):
     db.commit()
 
 
-    return RedirectResponse(url=f"/patients/{patient_id}", status_code=303)  
+    return HTMLResponse(
+    content=f'<script>window.location.href="/patients/{patient_id}";</script>',
+    status_code=200
+) 
 
 @app.get('/migration', response_class=HTMLResponse)
 def migration(request: Request, user: User = Depends(require_user)):
