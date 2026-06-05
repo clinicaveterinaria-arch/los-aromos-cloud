@@ -25,6 +25,14 @@ os.makedirs("app/uploads", exist_ok=True)
 os.makedirs('app/uploads', exist_ok=True)
 app.mount('/uploads', StaticFiles(directory='app/uploads'), name='uploads')
 templates = Jinja2Templates(directory='app/templates')
+def get_pending_count():
+    db = next(get_db())
+    try:
+        return db.query(ClinicalEvent).filter(ClinicalEvent.reminder_date != None).count()
+    finally:
+        db.close()
+
+templates.env.globals['get_pending_count'] = get_pending_count
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 
 EVENT_TYPES = ['Consulta clínica','Control','Vacuna','Desparasitación','Radiografía','ECG','Ecografía','Laboratorio','Cirugía','Anestesia','Internación','Alta','Otro procedimiento']
