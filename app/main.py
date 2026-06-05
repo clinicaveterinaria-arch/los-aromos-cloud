@@ -349,6 +349,48 @@ def event_done(
     db.commit()
 
     return RedirectResponse('/pendientes', status_code=303)
+    @app.get('/events/{event_id}/whatsapp')
+def event_whatsapp(
+    event_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    event = db.get(ClinicalEvent, event_id)
+
+    if not event:
+        raise HTTPException(status_code=404, detail="Evento no encontrado")
+
+    patient = event.patient
+    owner = patient.owner
+
+    number = (owner.whatsapp or owner.phone or "").strip()
+
+    if not number:
+        return RedirectResponse(f"/patients/{patient.id}", status_code=303)
+
+    number = ''.join(c for c in number if c.isdigit())
+
+    if not number.startswith("54"):
+        number = "549" + number
+
+    message = (
+        f"Hola {owner.name}. "
+        f"Le recordamos que {patient.name} tiene pendiente: "
+        f"{event.event_type}. "
+    )
+
+    if event.title:
+        message += f"{event.title}. "
+
+    if event.reminder_date:
+        message += f"Fecha sugerida: {event.reminder_date.strftime('%d/%m/%Y')}. "
+
+    message += "Clínica Veterinaria Los Aromos."
+
+    import urllib.parse
+    url = f"https://wa.me/{number}?text={urllib.parse.quote(message)}"
+
+    return RedirectResponse(url, status_code=303)
 @app.get('/patients/{patient_id}/print', response_class=HTMLResponse)
 def patient_print(
     request: Request,
