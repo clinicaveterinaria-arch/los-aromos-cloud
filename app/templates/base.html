@@ -15,10 +15,8 @@
         <a href="/owners">Propietarios</a>
         <a href="/patients/new">Nuevo paciente</a>
         <a href="/migration">Migración MyVete</a>
-        <a href="/pendientes">
-  Pendientes{% if pending_count is defined and pending_count > 0 %} ({{ pending_count }}){% endif %}
-</a>
-  Pendientes{% if pending_count is defined and pending_count > 0 %} ({{ pending_count }}){% endif %}
+      <a href="/pendientes">
+  Pendientes{% set pc = get_pending_count() %}{% if pc > 0 %} ({{ pc }}){% endif %}
 </a>
         <a href="/logout">Salir</a>
     </nav>
