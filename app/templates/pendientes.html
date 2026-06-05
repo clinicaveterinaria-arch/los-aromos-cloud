@@ -5,7 +5,24 @@
 <h2>Recordatorios pendientes</h2>
 
 {% if eventos %}
+{% set vencidos = eventos | selectattr("reminder_date", "lt", today) | list | length %}
+{% set hoy = eventos | selectattr("reminder_date", "equalto", today) | list | length %}
+{% set proximos = eventos | selectattr("reminder_date", "gt", today) | list | length %}
 
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:16px 0 20px 0;">
+  <div style="background:white;padding:14px;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+    <b>Total</b><br>{{ eventos|length }}
+  </div>
+  <div style="background:#fff5f5;padding:14px;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+    <b>Vencidos</b><br>{{ vencidos }}
+  </div>
+  <div style="background:#fff8e6;padding:14px;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+    <b>Hoy</b><br>{{ hoy }}
+  </div>
+  <div style="background:#f4f8ff;padding:14px;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+    <b>Próximos</b><br>{{ proximos }}
+  </div>
+</div>
 <div style="display:grid;gap:14px;margin-top:20px;">
 
 {% for e in eventos %}
