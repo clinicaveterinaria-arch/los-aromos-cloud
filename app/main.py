@@ -284,9 +284,9 @@ def to_int(value):
 
     db.add(attach)
 
-    db.commit()
+db.commit()
 
-    return RedirectResponse(f"/patients/{patient_id}", status_code=303)
+return RedirectResponse(f"/patients/{patient_id}", status_code=303)
 
 @app.get('/migration', response_class=HTMLResponse)
 def migration(request: Request, user: User = Depends(require_user)):
