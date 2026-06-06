@@ -213,51 +213,59 @@ def event_create(
     mucous_membranes: str = Form(''),
     crt: str = Form(''),
     hydration: str = Form(''),
-    attachments: list[UploadFile] = File(default=[]),
     db: Session = Depends(get_db),
     user: User = Depends(require_user)
 ):
-    rd = None
-    if reminder_date:
-        rd = datetime.strptime(reminder_date, '%Y-%m-%d').date()
-def to_float(value):
-    try:
-        return float(value.replace(',', '.')) if value and value.strip() else None
-    except ValueError:
-        return None
+    patient = db.get(Patient, patient_id)
+    if not patient:
+        raise HTTPException(status_code=404, detail="Paciente no encontrado")
 
-def to_int(value):
-    try:
-        return int(value) if value and value.strip() else None
-    except ValueError:
-        return None
+    rd = None
+    if reminder_date and reminder_date.strip():
+        try:
+            rd = datetime.strptime(reminder_date.strip(), '%Y-%m-%d').date()
+        except ValueError:
+            rd = None
+
+    def to_float(value):
+        try:
+            return float(value.replace(',', '.')) if value and value.strip() else None
+        except ValueError:
+            return None
+
+    def to_int(value):
+        try:
+            return int(float(value.replace(',', '.'))) if value and value.strip() else None
+        except ValueError:
+            return None
+
     event = ClinicalEvent(
         patient_id=patient_id,
         event_type=event_type,
-        title=title,
-        description=description,
-        anamnesis=anamnesis,
-        physical_exam=physical_exam,
-        diagnosis=diagnosis,
-        treatment=treatment,
+        title=title or event_type,
+        description=description or '',
+        anamnesis=anamnesis or '',
+        physical_exam=physical_exam or '',
+        diagnosis=diagnosis or '',
+        treatment=treatment or '',
         reminder_date=rd,
         weight=to_float(weight),
         temperature=to_float(temperature),
         heart_rate=to_int(heart_rate),
         respiratory_rate=to_int(respiratory_rate),
-        mucous_membranes=mucous_membranes,
-        crt=crt,
-        hydration=hydration,
+        mucous_membranes=mucous_membranes or '',
+        crt=crt or '',
+        hydration=hydration or '',
         created_by=user.username
     )
 
     db.add(event)
     db.commit()
-    db.refresh(event)
 
-    
-   
-    return RedirectResponse(url=f"/patients/{patient_id}", status_code=303)
+    return RedirectResponse(
+        url=f"/patients/{patient_id}",
+        status_code=303
+    )
 
 @app.get('/migration', response_class=HTMLResponse)
 def migration(request: Request, user: User = Depends(require_user)):
