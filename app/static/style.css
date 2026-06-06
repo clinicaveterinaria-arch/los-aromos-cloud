@@ -26,3 +26,21 @@
 .tipo-consulta-clinica {
     border-left: 6px solid #d85b9f;
 }
+.card:hover{
+    transform:translateY(-3px);
+    box-shadow:0 8px 20px rgba(0,0,0,.08);
+    transition:.2s;
+}
+
+.panel:hover{
+    transform:translateY(-3px);
+    box-shadow:0 8px 20px rgba(0,0,0,.08);
+    transition:.2s;
+}
+
+.timeline-item:hover{
+    background:#fff7fb;
+    border-radius:10px;
+    cursor:pointer;
+    transition:.2s;
+}
