@@ -139,8 +139,7 @@ def home(request: Request, db: Session = Depends(get_db), user: User = Depends(r
         .order_by(ClinicalEvent.reminder_date.asc())
         .limit(8)
         .all()
-    )
-        overdue_events = (
+    overdue_events = (
         db.query(ClinicalEvent)
         .filter(
             ClinicalEvent.reminder_date != None,
