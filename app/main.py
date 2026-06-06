@@ -140,7 +140,24 @@ def home(request: Request, db: Session = Depends(get_db), user: User = Depends(r
         .limit(8)
         .all()
     )
+        overdue_events = (
+        db.query(ClinicalEvent)
+        .filter(
+            ClinicalEvent.reminder_date != None,
+            ClinicalEvent.reminder_date < today
+        )
+        .order_by(ClinicalEvent.reminder_date.asc())
+        .limit(5)
+        .all()
+    )
 
+    today_events = (
+        db.query(ClinicalEvent)
+        .filter(ClinicalEvent.reminder_date == today)
+        .order_by(ClinicalEvent.reminder_date.asc())
+        .limit(5)
+        .all()
+)
     recent_patients = (
         db.query(Patient)
         .order_by(Patient.id.desc())
@@ -158,6 +175,8 @@ def home(request: Request, db: Session = Depends(get_db), user: User = Depends(r
             'stats': stats,
             'latest_events': latest_events,
             'upcoming': upcoming,
+            'overdue_events': overdue_events,
+            'today_events': today_events,
             'recent_patients': recent_patients,
             'today': today
         }
