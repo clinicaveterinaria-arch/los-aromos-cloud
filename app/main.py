@@ -140,7 +140,12 @@ def home(request: Request, db: Session = Depends(get_db), user: User = Depends(r
         .limit(8)
         .all()
     )
-
+    recent_patients = (
+    db.query(Patient)
+    .order_by(Patient.id.desc())
+    .limit(8)
+    .all()
+)
     return templates.TemplateResponse(
         'home.html',
         {
