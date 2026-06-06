@@ -35,12 +35,16 @@
     <span>Recordatorios</span>
 </a>
 
-<a class="panel" href="/pendientes" style="display:block;text-decoration:none;color:inherit;">
+<a class="panel" href="/pendientes"
+   style="display:block;text-decoration:none;color:inherit;
+   {% if stats.today > 0 %}background:#fff8dc;border:2px solid #f7c948;{% endif %}">
     <b>{{ stats.today }}</b>
     <span>Hoy</span>
 </a>
 
-<a class="panel" href="/pendientes" style="display:block;text-decoration:none;color:inherit;">
+<a class="panel" href="/pendientes"
+   style="display:block;text-decoration:none;color:inherit;
+   {% if stats.overdue > 0 %}background:#ffe5e5;border:2px solid #dc3545;{% endif %}">
     <b>{{ stats.overdue }}</b>
     <span>Vencidos</span>
 </a>
