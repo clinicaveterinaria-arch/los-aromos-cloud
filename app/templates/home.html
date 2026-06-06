@@ -49,6 +49,35 @@
     <span>Vencidos</span>
 </a>
 </div>
+<div class="panel wide" style="border:2px solid #dc3545;background:#ffe5e5;">
+    <h2>🔴 Vencidos</h2>
+
+    {% for e in overdue_events %}
+    <a href="/patients/{{ e.patient.id }}" class="timeline-item" style="display:block;text-decoration:none;color:inherit;">
+        <b>{{ e.patient.name }}</b> - {{ e.event_type }}
+        <br>
+        <small>{{ e.reminder_date.strftime('%d/%m/%Y') }}</small>
+        {% if e.title %}<br>{{ e.title }}{% endif %}
+    </a>
+    {% else %}
+    <p>No hay recordatorios vencidos.</p>
+    {% endfor %}
+</div>
+
+<div class="panel wide" style="border:2px solid #f7c948;background:#fff8dc;">
+    <h2>🟡 Para hoy</h2>
+
+    {% for e in today_events %}
+    <a href="/patients/{{ e.patient.id }}" class="timeline-item" style="display:block;text-decoration:none;color:inherit;">
+        <b>{{ e.patient.name }}</b> - {{ e.event_type }}
+        <br>
+        <small>{{ e.reminder_date.strftime('%d/%m/%Y') }}</small>
+        {% if e.title %}<br>{{ e.title }}{% endif %}
+    </a>
+    {% else %}
+    <p>No hay recordatorios para hoy.</p>
+    {% endfor %}
+</div>
 <div class="panel wide">
   <h2>Últimos eventos</h2>
  {% for e in latest_events %}
