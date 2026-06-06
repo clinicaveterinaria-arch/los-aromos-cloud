@@ -133,7 +133,7 @@ def home(request: Request, db: Session = Depends(get_db), user: User = Depends(r
         .all()
     )
 
-        upcoming = (
+    upcoming = (
         db.query(ClinicalEvent)
         .filter(ClinicalEvent.reminder_date != None)
         .order_by(ClinicalEvent.reminder_date.asc())
