@@ -352,13 +352,15 @@ def event_create(
 
     if quick_event_type in quick_map:
         event_type = quick_map[quick_event_type]
-    rd = None
-    if reminder_date and reminder_date.strip():
-        try:
-            rd = datetime.strptime(reminder_date.strip(), '%Y-%m-%d').date()
-        except ValueError:
-            rd = None
-    if rd is None and next_vaccine_date and next_vaccine_date.strip():
+  rd = None
+
+if reminder_date and reminder_date.strip():
+    try:
+        rd = datetime.strptime(reminder_date.strip(), '%Y-%m-%d').date()
+    except ValueError:
+        rd = None
+
+if rd is None and next_vaccine_date and next_vaccine_date.strip():
     try:
         rd = datetime.strptime(next_vaccine_date.strip(), '%Y-%m-%d').date()
     except ValueError:
