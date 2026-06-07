@@ -80,7 +80,28 @@
 </div>
 <div class="panel wide" style="border:2px solid #d85c9a;background:#fff5fa;">
     <h2>💉 Vacunas próximas</h2>
+<div class="panel wide" style="border:2px solid #999;background:#f8f8f8;">
+    <h2>⚠ Pacientes sin visitas > 12 meses</h2>
 
+    {% for item in inactive_patients %}
+        <a href="/patients/{{ item.patient.id }}" class="timeline-item" style="display:block;text-decoration:none;color:inherit;">
+            <b>{{ item.patient.name }}</b>
+
+            {% if item.last_event %}
+                <br>
+                <small>
+                    Última visita:
+                    {{ item.last_event.event_date.strftime('%d/%m/%Y') }}
+                </small>
+            {% else %}
+                <br>
+                <small>Sin eventos registrados</small>
+            {% endif %}
+        </a>
+    {% else %}
+        <p>No hay pacientes inactivos.</p>
+    {% endfor %}
+</div>
     {% for e in upcoming %}
         {% if e.event_type == 'Vacuna' or e.vaccine_name %}
             <a href="/patients/{{ e.patient.id }}" class="timeline-item" style="display:block;text-decoration:none;color:inherit;">
