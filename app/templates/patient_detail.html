@@ -104,7 +104,23 @@
     <input name="vaccine_name" placeholder="Vacuna aplicada">
     <input name="vaccine_lot" placeholder="Lote">
     <input name="vaccine_expiration" placeholder="Vencimiento de la vacuna">
-    <input name="next_vaccine_date" placeholder="Próxima dosis / revacunación">
+    <input type="date" name="next_vaccine_date" id="next_vaccine_date">
+    <div style="margin:10px 0;">
+  <b>Próxima vacuna rápida:</b><br><br>
+
+  <button type="button" onclick="setNextVaccineDays(21)">+21 días</button>
+  <button type="button" onclick="setNextVaccineDays(30)">+30 días</button>
+  <button type="button" onclick="setNextVaccineMonths(6)">+6 meses</button>
+  <button type="button" onclick="setNextVaccineDays(365)">+1 año</button>
+</div>
+<div style="margin:10px 0;">
+  <b>Próxima vacuna rápida:</b><br><br>
+
+  <button type="button" onclick="setNextVaccineDays(21)">+21 días</button>
+  <button type="button" onclick="setNextVaccineDays(30)">+30 días</button>
+  <button type="button" onclick="setNextVaccineMonths(6)">+6 meses</button>
+  <button type="button" onclick="setNextVaccineDays(365)">+1 año</button>
+</div>
 </div>
     <label>Recordatorio opcional</label>
    <div style="margin:10px 0;">
@@ -192,6 +208,19 @@ function setReminderDays(days) {
 
 function setReminderMonths(months) {
     const input = document.querySelector('input[name="reminder_date"]');
+    const date = new Date();
+    date.setMonth(date.getMonth() + months);
+    input.value = date.toISOString().split('T')[0];
+}
+function setNextVaccineDays(days) {
+    const input = document.getElementById("next_vaccine_date");
+    const date = new Date();
+    date.setDate(date.getDate() + days);
+    input.value = date.toISOString().split('T')[0];
+}
+
+function setNextVaccineMonths(months) {
+    const input = document.getElementById("next_vaccine_date");
     const date = new Date();
     date.setMonth(date.getMonth() + months);
     input.value = date.toISOString().split('T')[0];
