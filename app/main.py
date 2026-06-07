@@ -184,7 +184,7 @@ def home(request: Request, db: Session = Depends(get_db), user: User = Depends(r
     )
 @app.get('/quick/rx')
 def quick_rx():
-    return RedirectResponse('/search?q=', status_code=303)
+    return RedirectResponse('/search', status_code=303)
 @app.get('/owners', response_class=HTMLResponse)
 def owners(request: Request, q: str = '', db: Session = Depends(get_db), user: User = Depends(require_user)):
     query = db.query(Owner)
