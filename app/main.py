@@ -264,6 +264,31 @@ def patient_detail(request: Request, patient_id: int, db: Session = Depends(get_
     )
 
     return templates.TemplateResponse('patient_detail.html', {'request': request, 'patient': patient, 'events': events, 'event_types': EVENT_TYPES, 'upcoming_events': upcoming_events, 'timedelta': timedelta})
+@app.get('/patients/{patient_id}/history', response_class=HTMLResponse)
+def patient_history(
+    request: Request,
+    patient_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    patient = db.get(Patient, patient_id)
+
+    if not patient:
+        raise HTTPException(status_code=404)
+
+    events = db.query(ClinicalEvent).filter(
+        ClinicalEvent.patient_id == patient.id
+    ).order_by(ClinicalEvent.event_date.desc()).all()
+
+    return templates.TemplateResponse(
+        'patient_history.html',
+        {
+            'request': request,
+            'patient': patient,
+            'events': events,
+            'timedelta': timedelta
+        }
+    )
 @app.get('/patients/{patient_id}/events/{event_id}', response_class=HTMLResponse)
 def event_detail(
     request: Request,
