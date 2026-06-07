@@ -645,10 +645,15 @@ def patient_anesthesia(
 
     doses = {
         "acepromacina_mg": round(weight * 0.03, 2),
+        "acepromacina_ml": round((weight * 0.03) / 1, 2),
         "dexmedetomidina_mcg_baja": round(weight * 5, 2),
         "dexmedetomidina_mcg_alta": round(weight * 10, 2),
+        "dexmedetomidina_ml_baja": round((weight * 5 / 1000) / 0.5, 2),
+        "dexmedetomidina_ml_alta": round((weight * 10 / 1000) / 0.5, 2),
         "ketamina_premed_mg": round(weight * 3, 2),
+        "ketamina_premed_ml": round((weight * 3) / 50, 2),
         "midazolam_mg": round(weight * 0.2, 2),
+        "midazolam_ml": round((weight * 0.2) / 5, 2),
         "nalbufina_mg": round(weight * 0.5, 2),
         "butorfanol_mg": round(weight * 0.3, 2),
 
