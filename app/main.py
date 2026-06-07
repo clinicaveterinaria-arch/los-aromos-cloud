@@ -229,7 +229,7 @@ def search(
 ):
     results = []
     if quick:
-    request.session['quick_event_type'] = quick
+        request.session['quick_event_type'] = quick
     if q:
         like = f'%{q}%'
         results = db.query(Patient).join(Owner).filter(or_(Patient.name.ilike(like), Owner.name.ilike(like), Owner.phone.ilike(like), Owner.whatsapp.ilike(like))).order_by(Patient.name).limit(100).all()
