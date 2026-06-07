@@ -18,7 +18,46 @@
     <input name="asa" placeholder="ASA">
     <input name="estimated_duration" placeholder="Duración estimada">
   </div>
+<div class="panel">
+  <h2>Premedicación</h2>
 
+  <label><input type="checkbox" name="premed_dexmedetomidine"> Dexmedetomidina</label><br>
+  <label><input type="checkbox" name="premed_ketamine"> Ketamina IM</label><br>
+  <label><input type="checkbox" name="premed_midazolam"> Midazolam</label><br>
+  <label><input type="checkbox" name="premed_nalbuphine"> Nalbufina</label><br>
+  <label><input type="checkbox" name="premed_butorphanol"> Butorfanol</label><br>
+
+  <textarea name="premed_notes" placeholder="Observaciones de premedicación"></textarea>
+</div>
+
+<div class="panel">
+  <h2>Inducción</h2>
+
+  <label><input type="checkbox" name="induction_propofol"> Propofol</label><br>
+  <label><input type="checkbox" name="induction_ketamine"> Ketamina</label><br>
+  <label><input type="checkbox" name="induction_midazolam"> Midazolam</label><br>
+
+  <textarea name="induction_notes" placeholder="Observaciones de inducción"></textarea>
+</div>
+
+<div class="panel">
+  <h2>Mantenimiento</h2>
+
+  <label><input type="checkbox" name="maintenance_tiva"> TIVA</label><br>
+  <label><input type="checkbox" name="maintenance_isoflurane"> Isoflurano</label><br>
+
+  <textarea name="maintenance_notes" placeholder="Observaciones de mantenimiento"></textarea>
+</div>
+
+<div class="panel">
+  <h2>Analgesia intraoperatoria / Soporte</h2>
+
+  <label><input type="checkbox" name="intra_fentanyl_bolus"> Bolo de fentanilo</label><br>
+  <label><input type="checkbox" name="intra_flk"> CRI FLK</label><br>
+  <label><input type="checkbox" name="intra_dobutamine"> Dobutamina</label><br>
+
+  <textarea name="intra_notes" placeholder="Observaciones intraoperatorias"></textarea>
+</div>
   <div class="panel">
     <h2>Analgesia posoperatoria</h2>
 
