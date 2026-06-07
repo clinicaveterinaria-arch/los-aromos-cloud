@@ -171,7 +171,28 @@ def home(request: Request, db: Session = Depends(get_db), user: User = Depends(r
     )
 
 
+    try:
+        inactive_cutoff = today.replace(year=today.year - 1)
+    except ValueError:
+        inactive_cutoff = today.replace(year=today.year - 1, month=2, day=28)
 
+    inactive_patients = []
+
+    for p in db.query(Patient).all():
+        last_event = (
+            db.query(ClinicalEvent)
+            .filter(ClinicalEvent.patient_id == p.id)
+            .order_by(ClinicalEvent.event_date.desc())
+            .first()
+        )
+
+        if last_event is None or last_event.event_date.date() < inactive_cutoff:
+            inactive_patients.append({
+                'patient': p,
+                'last_event': last_event
+            })
+
+    inactive_patients = inactive_patients[:8]
     return templates.TemplateResponse(
         'home.html',
         {
@@ -183,6 +204,7 @@ def home(request: Request, db: Session = Depends(get_db), user: User = Depends(r
             'overdue_events': overdue_events,
             'today_events': today_events,
             'recent_patients': recent_patients,
+            'inactive_patients': inactive_patients,
             'today': today
         }
     )
