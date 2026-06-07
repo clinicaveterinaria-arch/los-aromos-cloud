@@ -358,7 +358,11 @@ def event_create(
             rd = datetime.strptime(reminder_date.strip(), '%Y-%m-%d').date()
         except ValueError:
             rd = None
-
+    if rd is None and next_vaccine_date and next_vaccine_date.strip():
+    try:
+        rd = datetime.strptime(next_vaccine_date.strip(), '%Y-%m-%d').date()
+    except ValueError:
+        rd = None
     def to_float(value):
         try:
             return float(value.replace(',', '.')) if value and value.strip() else None
