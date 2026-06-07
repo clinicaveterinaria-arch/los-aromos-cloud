@@ -128,6 +128,17 @@ def home(request: Request, db: Session = Depends(get_db), user: User = Depends(r
         'today': db.query(ClinicalEvent).filter(
             ClinicalEvent.reminder_date == today
         ).count()
+        'vaccines': db.query(ClinicalEvent).filter(
+            ClinicalEvent.event_type == 'Vacuna'
+        ).count(),
+
+        'rx': db.query(ClinicalEvent).filter(
+            ClinicalEvent.event_type == 'Radiografía'
+        ).count(),
+
+        'ecg': db.query(ClinicalEvent).filter(
+            ClinicalEvent.event_type == 'ECG'
+        ).count(),
     }
 
     latest_events = (
