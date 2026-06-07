@@ -37,21 +37,15 @@
     box-shadow:0 8px 20px rgba(0,0,0,.08);
     transition:.2s;
 }
-
-.timeline-horizontal{
-    display:flex;
-    flex-direction:row;
-    gap:16px;
-    overflow-x:auto;
-    padding:15px 0;
+.timeline-vertical{
+    display:block;
     width:100%;
-    max-width:100%;
 }
 
-.timeline-horizontal .timeline-item{
-    min-width:320px;
-    max-width:360px;
-    flex:0 0 auto;
+.timeline-vertical .timeline-item{
+    width:100%;
+    max-width:none;
+    margin-bottom:15px;
 }
 }
 .date-compact{
