@@ -258,7 +258,7 @@ upcoming_events = (
     .limit(5)
     .all()
 )
-        return templates.TemplateResponse('patient_detail.html', {'request': request, 'patient': patient, 'events': events, 'event_types': EVENT_TYPES, 'upcoming_events': upcoming_events})
+    return templates.TemplateResponse('patient_detail.html', {'request': request, 'patient': patient, 'events': events, 'event_types': EVENT_TYPES, 'upcoming_events': upcoming_events})
 @app.get('/patients/{patient_id}/events/{event_id}', response_class=HTMLResponse)
 def event_detail(
     request: Request,
