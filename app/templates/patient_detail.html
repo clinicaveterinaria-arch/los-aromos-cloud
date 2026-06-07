@@ -16,6 +16,30 @@
 
     {% if upcoming_events %}
         {% for e in upcoming_events %}
+            <div style="margin-bottom:10px;">
+                <a href="/patients/{{ patient.id }}/events/{{ e.id }}">
+                    {% if e.event_type == 'Vacuna' %}💉
+                    {% elif e.event_type == 'Desparasitación' %}🪱
+                    {% elif e.event_type == 'Control' %}🩺
+                    {% elif e.event_type == 'Laboratorio' %}🧪
+                    {% elif e.event_type == 'ECG' %}❤️
+                    {% elif e.event_type == 'Radiografía' %}📷
+                    {% else %}📌
+                    {% endif %}
+
+                    <b>{{ e.event_type }}</b>
+                    {% if e.title %} - {{ e.title }}{% endif %}
+                    {% if e.reminder_date %} — {{ e.reminder_date.strftime('%d/%m/%Y') }}{% endif %}
+                </a>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>No hay próximos eventos programados.</p>
+    {% endif %}
+</div>
+
+    {% if upcoming_events %}
+        {% for e in upcoming_events %}
             <div style="margin-bottom:8px;">
                 <b>{{ e.event_type }}</b>
                 {% if e.reminder_date %}
