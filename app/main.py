@@ -664,6 +664,8 @@ def patient_anesthesia(
         "meloxicam_mg": round(weight * 0.2, 2),
 
         "rl_ml_h": round(weight * 5, 2),
+        "rl_macro_gtt_min": round((weight * 5 * 20) / 60, 1),
+        "rl_micro_gtt_min": round((weight * 5 * 60) / 60, 1),
     }
     return templates.TemplateResponse(
         'anesthesia.html',
