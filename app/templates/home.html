@@ -78,7 +78,22 @@
     <p>No hay recordatorios para hoy.</p>
     {% endfor %}
 </div>
+<div class="panel wide" style="border:2px solid #d85c9a;background:#fff5fa;">
+    <h2>💉 Vacunas próximas</h2>
 
+    {% for e in upcoming %}
+        {% if e.event_type == 'Vacuna' or e.vaccine_name %}
+            <a href="/patients/{{ e.patient.id }}" class="timeline-item" style="display:block;text-decoration:none;color:inherit;">
+                <b>{{ e.patient.name }}</b> - {{ e.vaccine_name or e.event_type }}
+                <br>
+                <small>{{ e.reminder_date.strftime('%d/%m/%Y') }}</small>
+                {% if e.next_vaccine_date %}<br>Próxima dosis: {{ e.next_vaccine_date }}{% endif %}
+            </a>
+        {% endif %}
+    {% else %}
+        <p>No hay vacunas próximas.</p>
+    {% endfor %}
+</div>
 <div class="panel wide">
     <h2>Accesos rápidos clínicos</h2>
 
