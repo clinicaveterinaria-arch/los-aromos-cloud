@@ -34,12 +34,12 @@
 <div class="panel">
   <h2>Premedicación</h2>
 
-  <label class="check-row"><input type="checkbox" name="premed_acepromazine"> Acepromacina</label>
-  <label class="check-row"><input type="checkbox" name="premed_dexmedetomidine"> Dexmedetomidina</label>
-  <label class="check-row"><input type="checkbox" name="premed_ketamine"> Ketamina IM</label>
-  <label class="check-row"><input type="checkbox" name="premed_midazolam"> Midazolam</label>
-  <label class="check-row"><input type="checkbox" name="premed_nalbuphine"> Nalbufina</label>
-  <label class="check-row"><input type="checkbox" name="premed_butorphanol"> Butorfanol</label>
+  <label class="check-row"><input type="checkbox" name="premed_acepromazine"> Acepromacina - {{ doses.acepromacina_mg }} mg</label>
+  <label class="check-row"><input type="checkbox" name="premed_dexmedetomidine"> Dexmedetomidina - {{ doses.dexmedetomidina_mcg_baja }} a {{ doses.dexmedetomidina_mcg_alta }} mcg</label>
+  <label class="check-row"><input type="checkbox" name="premed_ketamine"> Ketamina IM - {{ doses.ketamina_premed_mg }} mg</label>
+  <label class="check-row"><input type="checkbox" name="premed_midazolam"> Midazolam - {{ doses.midazolam_mg }} mg</label>
+  <label class="check-row"><input type="checkbox" name="premed_nalbuphine"> Nalbufina - {{ doses.nalbufina_mg }} mg</label>
+  <label class="check-row"><input type="checkbox" name="premed_butorphanol"> Butorfanol - {{ doses.butorfanol_mg }} mg</label>
   <textarea name="premed_notes" placeholder="Observaciones de premedicación"></textarea>
 </div>
 
