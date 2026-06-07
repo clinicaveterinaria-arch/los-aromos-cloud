@@ -270,13 +270,13 @@ def event_create(
         raise HTTPException(status_code=404, detail="Paciente no encontrado")
     quick_event_type = request.session.pop('quick_event_type', '')
 
-        quick_map = {
+    quick_map = {
         'rx': 'Radiografía',
         'ecg': 'ECG',
         'eco': 'Ecografía',
         'lab': 'Laboratorio',
         'vacuna': 'Vacuna'
-    }
+        }
 
     if quick_event_type in quick_map:
         event_type = quick_map[quick_event_type]
