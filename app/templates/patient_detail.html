@@ -133,7 +133,7 @@
 
 <div class="panel">
   <h2>Línea de tiempo</h2>
-  <div class="timeline-horizontal">
+  <div class="timeline-vertical">
       {% for e in events %}
   <div class="timeline-item tipo-{{ e.event_type|lower|replace(' ', '-')|replace('í','i')|replace('ó','o')|replace('á','a') }}">
     <b>
