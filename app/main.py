@@ -246,7 +246,28 @@ def patient_detail(request: Request, patient_id: int, db: Session = Depends(get_
         raise HTTPException(404)
     events = db.query(ClinicalEvent).filter(ClinicalEvent.patient_id == patient.id).order_by(ClinicalEvent.event_date.desc()).all()
     return templates.TemplateResponse('patient_detail.html', {'request': request, 'patient': patient, 'events': events, 'event_types': EVENT_TYPES})
+@app.get('/patients/{patient_id}/events/{event_id}', response_class=HTMLResponse)
+def event_detail(
+    request: Request,
+    patient_id: int,
+    event_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    patient = db.get(Patient, patient_id)
+    event = db.get(ClinicalEvent, event_id)
 
+    if not patient or not event:
+        raise HTTPException(status_code=404)
+
+    return templates.TemplateResponse(
+        'event_detail.html',
+        {
+            'request': request,
+            'patient': patient,
+            'event': event
+        }
+    )
 @app.post('/patients/{patient_id}/events')
 def event_create(
     request: Request,
