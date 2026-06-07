@@ -645,6 +645,98 @@ def patient_anesthesia(
             'user': user
         }
     )
+@app.post('/patients/{patient_id}/anesthesia')
+async def save_patient_anesthesia(
+    request: Request,
+    patient_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    patient = db.get(Patient, patient_id)
+
+    if not patient:
+        raise HTTPException(status_code=404, detail="Paciente no encontrado")
+
+    form = await request.form()
+
+    weight = form.get('weight', '')
+    procedure = form.get('procedure', '')
+    asa = form.get('asa', '')
+    estimated_duration = form.get('estimated_duration', '')
+    drip_set = form.get('drip_set', '')
+    fluid_rate = form.get('fluid_rate', '')
+
+    postop_analgesia = []
+    if form.get('meloxicam'):
+        postop_analgesia.append('Meloxicam')
+    if form.get('dipyrone'):
+        postop_analgesia.append('Dipirona')
+    if form.get('tramadol'):
+        postop_analgesia.append('Tramadol')
+    if form.get('gabapentin'):
+        postop_analgesia.append('Gabapentina')
+    if form.get('pregabalin'):
+        postop_analgesia.append('Pregabalina')
+    if form.get('nalbuphine'):
+        postop_analgesia.append('Nalbufina')
+    if form.get('butorphanol'):
+        postop_analgesia.append('Butorfanol')
+    if form.get('dexamethasone'):
+        postop_analgesia.append('Dexametasona')
+
+    antibiotics = []
+    if form.get('cefazolin'):
+        antibiotics.append('Cefazolina')
+    if form.get('amoxiclav'):
+        antibiotics.append('Amoxicilina clavulánico')
+    if form.get('cephalexin'):
+        antibiotics.append('Cefalexina')
+    if form.get('enrofloxacin'):
+        antibiotics.append('Enrofloxacina')
+    if form.get('metronidazole'):
+        antibiotics.append('Metronidazol')
+    if form.get('clindamycin'):
+        antibiotics.append('Clindamicina')
+
+    description = f"""
+Protocolo anestésico
+
+Procedimiento: {procedure}
+Peso: {weight} kg
+ASA: {asa}
+Duración estimada: {estimated_duration}
+
+Analgesia posoperatoria:
+{', '.join(postop_analgesia) if postop_analgesia else 'No especificada'}
+
+Observaciones analgesia:
+{form.get('postop_notes', '')}
+
+Antibioticoterapia:
+{', '.join(antibiotics) if antibiotics else 'No especificada'}
+
+Observaciones antibioticoterapia:
+{form.get('antibiotic_notes', '')}
+
+Fluidoterapia:
+Equipo: {drip_set}
+Velocidad: {fluid_rate} ml/kg/h
+"""
+
+    event = ClinicalEvent(
+        patient_id=patient.id,
+        event_type='Anestesia',
+        description=description,
+        event_date=datetime.now()
+    )
+
+    db.add(event)
+    db.commit()
+
+    return RedirectResponse(
+        url=f"/patients/{patient.id}",
+        status_code=303
+    )
 @app.get('/health')
 def health():
     return {'status': 'ok', 'app': 'Los Aromos Cloud'}
