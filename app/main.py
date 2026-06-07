@@ -657,9 +657,9 @@ def patient_anesthesia(
         "nalbufina_mg": round(weight * 0.5, 2),
         "butorfanol_mg": round(weight * 0.3, 2),
 
-        "propofol_ind_mg": round(weight * 3, 2),
-        "ketamina_ind_mg": round(weight * 5, 2),
-        "midazolam_ind_mg": round(weight * 0.2, 2),
+        "propofol_ind_ml": round((weight * 3) / 10, 2),
+        "ketamina_ind_ml": round((weight * 5) / 50, 2),
+        "midazolam_ind_ml": round((weight * 0.2) / 5, 2),
 
         "meloxicam_mg": round(weight * 0.2, 2),
 
