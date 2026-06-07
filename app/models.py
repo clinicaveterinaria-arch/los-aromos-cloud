@@ -67,7 +67,10 @@ class ClinicalEvent(Base):
 
     anamnesis: Mapped[str] = mapped_column(Text, default='')
     physical_exam: Mapped[str] = mapped_column(Text, default='')
-
+    vaccine_name: Mapped[str] = mapped_column(String(150), default='')
+    vaccine_lot: Mapped[str] = mapped_column(String(100), default='')
+    vaccine_expiration: Mapped[str] = mapped_column(String(100), default='')
+    next_vaccine_date: Mapped[str] = mapped_column(String(100), default='')
     patient: Mapped['Patient'] = relationship(back_populates='events')
     attachments: Mapped[list['EventAttachment']] = relationship(
         back_populates='event',
