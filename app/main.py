@@ -220,8 +220,16 @@ def patient_create(name: str = Form(...), owner_id: int = Form(...), species: st
     return RedirectResponse(f'/patients/{p.id}', status_code=303)
 
 @app.get('/search', response_class=HTMLResponse)
-def search(request: Request, q: str = '', db: Session = Depends(get_db), user: User = Depends(require_user)):
+def search(
+    request: Request,
+    q: str = '',
+    quick: str = '',
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
     results = []
+    if quick:
+    request.session['quick_event_type'] = quick
     if q:
         like = f'%{q}%'
         results = db.query(Patient).join(Owner).filter(or_(Patient.name.ilike(like), Owner.name.ilike(like), Owner.phone.ilike(like), Owner.whatsapp.ilike(like))).order_by(Patient.name).limit(100).all()
