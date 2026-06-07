@@ -5,6 +5,9 @@
 <a href="/patients/{{ patient.id }}/print" target="_blank" class="btn">
     Imprimir / Guardar PDF
 </a>
+<a href="/patients/{{ patient.id }}/anesthesia" class="btn">
+    🩺 Anestesia
+</a>
 <div class="panel patient-head">
   <div><b>Propietario:</b> {{ patient.owner.name }}</div>
   <div><b>Tel:</b> {{ patient.owner.phone }} {{ patient.owner.whatsapp }}</div>
