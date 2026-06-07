@@ -9,6 +9,57 @@
   <p><b>Peso actual:</b> {{ patient.weight or '-' }} kg</p>
 </div>
 
-<a href="/patients/{{ patient.id }}" class="btn">Volver a ficha</a>
+<form method="post" action="/patients/{{ patient.id }}/anesthesia">
+
+  <div class="panel">
+    <h2>Datos generales</h2>
+    <input name="weight" placeholder="Peso en kg" value="{{ patient.weight or '' }}">
+    <input name="procedure" placeholder="Procedimiento">
+    <input name="asa" placeholder="ASA">
+    <input name="estimated_duration" placeholder="Duración estimada">
+  </div>
+
+  <div class="panel">
+    <h2>Analgesia posoperatoria</h2>
+
+    <label><input type="checkbox" name="meloxicam"> Meloxicam</label><br>
+    <label><input type="checkbox" name="dipyrone"> Dipirona</label><br>
+    <label><input type="checkbox" name="tramadol"> Tramadol</label><br>
+    <label><input type="checkbox" name="gabapentin"> Gabapentina</label><br>
+    <label><input type="checkbox" name="pregabalin"> Pregabalina</label><br>
+    <label><input type="checkbox" name="nalbuphine"> Nalbufina</label><br>
+    <label><input type="checkbox" name="butorphanol"> Butorfanol</label><br>
+    <label><input type="checkbox" name="dexamethasone"> Dexametasona</label><br>
+
+    <textarea name="postop_notes" placeholder="Observaciones de analgesia posoperatoria"></textarea>
+  </div>
+
+  <div class="panel">
+    <h2>Antibioticoterapia</h2>
+
+    <label><input type="checkbox" name="cefazolin"> Cefazolina</label><br>
+    <label><input type="checkbox" name="amoxiclav"> Amoxicilina clavulánico</label><br>
+    <label><input type="checkbox" name="cephalexin"> Cefalexina</label><br>
+    <label><input type="checkbox" name="enrofloxacin"> Enrofloxacina</label><br>
+    <label><input type="checkbox" name="metronidazole"> Metronidazol</label><br>
+    <label><input type="checkbox" name="clindamycin"> Clindamicina</label><br>
+
+    <textarea name="antibiotic_notes" placeholder="Observaciones de antibioticoterapia"></textarea>
+  </div>
+
+  <div class="panel">
+    <h2>Fluidoterapia</h2>
+
+    <label>Tipo de equipo:</label><br>
+    <label><input type="radio" name="drip_set" value="macro" checked> Macrogotero 20 gtt/ml</label><br>
+    <label><input type="radio" name="drip_set" value="micro"> Microgotero 60 gtt/ml</label><br><br>
+
+    <input name="fluid_rate" placeholder="Velocidad ml/kg/h">
+  </div>
+
+  <button type="submit" class="btn">Guardar protocolo</button>
+  <a href="/patients/{{ patient.id }}" class="btn">Volver a ficha</a>
+
+</form>
 
 {% endblock %}
