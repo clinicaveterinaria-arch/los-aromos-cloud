@@ -245,6 +245,7 @@ def patient_detail(request: Request, patient_id: int, db: Session = Depends(get_
 
 @app.post('/patients/{patient_id}/events')
 def event_create(
+    request: Request,
     patient_id: int,
     event_type: str = Form(...),
     title: str = Form(''),
@@ -267,7 +268,16 @@ def event_create(
     patient = db.get(Patient, patient_id)
     if not patient:
         raise HTTPException(status_code=404, detail="Paciente no encontrado")
+    quick_event_type = request.session.pop('quick_event_type', '')
 
+    quick_map = {
+        'rx': 'Radiografía',
+        'ecg': 'ECG',
+        'eco': 'Ecografía'
+    }
+
+    if quick_event_type in quick_map:
+        event_type = quick_map[quick_event_type]
     rd = None
     if reminder_date and reminder_date.strip():
         try:
