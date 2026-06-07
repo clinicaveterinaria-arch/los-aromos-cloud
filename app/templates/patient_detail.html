@@ -133,111 +133,48 @@
 
 <div class="panel">
   <h2>Línea de tiempo</h2>
-  <div class="timeline-vertical">
+  <div class="timeline-compact">
       {% for e in events %}
-  <div class="timeline-item tipo-{{ e.event_type|lower|replace(' ', '-')|replace('í','i')|replace('ó','o')|replace('á','a') }}">
-    <b>
-  {% if e.event_type == 'Radiografía' %}📷
-  {% elif e.event_type == 'ECG' %}❤️
-  {% elif e.event_type == 'Ecografía' %}🔊
-  {% elif e.event_type == 'Laboratorio' %}🧪
-  {% elif e.event_type == 'Informe' %}📄
-  {% elif e.event_type == 'Vacuna' %}💉
-  {% elif e.event_type == 'Desparasitación' %}🪱
-  {% elif e.event_type == 'Cirugía' %}🔪
-  {% elif e.event_type == 'Anestesia' %}💤
-  {% elif e.event_type == 'Internación' %}🏥
-  {% elif e.event_type == 'Consulta clínica' %}🩺
-  {% else %}📌
-  {% endif %}
-  {{ e.event_type }}
-</b>
-    <small>{{ e.event_date.strftime('%d/%m/%Y %H:%M') }}</small>
+<details class="timeline-row">
+    <summary>
+        {% if e.event_type == 'Radiografía' %}📷
+        {% elif e.event_type == 'ECG' %}❤️
+        {% elif e.event_type == 'Ecografía' %}🔊
+        {% elif e.event_type == 'Laboratorio' %}🧪
+        {% elif e.event_type == 'Informe' %}📄
+        {% elif e.event_type == 'Vacuna' %}💉
+        {% elif e.event_type == 'Desparasitación' %}🪱
+        {% elif e.event_type == 'Cirugía' %}🔨
+        {% elif e.event_type == 'Anestesia' %}💤
+        {% elif e.event_type == 'Internación' %}🏥
+        {% elif e.event_type == 'Consulta clínica' %}🩺
+        {% else %}📌
+        {% endif %}
 
-    <h3>
-    <a href="/patients/{{ patient.id }}/events/{{ e.id }}">{{ e.title }}</a>
-</h3>
-{% if e.event_type == 'Vacuna' %}
-<div class="vaccine-timeline">
-    {% if e.vaccine_name %}<p><b>Vacuna aplicada:</b> {{ e.vaccine_name }}</p>{% endif %}
-    {% if e.vaccine_lot %}<p><b>Lote:</b> {{ e.vaccine_lot }}</p>{% endif %}
-    {% if e.vaccine_expiration %}<p><b>Vencimiento:</b> {{ e.vaccine_expiration }}</p>{% endif %}
-    {% if e.next_vaccine_date %}<p><b>Próxima dosis:</b> {{ e.next_vaccine_date }}</p>{% endif %}
-</div>
-{% endif %}
-    {% if e.weight or e.temperature or e.heart_rate or e.respiratory_rate %}
-    <p>
-      {% if e.weight %}<b>Peso:</b> {{ e.weight }} kg {% endif %}
-      {% if e.temperature %}<b>Temp:</b> {{ e.temperature }} °C {% endif %}
-      {% if e.heart_rate %}<b>FC:</b> {{ e.heart_rate }} {% endif %}
-      {% if e.respiratory_rate %}<b>FR:</b> {{ e.respiratory_rate }} {% endif %}
-    </p>
-    {% endif %}
+        <b>{{ e.event_type }}</b>
+        <span>{{ e.event_date.strftime('%d/%m/%Y %H:%M') }}</span>
+        — <a href="/patients/{{ patient.id }}/events/{{ e.id }}">{{ e.title }}</a>
+    </summary>
 
-    {% if e.mucous_membranes or e.crt or e.hydration %}
-    <p>
-      {% if e.mucous_membranes %}<b>Mucosas:</b> {{ e.mucous_membranes }} {% endif %}
-      {% if e.crt %}<b>TLLC:</b> {{ e.crt }} {% endif %}
-      {% if e.hydration %}<b>Hidratación:</b> {{ e.hydration }} {% endif %}
-    </p>
-    {% endif %}
+    <div class="timeline-detail">
+        {% if e.event_type == 'Vacuna' %}
+            {% if e.vaccine_name %}<p><b>Vacuna aplicada:</b> {{ e.vaccine_name }}</p>{% endif %}
+            {% if e.vaccine_lot %}<p><b>Lote:</b> {{ e.vaccine_lot }}</p>{% endif %}
+            {% if e.vaccine_expiration %}<p><b>Vencimiento:</b> {{ e.vaccine_expiration }}</p>{% endif %}
+            {% if e.next_vaccine_date %}<p><b>Próxima dosis:</b> {{ e.next_vaccine_date }}</p>{% endif %}
+        {% endif %}
 
-    {% if e.description %}<p><b>Motivo / descripción:</b><br>{{ e.description }}</p>{% endif %}
-    {% if e.anamnesis %}<p><b>Anamnesis:</b><br>{{ e.anamnesis }}</p>{% endif %}
-    {% if e.physical_exam %}<p><b>Examen físico:</b><br>{{ e.physical_exam }}</p>{% endif %}
-    {% if e.diagnosis %}<p><b>Diagnóstico:</b><br>{{ e.diagnosis }}</p>{% endif %}
-    {% if e.treatment %}<p><b>Tratamiento:</b><br>{{ e.treatment }}</p>{% endif %}
-    {% if e.attachments %}
-  <div class="attachments">
-    <b>Adjuntos:</b><br>
-{% for a in e.attachments %}
-
-{% if a.filename.lower().endswith(('.jpg','.jpeg','.png','.gif','.webp')) %}
-
-{% set attachment_url = a.file_path if a.file_path.startswith('http') or a.file_path.startswith('/') else '/' ~ a.file_path %}
-
-<a href="{{ attachment_url }}" target="_blank">
-    <img src="{{ attachment_url }}"
-         alt="{{ a.filename }}"
-         style="max-width:300px;
-                max-height:300px;
-                border-radius:8px;
-                margin:10px 0;
-                display:block;">
-</a>
-<form method="post" action="/attachment/{{ a.id }}/delete"
-      onsubmit="return confirm('¿Eliminar este adjunto?');">
-    <button type="submit"
-            style="background:#dc3545;color:white;border:none;padding:5px 10px;border-radius:4px;cursor:pointer;margin-bottom:10px;">
-        Eliminar adjunto
-    </button>
-</form>
+        {% if e.description %}<p><b>Motivo / descripción:</b><br>{{ e.description }}</p>{% endif %}
+        {% if e.anamnesis %}<p><b>Anamnesis:</b><br>{{ e.anamnesis }}</p>{% endif %}
+        {% if e.physical_exam %}<p><b>Examen físico:</b><br>{{ e.physical_exam }}</p>{% endif %}
+        {% if e.diagnosis %}<p><b>Diagnóstico:</b><br>{{ e.diagnosis }}</p>{% endif %}
+        {% if e.treatment %}<p><b>Tratamiento:</b><br>{{ e.treatment }}</p>{% endif %}
+        {% if e.reminder_date %}<p class="reminder"><b>Recordatorio:</b> {{ e.reminder_date.strftime('%d/%m/%Y') }}</p>{% endif %}
+    </div>
+</details>
 {% else %}
-
-<a href="{{ a.file_path }}" target="_blank">
-    {{ a.filename }}
-</a><br>
-<form method="post" action="/attachment/{{ a.id }}/delete"
-      onsubmit="return confirm('¿Eliminar este adjunto?');">
-    <button type="submit"
-            style="background:#dc3545;color:white;border:none;padding:5px 10px;border-radius:4px;cursor:pointer;margin-bottom:10px;">
-        Eliminar adjunto
-    </button>
-</form>
-{% endif %}
-
+<p>No hay eventos cargados todavía.</p>
 {% endfor %}
-  </div>
-{% endif %}
-
-
-    {% if e.reminder_date %}
-    <div class="reminder">Recordatorio: {{ e.reminder_date.strftime('%d/%m/%Y') }}</div>
-    {% endif %}
-  </div>
-  {% else %}
-  <p>No hay eventos cargados todavía.</p>
-  {% endfor %}
 </div>
 </div>
 <script>
