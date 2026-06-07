@@ -125,6 +125,12 @@
     <label><input type="radio" name="drip_set" value="micro"> Microgotero 60 gtt/ml</label><br><br>
 
     <input name="fluid_rate" placeholder="Velocidad ml/kg/h">
+    <div style="margin-top:10px;">
+        <strong>Ringer Lactato calculado:</strong><br>
+        {{ doses.rl_ml_h }} ml/h<br>
+        Macro: {{ doses.rl_macro_gtt_min }} gtt/min<br>
+        Micro: {{ doses.rl_micro_gtt_min }} gtt/min
+</div>
   </div>
 
   <button type="submit" class="btn">Guardar protocolo</button>
