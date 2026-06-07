@@ -51,6 +51,10 @@ def init_db():
         conn.execute(text("ALTER TABLE clinical_events ADD COLUMN IF NOT EXISTS hydration TEXT DEFAULT ''"))
         conn.execute(text("ALTER TABLE clinical_events ADD COLUMN IF NOT EXISTS anamnesis TEXT DEFAULT ''"))
         conn.execute(text("ALTER TABLE clinical_events ADD COLUMN IF NOT EXISTS physical_exam TEXT DEFAULT ''"))
+        conn.execute(text("ALTER TABLE clinical_events ADD COLUMN IF NOT EXISTS vaccine_name TEXT DEFAULT ''"))
+        conn.execute(text("ALTER TABLE clinical_events ADD COLUMN IF NOT EXISTS vaccine_lot TEXT DEFAULT ''"))
+        conn.execute(text("ALTER TABLE clinical_events ADD COLUMN IF NOT EXISTS vaccine_expiration TEXT DEFAULT ''"))
+        conn.execute(text("ALTER TABLE clinical_events ADD COLUMN IF NOT EXISTS next_vaccine_date TEXT DEFAULT ''"))
         conn.execute(text("""
 CREATE TABLE IF NOT EXISTS event_attachments (
     id SERIAL PRIMARY KEY,
@@ -254,6 +258,10 @@ def event_create(
     physical_exam: str = Form(''),
     diagnosis: str = Form(''),
     treatment: str = Form(''),
+    vaccine_name: str = Form(''),
+    vaccine_lot: str = Form(''),
+    vaccine_expiration: str = Form(''),
+    next_vaccine_date: str = Form(''),
     reminder_date: str = Form(''),
     weight: str = Form(''),
     temperature: str = Form(''),
@@ -308,6 +316,10 @@ def event_create(
         physical_exam=physical_exam or '',
         diagnosis=diagnosis or '',
         treatment=treatment or '',
+        vaccine_name=vaccine_name or '',
+        vaccine_lot=vaccine_lot or '',
+        vaccine_expiration=vaccine_expiration or '',
+        next_vaccine_date=next_vaccine_date or '',
         reminder_date=rd,
         weight=to_float(weight),
         temperature=to_float(temperature),
