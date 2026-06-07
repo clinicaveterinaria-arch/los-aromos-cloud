@@ -259,7 +259,7 @@ def patient_detail(request: Request, patient_id: int, db: Session = Depends(get_
         .all()
     )
 
-    return templates.TemplateResponse('patient_detail.html', {'request': request, 'patient': patient, 'events': events, 'event_types': EVENT_TYPES, 'upcoming_events': upcoming_events})
+    return templates.TemplateResponse('patient_detail.html', {'request': request, 'patient': patient, 'events': events, 'event_types': EVENT_TYPES, 'upcoming_events': upcoming_events, 'timedelta': timedelta})
 @app.get('/patients/{patient_id}/events/{event_id}', response_class=HTMLResponse)
 def event_detail(
     request: Request,
