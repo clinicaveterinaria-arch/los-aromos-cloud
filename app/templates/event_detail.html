@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Detalle de evento</title>
+</head>
+<body>
+
+<h1>{{ event.event_type }}</h1>
+
+<p><b>Fecha:</b> {{ event.event_date.strftime('%d/%m/%Y %H:%M') }}</p>
+
+<p><b>Título:</b> {{ event.title }}</p>
+
+<p><b>Descripción:</b> {{ event.description }}</p>
+
+<p><b>Anamnesis:</b> {{ event.anamnesis }}</p>
+
+<p><b>Examen físico:</b> {{ event.physical_exam }}</p>
+
+<p><b>Diagnóstico:</b> {{ event.diagnosis }}</p>
+
+<p><b>Tratamiento:</b> {{ event.treatment }}</p>
+
+{% if event.event_type == 'Vacuna' %}
+<hr>
+<h3>💉 Vacunación</h3>
+
+<p><b>Vacuna:</b> {{ event.vaccine_name }}</p>
+<p><b>Lote:</b> {{ event.vaccine_lot }}</p>
+<p><b>Vencimiento:</b> {{ event.vaccine_expiration }}</p>
+<p><b>Próxima dosis:</b> {{ event.next_vaccine_date }}</p>
+{% endif %}
+
+<br>
+<a href="/patients/{{ patient.id }}">⬅ Volver a la historia clínica</a>
+
+</body>
+</html>
