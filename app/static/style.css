@@ -122,3 +122,15 @@
     margin-top:10px;
     padding-left:10px;
 }
+.check-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 6px 0;
+    cursor: pointer;
+}
+
+.check-row input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+}
