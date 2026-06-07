@@ -115,7 +115,14 @@
     <small>{{ e.event_date.strftime('%d/%m/%Y %H:%M') }}</small>
 
     <h3>{{ e.title }}</h3>
-
+{% if e.event_type == 'Vacuna' %}
+<div class="vaccine-timeline">
+    {% if e.vaccine_name %}<p><b>Vacuna aplicada:</b> {{ e.vaccine_name }}</p>{% endif %}
+    {% if e.vaccine_lot %}<p><b>Lote:</b> {{ e.vaccine_lot }}</p>{% endif %}
+    {% if e.vaccine_expiration %}<p><b>Vencimiento:</b> {{ e.vaccine_expiration }}</p>{% endif %}
+    {% if e.next_vaccine_date %}<p><b>Próxima dosis:</b> {{ e.next_vaccine_date }}</p>{% endif %}
+</div>
+{% endif %}
     {% if e.weight or e.temperature or e.heart_rate or e.respiratory_rate %}
     <p>
       {% if e.weight %}<b>Peso:</b> {{ e.weight }} kg {% endif %}
