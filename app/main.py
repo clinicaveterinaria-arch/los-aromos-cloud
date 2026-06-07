@@ -625,7 +625,7 @@ def patient_print(
             'events': events
         }
     )
-    @app.get('/patients/{patient_id}/anesthesia', response_class=HTMLResponse)
+@app.get('/patients/{patient_id}/anesthesia', response_class=HTMLResponse)
 def patient_anesthesia(
     request: Request,
     patient_id: int,
