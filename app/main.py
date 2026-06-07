@@ -127,7 +127,7 @@ def home(request: Request, db: Session = Depends(get_db), user: User = Depends(r
         ).count(),
         'today': db.query(ClinicalEvent).filter(
             ClinicalEvent.reminder_date == today
-        ).count()
+        ).count(),
         'vaccines': db.query(ClinicalEvent).filter(
             ClinicalEvent.event_type == 'Vacuna'
         ).count(),
