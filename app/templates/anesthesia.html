@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>🩺 Módulo de Anestesia</h1>
+
+<div class="panel">
+  <h2>{{ patient.name }}</h2>
+  <p><b>Propietario:</b> {{ patient.owner.name }}</p>
+  <p><b>Peso actual:</b> {{ patient.weight or '-' }} kg</p>
+</div>
+
+<a href="/patients/{{ patient.id }}" class="btn">Volver a ficha</a>
+
+{% endblock %}
