@@ -78,9 +78,44 @@
     <p>No hay recordatorios para hoy.</p>
     {% endfor %}
 </div>
+
 <div class="panel wide">
-  <h2>Últimos eventos</h2>
- {% for e in latest_events %}
+    <h2>Accesos rápidos clínicos</h2>
+
+    <div class="grid cards">
+
+        <a class="card" href="/search">
+            <h3>➕ Nueva consulta</h3>
+            <p>Buscar paciente y cargar evento clínico.</p>
+        </a>
+
+        <a class="card" href="/patients/new">
+            <h3>🐾 Nuevo paciente</h3>
+            <p>Alta rápida de mascota.</p>
+        </a>
+
+        <a class="card" href="/search">
+            <h3>📷 Nueva RX</h3>
+            <p>Buscar paciente y cargar informe radiográfico.</p>
+        </a>
+
+        <a class="card" href="/search">
+            <h3>❤️ Nuevo ECG</h3>
+            <p>Buscar paciente y cargar estudio cardiológico.</p>
+        </a>
+
+        <a class="card" href="/search">
+            <h3>🩺 Nueva ecografía</h3>
+            <p>Buscar paciente y cargar estudio ecográfico.</p>
+        </a>
+
+    </div>
+</div>
+
+
+<div class="panel wide">
+    <h2>Últimos eventos</h2>
+    {% for e in latest_events %}
 <a href="/patients/{{ e.patient.id }}" class="timeline-item" style="display:block;text-decoration:none;color:inherit;">
     <b>{{ e.event_type }}</b> — {{ e.patient.name }}
     <small>{{ e.event_date.strftime('%d/%m/%Y %H:%M') }}</small>
