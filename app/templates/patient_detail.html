@@ -152,7 +152,7 @@
         {% endif %}
 
         <b>{{ e.event_type }}</b>
-        <span>{{ e.event_date.strftime('%d/%m/%Y %H:%M') }}</span>
+        <span>{{ (e.event_date - timedelta(hours=3)).strftime('%d/%m/%Y %H:%M') }}</span>
         — <a href="/patients/{{ patient.id }}/events/{{ e.id }}">{{ e.title }}</a>
     </summary>
 
