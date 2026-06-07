@@ -625,6 +625,26 @@ def patient_print(
             'events': events
         }
     )
+    @app.get('/patients/{patient_id}/anesthesia', response_class=HTMLResponse)
+def patient_anesthesia(
+    request: Request,
+    patient_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    patient = db.get(Patient, patient_id)
+
+    if not patient:
+        raise HTTPException(status_code=404, detail="Paciente no encontrado")
+
+    return templates.TemplateResponse(
+        'anesthesia.html',
+        {
+            'request': request,
+            'patient': patient,
+            'user': user
+        }
+    )
 @app.get('/health')
 def health():
     return {'status': 'ok', 'app': 'Los Aromos Cloud'}
