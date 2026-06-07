@@ -636,12 +636,36 @@ def patient_anesthesia(
 
     if not patient:
         raise HTTPException(status_code=404, detail="Paciente no encontrado")
+    weight = patient.weight or 0
 
+    try:
+        weight = float(weight)
+    except:
+        weight = 0
+
+    doses = {
+        "acepromacina_mg": round(weight * 0.03, 2),
+        "dexmedetomidina_mcg_baja": round(weight * 5, 2),
+        "dexmedetomidina_mcg_alta": round(weight * 10, 2),
+        "ketamina_premed_mg": round(weight * 3, 2),
+        "midazolam_mg": round(weight * 0.2, 2),
+        "nalbufina_mg": round(weight * 0.5, 2),
+        "butorfanol_mg": round(weight * 0.3, 2),
+
+        "propofol_ind_mg": round(weight * 3, 2),
+        "ketamina_ind_mg": round(weight * 5, 2),
+        "midazolam_ind_mg": round(weight * 0.2, 2),
+
+        "meloxicam_mg": round(weight * 0.2, 2),
+
+        "rl_ml_h": round(weight * 5, 2),
+    }
     return templates.TemplateResponse(
         'anesthesia.html',
         {
             'request': request,
             'patient': patient,
+            'doses': doses,
             'user': user
         }
     )
