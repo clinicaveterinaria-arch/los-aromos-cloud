@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h1>Historial completo - {{ patient.name }}</h1>
+
+<a href="/patients/{{ patient.id }}" class="btn">⬅ Volver a historia clínica</a>
+
+<div class="panel">
+    <h2>Línea de tiempo completa</h2>
+
+    <div class="timeline-compact">
+        {% for e in events %}
+        <details class="timeline-row">
+            <summary>
+                <b>{{ e.event_type }}</b>
+                <span>{{ (e.event_date - timedelta(hours=3)).strftime('%d/%m/%Y %H:%M') }}</span>
+                — <a href="/patients/{{ patient.id }}/events/{{ e.id }}">{{ e.title }}</a>
+            </summary>
+
+            <div class="timeline-detail">
+                {% if e.description %}<p><b>Motivo:</b><br>{{ e.description }}</p>{% endif %}
+                {% if e.diagnosis %}<p><b>Diagnóstico:</b><br>{{ e.diagnosis }}</p>{% endif %}
+                {% if e.treatment %}<p><b>Tratamiento:</b><br>{{ e.treatment }}</p>{% endif %}
+            </div>
+        </details>
+        {% else %}
+        <p>No hay eventos cargados todavía.</p>
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock %}
