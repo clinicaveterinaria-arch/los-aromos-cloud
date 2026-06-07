@@ -38,9 +38,19 @@
     transition:.2s;
 }
 
-.timeline-item:hover{
-    background:#fff7fb;
-    border-radius:10px;
-    cursor:pointer;
-    transition:.2s;
+.timeline-horizontal{
+    display:flex;
+    flex-direction:row;
+    gap:16px;
+    overflow-x:auto;
+    padding:15px 0;
+    width:100%;
+    max-width:100%;
+}
+
+.timeline-horizontal .timeline-item{
+    min-width:320px;
+    max-width:360px;
+    flex:0 0 auto;
+}
 }
