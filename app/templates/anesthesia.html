@@ -1,6 +1,19 @@
 {% extends "base.html" %}
 {% block content %}
+<style>
+  .check-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 8px 0;
+  }
 
+  .check-row input[type="checkbox"],
+  .check-row input[type="radio"] {
+    width: auto;
+    margin: 0;
+  }
+</style>
 <h1>🩺 Módulo de Anestesia</h1>
 
 <div class="panel">
@@ -11,31 +24,42 @@
 
 <form method="post" action="/patients/{{ patient.id }}/anesthesia">
 
-  <div class="panel">
-    <h2>Datos generales</h2>
-    <input name="weight" placeholder="Peso en kg" value="{{ patient.weight or '' }}">
-    <input name="procedure" placeholder="Procedimiento">
-    <input name="asa" placeholder="ASA">
-    <input name="estimated_duration" placeholder="Duración estimada">
+<div class="panel">
+  <h2>Datos generales</h2>
+  <input name="weight" placeholder="Peso en kg" value="{{ patient.weight or '' }}">
+  <input name="procedure" placeholder="Procedimiento">
+  <input name="asa" placeholder="ASA">
+  <input name="estimated_duration" placeholder="Duración estimada">
   </div>
 <div class="panel">
   <h2>Premedicación</h2>
 
-  <label><input type="checkbox" name="premed_dexmedetomidine"> Dexmedetomidina</label><br>
-  <label><input type="checkbox" name="premed_ketamine"> Ketamina IM</label><br>
-  <label><input type="checkbox" name="premed_midazolam"> Midazolam</label><br>
-  <label><input type="checkbox" name="premed_nalbuphine"> Nalbufina</label><br>
-  <label><input type="checkbox" name="premed_butorphanol"> Butorfanol</label><br>
-
+  <label class="check-row"><input type="checkbox" name="premed_acepromazine"> Acepromacina</label>
+  <label class="check-row"><input type="checkbox" name="premed_dexmedetomidine"> Dexmedetomidina</label>
+  <label class="check-row"><input type="checkbox" name="premed_ketamine"> Ketamina IM</label>
+  <label class="check-row"><input type="checkbox" name="premed_midazolam"> Midazolam</label>
+  <label class="check-row"><input type="checkbox" name="premed_nalbuphine"> Nalbufina</label>
+  <label class="check-row"><input type="checkbox" name="premed_butorphanol"> Butorfanol</label>
   <textarea name="premed_notes" placeholder="Observaciones de premedicación"></textarea>
 </div>
 
 <div class="panel">
   <h2>Inducción</h2>
 
-  <label><input type="checkbox" name="induction_propofol"> Propofol</label><br>
-  <label><input type="checkbox" name="induction_ketamine"> Ketamina</label><br>
-  <label><input type="checkbox" name="induction_midazolam"> Midazolam</label><br>
+ <label class="check-row">
+  <input type="checkbox" name="induction_propofol">
+  Propofol
+</label>
+
+<label class="check-row">
+  <input type="checkbox" name="induction_ketamine">
+  Ketamina
+</label>
+
+<label class="check-row">
+  <input type="checkbox" name="induction_midazolam">
+  Midazolam
+</label>
 
   <textarea name="induction_notes" placeholder="Observaciones de inducción"></textarea>
 </div>
@@ -43,8 +67,15 @@
 <div class="panel">
   <h2>Mantenimiento</h2>
 
-  <label><input type="checkbox" name="maintenance_tiva"> TIVA</label><br>
-  <label><input type="checkbox" name="maintenance_isoflurane"> Isoflurano</label><br>
+<label class="check-row">
+  <input type="checkbox" name="maintenance_tiva">
+  TIVA
+</label>
+
+<label class="check-row">
+  <input type="checkbox" name="maintenance_isoflurane">
+  Isoflurano
+</label>
 
   <textarea name="maintenance_notes" placeholder="Observaciones de mantenimiento"></textarea>
 </div>
@@ -52,23 +83,34 @@
 <div class="panel">
   <h2>Analgesia intraoperatoria / Soporte</h2>
 
-  <label><input type="checkbox" name="intra_fentanyl_bolus"> Bolo de fentanilo</label><br>
-  <label><input type="checkbox" name="intra_flk"> CRI FLK</label><br>
-  <label><input type="checkbox" name="intra_dobutamine"> Dobutamina</label><br>
+  <label class="check-row">
+  <input type="checkbox" name="intra_fentanyl_bolus">
+  Bolo de fentanilo
+</label>
+
+<label class="check-row">
+  <input type="checkbox" name="intra_flk">
+  CRI FLK
+</label>
+
+<label class="check-row">
+  <input type="checkbox" name="intra_dobutamine">
+  Dobutamina
+</label>
 
   <textarea name="intra_notes" placeholder="Observaciones intraoperatorias"></textarea>
 </div>
   <div class="panel">
     <h2>Analgesia posoperatoria</h2>
 
-    <label><input type="checkbox" name="meloxicam"> Meloxicam</label><br>
-    <label><input type="checkbox" name="dipyrone"> Dipirona</label><br>
-    <label><input type="checkbox" name="tramadol"> Tramadol</label><br>
-    <label><input type="checkbox" name="gabapentin"> Gabapentina</label><br>
-    <label><input type="checkbox" name="pregabalin"> Pregabalina</label><br>
-    <label><input type="checkbox" name="nalbuphine"> Nalbufina</label><br>
-    <label><input type="checkbox" name="butorphanol"> Butorfanol</label><br>
-    <label><input type="checkbox" name="dexamethasone"> Dexametasona</label><br>
+    <label class="check-row"><input type="checkbox" name="meloxicam"> Meloxicam</label>
+    <label class="check-row"><input type="checkbox" name="dipyrone"> Dipirona</label>
+    <label class="check-row"><input type="checkbox" name="tramadol"> Tramadol</label>
+    <label class="check-row"><input type="checkbox" name="gabapentin"> Gabapentina</label>
+    <label class="check-row"><input type="checkbox" name="pregabalin"> Pregabalina</label>
+    <label class="check-row"><input type="checkbox" name="nalbuphine"> Nalbufina</label>
+    <label class="check-row"><input type="checkbox" name="butorphanol"> Butorfanol</label>
+    <label class="check-row"><input type="checkbox" name="dexamethasone"> Dexametasona</label>
 
     <textarea name="postop_notes" placeholder="Observaciones de analgesia posoperatoria"></textarea>
   </div>
@@ -76,12 +118,12 @@
   <div class="panel">
     <h2>Antibioticoterapia</h2>
 
-    <label><input type="checkbox" name="cefazolin"> Cefazolina</label><br>
-    <label><input type="checkbox" name="amoxiclav"> Amoxicilina clavulánico</label><br>
-    <label><input type="checkbox" name="cephalexin"> Cefalexina</label><br>
-    <label><input type="checkbox" name="enrofloxacin"> Enrofloxacina</label><br>
-    <label><input type="checkbox" name="metronidazole"> Metronidazol</label><br>
-    <label><input type="checkbox" name="clindamycin"> Clindamicina</label><br>
+    <label class="check-row"><input type="checkbox" name="cefazolin"> Cefazolina</label>
+    <label class="check-row"><input type="checkbox" name="amoxiclav"> Amoxicilina clavulánico</label>
+    <label class="check-row"><input type="checkbox" name="cephalexin"> Cefalexina</label>
+    <label class="check-row"><input type="checkbox" name="enrofloxacin"> Enrofloxacina</label>
+    <label class="check-row"><input type="checkbox" name="metronidazole"> Metronidazol</label>
+    <label class="check-row"><input type="checkbox" name="clindamycin"> Clindamicina</label>
 
     <textarea name="antibiotic_notes" placeholder="Observaciones de antibioticoterapia"></textarea>
   </div>
