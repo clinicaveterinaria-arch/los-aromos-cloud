@@ -7,26 +7,61 @@
 <style>
 body{
     font-family: Arial, sans-serif;
-    margin:20px;
-    color:#000;
-}
-
-.panel{
-    border:1px solid #ccc;
-    border-radius:8px;
-    padding:12px;
-    margin-bottom:15px;
+    margin: 18px;
+    color: #111;
+    font-size: 13px;
 }
 
 h1{
-    text-align:center;
+    text-align: center;
+    font-size: 24px;
+    margin-bottom: 18px;
+}
+
+h2{
+    font-size: 17px;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 4px;
+    margin-top: 4px;
+}
+
+h3{
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+.panel{
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    page-break-inside: avoid;
+}
+
+p{
+    margin: 5px 0;
+}
+
+ul{
+    margin-top: 4px;
+    margin-bottom: 8px;
+}
+
+.btn{
+    padding: 8px 14px;
+    margin-top: 10px;
 }
 
 @media print{
     .btn{
         display:none;
     }
+
+    body{
+        margin: 8mm;
+    }
 }
+</style>
 </style>
 
 </head>
