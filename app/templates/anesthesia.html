@@ -26,7 +26,14 @@
 
 <div class="panel">
   <h2>Datos generales</h2>
-  <input name="weight" placeholder="Peso en kg" value="{{ patient.weight or '' }}">
+  <p><strong>Peso registrado:</strong> {{ patient.weight or 'Sin peso cargado' }} kg</p>
+
+<label>Peso actual para este protocolo:</label>
+<input
+    name="weight"
+    placeholder="Peso en kg"
+    value="{{ patient.weight or '' }}"
+>
   <input name="procedure" placeholder="Procedimiento">
   <input name="asa" placeholder="ASA">
   <input name="estimated_duration" placeholder="Duración estimada">
