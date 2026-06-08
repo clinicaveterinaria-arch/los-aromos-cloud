@@ -963,12 +963,12 @@ Velocidad: {fluid_rate} ml/kg/h
         event_date=datetime.now()
     )
 
-    db.add(event)
-    db.commit()
+        db.add(event)
+        db.commit()
 
-    return RedirectResponse(
-        url=f"/patients/{patient.id}",
-        status_code=303
+        return RedirectResponse(
+            url=f"/patients/{patient.id}",
+            status_code=303
     )
 @app.get('/health')
 def health():
