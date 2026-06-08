@@ -711,7 +711,13 @@ async def patient_anesthesia_print(
 
     if not patient:
         raise HTTPException(status_code=404, detail="Paciente no encontrado")
-
+    last_anesthesia = (
+        db.query(ClinicalEvent)
+        .filter(ClinicalEvent.patient_id == patient.id)
+        .filter(ClinicalEvent.event_type == 'Anestesia')
+        .order_by(ClinicalEvent.event_date.desc())
+        .first()
+    )
     weight = patient.weight or 0
 
     try:
@@ -789,6 +795,7 @@ async def patient_anesthesia_print(
             'request': request,
             'patient': patient,
             'doses': doses,
+            'last_anesthesia': last_anesthesia,
             'user': user
         }
     )    
