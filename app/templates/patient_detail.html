@@ -32,10 +32,18 @@
 <div class="panel">
     <h2>📋 Historial anestésico</h2>
 
-    {% for a in anesthesia_history %}
-        <div style="margin-bottom:10px;">
-            <strong>{{ a.event_date.strftime('%d/%m/%Y %H:%M') }}</strong>
-            <a href="/patients/{{ patient.id }}/anesthesia/print" target="_blank" class="btn">
+{% for a in anesthesia_history %}
+    <div style="margin-bottom:10px;">
+        {% set ns = namespace(procedure='Sin procedimiento') %}
+        {% for line in a.description.split('\n') %}
+            {% if line.startswith('Procedimiento:') %}
+                {% set ns.procedure = line.replace('Procedimiento:', '').strip() %}
+        {% endif %}
+    {% endfor %}
+
+    <strong>{{ a.event_date.strftime('%d/%m/%Y %H:%M') }}</strong>
+    - {{ ns.procedure }}
+    <a href="/patients/{{ patient.id }}/anesthesia/print" target="_blank" class="btn">
                 Ver / Imprimir
             </a>
         </div>
