@@ -679,6 +679,17 @@ def patient_anesthesia(
         "rl_ml_h": round(weight * 5, 2),
         "rl_macro_gtt_min": round((weight * 5 * 20) / 60, 1),
         "rl_micro_gtt_min": round((weight * 5 * 60) / 60, 1),
+        "dobutamina_mcg_min_baja": round(weight * 5, 2),
+        "dobutamina_mcg_min_alta": round(weight * 10, 2),
+
+        "dobutamina_ml_h_baja": round(((weight * 5 * 60) / 1000) / 12.5, 2),
+        "dobutamina_ml_h_alta": round(((weight * 10 * 60) / 1000) / 12.5, 2),
+
+        "dobutamina_macro_gtt_min_baja": round(((((weight * 5 * 60) / 1000) / 12.5) * 20) / 60, 1),
+        "dobutamina_macro_gtt_min_alta": round(((((weight * 10 * 60) / 1000) / 12.5) * 20) / 60, 1),
+
+        "dobutamina_micro_gtt_min_baja": round(((((weight * 5 * 60) / 1000) / 12.5) * 60) / 60, 1),
+        "dobutamina_micro_gtt_min_alta": round(((((weight * 10 * 60) / 1000) / 12.5) * 60) / 60, 1),
     }
     return templates.TemplateResponse(
         'anesthesia.html',
