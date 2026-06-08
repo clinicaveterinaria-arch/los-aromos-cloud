@@ -295,8 +295,27 @@ def patient_detail(request: Request, patient_id: int, db: Session = Depends(get_
         .limit(5)
         .all()
     )
-
-    return templates.TemplateResponse('patient_detail.html', {'request': request, 'patient': patient, 'events': events, 'event_types': EVENT_TYPES, 'upcoming_events': upcoming_events, 'timedelta': timedelta})
+    last_anesthesia = (
+        db.query(ClinicalEvent)
+        .filter(
+            ClinicalEvent.patient_id == patient.id,
+            ClinicalEvent.event_type == 'Anestesia'
+        )
+        .order_by(ClinicalEvent.event_date.desc())
+        .first()
+    )
+    return templates.TemplateResponse(
+        'patient_detail.html',
+        {
+            'request': request,
+            'patient': patient,
+            'events': events,
+            'event_types': EVENT_TYPES,
+            'upcoming_events': upcoming_events,
+            'timedelta': timedelta,
+            'last_anesthesia': last_anesthesia,
+        }
+    )
 @app.get('/patients/{patient_id}/history', response_class=HTMLResponse)
 def patient_history(
     request: Request,
