@@ -14,6 +14,20 @@
   <div><b>Especie:</b> {{ patient.species }} | <b>Raza:</b> {{ patient.breed }}</div>
   <div><b>Peso actual:</b> {{ patient.weight or '' }} kg</div>
 </div>
+{% if last_anesthesia %}
+<div class="panel">
+    <h2>🩺 Último protocolo anestésico</h2>
+
+    <p>
+        <strong>Fecha:</strong>
+        {{ last_anesthesia.event_date.strftime('%d/%m/%Y %H:%M') }}
+    </p>
+
+    <a href="/patients/{{ patient.id }}/anesthesia/print" target="_blank" class="btn">
+        Ver / Imprimir protocolo anestésico
+    </a>
+</div>
+{% endif %}
 <div class="panel">
     <h2>📅 Próximos eventos</h2>
 
