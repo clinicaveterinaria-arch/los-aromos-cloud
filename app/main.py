@@ -683,21 +683,44 @@ def calculate_anesthesia_doses(weight: float):
         "fentanilo_bolo_ml": round((weight * 2) / 50, 2),
 
         "flk_velocidad_ml_h": round(weight * 3, 2),
-        "flk_macro_gtt_min": round((weight * 3 * 20) / 60, 1),
-        "flk_micro_gtt_min": round((weight * 3 * 60) / 60, 1),
+"flk_macro_gtt_min": round((weight * 3 * 20) / 60, 1),
+"flk_micro_gtt_min": round((weight * 3 * 60) / 60, 1),
 
-        "flk_fentanilo_mcg_h": round(weight * 5, 2),
-        "flk_lidocaina_mg_h": round(weight * 0.6, 2),
-        "flk_ketamina_mg_h": round(weight * 0.6, 2),
+"flk_fentanilo_mcg_h": round(weight * 5, 2),
+"flk_lidocaina_mg_h": round(weight * 0.6, 2),
+"flk_ketamina_mg_h": round(weight * 0.6, 2),
 
-        "rl_ml_h": round(weight * 5, 2),
-        "rl_macro_gtt_min": round((weight * 5 * 20) / 60, 1),
-        "rl_micro_gtt_min": round((weight * 5 * 60) / 60, 1),
+"flk_fentanilo_ml_100": round(((weight * 5 * 1.6667) / 50), 2),
+"flk_lidocaina_ml_100": round(((weight * 0.6 * 1.6667) / 20), 2),
+"flk_ketamina_ml_100": round(((weight * 0.6 * 1.6667) / 50), 2),
+"flk_total_drogas_ml_100": round(
+    ((weight * 5 * 1.6667) / 50)
+    + ((weight * 0.6 * 1.6667) / 20)
+    + ((weight * 0.6 * 1.6667) / 50),
+    2
+),
+"flk_ssf_ml_100": round(
+    100
+    - (
+        ((weight * 5 * 1.6667) / 50)
+        + ((weight * 0.6 * 1.6667) / 20)
+        + ((weight * 0.6 * 1.6667) / 50)
+    ),
+    2
+),
 
-        "dobutamina_mcg_min_baja": round(weight * 5, 2),
-        "dobutamina_mcg_min_alta": round(weight * 10, 2),
-        "dobutamina_ml_h_baja": round(((weight * 5 * 60) / 1000) / 12.5, 2),
-        "dobutamina_ml_h_alta": round(((weight * 10 * 60) / 1000) / 12.5, 2),
+"rl_ml_h": round(weight * 5, 2),
+"rl_macro_gtt_min": round((weight * 5 * 20) / 60, 1),
+"rl_micro_gtt_min": round((weight * 5 * 60) / 60, 1),
+
+"dobutamina_mcg_min_baja": round(weight * 5, 2),
+"dobutamina_mcg_min_alta": round(weight * 10, 2),
+"dobutamina_ml_h_baja": round(((weight * 5 * 60) / 1000) / 12.5, 2),
+"dobutamina_ml_h_alta": round(((weight * 10 * 60) / 1000) / 12.5, 2),
+"dobutamina_macro_gtt_min_baja": round(((((weight * 5 * 60) / 1000) / 12.5) * 20) / 60, 1),
+"dobutamina_macro_gtt_min_alta": round(((((weight * 10 * 60) / 1000) / 12.5) * 20) / 60, 1),
+"dobutamina_micro_gtt_min_baja": round(((((weight * 5 * 60) / 1000) / 12.5) * 60) / 60, 1),
+"dobutamina_micro_gtt_min_alta": round(((((weight * 10 * 60) / 1000) / 12.5) * 60) / 60, 1),
     }
 @app.get('/patients/{patient_id}/anesthesia', response_class=HTMLResponse)
 def patient_anesthesia(
