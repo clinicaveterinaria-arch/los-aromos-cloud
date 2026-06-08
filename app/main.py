@@ -733,6 +733,7 @@ def patient_anesthesia(
 async def patient_anesthesia_print(
     request: Request,
     patient_id: int,
+    event_id: int | None = None,
     db: Session = Depends(get_db),
     user: User = Depends(require_user)
 ):
@@ -747,6 +748,17 @@ async def patient_anesthesia_print(
         .order_by(ClinicalEvent.event_date.desc())
         .first()
     )
+    selected_anesthesia = last_anesthesia
+
+    if event_id:
+        selected_anesthesia = db.get(ClinicalEvent, event_id)
+
+        if (
+            not selected_anesthesia
+            or selected_anesthesia.patient_id != patient.id
+            or selected_anesthesia.event_type != 'Anestesia'
+        ):
+            raise HTTPException(status_code=404, detail="Protocolo anestésico no encontrado")
     weight = patient.weight or 0
 
     try:
@@ -824,7 +836,7 @@ async def patient_anesthesia_print(
             'request': request,
             'patient': patient,
             'doses': doses,
-            'last_anesthesia': last_anesthesia,
+            'last_anesthesia': selected_anesthesia,
             'user': user
         }
     )    
