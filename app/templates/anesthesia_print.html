@@ -12,7 +12,17 @@
     <p><strong>Peso:</strong> {{ patient.weight }} kg</p>
 
 </div>
+<div class="panel">
+    <h2>Último protocolo guardado</h2>
 
+    {% if last_anesthesia %}
+        <pre style="white-space: pre-wrap; font-family: Arial; margin:0;">
+{{ last_anesthesia.description }}
+        </pre>
+    {% else %}
+        <p>No hay protocolos anestésicos guardados.</p>
+    {% endif %}
+</div>
 <div class="panel">
 
     <h2>Premedicación</h2>
