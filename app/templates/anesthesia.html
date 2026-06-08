@@ -90,6 +90,22 @@
   <textarea name="intra_notes" placeholder="Observaciones intraoperatorias"></textarea>
 </div>
   <div class="panel">
+    <h2>FLK automático</h2>
+
+    <p><strong>Bolo de fentanilo:</strong> {{ doses.fentanilo_bolo_mcg }} mcg / {{ doses.fentanilo_bolo_ml }} ml EV lento</p>
+
+    <p><strong>CRI FLK en 100 ml SSF:</strong></p>
+    <ul>
+        <li>Fentanilo: {{ doses.flk_fentanilo_ml_100 }} ml</li>
+        <li>Lidocaína 2%: {{ doses.flk_lidocaina_ml_100 }} ml</li>
+        <li>Ketamina 5%: {{ doses.flk_ketamina_ml_100 }} ml</li>
+    </ul>
+
+    <p><strong>Velocidad:</strong> {{ doses.flk_velocidad_ml_h }} ml/h</p>
+    <p>Macro: {{ doses.flk_macro_gtt_min }} gtt/min</p>
+    <p>Micro: {{ doses.flk_micro_gtt_min }} gtt/min</p>
+</div>
+  <div class="panel">
     <h2>Analgesia posoperatoria</h2>
 
     <label class="check-row"><input type="checkbox" name="meloxicam"> Meloxicam</label>
