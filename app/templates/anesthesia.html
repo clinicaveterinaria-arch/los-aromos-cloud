@@ -100,6 +100,31 @@
 </label>
 
   <textarea name="intra_notes" placeholder="Observaciones intraoperatorias"></textarea>
+<h3>Drogas de emergencia</h3>
+
+<p>
+<strong>Atropina:</strong>
+{{ doses.atropina_mg }} mg /
+{{ doses.atropina_ml }} ml
+</p>
+
+<p>
+<strong>Adrenalina:</strong>
+{{ doses.adrenalina_mg_baja }} a {{ doses.adrenalina_mg_alta }} mg
+({{ doses.adrenalina_ml_baja }} a {{ doses.adrenalina_ml_alta }} ml)
+</p>
+
+<p>
+<strong>Diazepam:</strong>
+{{ doses.diazepam_mg }} mg /
+{{ doses.diazepam_ml }} ml
+</p>
+
+<p>
+<strong>Dexametasona:</strong>
+{{ doses.dexametasona_mg }} mg /
+{{ doses.dexametasona_ml }} ml
+</p>
 </div>
   <div class="panel">
     <h2>FLK automático</h2>
