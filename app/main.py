@@ -654,7 +654,51 @@ def patient_print(
             'events': events
         }
     )
+def calculate_anesthesia_doses(weight: float):
+    try:
+        weight = float(weight)
+    except:
+        weight = 0
 
+    return {
+        "acepromacina_mg": round(weight * 0.03, 2),
+        "acepromacina_ml": round((weight * 0.03) / 1, 2),
+        "dexmedetomidina_mcg_baja": round(weight * 5, 2),
+        "dexmedetomidina_mcg_alta": round(weight * 10, 2),
+        "dexmedetomidina_ml_baja": round((weight * 5 / 1000) / 0.5, 2),
+        "dexmedetomidina_ml_alta": round((weight * 10 / 1000) / 0.5, 2),
+        "ketamina_premed_mg": round(weight * 3, 2),
+        "ketamina_premed_ml": round((weight * 3) / 50, 2),
+        "midazolam_mg": round(weight * 0.2, 2),
+        "midazolam_ml": round((weight * 0.2) / 5, 2),
+        "nalbufina_mg": round(weight * 0.5, 2),
+        "butorfanol_mg": round(weight * 0.3, 2),
+
+        "propofol_ind_ml": round((weight * 3) / 10, 2),
+        "ketamina_ind_ml": round((weight * 5) / 50, 2),
+        "midazolam_ind_ml": round((weight * 0.2) / 5, 2),
+
+        "meloxicam_mg": round(weight * 0.2, 2),
+        "fentanilo_bolo_mcg": round(weight * 2, 2),
+        "fentanilo_bolo_ml": round((weight * 2) / 50, 2),
+
+        "flk_velocidad_ml_h": round(weight * 3, 2),
+        "flk_macro_gtt_min": round((weight * 3 * 20) / 60, 1),
+        "flk_micro_gtt_min": round((weight * 3 * 60) / 60, 1),
+
+        "flk_fentanilo_mcg_h": round(weight * 5, 2),
+        "flk_lidocaina_mg_h": round(weight * 0.6, 2),
+        "flk_ketamina_mg_h": round(weight * 0.6, 2),
+
+        "rl_ml_h": round(weight * 5, 2),
+        "rl_macro_gtt_min": round((weight * 5 * 20) / 60, 1),
+        "rl_micro_gtt_min": round((weight * 5 * 60) / 60, 1),
+
+        "dobutamina_mcg_min_baja": round(weight * 5, 2),
+        "dobutamina_mcg_min_alta": round(weight * 10, 2),
+        "dobutamina_ml_h_baja": round(((weight * 5 * 60) / 1000) / 12.5, 2),
+        "dobutamina_ml_h_alta": round(((weight * 10 * 60) / 1000) / 12.5, 2),
+    }
 @app.get('/patients/{patient_id}/anesthesia', response_class=HTMLResponse)
 def patient_anesthesia(
     request: Request,
@@ -674,7 +718,7 @@ def patient_anesthesia(
     except:
         weight = 0
 
-    doses = {}
+    doses = calculate_anesthesia_doses(weight)
 
     return templates.TemplateResponse(
         'anesthesia.html',
@@ -698,7 +742,7 @@ async def patient_anesthesia_recalculate(
     if not patient:
         raise HTTPException(status_code=404, detail="Paciente no encontrado")
 
-    doses = {}
+    doses = calculate_anesthesia_doses(weight)
 
     return templates.TemplateResponse(
         'anesthesia.html',
