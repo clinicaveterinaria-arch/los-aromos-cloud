@@ -1,1 +1,103 @@
+{% extends 'base.html' %}
 
+{% block content %}
+
+<h1>Protocolo Anestésico</h1>
+
+<div class="panel">
+
+    <h2>Paciente</h2>
+
+    <p><strong>Nombre:</strong> {{ patient.name }}</p>
+    <p><strong>Peso:</strong> {{ patient.weight }} kg</p>
+
+</div>
+
+<div class="panel">
+
+    <h2>Premedicación</h2>
+
+    <ul>
+        <li>Acepromacina: {{ doses.acepromacina_mg }} mg ({{ doses.acepromacina_ml }} ml)</li>
+        <li>Dexmedetomidina: {{ doses.dexmedetomidina_mcg_baja }}–{{ doses.dexmedetomidina_mcg_alta }} mcg</li>
+        <li>Ketamina IM: {{ doses.ketamina_premed_mg }} mg ({{ doses.ketamina_premed_ml }} ml)</li>
+        <li>Midazolam: {{ doses.midazolam_mg }} mg ({{ doses.midazolam_ml }} ml)</li>
+    </ul>
+
+</div>
+
+<div class="panel">
+
+    <h2>Inducción</h2>
+
+    <ul>
+        <li>Propofol: {{ doses.propofol_ind_mg }} mg ({{ doses.propofol_ind_ml }} ml)</li>
+        <li>Ketamina: {{ doses.ketamina_ind_mg }} mg ({{ doses.ketamina_ind_ml }} ml)</li>
+        <li>Midazolam: {{ doses.midazolam_ind_mg }} mg ({{ doses.midazolam_ind_ml }} ml)</li>
+    </ul>
+
+</div>
+
+<div class="panel">
+
+    <h2>FLK</h2>
+
+    <p><strong>Bolo Fentanilo:</strong>
+        {{ doses.fentanilo_bolo_mcg }} mcg
+        ({{ doses.fentanilo_bolo_ml }} ml)
+    </p>
+
+    <p><strong>Velocidad:</strong>
+        {{ doses.flk_velocidad_ml_h }} ml/h
+    </p>
+
+    <p>
+        Macro: {{ doses.flk_macro_gtt_min }} gtt/min
+        <br>
+        Micro: {{ doses.flk_micro_gtt_min }} gtt/min
+    </p>
+
+</div>
+
+<div class="panel">
+
+    <h2>Fluidoterapia</h2>
+
+    <p>
+        Ringer Lactato:
+        {{ doses.rl_ml_h }} ml/h
+    </p>
+
+    <p>
+        Macro: {{ doses.rl_macro_gtt_min }} gtt/min
+        <br>
+        Micro: {{ doses.rl_micro_gtt_min }} gtt/min
+    </p>
+
+</div>
+
+<div class="panel">
+
+    <h2>Dobutamina</h2>
+
+    <p>
+        {{ doses.dobutamina_mcg_min_baja }}
+        a
+        {{ doses.dobutamina_mcg_min_alta }}
+        mcg/min
+    </p>
+
+    <p>
+        {{ doses.dobutamina_ml_h_baja }}
+        a
+        {{ doses.dobutamina_ml_h_alta }}
+        ml/h
+    </p>
+
+</div>
+
+<button onclick="window.print()" class="btn">
+    Imprimir
+</button>
+
+{% endblock %}
