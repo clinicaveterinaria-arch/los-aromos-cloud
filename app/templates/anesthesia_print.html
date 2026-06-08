@@ -1,7 +1,36 @@
-{% extends 'base.html' %}
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Protocolo Anestésico</title>
 
-{% block content %}
+<style>
+body{
+    font-family: Arial, sans-serif;
+    margin:20px;
+    color:#000;
+}
 
+.panel{
+    border:1px solid #ccc;
+    border-radius:8px;
+    padding:12px;
+    margin-bottom:15px;
+}
+
+h1{
+    text-align:center;
+}
+
+@media print{
+    .btn{
+        display:none;
+    }
+}
+</style>
+
+</head>
+<body>
 <h1>Protocolo Anestésico</h1>
 
 <div class="panel">
@@ -174,4 +203,5 @@
     Imprimir
 </button>
 
-{% endblock %}
+</body>
+</html>
