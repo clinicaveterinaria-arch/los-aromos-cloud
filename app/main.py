@@ -814,6 +814,9 @@ async def save_patient_anesthesia(
     form = await request.form()
 
     weight = form.get('weight', '')
+
+if form.get('update_patient_weight') and weight:
+    patient.weight = float(weight)
     procedure = form.get('procedure', '')
     asa = form.get('asa', '')
     estimated_duration = form.get('estimated_duration', '')
