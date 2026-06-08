@@ -6,10 +6,17 @@
 
 <div class="panel">
 
-    <h2>Paciente</h2>
+    <h2>{{ patient.name }}</h2>
 
-    <p><strong>Nombre:</strong> {{ patient.name }}</p>
-    <p><strong>Peso:</strong> {{ patient.weight }} kg</p>
+    <p><strong>Propietario:</strong> {{ patient.owner.name }}</p>
+
+    <p><strong>Peso:</strong> {{ patient.weight or '-' }} kg</p>
+
+    <p><strong>Fecha:</strong>
+    {% if last_anesthesia %}
+        {{ last_anesthesia.event_date.strftime('%d/%m/%Y %H:%M') }}
+    {% endif %}
+    </p>
 
 </div>
 <div class="panel">
@@ -48,40 +55,61 @@
 
 </div>
 
+
+
 <div class="panel">
+    <h2>FLK / Analgesia intraoperatoria</h2>
 
-    <h2>FLK</h2>
+    <p><strong>Bolo fentanilo:</strong> {{ doses.fentanilo_bolo_mcg }} mcg ({{ doses.fentanilo_bolo_ml }} ml) EV lento</p>
 
-    <p><strong>Bolo Fentanilo:</strong>
-        {{ doses.fentanilo_bolo_mcg }} mcg
-        ({{ doses.fentanilo_bolo_ml }} ml)
-    </p>
+    <h3>CRI FLK en 100 ml SSF</h3>
+    <ul>
+        <li>Fentanilo: {{ doses.flk_fentanilo_ml_100 }} ml</li>
+        <li>Lidocaína 2%: {{ doses.flk_lidocaina_ml_100 }} ml</li>
+        <li>Ketamina 5%: {{ doses.flk_ketamina_ml_100 }} ml</li>
+        <li>Total drogas: {{ doses.flk_total_drogas_ml_100 }} ml</li>
+        <li>Completar con SSF: {{ doses.flk_ssf_ml_100 }} ml</li>
+    </ul>
 
-    <p><strong>Velocidad:</strong>
-        {{ doses.flk_velocidad_ml_h }} ml/h
-    </p>
+    <h3>CRI FLK en 200 ml SSF</h3>
+    <ul>
+        <li>Fentanilo: {{ doses.flk_fentanilo_ml_200 }} ml</li>
+        <li>Lidocaína 2%: {{ doses.flk_lidocaina_ml_200 }} ml</li>
+        <li>Ketamina 5%: {{ doses.flk_ketamina_ml_200 }} ml</li>
+        <li>Total drogas: {{ doses.flk_total_drogas_ml_200 }} ml</li>
+        <li>Completar con SSF: {{ doses.flk_ssf_ml_200 }} ml</li>
+    </ul>
 
-    <p>
-        Macro: {{ doses.flk_macro_gtt_min }} gtt/min
-        <br>
-        Micro: {{ doses.flk_micro_gtt_min }} gtt/min
-    </p>
+    <h3>CRI FLK en 250 ml SSF</h3>
+    <ul>
+        <li>Fentanilo: {{ doses.flk_fentanilo_ml_250 }} ml</li>
+        <li>Lidocaína 2%: {{ doses.flk_lidocaina_ml_250 }} ml</li>
+        <li>Ketamina 5%: {{ doses.flk_ketamina_ml_250 }} ml</li>
+        <li>Total drogas: {{ doses.flk_total_drogas_ml_250 }} ml</li>
+        <li>Completar con SSF: {{ doses.flk_ssf_ml_250 }} ml</li>
+    </ul>
 
+    <p><strong>Velocidad:</strong> {{ doses.flk_velocidad_ml_h }} ml/h</p>
+    <p><strong>Macrogotero:</strong> {{ doses.flk_macro_gtt_min }} gtt/min</p>
+    <p><strong>Microgotero:</strong> {{ doses.flk_micro_gtt_min }} gtt/min</p>
 </div>
-
 <div class="panel">
 
     <h2>Fluidoterapia</h2>
 
     <p>
-        Ringer Lactato:
-        {{ doses.rl_ml_h }} ml/h
+    <strong>Ringer Lactato:</strong>
+    {{ doses.rl_ml_h }} ml/h
     </p>
 
     <p>
-        Macro: {{ doses.rl_macro_gtt_min }} gtt/min
-        <br>
-        Micro: {{ doses.rl_micro_gtt_min }} gtt/min
+    <strong>Macrogotero:</strong>
+    {{ doses.rl_macro_gtt_min }} gtt/min
+    </p>
+
+    <p>
+    <strong>Microgotero:</strong>
+    {{ doses.rl_micro_gtt_min }} gtt/min
     </p>
 
 </div>
@@ -90,19 +118,55 @@
 
     <h2>Dobutamina</h2>
 
-    <p>
-        {{ doses.dobutamina_mcg_min_baja }}
-        a
-        {{ doses.dobutamina_mcg_min_alta }}
-        mcg/min
-    </p>
+<p>
+    <strong>Dosis:</strong>
+    {{ doses.dobutamina_mcg_min_baja }}
+    a
+    {{ doses.dobutamina_mcg_min_alta }}
+    mcg/min
+</p>
 
-    <p>
-        {{ doses.dobutamina_ml_h_baja }}
-        a
-        {{ doses.dobutamina_ml_h_alta }}
-        ml/h
-    </p>
+<p>
+    <strong>Velocidad:</strong>
+    {{ doses.dobutamina_ml_h_baja }}
+    a
+    {{ doses.dobutamina_ml_h_alta }}
+    ml/h
+</p>
+
+<p>
+    <strong>Macrogotero:</strong>
+    {{ doses.dobutamina_macro_gtt_min_baja }}
+    a
+    {{ doses.dobutamina_macro_gtt_min_alta }}
+    gtt/min
+</p>
+
+<p>
+    <strong>Microgotero:</strong>
+    {{ doses.dobutamina_micro_gtt_min_baja }}
+    a
+    {{ doses.dobutamina_micro_gtt_min_alta }}
+    gtt/min
+</p>
+
+<p>
+    <strong>Macro:</strong>
+    1 gota cada
+    {{ doses.dobutamina_macro_seg_gota_alta }}
+    a
+    {{ doses.dobutamina_macro_seg_gota_baja }}
+    seg
+</p>
+
+<p>
+    <strong>Micro:</strong>
+    1 gota cada
+    {{ doses.dobutamina_micro_seg_gota_alta }}
+    a
+    {{ doses.dobutamina_micro_seg_gota_baja }}
+    seg
+</p>
 
 </div>
 
