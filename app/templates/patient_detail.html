@@ -14,6 +14,27 @@
   <div><b>Especie:</b> {{ patient.species }} | <b>Raza:</b> {{ patient.breed }}</div>
   <div><b>Peso actual:</b> {{ patient.weight or '' }} kg</div>
 </div>
+<div class="panel" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px;">
+    <div>
+        <b>Eventos</b><br>
+        {{ events|length if events else 0 }}
+    </div>
+
+    <div>
+        <b>Próximos</b><br>
+        {{ upcoming_events|length if upcoming_events else 0 }}
+    </div>
+
+    <div>
+        <b>Anestesia</b><br>
+        {{ anesthesia_history|length if anesthesia_history else 0 }}
+    </div>
+
+    <div>
+        <b>Peso actual</b><br>
+        {{ patient.weight or '-' }} kg
+    </div>
+</div>
 {% if last_anesthesia %}
 <div class="panel">
     <h2>🩺 Último protocolo anestésico</h2>
