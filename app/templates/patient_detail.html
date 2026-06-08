@@ -43,7 +43,7 @@
 
     <strong>{{ a.event_date.strftime('%d/%m/%Y %H:%M') }}</strong>
     - {{ ns.procedure }}
-    <a href="/patients/{{ patient.id }}/anesthesia/print" target="_blank" class="btn">
+    <a href="/patients/{{ patient.id }}/anesthesia/print?event_id={{ a.id }}" target="_blank" class="btn">
                 Ver / Imprimir
             </a>
         </div>
