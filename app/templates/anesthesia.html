@@ -34,9 +34,13 @@
     placeholder="Peso en kg"
     value="{{ patient.weight or '' }}"
 >
-  <input name="procedure" placeholder="Procedimiento">
-  <input name="asa" placeholder="ASA">
-  <input name="estimated_duration" placeholder="Duración estimada">
+  <label class="check-row">
+    <input type="checkbox" name="update_patient_weight">
+    Actualizar también el peso en la ficha del paciente
+</label>
+<input name="procedure" placeholder="Procedimiento">
+<input name="asa" placeholder="ASA">
+<input name="estimated_duration" placeholder="Duración estimada">
   </div>
 <div class="panel">
   <h2>Premedicación</h2>
