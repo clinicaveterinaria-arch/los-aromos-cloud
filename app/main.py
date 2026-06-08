@@ -757,6 +757,25 @@ def calculate_anesthesia_doses(weight: float):
 "dobutamina_macro_gtt_min_alta": round(((((weight * 10 * 60) / 1000) / 12.5) * 20) / 60, 1),
 "dobutamina_micro_gtt_min_baja": round(((((weight * 5 * 60) / 1000) / 12.5) * 60) / 60, 1),
 "dobutamina_micro_gtt_min_alta": round(((((weight * 10 * 60) / 1000) / 12.5) * 60) / 60, 1),
+"dobutamina_macro_seg_gota_baja": round(
+    60 / ((((weight * 5 * 60) / 1000) / 12.5) * 20 / 60),
+    0
+) if weight > 0 else 0,
+
+"dobutamina_macro_seg_gota_alta": round(
+    60 / ((((weight * 10 * 60) / 1000) / 12.5) * 20 / 60),
+    0
+) if weight > 0 else 0,
+
+"dobutamina_micro_seg_gota_baja": round(
+    60 / ((((weight * 5 * 60) / 1000) / 12.5) * 60 / 60),
+    0
+) if weight > 0 else 0,
+
+"dobutamina_micro_seg_gota_alta": round(
+    60 / ((((weight * 10 * 60) / 1000) / 12.5) * 60 / 60),
+    0
+) if weight > 0 else 0,
     }
 @app.get('/patients/{patient_id}/anesthesia', response_class=HTMLResponse)
 def patient_anesthesia(
