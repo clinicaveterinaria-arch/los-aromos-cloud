@@ -850,7 +850,35 @@ async def save_patient_anesthesia(
         induction.append('Ketamina')
 
     if form.get('ind_midazolam'):
-        induction.append('Midazolam')    
+        induction.append('Midazolam') 
+    maintenance = []
+
+    if form.get('maint_isoflurane'):
+        maintenance.append('Isofluorano')
+
+    if form.get('maint_propofol'):
+        maintenance.append('Propofol CRI')
+
+    if form.get('maint_ketamine'):
+        maintenance.append('Ketamina CRI')
+
+    if form.get('maint_flk'):
+        maintenance.append('FLK')
+
+
+    intraop_analgesia = []
+
+    if form.get('intra_fentanyl'):
+        intraop_analgesia.append('Fentanilo')
+
+    if form.get('intra_lidocaine'):
+        intraop_analgesia.append('Lidocaína')
+
+    if form.get('intra_ketamine'):
+        intraop_analgesia.append('Ketamina')
+
+    if form.get('intra_dobutamine'):
+        intraop_analgesia.append('Dobutamina')
     postop_analgesia = []
     if form.get('meloxicam'):
         postop_analgesia.append('Meloxicam')
@@ -895,7 +923,11 @@ Premedicación:
 
 Inducción:
 {', '.join(induction) if induction else 'No especificada'}
+Mantenimiento:
+{', '.join(maintenance) if maintenance else 'No especificado'}
 
+Analgesia intraoperatoria / soporte:
+{', '.join(intraop_analgesia) if intraop_analgesia else 'No especificada'}
 Analgesia posoperatoria:
 {', '.join(postop_analgesia) if postop_analgesia else 'No especificada'}
 
