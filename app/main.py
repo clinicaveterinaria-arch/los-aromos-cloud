@@ -708,7 +708,43 @@ def calculate_anesthesia_doses(weight: float):
     ),
     2
 ),
+"flk_fentanilo_ml_200": round(((weight * 5 * 3.3334) / 50), 2),
+"flk_lidocaina_ml_200": round(((weight * 0.6 * 3.3334) / 20), 2),
+"flk_ketamina_ml_200": round(((weight * 0.6 * 3.3334) / 50), 2),
+"flk_total_drogas_ml_200": round(
+    ((weight * 5 * 3.3334) / 50)
+    + ((weight * 0.6 * 3.3334) / 20)
+    + ((weight * 0.6 * 3.3334) / 50),
+    2
+),
+"flk_ssf_ml_200": round(
+    200
+    - (
+        ((weight * 5 * 3.3334) / 50)
+        + ((weight * 0.6 * 3.3334) / 20)
+        + ((weight * 0.6 * 3.3334) / 50)
+    ),
+    2
+),
 
+"flk_fentanilo_ml_250": round(((weight * 5 * 4.16675) / 50), 2),
+"flk_lidocaina_ml_250": round(((weight * 0.6 * 4.16675) / 20), 2),
+"flk_ketamina_ml_250": round(((weight * 0.6 * 4.16675) / 50), 2),
+"flk_total_drogas_ml_250": round(
+    ((weight * 5 * 4.16675) / 50)
+    + ((weight * 0.6 * 4.16675) / 20)
+    + ((weight * 0.6 * 4.16675) / 50),
+    2
+),
+"flk_ssf_ml_250": round(
+    250
+    - (
+        ((weight * 5 * 4.16675) / 50)
+        + ((weight * 0.6 * 4.16675) / 20)
+        + ((weight * 0.6 * 4.16675) / 50)
+    ),
+    2
+),
 "rl_ml_h": round(weight * 5, 2),
 "rl_macro_gtt_min": round((weight * 5 * 20) / 60, 1),
 "rl_micro_gtt_min": round((weight * 5 * 60) / 60, 1),
