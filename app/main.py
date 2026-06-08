@@ -819,6 +819,7 @@ async def save_patient_anesthesia(
     estimated_duration = form.get('estimated_duration', '')
     drip_set = form.get('drip_set', '')
     fluid_rate = form.get('fluid_rate', '')
+    
     premedication = []
 
     if form.get('premed_acepromazine'):
@@ -838,6 +839,8 @@ async def save_patient_anesthesia(
 
     if form.get('premed_butorphanol'):
         premedication.append('Butorfanol')
+
+
     induction = []
 
     if form.get('ind_propofol'):
@@ -847,7 +850,7 @@ async def save_patient_anesthesia(
         induction.append('Ketamina')
 
     if form.get('ind_midazolam'):
-        induction.append('Midazolam')        
+        induction.append('Midazolam')    
     postop_analgesia = []
     if form.get('meloxicam'):
         postop_analgesia.append('Meloxicam')
@@ -892,6 +895,7 @@ Premedicación:
 
 Inducción:
 {', '.join(induction) if induction else 'No especificada'}
+
 Analgesia posoperatoria:
 {', '.join(postop_analgesia) if postop_analgesia else 'No especificada'}
 
