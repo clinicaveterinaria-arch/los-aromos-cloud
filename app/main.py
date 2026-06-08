@@ -879,6 +879,12 @@ async def save_patient_anesthesia(
 
     if form.get('intra_dobutamine'):
         intraop_analgesia.append('Dobutamina')
+    flk_detail = []
+
+    if form.get('maint_flk') or form.get('intra_fentanyl') or form.get('intra_lidocaine') or form.get('intra_ketamine'):
+        flk_detail.append('FLK en 100 ml SSF')
+        flk_detail.append('Fentanilo + Lidocaína + Ketamina')
+        flk_detail.append('Velocidad según cálculo automático')
     postop_analgesia = []
     if form.get('meloxicam'):
         postop_analgesia.append('Meloxicam')
@@ -928,6 +934,8 @@ Mantenimiento:
 
 Analgesia intraoperatoria / soporte:
 {', '.join(intraop_analgesia) if intraop_analgesia else 'No especificada'}
+Detalle FLK:
+{chr(10).join(flk_detail) if flk_detail else 'No especificado'}
 Analgesia posoperatoria:
 {', '.join(postop_analgesia) if postop_analgesia else 'No especificada'}
 
