@@ -662,7 +662,20 @@ def patient_anesthesia(
         "midazolam_ind_ml": round((weight * 0.2) / 5, 2),
 
         "meloxicam_mg": round(weight * 0.2, 2),
+        "fentanilo_bolo_mcg": round(weight * 2, 2),
+        "fentanilo_bolo_ml": round((weight * 2) / 50, 2),
 
+        "flk_velocidad_ml_h": round(weight * 3, 2),
+        "flk_macro_gtt_min": round((weight * 3 * 20) / 60, 1),
+        "flk_micro_gtt_min": round((weight * 3 * 60) / 60, 1),
+
+        "flk_fentanilo_mcg_h": round(weight * 5, 2),
+        "flk_lidocaina_mg_h": round(weight * 0.6, 2),
+        "flk_ketamina_mg_h": round(weight * 0.6, 2),
+
+        "flk_fentanilo_ml_100": round(166.7 / 50, 2),
+        "flk_lidocaina_ml_100": round(20 / 20, 2),
+        "flk_ketamina_ml_100": round(20 / 50, 2),
         "rl_ml_h": round(weight * 5, 2),
         "rl_macro_gtt_min": round((weight * 5 * 20) / 60, 1),
         "rl_micro_gtt_min": round((weight * 5 * 60) / 60, 1),
