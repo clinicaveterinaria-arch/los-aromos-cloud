@@ -94,6 +94,34 @@ ul{
 
 </div>
 <div class="panel">
+    <h2>Resumen de dosis calculadas</h2>
+
+    <h3>Premedicación</h3>
+    <ul>
+        <li>Acepromacina: {{ doses.acepromacina_mg }} mg ({{ doses.acepromacina_ml }} ml)</li>
+        <li>Dexmedetomidina: {{ doses.dexmedetomidina_mcg_baja }} a {{ doses.dexmedetomidina_mcg_alta }} mcg ({{ doses.dexmedetomidina_ml_baja }} a {{ doses.dexmedetomidina_ml_alta }} ml)</li>
+        <li>Ketamina IM: {{ doses.ketamina_premed_mg }} mg ({{ doses.ketamina_premed_ml }} ml)</li>
+        <li>Midazolam: {{ doses.midazolam_mg }} mg ({{ doses.midazolam_ml }} ml)</li>
+        <li>Nalbufina: {{ doses.nalbufina_mg }} mg</li>
+        <li>Butorfanol: {{ doses.butorfanol_mg }} mg</li>
+    </ul>
+
+    <h3>Inducción</h3>
+    <ul>
+        <li>Propofol: {{ doses.propofol_ind_ml }} ml</li>
+        <li>Ketamina: {{ doses.ketamina_ind_ml }} ml</li>
+        <li>Midazolam: {{ doses.midazolam_ind_ml }} ml</li>
+    </ul>
+
+    <h3>Analgesia / soporte</h3>
+    <ul>
+        <li>Meloxicam: {{ doses.meloxicam_mg }} mg</li>
+        <li>Fentanilo bolo: {{ doses.fentanilo_bolo_mcg }} mcg ({{ doses.fentanilo_bolo_ml }} ml)</li>
+        <li>FLK: {{ doses.flk_velocidad_ml_h }} ml/h</li>
+        <li>Ringer Lactato: {{ doses.rl_ml_h }} ml/h</li>
+    </ul>
+</div>
+<div class="panel">
     <h2>Último protocolo guardado</h2>
 
     {% if last_anesthesia %}
@@ -243,7 +271,18 @@ ul{
 </p>
 
 </div>
+<div class="panel">
+    <h2>Checklist preinducción</h2>
 
+    <p>☐ Catéter intravenoso colocado</p>
+    <p>☐ Fluidoterapia conectada</p>
+    <p>☐ ECG conectado</p>
+    <p>☐ Oximetría conectada</p>
+    <p>☐ Temperatura registrada</p>
+    <p>☐ Drogas de emergencia preparadas</p>
+    <p>☐ Tubo endotraqueal preparado</p>
+    <p>☐ Fuente de oxígeno verificada</p>
+</div>
 <button onclick="window.print()" class="btn">
     Imprimir
 </button>
