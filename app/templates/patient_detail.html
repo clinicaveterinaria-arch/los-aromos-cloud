@@ -15,10 +15,37 @@
   <div><b>Peso actual:</b> {{ patient.weight or '' }} kg</div>
 </div>
 <div class="panel" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px;">
-    <div>
-        <b>Eventos</b><br>
-        {{ events|length if events else 0 }}
+
+    <div style="background:#f7f7f7; padding:12px; border-radius:10px;">
+        <b>📋 Eventos</b><br>
+        <span style="font-size:24px;">{{ events|length if events else 0 }}</span>
     </div>
+
+    <div style="background:#f7f7f7; padding:12px; border-radius:10px;">
+        <b>📅 Próximos</b><br>
+        <span style="font-size:24px;">{{ upcoming_events|length if upcoming_events else 0 }}</span>
+    </div>
+
+    <div style="background:#f7f7f7; padding:12px; border-radius:10px;">
+        <b>💉 Anestesias</b><br>
+        <span style="font-size:24px;">{{ anesthesia_history|length if anesthesia_history else 0 }}</span>
+    </div>
+
+    <div style="background:#f7f7f7; padding:12px; border-radius:10px;">
+        <b>⚖️ Peso actual</b><br>
+        <span style="font-size:24px;">{{ patient.weight or '-' }}</span> kg
+    </div>
+
+    <div style="background:#f7f7f7; padding:12px; border-radius:10px;">
+        <b>🩺 Última atención</b><br>
+        {% if events %}
+            <span>{{ events[0].event_date.strftime('%d/%m/%Y') }}</span>
+        {% else %}
+            <span>-</span>
+        {% endif %}
+    </div>
+
+</div>
 
     <div>
         <b>Próximos</b><br>
