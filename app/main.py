@@ -819,7 +819,35 @@ async def save_patient_anesthesia(
     estimated_duration = form.get('estimated_duration', '')
     drip_set = form.get('drip_set', '')
     fluid_rate = form.get('fluid_rate', '')
+    premedication = []
 
+    if form.get('premed_acepromazine'):
+        premedication.append('Acepromacina')
+
+    if form.get('premed_dexmedetomidine'):
+        premedication.append('Dexmedetomidina')
+
+    if form.get('premed_ketamine'):
+        premedication.append('Ketamina IM')
+
+    if form.get('premed_midazolam'):
+        premedication.append('Midazolam')
+
+    if form.get('premed_nalbuphine'):
+        premedication.append('Nalbufina')
+
+    if form.get('premed_butorphanol'):
+        premedication.append('Butorfanol')
+    induction = []
+
+    if form.get('ind_propofol'):
+        induction.append('Propofol')
+
+    if form.get('ind_ketamine'):
+        induction.append('Ketamina')
+
+    if form.get('ind_midazolam'):
+        induction.append('Midazolam')        
     postop_analgesia = []
     if form.get('meloxicam'):
         postop_analgesia.append('Meloxicam')
@@ -859,7 +887,11 @@ Procedimiento: {procedure}
 Peso: {weight} kg
 ASA: {asa}
 Duración estimada: {estimated_duration}
+Premedicación:
+{', '.join(premedication) if premedication else 'No especificada'}
 
+Inducción:
+{', '.join(induction) if induction else 'No especificada'}
 Analgesia posoperatoria:
 {', '.join(postop_analgesia) if postop_analgesia else 'No especificada'}
 
