@@ -776,7 +776,22 @@ def calculate_anesthesia_doses(weight: float):
     60 / ((((weight * 10 * 60) / 1000) / 12.5) * 60 / 60),
     0
 ) if weight > 0 else 0,
-    }
+
+"atropina_mg": round(weight * 0.04, 2),
+"atropina_ml": round((weight * 0.04) / 0.5, 2),
+
+"adrenalina_mg_baja": round(weight * 0.01, 2),
+"adrenalina_mg_alta": round(weight * 0.02, 2),
+"adrenalina_ml_baja": round((weight * 0.01) / 1, 2),
+"adrenalina_ml_alta": round((weight * 0.02) / 1, 2),
+
+"diazepam_mg": round(weight * 0.5, 2),
+"diazepam_ml": round((weight * 0.5) / 5, 2),
+
+"dexametasona_mg": round(weight * 0.2, 2),
+"dexametasona_ml": round((weight * 0.2) / 4, 2)
+
+}
 @app.get('/patients/{patient_id}/anesthesia', response_class=HTMLResponse)
 def patient_anesthesia(
     request: Request,
