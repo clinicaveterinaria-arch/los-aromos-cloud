@@ -12,7 +12,25 @@
   <div><b>Propietario:</b> {{ patient.owner.name }}</div>
   <div><b>Tel:</b> {{ patient.owner.phone }} {{ patient.owner.whatsapp }}</div>
   <div><b>Especie:</b> {{ patient.species }} | <b>Raza:</b> {{ patient.breed }}</div>
-  <div><b>Peso actual:</b> {{ patient.weight or '' }} kg</div>
+  <div>
+    <b>Peso actual:</b>
+
+    <form method="post"
+          action="/patients/{{ patient.id }}/weight"
+          style="display:inline;">
+
+        <input name="weight"
+               value="{{ patient.weight or '' }}"
+               style="width:70px;">
+
+        kg
+
+        <button type="submit">
+            Guardar
+        </button>
+
+    </form>
+</div>
 </div>
 <div class="panel" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px;">
 
