@@ -47,21 +47,8 @@
 
 </div>
 
-    <div>
-        <b>Próximos</b><br>
-        {{ upcoming_events|length if upcoming_events else 0 }}
-    </div>
+    
 
-    <div>
-        <b>Anestesia</b><br>
-        {{ anesthesia_history|length if anesthesia_history else 0 }}
-    </div>
-
-    <div>
-        <b>Peso actual</b><br>
-        {{ patient.weight or '-' }} kg
-    </div>
-</div>
 {% if last_anesthesia %}
 <div class="panel">
     <h2>🩺 Último protocolo anestésico</h2>
