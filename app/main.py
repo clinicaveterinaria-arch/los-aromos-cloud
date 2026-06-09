@@ -474,23 +474,23 @@ def event_create(
         if not file.filename:
             continue
 
-    content = file.file.read()
-    safe_name = file.filename.replace(" ", "_")
-    storage_path = f"patient_{patient_id}/event_{event.id}/{safe_name}"
+        content = file.file.read()
+        safe_name = file.filename.replace(" ", "_")
+        storage_path = f"patient_{patient_id}/event_{event.id}/{safe_name}"
 
-    supabase.storage.from_("adjuntos").upload(
-        storage_path,
-        content,
-        {"content-type": file.content_type}
-    )
+        supabase.storage.from_("adjuntos").upload(
+            storage_path,
+            content,
+            {"content-type": file.content_type}
+        )
 
-    public_url = supabase.storage.from_("adjuntos").get_public_url(storage_path)
+        public_url = supabase.storage.from_("adjuntos").get_public_url(storage_path)
 
-    attachment = EventAttachment(
-        event_id=event.id,
-        filename=file.filename,
-        file_path=public_url
-    )
+        attachment = EventAttachment(
+            event_id=event.id,
+            filename=file.filename,
+            file_path=public_url
+        )
 
         db.add(attachment)
 
