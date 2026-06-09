@@ -91,9 +91,27 @@
 
     </a>
 
+    <div style="margin-top:6px;">
+
+    <form method="post"
+          action="/events/{{ e.id }}/done"
+          style="display:inline;">
+        <button type="submit"
+                style="background:#28a745;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;">
+            ✓ Realizado
+        </button>
+    </form>
+
     <form method="post"
           action="/events/{{ e.id }}/delete"
-          style="margin-top:4px;">
+          style="display:inline;margin-left:6px;">
+        <button type="submit"
+                style="background:#dc3545;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;">
+            🗑 Eliminar
+        </button>
+    </form>
+
+</div>
         <button type="submit"
                 style="background:#dc3545;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;">
             🗑 Eliminar
