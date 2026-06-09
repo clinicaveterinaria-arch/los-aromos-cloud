@@ -207,7 +207,22 @@
         <button type="button" onclick="setNextVaccineDays(365)">+1 año</button>
     </div>
 </div>
+<div style="grid-column:1 / -1; padding:12px; background:#f7f7f7; border-radius:10px;">
+    <h4>🪱 Desparasitación</h4>
 
+    <input name="dewormer_product" placeholder="Producto / marca comercial">
+    <input name="dewormer_drug" placeholder="Principio activo">
+    <input name="dewormer_dose" placeholder="Dosis administrada">
+    <input type="date" name="next_deworming_date">
+
+    <div style="margin-top:10px;">
+        <b>Próxima desparasitación rápida:</b><br><br>
+        <button type="button" onclick="setNextDewormingDays(21)">+21 días</button>
+        <button type="button" onclick="setNextDewormingDays(30)">+30 días</button>
+        <button type="button" onclick="setNextDewormingMonths(3)">+3 meses</button>
+        <button type="button" onclick="setNextDewormingMonths(6)">+6 meses</button>
+    </div>
+</div>
 <div style="grid-column:1 / -1; padding:12px; background:#f7f7f7; border-radius:10px;">
     <h4>📅 Recordatorio opcional</h4>
 
