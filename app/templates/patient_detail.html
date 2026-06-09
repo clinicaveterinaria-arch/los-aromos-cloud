@@ -152,61 +152,66 @@
       enctype="multipart/form-data"
       class="form-grid">
 
+    <div style="grid-column:1 / -1; padding:12px; background:#f7f7f7; border-radius:10px;">
+    <h4>🩺 Consulta clínica</h4>
+
     <select name="event_type" id="event_type">
-      {% for t in event_types %}
-      <option>{{ t }}</option>
-      {% endfor %}
+        {% for t in event_types %}
+            <option>{{ t }}</option>
+        {% endfor %}
     </select>
 
     <input name="title" placeholder="Título / motivo">
-
-    <input name="weight" placeholder="Peso kg">
-    <input name="temperature" placeholder="Temperatura °C">
-    <input name="heart_rate" placeholder="FC">
-    <input name="respiratory_rate" placeholder="FR">
-
-    <input name="mucous_membranes" placeholder="Mucosas">
-    <input name="crt" placeholder="TLLC">
-    <input name="hydration" placeholder="Hidratación">
 
     <textarea name="description" placeholder="Motivo / descripción"></textarea>
     <textarea name="anamnesis" placeholder="Anamnesis"></textarea>
     <textarea name="physical_exam" placeholder="Examen físico"></textarea>
     <textarea name="diagnosis" placeholder="Diagnóstico / conclusión"></textarea>
     <textarea name="treatment" placeholder="Tratamiento / indicaciones"></textarea>
-<div class="vaccine-box">
+</div>
+
+<div style="grid-column:1 / -1; padding:12px; background:#f7f7f7; border-radius:10px;">
+    <h4>📏 Parámetros clínicos</h4>
+
+    <input name="weight" placeholder="Peso kg">
+    <input name="temperature" placeholder="Temperatura °C">
+    <input name="heart_rate" placeholder="FC">
+    <input name="respiratory_rate" placeholder="FR">
+    <input name="mucous_membranes" placeholder="Mucosas">
+    <input name="crt" placeholder="TLLC">
+    <input name="hydration" placeholder="Hidratación">
+</div>
+
+<div class="vaccine-box" style="grid-column:1 / -1;">
     <h4>💉 Datos de vacunación</h4>
 
     <input name="vaccine_name" placeholder="Vacuna aplicada">
     <input name="vaccine_lot" placeholder="Lote">
     <input name="vaccine_expiration" placeholder="Vencimiento de la vacuna">
     <input type="date" name="next_vaccine_date" id="next_vaccine_date">
+
     <div style="margin:10px 0;">
-  <b>Próxima vacuna rápida:</b><br><br>
-
-  <button type="button" onclick="setNextVaccineDays(21)">+21 días</button>
-  <button type="button" onclick="setNextVaccineDays(30)">+30 días</button>
-  <button type="button" onclick="setNextVaccineMonths(6)">+6 meses</button>
-  <button type="button" onclick="setNextVaccineDays(365)">+1 año</button>
+        <b>Próxima vacuna rápida:</b><br><br>
+        <button type="button" onclick="setNextVaccineDays(21)">+21 días</button>
+        <button type="button" onclick="setNextVaccineDays(30)">+30 días</button>
+        <button type="button" onclick="setNextVaccineMonths(6)">+6 meses</button>
+        <button type="button" onclick="setNextVaccineDays(365)">+1 año</button>
+    </div>
 </div>
 
-</div>
-    <label>Recordatorio opcional</label>
-   <div style="margin:10px 0;">
+<div style="grid-column:1 / -1; padding:12px; background:#f7f7f7; border-radius:10px;">
+    <h4>📅 Recordatorio opcional</h4>
+
     <b>Recordatorio rápido:</b><br><br>
-
     <button type="button" onclick="setReminderDays(7)">+7 días</button>
     <button type="button" onclick="setReminderDays(21)">+21 días</button>
     <button type="button" onclick="setReminderDays(30)">+30 días</button>
-
     <button type="button" onclick="setReminderMonths(6)">+6 meses</button>
-
     <button type="button" onclick="setReminderDays(365)">+1 año</button>
+
+    <br><br>
+    <input class="date-compact" type="date" name="reminder_date">
 </div>
-
-<input class="date-compact" type="date" name="reminder_date">
-      <input type="date" name="reminder_date">
-
     <div style="margin-top:10px; grid-column:1 / -1; padding:12px; background:#f7f7f7; border-radius:10px;">
     <h4>🧪 Métodos complementarios</h4>
     <label><b>Adjuntar PDF / imagen / estudio</b></label><br>
