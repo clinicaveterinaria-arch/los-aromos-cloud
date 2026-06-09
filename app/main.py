@@ -466,13 +466,13 @@ def event_create(
         created_by=user.username
     )
 
-db.add(event)
-db.commit()
-db.refresh(event)
+    db.add(event)
+    db.commit()
+    db.refresh(event)
 
-for file in attachments:
-    if not file.filename:
-        continue
+    for file in attachments:
+        if not file.filename:
+            continue
 
     content = file.file.read()
     safe_name = file.filename.replace(" ", "_")
@@ -492,14 +492,14 @@ for file in attachments:
         file_path=public_url
     )
 
-    db.add(attachment)
+            db.add(attachment)
 
-db.commit()
+    db.commit()
 
-return RedirectResponse(
-    url=f"/patients/{patient_id}",
-    status_code=303
-)
+    return RedirectResponse(
+        url=f"/patients/{patient_id}",
+        status_code=303
+    )
 
 
 @app.get('/migration', response_class=HTMLResponse)
