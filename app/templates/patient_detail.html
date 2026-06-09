@@ -126,19 +126,8 @@
     {% endif %}
 </div>
 
-    {% if upcoming_events %}
-        {% for e in upcoming_events %}
-            <div style="margin-bottom:8px;">
-                <b>{{ e.event_type }}</b>
-                {% if e.reminder_date %}
-                    - {{ e.reminder_date.strftime('%d/%m/%Y') }}
-                {% endif %}
-            </div>
-        {% endfor %}
-    {% else %}
-        <p>No hay próximos eventos programados.</p>
-    {% endif %}
-</div>
+    
+
 <div class="panel">
   <h2>Crear pendiente rápido</h2>
 
