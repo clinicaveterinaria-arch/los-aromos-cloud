@@ -276,6 +276,26 @@
         {% if e.diagnosis %}<p><b>Diagnóstico:</b><br>{{ e.diagnosis }}</p>{% endif %}
         {% if e.treatment %}<p><b>Tratamiento:</b><br>{{ e.treatment }}</p>{% endif %}
         {% if e.reminder_date %}<p class="reminder"><b>Recordatorio:</b> {{ e.reminder_date.strftime('%d/%m/%Y') }}</p>{% endif %}
+{% if e.attachments %}
+<hr>
+
+<p><b>📎 Adjuntos:</b></p>
+
+{% for a in e.attachments %}
+<p>
+    <a href="{{ a.file_path }}" target="_blank">
+        📄 {{ a.filename }}
+    </a>
+
+    <form method="post"
+          action="/attachment/{{ a.id }}/delete"
+          style="display:inline;">
+        <button type="submit">🗑️ Eliminar</button>
+    </form>
+</p>
+{% endfor %}
+
+{% endif %}
     </div>
 </details>
 {% else %}
