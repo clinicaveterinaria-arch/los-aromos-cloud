@@ -284,7 +284,7 @@ def patient_detail(request: Request, patient_id: int, db: Session = Depends(get_
     events = db.query(ClinicalEvent)\
     .filter(ClinicalEvent.patient_id == patient.id)\
     .order_by(ClinicalEvent.event_date.desc())\
-    .limit(7)\
+    .limit(15)\
     .all()
     today = datetime.now().date()
 
