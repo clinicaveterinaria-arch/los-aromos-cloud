@@ -50,7 +50,12 @@
     
 {% if not patient.weight %}
 <div class="panel" style="background:#fff3cd;">
-    ⚠️ Paciente sin peso registrado.
+    <form method="post" action="/patients/{{ patient.id }}/weight">
+        <b>⚠️ Paciente sin peso registrado.</b><br><br>
+
+        <input name="weight" placeholder="Peso kg" style="max-width:160px;">
+        <button type="submit">Guardar peso</button>
+    </form>
 </div>
 {% endif %}
 
