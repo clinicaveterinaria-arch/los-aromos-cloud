@@ -64,7 +64,8 @@
     <h3>📌 Próximos eventos programados</h3>
 
     {% for e in upcoming_events[:3] %}
-        <div style="padding:8px 0; border-bottom:1px solid #eee;">
+        <a href="/patients/{{ patient.id }}/events/{{ e.id }}"
+   style="display:block; padding:8px 0; border-bottom:1px solid #eee; color:inherit; text-decoration:none;">
             <b>{{ e.event_type }}</b>
 
             {% if e.title %}
@@ -74,7 +75,7 @@
             {% if e.reminder_date %}
                 ({{ e.reminder_date.strftime('%d/%m/%Y') }})
             {% endif %}
-        </div>
+        </a>
     {% endfor %}
 
     {% if upcoming_events|length > 3 %}
@@ -122,32 +123,7 @@
     {% endfor %}
 </div>
 {% endif %}
-<div class="panel">
-    <h2>📅 Próximos eventos</h2>
 
-    {% if upcoming_events %}
-        {% for e in upcoming_events %}
-            <div style="margin-bottom:10px;">
-                <a href="/patients/{{ patient.id }}/events/{{ e.id }}">
-                    {% if e.event_type == 'Vacuna' %}💉
-                    {% elif e.event_type == 'Desparasitación' %}🪱
-                    {% elif e.event_type == 'Control' %}🩺
-                    {% elif e.event_type == 'Laboratorio' %}🧪
-                    {% elif e.event_type == 'ECG' %}❤️
-                    {% elif e.event_type == 'Radiografía' %}📷
-                    {% else %}📌
-                    {% endif %}
-
-                    <b>{{ e.event_type }}</b>
-                    {% if e.title %} - {{ e.title }}{% endif %}
-                    {% if e.reminder_date %} — {{ e.reminder_date.strftime('%d/%m/%Y') }}{% endif %}
-                </a>
-            </div>
-        {% endfor %}
-    {% else %}
-        <p>No hay próximos eventos programados.</p>
-    {% endif %}
-</div>
 
     
 
