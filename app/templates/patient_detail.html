@@ -218,6 +218,63 @@
 
 <div class="panel">
   <h2>Línea de tiempo</h2>
+<div class="panel">
+    <h2>🩺 Últimos estudios</h2>
+
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px;">
+
+        {% set ns = namespace(rx=None, ecg=None, lab=None, eco=None) %}
+
+        {% for e in events %}
+            {% if e.event_type == 'Radiografía' and ns.rx is none %}
+                {% set ns.rx = e %}
+            {% elif e.event_type == 'ECG' and ns.ecg is none %}
+                {% set ns.ecg = e %}
+            {% elif e.event_type == 'Laboratorio' and ns.lab is none %}
+                {% set ns.lab = e %}
+            {% elif e.event_type == 'Ecografía' and ns.eco is none %}
+                {% set ns.eco = e %}
+            {% endif %}
+        {% endfor %}
+
+        <div style="background:#f7f7f7; padding:12px; border-radius:10px;">
+            <b>🩻 Última RX</b><br>
+            {% if ns.rx %}
+                <a href="/patients/{{ patient.id }}/events/{{ ns.rx.id }}">{{ ns.rx.event_date.strftime('%d/%m/%Y') }}</a>
+            {% else %}
+                -
+            {% endif %}
+        </div>
+
+        <div style="background:#f7f7f7; padding:12px; border-radius:10px;">
+            <b>💓 Último ECG</b><br>
+            {% if ns.ecg %}
+                <a href="/patients/{{ patient.id }}/events/{{ ns.ecg.id }}">{{ ns.ecg.event_date.strftime('%d/%m/%Y') }}</a>
+            {% else %}
+                -
+            {% endif %}
+        </div>
+
+        <div style="background:#f7f7f7; padding:12px; border-radius:10px;">
+            <b>🧪 Último laboratorio</b><br>
+            {% if ns.lab %}
+                <a href="/patients/{{ patient.id }}/events/{{ ns.lab.id }}">{{ ns.lab.event_date.strftime('%d/%m/%Y') }}</a>
+            {% else %}
+                -
+            {% endif %}
+        </div>
+
+        <div style="background:#f7f7f7; padding:12px; border-radius:10px;">
+            <b>🖥️ Última ecografía</b><br>
+            {% if ns.eco %}
+                <a href="/patients/{{ patient.id }}/events/{{ ns.eco.id }}">{{ ns.eco.event_date.strftime('%d/%m/%Y') }}</a>
+            {% else %}
+                -
+            {% endif %}
+        </div>
+
+    </div>
+</div>
   <a href="/patients/{{ patient.id }}/history" class="btn">Ver historial completo</a>
   <div class="timeline-compact">
       {% for e in events %}
