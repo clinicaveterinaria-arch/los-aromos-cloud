@@ -492,7 +492,7 @@ def event_create(
         file_path=public_url
     )
 
-            db.add(attachment)
+        db.add(attachment)
 
     db.commit()
 
