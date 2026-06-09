@@ -396,6 +396,7 @@ def event_create(
     mucous_membranes: str = Form(''),
     crt: str = Form(''),
     hydration: str = Form(''),
+    attachments: list[UploadFile] = File(default=[]),
     db: Session = Depends(get_db),
     user: User = Depends(require_user)
 ):
@@ -465,12 +466,40 @@ def event_create(
         created_by=user.username
     )
 
-    db.add(event)
-    db.commit()
+db.add(event)
+db.commit()
+db.refresh(event)
 
-    return RedirectResponse(
-        url=f"/patients/{patient_id}",
-        status_code=303
+for file in attachments:
+    if not file.filename:
+        continue
+
+    content = file.file.read()
+    safe_name = file.filename.replace(" ", "_")
+    storage_path = f"patient_{patient_id}/event_{event.id}/{safe_name}"
+
+    supabase.storage.from_("adjuntos").upload(
+        storage_path,
+        content,
+        {"content-type": file.content_type}
+    )
+
+    public_url = supabase.storage.from_("adjuntos").get_public_url(storage_path)
+
+    attachment = EventAttachment(
+        event_id=event.id,
+        filename=file.filename,
+        file_path=public_url
+    )
+
+    db.add(attachment)
+
+db.commit()
+
+return RedirectResponse(
+    url=f"/patients/{patient_id}",
+    status_code=303
+)
     )
 
 @app.get('/migration', response_class=HTMLResponse)
