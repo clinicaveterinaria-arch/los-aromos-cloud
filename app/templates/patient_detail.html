@@ -48,16 +48,20 @@
 </div>
 
     
-{% if not patient.weight %}
 <div class="panel" style="background:#fff3cd;">
     <form method="post" action="/patients/{{ patient.id }}/weight">
-        <b>⚠️ Paciente sin peso registrado.</b><br><br>
+        <b>⚖️ Peso del paciente</b><br><br>
 
-        <input name="weight" placeholder="Peso kg" style="max-width:160px;">
-        <button type="submit">Guardar peso</button>
+        <input
+            name="weight"
+            placeholder="Peso kg"
+            value="{{ patient.weight or '' }}"
+            style="max-width:160px;"
+        >
+
+        <button type="submit">Guardar / actualizar peso</button>
     </form>
 </div>
-{% endif %}
 
 {% if upcoming_events %}
 <div class="panel" style="background:#d1ecf1;">
