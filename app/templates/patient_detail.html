@@ -136,26 +136,10 @@
 
     
 
-<div class="panel">
-  <h2>Crear pendiente rápido</h2>
 
-  <div class="quick-buttons">
-  <a class="btn" href="/patients/{{ patient.id }}/quick-pendiente?type=Vacuna&days=365">💉 Vacuna anual</a>
-  <a class="btn" href="/patients/{{ patient.id }}/quick-pendiente?type=Desparasitación&days=90">🪱 Desparasitación</a>
-  <a class="btn" href="/patients/{{ patient.id }}/quick-pendiente?type=Control cardiológico&days=180">❤️ Control cardiológico</a>
-  <a class="btn" href="/patients/{{ patient.id }}/quick-pendiente?type=Laboratorio&days=30">🧪 Laboratorio</a>
-  </div>
-</div>
 <div class="panel">
   <h2>Nuevo evento clínico</h2>
-<div class="quick-buttons">
-  <button type="button" onclick="setEventType('Radiografía')">📷 Radiografía</button>
-  <button type="button" onclick="setEventType('ECG')">❤️ ECG</button>
-  <button type="button" onclick="setEventType('Ecografía')">🔊 Ecografía</button>
-  <button type="button" onclick="setEventType('Laboratorio')">🧪 Laboratorio</button>
-  <button type="button" onclick="setEventType('Vacuna')">💉 Vacuna</button>  
-  <button type="button" onclick="setEventType('Informe')">📄 Informe</button>
-</div>
+
   <form method="post"
       action="/patients/{{ patient.id }}/events"
       enctype="multipart/form-data"
