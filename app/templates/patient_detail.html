@@ -293,7 +293,12 @@
             {% if e.vaccine_expiration %}<p><b>Vencimiento:</b> {{ e.vaccine_expiration }}</p>{% endif %}
             {% if e.next_vaccine_date %}<p><b>Próxima dosis:</b> {{ e.next_vaccine_date }}</p>{% endif %}
         {% endif %}
-
+        {% if e.event_type == 'Desparasitación' %}
+            {% if e.dewormer_product %}<p><b>Producto:</b> {{ e.dewormer_product }}</p>{% endif %}
+            {% if e.dewormer_drug %}<p><b>Principio activo:</b> {{ e.dewormer_drug }}</p>{% endif %}
+            {% if e.dewormer_dose %}<p><b>Dosis:</b> {{ e.dewormer_dose }}</p>{% endif %}
+            {% if e.next_deworming_date %}<p><b>Próxima desparasitación:</b> {{ e.next_deworming_date }}</p>{% endif %}
+        {% endif %}
         {% if e.description %}<p><b>Motivo / descripción:</b><br>{{ e.description }}</p>{% endif %}
         {% if e.anamnesis %}<p><b>Anamnesis:</b><br>{{ e.anamnesis }}</p>{% endif %}
         {% if e.physical_exam %}<p><b>Examen físico:</b><br>{{ e.physical_exam }}</p>{% endif %}
