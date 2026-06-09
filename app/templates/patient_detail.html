@@ -309,19 +309,7 @@ function setEventType(type) {
     document.getElementById('event_type').value = type;
 }
 
-function setReminderDays(days) {
-    const input = document.querySelector('input[name="reminder_date"]');
-    const date = new Date();
-    date.setDate(date.getDate() + days);
-    input.value = date.toISOString().split('T')[0];
-}
 
-function setReminderMonths(months) {
-    const input = document.querySelector('input[name="reminder_date"]');
-    const date = new Date();
-    date.setMonth(date.getMonth() + months);
-    input.value = date.toISOString().split('T')[0];
-}
 function setNextDewormingDays(days) {
     const input = document.querySelector('input[name="next_deworming_date"]');
     const date = new Date();
