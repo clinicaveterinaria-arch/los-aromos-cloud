@@ -504,6 +504,12 @@ def event_create(
     db.add(event)
     db.commit()
     db.refresh(event)
+    if weight and str(weight).strip():
+    try:
+        patient.weight = float(str(weight).replace(',', '.'))
+        db.commit()
+    except ValueError:
+        pass
 
     for file in attachments:
         if not file.filename:
