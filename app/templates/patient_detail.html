@@ -259,7 +259,7 @@
     </summary>
 
     <div class="timeline-detail">
-        {% if e.event_type == 'Vacuna' %}
+        {% if e.vaccine_name or e.vaccine_lot or e.vaccine_expiration or e.next_vaccine_date %}
             {% if e.vaccine_name %}<p><b>Vacuna aplicada:</b> {{ e.vaccine_name }}</p>{% endif %}
             {% if e.vaccine_lot %}<p><b>Lote:</b> {{ e.vaccine_lot }}</p>{% endif %}
             {% if e.vaccine_expiration %}<p><b>Vencimiento:</b> {{ e.vaccine_expiration }}</p>{% endif %}
@@ -270,6 +270,16 @@
             {% if e.dewormer_drug %}<p><b>Principio activo:</b> {{ e.dewormer_drug }}</p>{% endif %}
             {% if e.dewormer_dose %}<p><b>Dosis:</b> {{ e.dewormer_dose }}</p>{% endif %}
             {% if e.next_deworming_date %}<p><b>Próxima desparasitación:</b> {{ e.next_deworming_date }}</p>{% endif %}
+        {% endif %}
+        {% if e.weight or e.temperature or e.heart_rate or e.respiratory_rate or e.mucous_membranes or e.crt or e.hydration %}
+            <p><b>📏 Parámetros clínicos:</b></p>
+            {% if e.weight %}<p><b>Peso:</b> {{ e.weight }} kg</p>{% endif %}
+            {% if e.temperature %}<p><b>Temperatura:</b> {{ e.temperature }} °C</p>{% endif %}
+            {% if e.heart_rate %}<p><b>FC:</b> {{ e.heart_rate }}</p>{% endif %}
+            {% if e.respiratory_rate %}<p><b>FR:</b> {{ e.respiratory_rate }}</p>{% endif %}
+            {% if e.mucous_membranes %}<p><b>Mucosas:</b> {{ e.mucous_membranes }}</p>{% endif %}
+            {% if e.crt %}<p><b>TLLC:</b> {{ e.crt }}</p>{% endif %}
+            {% if e.hydration %}<p><b>Hidratación:</b> {{ e.hydration }}</p>{% endif %}
         {% endif %}
         {% if e.description %}<p><b>Motivo / descripción:</b><br>{{ e.description }}</p>{% endif %}
         {% if e.anamnesis %}<p><b>Anamnesis:</b><br>{{ e.anamnesis }}</p>{% endif %}
