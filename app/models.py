@@ -71,6 +71,10 @@ class ClinicalEvent(Base):
     vaccine_lot: Mapped[str] = mapped_column(String(100), default='')
     vaccine_expiration: Mapped[str] = mapped_column(String(100), default='')
     next_vaccine_date: Mapped[str] = mapped_column(String(100), default='')
+    dewormer_product: Mapped[str] = mapped_column(String(150), default='')
+    dewormer_drug: Mapped[str] = mapped_column(String(150), default='')
+    dewormer_dose: Mapped[str] = mapped_column(String(100), default='')
+    next_deworming_date: Mapped[str] = mapped_column(String(100), default='')
     patient: Mapped['Patient'] = relationship(back_populates='events')
     attachments: Mapped[list['EventAttachment']] = relationship(
         back_populates='event',
