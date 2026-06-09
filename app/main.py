@@ -649,6 +649,26 @@ def event_done(
     db.commit()
 
     return RedirectResponse('/pendientes', status_code=303)
+@app.post('/events/{event_id}/delete')
+def delete_event(
+    event_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    event = db.get(ClinicalEvent, event_id)
+
+    if not event:
+        raise HTTPException(status_code=404, detail="Evento no encontrado")
+
+    patient_id = event.patient_id
+
+    db.delete(event)
+    db.commit()
+
+    return RedirectResponse(
+        f"/patients/{patient_id}",
+        status_code=303
+    )
 @app.get('/events/{event_id}/whatsapp')
 def event_whatsapp(
     event_id: int,
