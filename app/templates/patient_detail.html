@@ -72,20 +72,37 @@
 <div class="panel">
     <h3>📌 Próximos eventos programados</h3>
 
-    {% for e in upcoming_events[:3] %}
-        <a href="/patients/{{ patient.id }}/events/{{ e.id }}"
-   style="display:block; padding:8px 0; border-bottom:1px solid #eee; color:inherit; text-decoration:none;">
-            <b>{{ e.event_type }}</b>
+{% for e in upcoming_events[:3] %}
 
-            {% if e.title %}
-                - {{ e.title }}
-            {% endif %}
+<div style="border-bottom:1px solid #eee; padding:8px 0;">
 
-            {% if e.reminder_date %}
-                ({{ e.reminder_date.strftime('%d/%m/%Y') }})
-            {% endif %}
-        </a>
-    {% endfor %}
+    <a href="/patients/{{ patient.id }}/events/{{ e.id }}"
+       style="color:inherit; text-decoration:none;">
+
+        <b>{{ e.event_type }}</b>
+
+        {% if e.title %}
+            - {{ e.title }}
+        {% endif %}
+
+        {% if e.reminder_date %}
+            ({{ e.reminder_date.strftime('%d/%m/%Y') }})
+        {% endif %}
+
+    </a>
+
+    <form method="post"
+          action="/events/{{ e.id }}/delete"
+          style="margin-top:4px;">
+        <button type="submit"
+                style="background:#dc3545;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;">
+            🗑 Eliminar
+        </button>
+    </form>
+
+</div>
+
+{% endfor %}}
 
     {% if upcoming_events|length > 3 %}
         <small>Mostrando los primeros 3 eventos.</small>
