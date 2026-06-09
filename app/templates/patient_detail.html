@@ -345,6 +345,23 @@ function setReminderMonths(months) {
     date.setMonth(date.getMonth() + months);
     input.value = date.toISOString().split('T')[0];
 }
+function setNextDewormingDays(days) {
+    const input = document.querySelector('input[name="next_deworming_date"]');
+    const date = new Date();
+
+    date.setDate(date.getDate() + days);
+
+    input.value = date.toISOString().split('T')[0];
+}
+
+function setNextDewormingMonths(months) {
+    const input = document.querySelector('input[name="next_deworming_date"]');
+    const date = new Date();
+
+    date.setMonth(date.getMonth() + months);
+
+    input.value = date.toISOString().split('T')[0];
+}
 function setNextVaccineDays(days) {
     const input = document.getElementById("next_vaccine_date");
     const date = new Date();
