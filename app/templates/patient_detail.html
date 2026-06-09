@@ -48,7 +48,17 @@
 </div>
 
     
+{% if not patient.weight %}
+<div class="panel" style="background:#fff3cd;">
+    ⚠️ Paciente sin peso registrado.
+</div>
+{% endif %}
 
+{% if upcoming_events %}
+<div class="panel" style="background:#d1ecf1;">
+    📅 Este paciente tiene {{ upcoming_events|length }} evento(s) programado(s).
+</div>
+{% endif %}
 {% if last_anesthesia %}
 <div class="panel">
     <h2>🩺 Último protocolo anestésico</h2>
