@@ -1,121 +1,67 @@
 {% extends 'base.html' %}{% block content %}
+
 <section class="hero">
-  <img src="/static/logo.jpg" class="hero-logo">
-  <h1>Bienvenida, {{ user.full_name or user.username }}</h1>
-  <p>¿Qué deseas hacer hoy?</p>
+    <img src="/static/logo.jpg" class="hero-logo">
+    <h1>Bienvenida, {{ user.full_name or user.username }}</h1>
+    <p>¿Qué deseas hacer hoy?</p>
 </section>
+
 <div class="grid cards">
-  <a class="card" href="/search"><h3>Historia clínica</h3><p>Buscar paciente, propietario o teléfono.</p></a>
-  <a class="card" href="/owners"><h3>Propietarios</h3><p>Alta y búsqueda de clientes.</p></a>
-  <a class="card" href="/patients/new"><h3>Nuevo paciente</h3><p>Cargar mascota asociada a propietario.</p></a>
-  <a class="card" href="/migration"><h3>Migración MyVete</h3><p>Módulo administrativo inicial.</p></a>
-  <a class="card" href="/pendientes">
-    <h3>Pendientes</h3>
-    <p>Recordatorios, vencimientos y seguimiento.</p>
-</a>
+    <a class="card" href="/search"><h3>Historia clínica</h3><p>Buscar paciente, propietario o teléfono.</p></a>
+    <a class="card" href="/owners"><h3>Propietarios</h3><p>Alta y búsqueda de clientes.</p></a>
+    <a class="card" href="/patients/new"><h3>Nuevo paciente</h3><p>Cargar mascota asociada a propietario.</p></a>
+    <a class="card" href="/migration"><h3>Migración MyVete</h3><p>Módulo administrativo inicial.</p></a>
+    <a class="card" href="/pendientes"><h3>Pendientes</h3><p>Recordatorios, vencimientos y seguimiento.</p></a>
 </div>
+
 <div class="grid stats">
-    <div class="panel">
-        <b>{{ stats.owners }}</b>
-        <span>Propietarios</span>
-    </div>
-
-    <div class="panel">
-        <b>{{ stats.patients }}</b>
-        <span>Pacientes</span>
-    </div>
-
-    <div class="panel">
-        <b>{{ stats.events }}</b>
-        <span>Eventos clínicos</span>
-    </div>
-
-<a class="panel" href="/pendientes" style="display:block;text-decoration:none;color:inherit;">
-    <b>{{ stats.pending }}</b>
-    <span>Recordatorios</span>
-</a>
-
-<a class="panel" href="/pendientes"
-   style="display:block;text-decoration:none;color:inherit;
-   {% if stats.today > 0 %}background:#fff8dc;border:2px solid #f7c948;{% endif %}">
-    <b>{{ stats.today }}</b>
-    <span>Hoy</span>
-</a>
-
-<a class="panel" href="/pendientes"
-   style="display:block;text-decoration:none;color:inherit;
-   {% if stats.overdue > 0 %}background:#ffe5e5;border:2px solid #dc3545;{% endif %}">
-    <b>{{ stats.overdue }}</b>
-    <span>Vencidos</span>
-</a>
-  <a class="panel">
-    <b>{{ stats.vaccines }}</b>
-    <span>💉 Vacunas</span>
-</a>
-
-<a class="panel">
-    <b>{{ stats.rx }}</b>
-    <span>📷 RX</span>
-</a>
-
-<a class="panel">
-    <b>{{ stats.ecg }}</b>
-    <span>❤️ ECG</span>
-</a>
-</div>
-<div class="panel wide" style="border:2px solid #dc3545;background:#ffe5e5;">
-    <h2>🔴 Vencidos</h2>
-
-    {% for e in overdue_events %}
-    <a href="/patients/{{ e.patient.id }}" class="timeline-item" style="display:block;text-decoration:none;color:inherit;">
-        <b>{{ e.patient.name }}</b> - {{ e.event_type }}
-        <br>
-        <small>{{ e.reminder_date.strftime('%d/%m/%Y') }}</small>
-        {% if e.title %}<br>{{ e.title }}{% endif %}
+    <div class="panel"><b>{{ stats.owners }}</b><span>Propietarios</span></div>
+    <div class="panel"><b>{{ stats.patients }}</b><span>Pacientes</span></div>
+    <div class="panel"><b>{{ stats.events }}</b><span>Eventos clínicos</span></div>
+    <a class="panel" href="/pendientes" style="display:block;text-decoration:none;color:inherit;">
+        <b>{{ stats.pending }}</b><span>Recordatorios</span>
     </a>
+    <a class="panel" href="/pendientes" style="display:block;text-decoration:none;color:inherit;{% if stats.today > 0 %}background:#fff8dc;border:2px solid #f7c948;{% endif %}">
+        <b>{{ stats.today }}</b><span>Hoy</span>
+    </a>
+    <a class="panel" href="/pendientes" style="display:block;text-decoration:none;color:inherit;{% if stats.overdue > 0 %}background:#ffe5e5;border:2px solid #dc3545;{% endif %}">
+        <b>{{ stats.overdue }}</b><span>Vencidos</span>
+    </a>
+    <a class="panel" href="/pendientes" style="display:block;text-decoration:none;color:inherit;">
+        <b>{{ stats.vaccines }}</b><span>💉 Vacunas</span>
+    </a>
+    <div class="panel"><b>{{ stats.rx }}</b><span>📷 RX</span></div>
+    <div class="panel"><b>{{ stats.ecg }}</b><span>💗 ECG</span></div>
+</div>
+
+<div class="panel wide">
+    <h2>📅 Próximos turnos</h2>
+
+    {% for a in upcoming_appointments %}
+    <div class="timeline-item">
+        <span style="color:#6f42c1;font-weight:bold;">
+            {{ a.appointment_date.strftime('%d/%m/%Y') }}
+        </span>
+        {% if a.start_time %} - {{ a.start_time }}{% endif %}
+        <br>
+        <b>{{ a.service }}</b>
+        {% if a.patient %}
+            - {{ a.patient.name }}
+        {% elif a.owner %}
+            - {{ a.owner.name }}
+        {% endif %}
+        {% if a.notes %}
+            <br><small>{{ a.notes }}</small>
+        {% endif %}
+    </div>
     {% else %}
-    <p>No hay recordatorios vencidos.</p>
+        <p>No hay turnos próximos.</p>
     {% endfor %}
 </div>
 
-<div class="panel wide" style="border:2px solid #f7c948;background:#fff8dc;">
-    <h2>🟡 Para hoy</h2>
-
-    {% for e in today_events %}
-    <a href="/patients/{{ e.patient.id }}" class="timeline-item" style="display:block;text-decoration:none;color:inherit;">
-        <b>{{ e.patient.name }}</b> - {{ e.event_type }}
-        <br>
-        <small>{{ e.reminder_date.strftime('%d/%m/%Y') }}</small>
-        {% if e.title %}<br>{{ e.title }}{% endif %}
-    </a>
-    {% else %}
-    <p>No hay recordatorios para hoy.</p>
-    {% endfor %}
-</div>
 <div class="panel wide" style="border:2px solid #d85c9a;background:#fff5fa;">
     <h2>💉 Vacunas próximas</h2>
-<div class="panel wide" style="border:2px solid #999;background:#f8f8f8;">
-    <h2>⚠ Pacientes sin visitas > 12 meses</h2>
 
-    {% for item in inactive_patients %}
-        <a href="/patients/{{ item.patient.id }}" class="timeline-item" style="display:block;text-decoration:none;color:inherit;">
-            <b>{{ item.patient.name }}</b>
-
-            {% if item.last_event %}
-                <br>
-                <small>
-                    Última visita:
-                    {{ item.last_event.event_date.strftime('%d/%m/%Y') }}
-                </small>
-            {% else %}
-                <br>
-                <small>Sin eventos registrados</small>
-            {% endif %}
-        </a>
-    {% else %}
-        <p>No hay pacientes inactivos.</p>
-    {% endfor %}
-</div>
     {% for e in upcoming %}
         {% if e.event_type == 'Vacuna' or e.vaccine_name %}
             <a href="/patients/{{ e.patient.id }}" class="timeline-item" style="display:block;text-decoration:none;color:inherit;">
@@ -129,11 +75,99 @@
         <p>No hay vacunas próximas.</p>
     {% endfor %}
 </div>
+
+<div class="panel wide" style="border:2px solid #d85c9a;background:#fff5fa;">
+    <h2>💊 Próximas desparasitaciones</h2>
+
+    {% for e in upcoming %}
+        {% if e.event_type == 'Desparasitación' or e.dewormer_product %}
+            <a href="/patients/{{ e.patient.id }}" class="timeline-item" style="display:block;text-decoration:none;color:inherit;">
+                <b>{{ e.patient.name }}</b> - {{ e.dewormer_product or e.event_type }}
+                <br>
+                <small>{{ e.reminder_date.strftime('%d/%m/%Y') }}</small>
+                {% if e.next_deworming_date %}<br>Próxima dosis: {{ e.next_deworming_date }}{% endif %}
+            </a>
+        {% endif %}
+    {% else %}
+        <p>No hay desparasitaciones próximas.</p>
+    {% endfor %}
+</div>
+
+<div class="panel wide">
+    <h2>🔔 Próximos recordatorios</h2>
+
+    {% for e in upcoming %}
+    <div class="timeline-item">
+        {% if e.reminder_date < today %}
+            <span style="color:#dc3545;font-weight:bold;">🔴 {{ e.reminder_date.strftime('%d/%m/%Y') }}</span>
+        {% elif e.reminder_date == today %}
+            <span style="color:#fd7e14;font-weight:bold;">🟡 {{ e.reminder_date.strftime('%d/%m/%Y') }}</span>
+        {% else %}
+            <span style="color:#198754;font-weight:bold;">🟢 {{ e.reminder_date.strftime('%d/%m/%Y') }}</span>
+        {% endif %}
+
+        - {{ e.patient.name }}
+        <br>
+        {{ e.description }}
+    </div>
+    {% else %}
+        <p>No hay recordatorios pendientes.</p>
+    {% endfor %}
+</div>
+
+<div class="panel wide" style="border:2px solid #dc3545;background:#ffe5e5;">
+    <h2>🔴 Vencidos</h2>
+
+    {% for e in overdue_events %}
+        <a href="/patients/{{ e.patient.id }}" class="timeline-item" style="display:block;text-decoration:none;color:inherit;">
+            <b>{{ e.patient.name }}</b> - {{ e.event_type }}
+            <br>
+            <small>{{ e.reminder_date.strftime('%d/%m/%Y') }}</small>
+            {% if e.title %}<br>{{ e.title }}{% endif %}
+        </a>
+    {% else %}
+        <p>No hay recordatorios vencidos.</p>
+    {% endfor %}
+</div>
+
+<div class="panel wide" style="border:2px solid #f7c948;background:#fff8dc;">
+    <h2>🟡 Para hoy</h2>
+
+    {% for e in today_events %}
+        <a href="/patients/{{ e.patient.id }}" class="timeline-item" style="display:block;text-decoration:none;color:inherit;">
+            <b>{{ e.patient.name }}</b> - {{ e.event_type }}
+            <br>
+            <small>{{ e.reminder_date.strftime('%d/%m/%Y') }}</small>
+            {% if e.title %}<br>{{ e.title }}{% endif %}
+        </a>
+    {% else %}
+        <p>No hay recordatorios para hoy.</p>
+    {% endfor %}
+</div>
+
+<div class="panel wide" style="border:2px solid #999;background:#f8f8f8;">
+    <h2>⚠ Pacientes sin visitas &gt; 12 meses</h2>
+
+    {% for item in inactive_patients %}
+        <a href="/patients/{{ item.patient.id }}" class="timeline-item" style="display:block;text-decoration:none;color:inherit;">
+            <b>{{ item.patient.name }}</b>
+            {% if item.last_event %}
+                <br>
+                <small>Última visita: {{ item.last_event.event_date.strftime('%d/%m/%Y') }}</small>
+            {% else %}
+                <br>
+                <small>Sin eventos registrados</small>
+            {% endif %}
+        </a>
+    {% else %}
+        <p>No hay pacientes inactivos.</p>
+    {% endfor %}
+</div>
+
 <div class="panel wide">
     <h2>Accesos rápidos clínicos</h2>
 
     <div class="grid cards">
-
         <a class="card" href="/search">
             <h3>➕ Nueva consulta</h3>
             <p>Buscar paciente y cargar evento clínico.</p>
@@ -145,114 +179,50 @@
         </a>
 
         <a class="card" href="/quick/rx">
-    <h3>📷 Nueva RX</h3>
+            <h3>📷 Nueva RX</h3>
             <p>Buscar paciente y cargar informe radiográfico.</p>
         </a>
 
         <a class="card" href="/quick/ecg">
-    <h3>❤️ Nuevo ECG</h3>
+            <h3>💗 Nuevo ECG</h3>
             <p>Buscar paciente y cargar estudio cardiológico.</p>
         </a>
 
         <a class="card" href="/quick/eco">
-    <h3>🩺 Nueva ecografía</h3>
+            <h3>🩺 Nueva ecografía</h3>
             <p>Buscar paciente y cargar estudio ecográfico.</p>
         </a>
-
     </div>
 </div>
 
-
 <div class="panel wide">
     <h2>Últimos eventos</h2>
+
     {% for e in latest_events %}
-<a href="/patients/{{ e.patient.id }}" class="timeline-item" style="display:block;text-decoration:none;color:inherit;">
-    <b>{{ e.event_type }}</b> — {{ e.patient.name }}
-    <small>{{ e.event_date.strftime('%d/%m/%Y %H:%M') }}</small>
-    {% if e.title %}<br>{{ e.title }}{% endif %}
-</a>
-{% else %}
-<p>No hay eventos cargados todavía.</p>
-{% endfor %}
+        <a href="/patients/{{ e.patient.id }}" class="timeline-item" style="display:block;text-decoration:none;color:inherit;">
+            <b>{{ e.event_type }}</b> — {{ e.patient.name }}
+            <small>{{ e.event_date.strftime('%d/%m/%Y %H:%M') }}</small>
+            {% if e.title %}<br>{{ e.title }}{% endif %}
+        </a>
+    {% else %}
+        <p>No hay eventos cargados todavía.</p>
+    {% endfor %}
 </div>
+
 <div class="panel wide">
     <h2>Pacientes recientes</h2>
 
     {% for p in recent_patients %}
-    <a href="/patients/{{ p.id }}" class="timeline-item" style="display:block;text-decoration:none;color:inherit;">
-        <b>{{ p.name }}</b>
-        {% if p.owner %}
-        <br>
-        <small>Propietario: {{ p.owner.name }}</small>
-        {% endif %}
-    </a>
+        <a href="/patients/{{ p.id }}" class="timeline-item" style="display:block;text-decoration:none;color:inherit;">
+            <b>{{ p.name }}</b>
+            {% if p.owner %}
+                <br>
+                <small>Propietario: {{ p.owner.name }}</small>
+            {% endif %}
+        </a>
     {% else %}
-    <p>No hay pacientes cargados todavía.</p>
+        <p>No hay pacientes cargados todavía.</p>
     {% endfor %}
 </div>
-<div class="panel wide">
-    <h2>Próximos recordatorios</h2>
 
-    {% for e in upcoming %}
-<div class="timeline-item">
-
-{% if e.reminder_date < today %}
-<span style="color:#dc3545;font-weight:bold;">
-🔴 {{ e.reminder_date.strftime('%d/%m/%Y') }}
-</span>
-
-{% elif e.reminder_date == today %}
-<span style="color:#fd7e14;font-weight:bold;">
-🟡 {{ e.reminder_date.strftime('%d/%m/%Y') }}
-</span>
-
-{% else %}
-<span style="color:#198754;font-weight:bold;">
-🟢 {{ e.reminder_date.strftime('%d/%m/%Y') }}
-</span>
-
-{% endif %}
-
-- {{ e.patient.name }}
-
-<br>
-
-{{ e.description }}
-
-</div>
-
-{% else %}
-        <p>No hay recordatorios pendientes.</p>
-    {% endfor %}
-</div>
-<div class="panel wide">
-    <h2>📅 Próximos turnos</h2>
-
-    {% for a in upcoming_appointments %}
-    <div class="timeline-item">
-
-        <span style="color:#6f42c1;font-weight:bold;">
-            {{ a.appointment_date.strftime('%d/%m/%Y') }}
-        </span>
-
-        {% if a.start_time %}
-            - {{ a.start_time }}
-        {% endif %}
-
-        <br>
-
-        <b>{{ a.service }}</b>
-
-        {% if a.patient %}
-            - {{ a.patient.name }}
-        {% elif a.owner %}
-            - {{ a.owner.name }}
-        {% endif %}
-
-    </div>
-
-    {% else %}
-        <p>No hay turnos próximos.</p>
-    {% endfor %}
-</div>
 {% endblock %}
