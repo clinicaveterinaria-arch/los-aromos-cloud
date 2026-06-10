@@ -181,7 +181,7 @@ def home(request: Request, db: Session = Depends(get_db), user: User = Depends(r
     upcoming_appointments = (
         db.query(Appointment)
         .filter(Appointment.appointment_date >= datetime.combine(today, datetime.min.time()))
-        .filter(Appointment.status == 'Pendiente')
+        .filter(Appointment.status.in_(['Pendiente', 'Confirmado']))
         .order_by(Appointment.appointment_date.asc(), Appointment.start_time.asc())
         .limit(8)
         .all()
