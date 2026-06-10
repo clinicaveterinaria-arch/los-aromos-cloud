@@ -55,17 +55,65 @@
                                         <button type="submit">✅ Confirmar</button>
                                     </form>
 
-                                    <form method="post" action="/agenda/{{ a.id }}/status" style="display:inline;">
-                                        <input type="hidden" name="date" value="{{ selected_day }}">
-                                        <input type="hidden" name="status" value="Realizado">
-                                        <button type="submit">✔ Realizado</button>
-                                    </form>
+                                    <div style="font-size:13px; color:#6b7280; font-weight:bold; text-transform:uppercase;">
+                                        {{ a.service }}
+                                    </div>
 
-                                    <form method="post" action="/agenda/{{ a.id }}/status" style="display:inline;">
-                                        <input type="hidden" name="date" value="{{ selected_day }}">
-                                        <input type="hidden" name="status" value="Cancelado">
-                                        <button type="submit">❌ Cancelar</button>
-                                    </form>
+{% if a.patient %}
+    <div style="font-size:18px; font-weight:bold;">
+        {{ a.patient.name }}
+    </div>
+
+    {% if a.patient.owner %}
+        <div style="font-size:13px; color:#6b7280;">
+            Prop.: {{ a.patient.owner.name }}
+        </div>
+    {% endif %}
+
+{% elif a.owner %}
+    <div style="font-size:18px; font-weight:bold;">
+        {{ a.owner.name }}
+    </div>
+
+{% elif a.title %}
+    <div style="font-size:18px; font-weight:bold;">
+        {{ a.title }}
+    </div>
+{% endif %}
+
+{% if a.title and a.patient %}
+    <div style="font-size:13px;">
+        {{ a.title }}
+    </div>
+{% endif %}
+
+{% if a.end_time %}
+    <small>{{ a.start_time }} - {{ a.end_time }}</small>
+{% endif %}
+
+{% if a.notes and a.notes != a.title %}
+    <br><small>{{ a.notes }}</small>
+{% endif %}
+<br><br>
+
+<form method="post" action="/agenda/{{ a.id }}/status" style="display:inline;">
+    <input type="hidden" name="date" value="{{ selected_day }}">
+    <input type="hidden" name="status" value="Confirmado">
+    <button type="submit">✅ Confirmar</button>
+</form>
+
+<form method="post" action="/agenda/{{ a.id }}/status" style="display:inline;">
+    <input type="hidden" name="date" value="{{ selected_day }}">
+    <input type="hidden" name="status" value="Realizado">
+    <button type="submit">✔ Realizado</button>
+</form>
+
+<form method="post" action="/agenda/{{ a.id }}/status" style="display:inline;">
+    <input type="hidden" name="date" value="{{ selected_day }}">
+    <input type="hidden" name="status" value="Cancelado">
+    <button type="submit">❌ Cancelar</button>
+</form>                                    
+                                    </div>
 
                                 </div>
                             {% endif %}
