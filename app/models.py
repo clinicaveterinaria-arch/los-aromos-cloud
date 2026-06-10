@@ -101,6 +101,8 @@ class Appointment(Base):
     reminder_24h: Mapped[bool] = mapped_column(Boolean, default=True)
 
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    owner: Mapped[Optional['Owner']] = relationship()
+    patient: Mapped[Optional['Patient']] = relationship()
 class EventAttachment(Base):
     __tablename__ = 'event_attachments'
 
