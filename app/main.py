@@ -279,46 +279,52 @@ def search(
 @app.get('/patients/{patient_id}', response_class=HTMLResponse)
 def patient_detail(request: Request, patient_id: int, db: Session = Depends(get_db), user: User = Depends(require_user)):
     patient = db.get(Patient, patient_id)
+
     if not patient:
         raise HTTPException(404)
-events = (
-    db.query(ClinicalEvent)
-    .filter(ClinicalEvent.patient_id == patient.id)
-    .order_by(ClinicalEvent.event_date.desc())
-    .limit(20)
-    .all()
-)
-today = datetime.now().date()
 
-upcoming_events = (
-    db.query(ClinicalEvent)
-    .filter(
-        ClinicalEvent.patient_id == patient.id,
-        ClinicalEvent.reminder_date != None,
-        ClinicalEvent.reminder_date >= today
+    events = (
+        db.query(ClinicalEvent)
+        .filter(ClinicalEvent.patient_id == patient.id)
+        .order_by(ClinicalEvent.event_date.desc())
+        .limit(20)
+        .all()
     )
-    .order_by(ClinicalEvent.reminder_date.asc())
-    .limit(5)
-    .all()
-)
-last_anesthesia = (
-    db.query(ClinicalEvent)
-    .filter(
-        ClinicalEvent.patient_id == patient.id,
-        ClinicalEvent.event_type == 'Anestesia'
+
+    today = datetime.now().date()
+
+    upcoming_events = (
+        db.query(ClinicalEvent)
+        .filter(
+            ClinicalEvent.patient_id == patient.id,
+            ClinicalEvent.reminder_date != None,
+            ClinicalEvent.reminder_date >= today
+        )
+        .order_by(ClinicalEvent.reminder_date.asc())
+        .limit(5)
+        .all()
     )
-    .order_by(ClinicalEvent.event_date.desc())
-    .first()
-)
-anesthesia_history = (
-    db.query(ClinicalEvent)
-    .filter(
-        ClinicalEvent.patient_id == patient.id,
-        ClinicalEvent.event_type == 'Anestesia'
+
+    last_anesthesia = (
+        db.query(ClinicalEvent)
+        .filter(
+            ClinicalEvent.patient_id == patient.id,
+            ClinicalEvent.event_type == 'Anestesia'
+        )
+        .order_by(ClinicalEvent.event_date.desc())
+        .first()
     )
-    .order_by(ClinicalEvent.event_date.desc())
-    .all()
-)
+
+    anesthesia_history = (
+        db.query(ClinicalEvent)
+        .filter(
+            ClinicalEvent.patient_id == patient.id,
+            ClinicalEvent.event_type == 'Anestesia'
+        )
+        .order_by(ClinicalEvent.event_date.desc())
+        .all()
+    )
+
     return templates.TemplateResponse(
         'patient_detail.html',
         {
@@ -330,55 +336,6 @@ anesthesia_history = (
             'timedelta': timedelta,
             'last_anesthesia': last_anesthesia,
             'anesthesia_history': anesthesia_history,
-        }
-    )
-)
-@app.post('/patients/{patient_id}/weight')
-def update_patient_weight(
-    patient_id: int,
-    weight: str = Form(''),
-    db: Session = Depends(get_db),
-    user: User = Depends(require_user)
-):
-    patient = db.get(Patient, patient_id)
-
-    if not patient:
-        raise HTTPException(status_code=404, detail="Paciente no encontrado")
-
-    try:
-        patient.weight = float(weight.replace(',', '.')) if weight and weight.strip() else None
-    except ValueError:
-        patient.weight = None
-
-    db.commit()
-
-    return RedirectResponse(
-        url=f"/patients/{patient_id}",
-        status_code=303
-    )
-@app.get('/patients/{patient_id}/history', response_class=HTMLResponse)
-def patient_history(
-    request: Request,
-    patient_id: int,
-    db: Session = Depends(get_db),
-    user: User = Depends(require_user)
-):
-    patient = db.get(Patient, patient_id)
-
-    if not patient:
-        raise HTTPException(status_code=404)
-
-    events = db.query(ClinicalEvent).filter(
-        ClinicalEvent.patient_id == patient.id
-    ).order_by(ClinicalEvent.event_date.desc()).all()
-
-    return templates.TemplateResponse(
-        'patient_history.html',
-        {
-            'request': request,
-            'patient': patient,
-            'events': events,
-            'timedelta': timedelta
         }
     )
 @app.get('/patients/{patient_id}/events/{event_id}', response_class=HTMLResponse)
