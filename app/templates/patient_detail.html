@@ -179,20 +179,7 @@
     {% endif %}
 </div>
 </div>    
-<div class="panel" style="background:#fff3cd;">
-    <form method="post" action="/patients/{{ patient.id }}/weight">
-        <b>⚖️ Peso del paciente</b><br><br>
 
-        <input
-            name="weight"
-            placeholder="Peso kg"
-            value="{{ patient.weight or '' }}"
-            style="max-width:160px;"
-        >
-
-        <button type="submit">Guardar / actualizar peso</button>
-    </form>
-</div>
 
 {% if upcoming_events %}
 <div class="panel" style="background:#d1ecf1;">
