@@ -156,36 +156,12 @@
 
     </div>
 
-    {% if upcoming_events %}
-    <div style="margin-top:14px; background:#eef8ff; padding:12px; border-radius:10px;">
-        <b>📅 Próximos eventos programados</b><br><br>
-
-        {% for e in upcoming_events[:3] %}
-            <div style="margin-bottom:6px;">
-                • <b>{{ e.event_type }}</b>
-                {% if e.title %}
-                    - {{ e.title }}
-                {% endif %}
-                {% if e.reminder_date %}
-                    → {{ e.reminder_date.strftime('%d/%m/%Y') }}
-                {% endif %}
-            </div>
-        {% endfor %}
-
-        {% if upcoming_events|length > 3 %}
-            <small style="color:#666;">Mostrando los primeros 3 de {{ upcoming_events|length }} eventos programados.</small>
-        {% endif %}
-    </div>
-    {% endif %}
+    
 </div>
 </div>    
 
 
-{% if upcoming_events %}
-<div class="panel" style="background:#d1ecf1;">
-    📅 Este paciente tiene {{ upcoming_events|length }} evento(s) programado(s).
-</div>
-{% endif %}
+
 {% if upcoming_events %}
 <div class="panel">
     <h3>📌 Próximos eventos programados</h3>
