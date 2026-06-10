@@ -65,7 +65,97 @@
 
 </div>
 
-    
+<div class="panel">
+    <h3>📋 Resumen clínico</h3>
+
+    {% set ns = namespace(vacuna=None, desparasitacion=None, ecg=None, rx=None, eco=None, lab=None) %}
+
+    {% for e in events %}
+        {% if not ns.vacuna and (e.vaccine_name or e.next_vaccine_date or e.event_type == 'Vacuna') %}
+            {% set ns.vacuna = e %}
+        {% endif %}
+
+        {% if not ns.desparasitacion and (e.dewormer_product or e.next_deworming_date or e.event_type == 'Desparasitación') %}
+            {% set ns.desparasitacion = e %}
+        {% endif %}
+
+        {% if not ns.ecg and e.event_type == 'ECG' %}
+            {% set ns.ecg = e %}
+        {% endif %}
+
+        {% if not ns.rx and e.event_type == 'Radiografía' %}
+            {% set ns.rx = e %}
+        {% endif %}
+
+        {% if not ns.eco and e.event_type == 'Ecografía' %}
+            {% set ns.eco = e %}
+        {% endif %}
+
+        {% if not ns.lab and e.event_type == 'Laboratorio' %}
+            {% set ns.lab = e %}
+        {% endif %}
+    {% endfor %}
+
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:10px;">
+
+        <div style="background:#f7f7f7; padding:10px; border-radius:8px;">
+            <b>💉 Última vacuna</b><br>
+            {% if ns.vacuna %}
+                {{ ns.vacuna.vaccine_name or ns.vacuna.title or ns.vacuna.event_type }}<br>
+                <small>{{ ns.vacuna.event_date.strftime('%d/%m/%Y') }}</small>
+            {% else %}
+                -
+            {% endif %}
+        </div>
+
+        <div style="background:#f7f7f7; padding:10px; border-radius:8px;">
+            <b>🪱 Última desparasitación</b><br>
+            {% if ns.desparasitacion %}
+                {{ ns.desparasitacion.dewormer_product or ns.desparasitacion.title or ns.desparasitacion.event_type }}<br>
+                <small>{{ ns.desparasitacion.event_date.strftime('%d/%m/%Y') }}</small>
+            {% else %}
+                -
+            {% endif %}
+        </div>
+
+        <div style="background:#f7f7f7; padding:10px; border-radius:8px;">
+            <b>❤️ Último ECG</b><br>
+            {% if ns.ecg %}
+                {{ ns.ecg.event_date.strftime('%d/%m/%Y') }}
+            {% else %}
+                -
+            {% endif %}
+        </div>
+
+        <div style="background:#f7f7f7; padding:10px; border-radius:8px;">
+            <b>🩻 Última RX</b><br>
+            {% if ns.rx %}
+                {{ ns.rx.event_date.strftime('%d/%m/%Y') }}
+            {% else %}
+                -
+            {% endif %}
+        </div>
+
+        <div style="background:#f7f7f7; padding:10px; border-radius:8px;">
+            <b>🖥️ Última ecografía</b><br>
+            {% if ns.eco %}
+                {{ ns.eco.event_date.strftime('%d/%m/%Y') }}
+            {% else %}
+                -
+            {% endif %}
+        </div>
+
+        <div style="background:#f7f7f7; padding:10px; border-radius:8px;">
+            <b>🧪 Último laboratorio</b><br>
+            {% if ns.lab %}
+                {{ ns.lab.event_date.strftime('%d/%m/%Y') }}
+            {% else %}
+                -
+            {% endif %}
+        </div>
+
+    </div>
+</div>    
 <div class="panel" style="background:#fff3cd;">
     <form method="post" action="/patients/{{ patient.id }}/weight">
         <b>⚖️ Peso del paciente</b><br><br>
