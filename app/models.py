@@ -81,7 +81,26 @@ class ClinicalEvent(Base):
         cascade='all, delete-orphan'
     )
 
+class Appointment(Base):
+    __tablename__ = 'appointments'
 
+    id: Mapped[int] = mapped_column(primary_key=True)
+
+    service: Mapped[str] = mapped_column(String(120), default='', index=True)
+    title: Mapped[str] = mapped_column(String(200), default='')
+    notes: Mapped[str] = mapped_column(Text, default='')
+
+    appointment_date: Mapped[datetime] = mapped_column(DateTime, index=True)
+    start_time: Mapped[str] = mapped_column(String(20), default='')
+    end_time: Mapped[str] = mapped_column(String(20), default='')
+
+    owner_id: Mapped[Optional[int]] = mapped_column(ForeignKey('owners.id'), nullable=True)
+    patient_id: Mapped[Optional[int]] = mapped_column(ForeignKey('patients.id'), nullable=True)
+
+    status: Mapped[str] = mapped_column(String(40), default='Pendiente')
+    reminder_24h: Mapped[bool] = mapped_column(Boolean, default=True)
+
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 class EventAttachment(Base):
     __tablename__ = 'event_attachments'
 
