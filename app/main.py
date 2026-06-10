@@ -332,6 +332,7 @@ anesthesia_history = (
             'anesthesia_history': anesthesia_history,
         }
     )
+)
 @app.post('/patients/{patient_id}/weight')
 def update_patient_weight(
     patient_id: int,
