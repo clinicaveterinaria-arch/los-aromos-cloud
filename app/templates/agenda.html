@@ -43,6 +43,18 @@ padding:8px;
 border-radius:8px;
 margin-bottom:6px;
 ">
+                                   <small style="font-weight:bold;">
+    {% if a.status == 'Realizado' %}
+        🟢 Realizado
+    {% elif a.status == 'Cancelado' %}
+        🔴 Cancelado
+    {% elif a.status == 'Confirmado' %}
+        🔵 Confirmado
+    {% else %}
+        🟣 Pendiente
+    {% endif %}
+</small>
+<br> 
                                     <b>{{ a.service }}</b>
                                     {% if a.title %}
                                         - {{ a.title }}
