@@ -178,6 +178,14 @@ def home(request: Request, db: Session = Depends(get_db), user: User = Depends(r
         .limit(5)
         .all()
     )
+    upcoming_appointments = (
+        db.query(Appointment)
+        .filter(Appointment.appointment_date >= datetime.combine(today, datetime.min.time()))
+        .filter(Appointment.status == 'Pendiente')
+        .order_by(Appointment.appointment_date.asc(), Appointment.start_time.asc())
+        .limit(8)
+        .all()
+    )
     recent_patients = (
         db.query(Patient)
         .order_by(Patient.id.desc())
@@ -218,9 +226,11 @@ def home(request: Request, db: Session = Depends(get_db), user: User = Depends(r
             'upcoming': upcoming,
             'overdue_events': overdue_events,
             'today_events': today_events,
+            'upcoming_appointments': upcoming_appointments,
             'recent_patients': recent_patients,
             'inactive_patients': inactive_patients,
             'today': today
+            
         }
     )
 @app.get('/quick/rx')
