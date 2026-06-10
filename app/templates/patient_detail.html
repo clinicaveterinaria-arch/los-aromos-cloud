@@ -104,7 +104,7 @@
                 {{ ns.vacuna.vaccine_name or ns.vacuna.title or ns.vacuna.event_type }}<br>
                 <small>{{ ns.vacuna.event_date.strftime('%d/%m/%Y') }}</small>
             {% else %}
-                -
+                <span style="color:#888;">Sin vacuna registrada</span>
             {% endif %}
         </div>
 
@@ -114,25 +114,25 @@
                 {{ ns.desparasitacion.dewormer_product or ns.desparasitacion.title or ns.desparasitacion.event_type }}<br>
                 <small>{{ ns.desparasitacion.event_date.strftime('%d/%m/%Y') }}</small>
             {% else %}
-                -
+                <span style="color:#888;">Sin desparasitación registrada</span>
             {% endif %}
         </div>
 
         <div style="background:#f7f7f7; padding:10px; border-radius:8px;">
-            <b>❤️ Último ECG</b><br>
+            <b>💗 Último ECG</b><br>
             {% if ns.ecg %}
                 {{ ns.ecg.event_date.strftime('%d/%m/%Y') }}
             {% else %}
-                -
+                <span style="color:#888;">Sin ECG registrado</span>
             {% endif %}
         </div>
 
         <div style="background:#f7f7f7; padding:10px; border-radius:8px;">
-            <b>🩻 Última RX</b><br>
+            <b>☢️ Última RX</b><br>
             {% if ns.rx %}
                 {{ ns.rx.event_date.strftime('%d/%m/%Y') }}
             {% else %}
-                -
+                <span style="color:#888;">Sin RX registrada</span>
             {% endif %}
         </div>
 
@@ -141,7 +141,7 @@
             {% if ns.eco %}
                 {{ ns.eco.event_date.strftime('%d/%m/%Y') }}
             {% else %}
-                -
+                <span style="color:#888;">Sin ecografía registrada</span>
             {% endif %}
         </div>
 
@@ -150,11 +150,34 @@
             {% if ns.lab %}
                 {{ ns.lab.event_date.strftime('%d/%m/%Y') }}
             {% else %}
-                -
+                <span style="color:#888;">Sin laboratorio registrado</span>
             {% endif %}
         </div>
 
     </div>
+
+    {% if upcoming_events %}
+    <div style="margin-top:14px; background:#eef8ff; padding:12px; border-radius:10px;">
+        <b>📅 Próximos eventos programados</b><br><br>
+
+        {% for e in upcoming_events[:3] %}
+            <div style="margin-bottom:6px;">
+                • <b>{{ e.event_type }}</b>
+                {% if e.title %}
+                    - {{ e.title }}
+                {% endif %}
+                {% if e.reminder_date %}
+                    → {{ e.reminder_date.strftime('%d/%m/%Y') }}
+                {% endif %}
+            </div>
+        {% endfor %}
+
+        {% if upcoming_events|length > 3 %}
+            <small style="color:#666;">Mostrando los primeros 3 de {{ upcoming_events|length }} eventos programados.</small>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
 </div>    
 <div class="panel" style="background:#fff3cd;">
     <form method="post" action="/patients/{{ patient.id }}/weight">
