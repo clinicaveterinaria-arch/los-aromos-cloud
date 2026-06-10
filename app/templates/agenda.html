@@ -26,7 +26,23 @@
                     <div style="padding:8px;">
                         {% for a in appointments %}
                             {% if a.start_time == slot %}
-                                <div style="background:#fce7f3; border-left:5px solid #d85b9f; padding:8px; border-radius:8px; margin-bottom:6px;">
+                                <div style="
+background:
+{% if a.status == 'Realizado' %}#ecfdf5
+{% elif a.status == 'Cancelado' %}#fef2f2
+{% elif a.status == 'Confirmado' %}#eff6ff
+{% else %}#fce7f3
+{% endif %};
+border-left:5px solid
+{% if a.status == 'Realizado' %}#10b981
+{% elif a.status == 'Cancelado' %}#ef4444
+{% elif a.status == 'Confirmado' %}#3b82f6
+{% else %}#d85b9f
+{% endif %};
+padding:8px;
+border-radius:8px;
+margin-bottom:6px;
+">
                                     <b>{{ a.service }}</b>
                                     {% if a.title %}
                                         - {{ a.title }}
