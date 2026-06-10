@@ -281,11 +281,14 @@ def patient_detail(request: Request, patient_id: int, db: Session = Depends(get_
     patient = db.get(Patient, patient_id)
     if not patient:
         raise HTTPException(404)
-events = db.query(ClinicalEvent)\
-    .filter(ClinicalEvent.patient_id == patient.id)\
-    .order_by(ClinicalEvent.event_date.desc())\
+events = (
+    db.query(ClinicalEvent)
+    .filter(ClinicalEvent.patient_id == patient.id)
+    .order_by(ClinicalEvent.event_date.desc())
+    .limit(20)
     .all()
-    today = datetime.now().date()
+)
+today = datetime.now().date()
 
     upcoming_events = (
         db.query(ClinicalEvent)
