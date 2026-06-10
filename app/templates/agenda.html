@@ -3,6 +3,138 @@
 
 <h1>📅 Agenda</h1>
 
-<p>Agenda funcionando.</p>
+<div class="panel">
+    <form method="get" action="/agenda">
+        <label><b>Fecha:</b></label>
+        <input type="date" name="date" value="{{ selected_day }}">
+        <button type="submit">Ver día</button>
+    </form>
+</div>
+
+<div class="panel" style="display:grid; grid-template-columns: 1fr 320px; gap:20px;">
+
+    <div>
+        <h2>{{ selected_day.strftime('%d/%m/%Y') }}</h2>
+
+        {% for hour in range(8, 21) %}
+            {% for minute in [0, 30] %}
+                {% set slot = "%02d:%02d"|format(hour, minute) %}
+
+                <div style="display:grid; grid-template-columns:80px 1fr; border-bottom:1px solid #eee; min-height:48px;">
+                    <div style="font-weight:bold; padding:10px;">{{ slot }}</div>
+
+                    <div style="padding:8px;">
+                        {% for a in appointments %}
+                            {% if a.start_time == slot %}
+                                <div style="background:#fce7f3; border-left:5px solid #d85b9f; padding:8px; border-radius:8px; margin-bottom:6px;">
+                                    <b>{{ a.service }}</b>
+                                    {% if a.title %}
+                                        - {{ a.title }}
+                                    {% endif %}
+                                    {% if a.end_time %}
+                                        <small>({{ a.start_time }} - {{ a.end_time }})</small>
+                                    {% endif %}
+                                    {% if a.notes %}
+                                        <br><small>{{ a.notes }}</small>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endfor %}
+        {% endfor %}
+    </div>
+
+    <div>
+        <h2>Nuevo turno</h2>
+
+        <form method="post" action="/agenda">
+            <label><b>Servicio</b></label>
+            <select name="service" required>
+                <option value="">Seleccione</option>
+                <option>Consulta</option>
+                <option>Vacuna</option>
+                <option>Desparasitación</option>
+                <option>Cirugía</option>
+                <option>ECG</option>
+                <option>Ecografía</option>
+                <option>Radiografía</option>
+                <option>Control</option>
+                <option>Internación</option>
+                <option>Otro</option>
+            </select>
+
+            <br><br>
+
+            <label><b>Título / detalle</b></label>
+            <input name="title" placeholder="Ej: Luna - OHE">
+
+            <br><br>
+
+            <label><b>Fecha</b></label>
+            <input type="date" name="appointment_date" value="{{ selected_day }}" required>
+
+            <br><br>
+
+            <label><b>Inicio</b></label>
+            <select name="start_time" required>
+                {% for hour in range(8, 21) %}
+                    {% for minute in [0, 30] %}
+                        <option value="{{ '%02d:%02d'|format(hour, minute) }}">{{ '%02d:%02d'|format(hour, minute) }}</option>
+                    {% endfor %}
+                {% endfor %}
+            </select>
+
+            <br><br>
+
+            <label><b>Fin</b></label>
+            <select name="end_time">
+                {% for hour in range(8, 21) %}
+                    {% for minute in [0, 30] %}
+                        <option value="{{ '%02d:%02d'|format(hour, minute) }}">{{ '%02d:%02d'|format(hour, minute) }}</option>
+                    {% endfor %}
+                {% endfor %}
+            </select>
+
+            <br><br>
+
+            <label><b>Cliente</b></label>
+            <select name="owner_id">
+                <option value="">Sin cliente asignado</option>
+                {% for o in owners %}
+                    <option value="{{ o.id }}">{{ o.name }}</option>
+                {% endfor %}
+            </select>
+
+            <br><br>
+
+            <label><b>Paciente</b></label>
+            <select name="patient_id">
+                <option value="">Sin paciente asignado</option>
+                {% for p in patients %}
+                    <option value="{{ p.id }}">{{ p.name }}{% if p.owner %} - {{ p.owner.name }}{% endif %}</option>
+                {% endfor %}
+            </select>
+
+            <br><br>
+
+            <label><b>Nota</b></label>
+            <textarea name="notes" rows="3" placeholder="Observaciones del turno"></textarea>
+
+            <br><br>
+
+            <label>
+                <input type="checkbox" name="reminder_24h" checked>
+                Recordar 24 hs antes
+            </label>
+
+            <br><br>
+
+            <button type="submit">Guardar turno</button>
+        </form>
+    </div>
+
+</div>
 
 {% endblock %}
