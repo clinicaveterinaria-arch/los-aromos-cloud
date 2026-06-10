@@ -50,13 +50,9 @@ margin-bottom:6px;
                                     {% if a.end_time %}
                                         <small>({{ a.start_time }} - {{ a.end_time }})</small>
                                     {% endif %}
-                                    {% if a.notes %}
-                                        <br><small>{{ a.notes }}</small>
-                                    {% endif %}
-                                    {% if a.notes %}
+                                    {% if a.notes and a.notes != a.title %}
     <br><small>{{ a.notes }}</small>
 {% endif %}
-
 <br><br>
 
 <form method="post" action="/agenda/{{ a.id }}/status" style="display:inline;">
