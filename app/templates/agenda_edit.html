@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h1>✏️ Editar turno</h1>
+
+<div class="panel" style="max-width:700px;">
+
+    <form method="post" action="/agenda/{{ appointment.id }}/edit">
+
+        <label><b>Servicio</b></label>
+        <select name="service" required>
+            {% for s in ['Consulta', 'Vacuna', 'Desparasitación', 'Cirugía', 'ECG', 'Ecografía', 'Radiografía', 'Control', 'Internación', 'Otro'] %}
+                <option value="{{ s }}" {% if appointment.service == s %}selected{% endif %}>{{ s }}</option>
+            {% endfor %}
+        </select>
+
+        <br><br>
+
+        <label><b>Título / detalle</b></label>
+        <input name="title" value="{{ appointment.title or '' }}" placeholder="Ej: Luna - OHE">
+
+        <br><br>
+
+        <label><b>Fecha</b></label>
+        <input type="date" name="appointment_date" value="{{ appointment.appointment_date.strftime('%Y-%m-%d') }}" required>
+
+        <br><br>
+
+        <label><b>Inicio</b></label>
+        <select name="start_time" required>
+            {% for hour in range(8, 21) %}
+                {% for minute in [0, 30] %}
+                    {% set slot = '%02d:%02d'|format(hour, minute) %}
+                    <option value="{{ slot }}" {% if appointment.start_time == slot %}selected{% endif %}>{{ slot }}</option>
+                {% endfor %}
+            {% endfor %}
+        </select>
+
+        <br><br>
+
+        <label><b>Fin</b></label>
+        <select name="end_time">
+            {% for hour in range(8, 21) %}
+                {% for minute in [0, 30] %}
+                    {% set slot = '%02d:%02d'|format(hour, minute) %}
+                    <option value="{{ slot }}" {% if appointment.end_time == slot %}selected{% endif %}>{{ slot }}</option>
+                {% endfor %}
+            {% endfor %}
+        </select>
+
+        <br><br>
+
+        <label><b>Cliente</b></label>
+        <select name="owner_id">
+            <option value="">Sin cliente asignado</option>
+            {% for o in owners %}
+                <option value="{{ o.id }}" {% if appointment.owner_id == o.id %}selected{% endif %}>
+                    {{ o.name }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <br><br>
+
+        <label><b>Paciente</b></label>
+        <select name="patient_id">
+            <option value="">Sin paciente asignado</option>
+            {% for p in patients %}
+                <option value="{{ p.id }}" {% if appointment.patient_id == p.id %}selected{% endif %}>
+                    {{ p.name }}{% if p.owner %} - {{ p.owner.name }}{% endif %}
+                </option>
+            {% endfor %}
+        </select>
+
+        <br><br>
+
+        <label><b>Nota / Precio</b></label>
+        <textarea name="notes" rows="4" placeholder="Observaciones, presupuesto o precio estimado">{{ appointment.notes or '' }}</textarea>
+
+        <br><br>
+
+        <div style="background:#fff8fb; border-left:4px solid #d85b9f; border-radius:10px; padding:12px;">
+            <label style="display:flex; align-items:center; gap:10px; cursor:pointer; margin:0;">
+                <input type="checkbox" name="reminder_24h" {% if appointment.reminder_24h %}checked{% endif %} style="margin:0; width:16px; height:16px;">
+                <span style="font-size:14px;">🔔 <b>Enviar recordatorio 24 hs antes</b></span>
+            </label>
+        </div>
+
+        <br><br>
+
+        <button type="submit">Guardar cambios</button>
+        <a href="/agenda?date={{ appointment.appointment_date.strftime('%Y-%m-%d') }}" class="btn">Cancelar</a>
+
+    </form>
+
+</div>
+
+{% endblock %}
