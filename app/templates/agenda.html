@@ -11,7 +11,7 @@
     </form>
 </div>
 
-<div class="panel" style="display:grid; grid-template-columns:1fr 360px; gap:20px; align-items:start;">
+<div class="panel" style="display:grid; grid-template-columns:minmax(0,1fr) 360px; gap:20px; align-items:start;">
 
     <div>
         <h2>{{ selected_day.strftime('%d/%m/%Y') }}</h2>
@@ -27,74 +27,74 @@
                         {% for a in appointments %}
                             {% if a.start_time == slot %}
                                 <div style="background:#fce7f3; border-left:5px solid #d85b9f; padding:8px; border-radius:8px; margin-bottom:6px;">
-<small><b>
-    {% if a.status == 'Realizado' %}🟢 Realizado
-    {% elif a.status == 'Cancelado' %}🔴 Cancelado
-    {% elif a.status == 'Confirmado' %}🔵 Confirmado
-    {% else %}🟣 Pendiente
-    {% endif %}
-</b></small><br>
-                                    
+
+                                    <small><b>
+                                        {% if a.status == 'Realizado' %}🟢 Realizado
+                                        {% elif a.status == 'Cancelado' %}🔴 Cancelado
+                                        {% elif a.status == 'Confirmado' %}🔵 Confirmado
+                                        {% else %}🟣 Pendiente
+                                        {% endif %}
+                                    </b></small><br>
 
                                     <div style="font-size:13px; color:#6b7280; font-weight:bold; text-transform:uppercase;">
                                         {{ a.service }}
                                     </div>
 
-{% if a.patient %}
-    <div style="font-size:18px; font-weight:bold;">
-        {{ a.patient.name }}
-    </div>
+                                    {% if a.patient %}
+                                        <div style="font-size:18px; font-weight:bold;">
+                                            {{ a.patient.name }}
+                                        </div>
 
-    {% if a.patient.owner %}
-        <div style="font-size:13px; color:#6b7280;">
-            Prop.: {{ a.patient.owner.name }}
-        </div>
-    {% endif %}
+                                        {% if a.patient.owner %}
+                                            <div style="font-size:13px; color:#6b7280;">
+                                                Prop.: {{ a.patient.owner.name }}
+                                            </div>
+                                        {% endif %}
 
-{% elif a.owner %}
-    <div style="font-size:18px; font-weight:bold;">
-        {{ a.owner.name }}
-    </div>
+                                    {% elif a.owner %}
+                                        <div style="font-size:18px; font-weight:bold;">
+                                            {{ a.owner.name }}
+                                        </div>
 
-{% elif a.title %}
-    <div style="font-size:18px; font-weight:bold;">
-        {{ a.title }}
-    </div>
-{% endif %}
+                                    {% elif a.title %}
+                                        <div style="font-size:18px; font-weight:bold;">
+                                            {{ a.title }}
+                                        </div>
+                                    {% endif %}
 
-{% if a.title and a.patient %}
-    <div style="font-size:13px;">
-        {{ a.title }}
-    </div>
-{% endif %}
+                                    {% if a.title and a.patient %}
+                                        <div style="font-size:13px;">
+                                            {{ a.title }}
+                                        </div>
+                                    {% endif %}
 
-{% if a.end_time %}
-    <small>{{ a.start_time }} - {{ a.end_time }}</small>
-{% endif %}
+                                    {% if a.end_time %}
+                                        <small>{{ a.start_time }} - {{ a.end_time }}</small>
+                                    {% endif %}
 
-{% if a.notes and a.notes != a.title %}
-    <br><small>{{ a.notes }}</small>
-{% endif %}
-<br><br>
+                                    {% if a.notes and a.notes != a.title %}
+                                        <br><small>{{ a.notes }}</small>
+                                    {% endif %}
 
-<form method="post" action="/agenda/{{ a.id }}/status" style="display:inline;">
-    <input type="hidden" name="date" value="{{ selected_day }}">
-    <input type="hidden" name="status" value="Confirmado">
-    <button type="submit">✅ Confirmar</button>
-</form>
+                                    <br><br>
 
-<form method="post" action="/agenda/{{ a.id }}/status" style="display:inline;">
-    <input type="hidden" name="date" value="{{ selected_day }}">
-    <input type="hidden" name="status" value="Realizado">
-    <button type="submit">✔ Realizado</button>
-</form>
+                                    <form method="post" action="/agenda/{{ a.id }}/status" style="display:inline;">
+                                        <input type="hidden" name="date" value="{{ selected_day }}">
+                                        <input type="hidden" name="status" value="Confirmado">
+                                        <button type="submit">✅ Confirmar</button>
+                                    </form>
 
-<form method="post" action="/agenda/{{ a.id }}/status" style="display:inline;">
-    <input type="hidden" name="date" value="{{ selected_day }}">
-    <input type="hidden" name="status" value="Cancelado">
-    <button type="submit">❌ Cancelar</button>
-</form>                                    
-                                    </div>
+                                    <form method="post" action="/agenda/{{ a.id }}/status" style="display:inline;">
+                                        <input type="hidden" name="date" value="{{ selected_day }}">
+                                        <input type="hidden" name="status" value="Realizado">
+                                        <button type="submit">✔ Realizado</button>
+                                    </form>
+
+                                    <form method="post" action="/agenda/{{ a.id }}/status" style="display:inline;">
+                                        <input type="hidden" name="date" value="{{ selected_day }}">
+                                        <input type="hidden" name="status" value="Cancelado">
+                                        <button type="submit">❌ Cancelar</button>
+                                    </form>
 
                                 </div>
                             {% endif %}
@@ -186,9 +186,7 @@
             <div style="background:#fff8fb; border-left:4px solid #d85b9f; border-radius:10px; padding:12px;">
                 <label style="display:flex; align-items:center; gap:10px; cursor:pointer; margin:0;">
                     <input type="checkbox" name="reminder_24h" checked style="margin:0; width:16px; height:16px;">
-                    <span style="font-size:14px;">
-                        🔔 <b>Enviar recordatorio 24 hs antes</b>
-                    </span>
+                    <span style="font-size:14px;">🔔 <b>Enviar recordatorio 24 hs antes</b></span>
                 </label>
             </div>
 
