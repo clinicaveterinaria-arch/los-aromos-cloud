@@ -96,7 +96,22 @@
                                         <input type="hidden" name="status" value="Cancelado">
                                         <button type="submit">❌ Cancelar</button>
                                     </form>
+                                    <br>
 
+                                    <a href="/agenda/{{ a.id }}/edit"
+                                       style="
+                                          display:inline-block;
+                                          margin-top:6px;
+                                          padding:6px 12px;
+                                          background:#f3f4f6;
+                                          border-radius:6px;
+                                          text-decoration:none;
+                                          color:#374151;
+                                          font-size:13px;
+                                          font-weight:bold;
+                                       ">
+                                       ✏️ Editar
+                                    </a>
                                 </div>
                             {% endif %}
                         {% endfor %}
