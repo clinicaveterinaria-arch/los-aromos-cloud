@@ -259,7 +259,81 @@ def patient_create(name: str = Form(...), owner_id: int = Form(...), species: st
     p = Patient(name=name, owner_id=owner_id, species=species, breed=breed, sex=sex, weight=w, alerts=alerts, notes=notes)
     db.add(p); db.commit()
     return RedirectResponse(f'/patients/{p.id}', status_code=303)
+@app.get('/agenda', response_class=HTMLResponse)
+def agenda(
+    request: Request,
+    date: str = '',
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    if date:
+        selected_day = datetime.strptime(date, '%Y-%m-%d').date()
+    else:
+        selected_day = datetime.now().date()
 
+    start_dt = datetime.combine(selected_day, datetime.min.time())
+    end_dt = start_dt + timedelta(days=1)
+
+    appointments = (
+        db.query(Appointment)
+        .filter(Appointment.appointment_date >= start_dt)
+        .filter(Appointment.appointment_date < end_dt)
+        .order_by(Appointment.start_time)
+        .all()
+    )
+
+    owners = db.query(Owner).order_by(Owner.name).limit(300).all()
+    patients = db.query(Patient).order_by(Patient.name).limit(300).all()
+
+    return templates.TemplateResponse(
+        'agenda.html',
+        {
+            'request': request,
+            'selected_day': selected_day,
+            'appointments': appointments,
+            'owners': owners,
+            'patients': patients
+        }
+    )
+
+
+@app.post('/agenda')
+def agenda_create(
+    service: str = Form(...),
+    title: str = Form(''),
+    appointment_date: str = Form(...),
+    start_time: str = Form(''),
+    end_time: str = Form(''),
+    owner_id: str = Form(''),
+    patient_id: str = Form(''),
+    notes: str = Form(''),
+    reminder_24h: str = Form(''),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    selected_day = datetime.strptime(appointment_date, '%Y-%m-%d').date()
+    appointment_dt = datetime.combine(selected_day, datetime.min.time())
+
+    owner_value = int(owner_id) if owner_id else None
+    patient_value = int(patient_id) if patient_id else None
+
+    appointment = Appointment(
+        service=service,
+        title=title,
+        appointment_date=appointment_dt,
+        start_time=start_time,
+        end_time=end_time,
+        owner_id=owner_value,
+        patient_id=patient_value,
+        notes=notes,
+        reminder_24h=True if reminder_24h else False,
+        status='Pendiente'
+    )
+
+    db.add(appointment)
+    db.commit()
+
+    return RedirectResponse(f'/agenda?date={appointment_date}', status_code=303)
 @app.get('/search', response_class=HTMLResponse)
 def search(
     request: Request,
