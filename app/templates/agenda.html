@@ -27,33 +27,14 @@
                         {% for a in appointments %}
                             {% if a.start_time == slot %}
                                 <div style="background:#fce7f3; border-left:5px solid #d85b9f; padding:8px; border-radius:8px; margin-bottom:6px;">
-
-                                    <small><b>
-                                        {% if a.status == 'Realizado' %}🟢 Realizado
-                                        {% elif a.status == 'Cancelado' %}🔴 Cancelado
-                                        {% elif a.status == 'Confirmado' %}🔵 Confirmado
-                                        {% else %}🟣 Pendiente
-                                        {% endif %}
-                                    </b></small><br>
-
-                                    <b>{{ a.service }}</b>
-                                    {% if a.title %} - {{ a.title }}{% endif %}
-
-                                    {% if a.end_time %}
-                                        <small>({{ a.start_time }} - {{ a.end_time }})</small>
-                                    {% endif %}
-
-                                    {% if a.notes and a.notes != a.title %}
-                                        <br><small>{{ a.notes }}</small>
-                                    {% endif %}
-
-                                    <br><br>
-
-                                    <form method="post" action="/agenda/{{ a.id }}/status" style="display:inline;">
-                                        <input type="hidden" name="date" value="{{ selected_day }}">
-                                        <input type="hidden" name="status" value="Confirmado">
-                                        <button type="submit">✅ Confirmar</button>
-                                    </form>
+<small><b>
+    {% if a.status == 'Realizado' %}🟢 Realizado
+    {% elif a.status == 'Cancelado' %}🔴 Cancelado
+    {% elif a.status == 'Confirmado' %}🔵 Confirmado
+    {% else %}🟣 Pendiente
+    {% endif %}
+</b></small><br>
+                                    
 
                                     <div style="font-size:13px; color:#6b7280; font-weight:bold; text-transform:uppercase;">
                                         {{ a.service }}
