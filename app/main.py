@@ -364,6 +364,68 @@ def agenda_update_status(
         return RedirectResponse(f'/agenda?date={date}', status_code=303)
 
     return RedirectResponse('/agenda', status_code=303)
+@app.get('/agenda/{appointment_id}/edit', response_class=HTMLResponse)
+def agenda_edit(
+    request: Request,
+    appointment_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    appointment = db.get(Appointment, appointment_id)
+
+    if not appointment:
+        raise HTTPException(status_code=404, detail='Turno no encontrado')
+
+    owners = db.query(Owner).order_by(Owner.name).limit(300).all()
+    patients = db.query(Patient).order_by(Patient.name).limit(300).all()
+
+    return templates.TemplateResponse(
+        'agenda_edit.html',
+        {
+            'request': request,
+            'appointment': appointment,
+            'owners': owners,
+            'patients': patients
+        }
+    )
+
+
+@app.post('/agenda/{appointment_id}/edit')
+def agenda_update(
+    appointment_id: int,
+    service: str = Form(...),
+    title: str = Form(''),
+    appointment_date: str = Form(...),
+    start_time: str = Form(''),
+    end_time: str = Form(''),
+    owner_id: str = Form(''),
+    patient_id: str = Form(''),
+    notes: str = Form(''),
+    reminder_24h: str = Form(''),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    appointment = db.get(Appointment, appointment_id)
+
+    if not appointment:
+        raise HTTPException(status_code=404, detail='Turno no encontrado')
+
+    selected_day = datetime.strptime(appointment_date, '%Y-%m-%d').date()
+    appointment_dt = datetime.combine(selected_day, datetime.min.time())
+
+    appointment.service = service
+    appointment.title = title
+    appointment.appointment_date = appointment_dt
+    appointment.start_time = start_time
+    appointment.end_time = end_time
+    appointment.owner_id = int(owner_id) if owner_id else None
+    appointment.patient_id = int(patient_id) if patient_id else None
+    appointment.notes = notes
+    appointment.reminder_24h = True if reminder_24h else False
+
+    db.commit()
+
+    return RedirectResponse(f'/agenda?date={appointment_date}', status_code=303)
 @app.get('/search', response_class=HTMLResponse)
 def search(
     request: Request,
