@@ -344,6 +344,26 @@ def agenda_create(
     db.commit()
 
     return RedirectResponse(f'/agenda?date={appointment_date}', status_code=303)
+@app.post('/agenda/{appointment_id}/status')
+def agenda_update_status(
+    appointment_id: int,
+    status: str = Form(...),
+    date: str = Form(''),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    appointment = db.get(Appointment, appointment_id)
+
+    if not appointment:
+        raise HTTPException(status_code=404, detail='Turno no encontrado')
+
+    appointment.status = status
+    db.commit()
+
+    if date:
+        return RedirectResponse(f'/agenda?date={date}', status_code=303)
+
+    return RedirectResponse('/agenda', status_code=303)
 @app.get('/search', response_class=HTMLResponse)
 def search(
     request: Request,
