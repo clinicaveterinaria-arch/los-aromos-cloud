@@ -11,7 +11,7 @@
     </form>
 </div>
 
-<div class="panel" style="display:grid; grid-template-columns: 1fr 320px; gap:20px;">
+<div class="panel" style="display:grid; grid-template-columns:minmax(0,1fr) 360px; gap:20px; align-items:start;">
 
     <div>
         <h2>{{ selected_day.strftime('%d/%m/%Y') }}</h2>
@@ -95,7 +95,7 @@ margin-bottom:6px;
         {% endfor %}
     </div>
 
-    <div>
+    <div style="position:sticky; top:20px;">
         <h2>Nuevo turno</h2>
 
         <form method="post" action="/agenda">
