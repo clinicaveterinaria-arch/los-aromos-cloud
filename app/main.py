@@ -301,24 +301,24 @@ upcoming_events = (
     .limit(5)
     .all()
 )
-    last_anesthesia = (
-        db.query(ClinicalEvent)
-        .filter(
-            ClinicalEvent.patient_id == patient.id,
-            ClinicalEvent.event_type == 'Anestesia'
-        )
-        .order_by(ClinicalEvent.event_date.desc())
-        .first()
+last_anesthesia = (
+    db.query(ClinicalEvent)
+    .filter(
+        ClinicalEvent.patient_id == patient.id,
+        ClinicalEvent.event_type == 'Anestesia'
     )
-    anesthesia_history = (
-        db.query(ClinicalEvent)
-        .filter(
-            ClinicalEvent.patient_id == patient.id,
-            ClinicalEvent.event_type == 'Anestesia'
-        )
-        .order_by(ClinicalEvent.event_date.desc())
-        .all()
+    .order_by(ClinicalEvent.event_date.desc())
+    .first()
+)
+anesthesia_history = (
+    db.query(ClinicalEvent)
+    .filter(
+        ClinicalEvent.patient_id == patient.id,
+        ClinicalEvent.event_type == 'Anestesia'
     )
+    .order_by(ClinicalEvent.event_date.desc())
+    .all()
+)
     return templates.TemplateResponse(
         'patient_detail.html',
         {
