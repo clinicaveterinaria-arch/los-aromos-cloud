@@ -11,81 +11,62 @@
     </form>
 </div>
 
-<div class="panel" style="display:flex; gap:20px; align-items:flex-start;">
+<div class="panel" style="display:grid; grid-template-columns:1fr 360px; gap:20px; align-items:start;">
 
-    <div style="flex:1; min-width:0;">
+    <div>
         <h2>{{ selected_day.strftime('%d/%m/%Y') }}</h2>
 
         {% for hour in range(8, 21) %}
             {% for minute in [0, 30] %}
                 {% set slot = "%02d:%02d"|format(hour, minute) %}
 
-                <div style="display:grid; grid-template-columns:80px 1fr; border-bottom:1px solid #eee; min-height:48px;">
+                <div style="display:grid; grid-template-columns:80px 1fr; border-bottom:1px solid #eee; min-height:60px;">
                     <div style="font-weight:bold; padding:10px;">{{ slot }}</div>
 
                     <div style="padding:8px;">
                         {% for a in appointments %}
                             {% if a.start_time == slot %}
-                                <div style="
-background:
-{% if a.status == 'Realizado' %}#ecfdf5
-{% elif a.status == 'Cancelado' %}#fef2f2
-{% elif a.status == 'Confirmado' %}#eff6ff
-{% else %}#fce7f3
-{% endif %};
-border-left:5px solid
-{% if a.status == 'Realizado' %}#10b981
-{% elif a.status == 'Cancelado' %}#ef4444
-{% elif a.status == 'Confirmado' %}#3b82f6
-{% else %}#d85b9f
-{% endif %};
-padding:8px;
-border-radius:8px;
-margin-bottom:6px;
-">
-                                   <small style="font-weight:bold;">
-    {% if a.status == 'Realizado' %}
-        🟢 Realizado
-    {% elif a.status == 'Cancelado' %}
-        🔴 Cancelado
-    {% elif a.status == 'Confirmado' %}
-        🔵 Confirmado
-    {% else %}
-        🟣 Pendiente
-    {% endif %}
-</small>
-<br> 
+                                <div style="background:#fce7f3; border-left:5px solid #d85b9f; padding:8px; border-radius:8px; margin-bottom:6px;">
+
+                                    <small><b>
+                                        {% if a.status == 'Realizado' %}🟢 Realizado
+                                        {% elif a.status == 'Cancelado' %}🔴 Cancelado
+                                        {% elif a.status == 'Confirmado' %}🔵 Confirmado
+                                        {% else %}🟣 Pendiente
+                                        {% endif %}
+                                    </b></small><br>
+
                                     <b>{{ a.service }}</b>
-                                    {% if a.title %}
-                                        - {{ a.title }}
-                                    {% endif %}
+                                    {% if a.title %} - {{ a.title }}{% endif %}
+
                                     {% if a.end_time %}
                                         <small>({{ a.start_time }} - {{ a.end_time }})</small>
                                     {% endif %}
+
                                     {% if a.notes and a.notes != a.title %}
-    <br><small>{{ a.notes }}</small>
-{% endif %}
-<br><br>
+                                        <br><small>{{ a.notes }}</small>
+                                    {% endif %}
 
-<form method="post" action="/agenda/{{ a.id }}/status" style="display:inline;">
-    <input type="hidden" name="date" value="{{ selected_day }}">
-    <input type="hidden" name="status" value="Confirmado">
-    <button type="submit">✅ Confirmar</button>
-</form>
+                                    <br><br>
 
-<form method="post" action="/agenda/{{ a.id }}/status" style="display:inline;">
-    <input type="hidden" name="date" value="{{ selected_day }}">
-    <input type="hidden" name="status" value="Realizado">
-    <button type="submit">✔ Realizado</button>
-</form>
+                                    <form method="post" action="/agenda/{{ a.id }}/status" style="display:inline;">
+                                        <input type="hidden" name="date" value="{{ selected_day }}">
+                                        <input type="hidden" name="status" value="Confirmado">
+                                        <button type="submit">✅ Confirmar</button>
+                                    </form>
 
-<form method="post" action="/agenda/{{ a.id }}/status" style="display:inline;">
-    <input type="hidden" name="date" value="{{ selected_day }}">
-    <input type="hidden" name="status" value="Cancelado">
-    <button type="submit">❌ Cancelar</button>
-</form>
+                                    <form method="post" action="/agenda/{{ a.id }}/status" style="display:inline;">
+                                        <input type="hidden" name="date" value="{{ selected_day }}">
+                                        <input type="hidden" name="status" value="Realizado">
+                                        <button type="submit">✔ Realizado</button>
+                                    </form>
 
-</div>
+                                    <form method="post" action="/agenda/{{ a.id }}/status" style="display:inline;">
+                                        <input type="hidden" name="date" value="{{ selected_day }}">
+                                        <input type="hidden" name="status" value="Cancelado">
+                                        <button type="submit">❌ Cancelar</button>
+                                    </form>
+
                                 </div>
                             {% endif %}
                         {% endfor %}
@@ -95,7 +76,7 @@ margin-bottom:6px;
         {% endfor %}
     </div>
 
-    <div style="width:360px; flex-shrink:0; position:sticky; top:20px;">
+    <div style="position:sticky; top:20px;">
         <h2>Nuevo turno</h2>
 
         <form method="post" action="/agenda">
