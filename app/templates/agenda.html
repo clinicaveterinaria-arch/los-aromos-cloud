@@ -53,6 +53,31 @@ margin-bottom:6px;
                                     {% if a.notes %}
                                         <br><small>{{ a.notes }}</small>
                                     {% endif %}
+                                    {% if a.notes %}
+    <br><small>{{ a.notes }}</small>
+{% endif %}
+
+<br><br>
+
+<form method="post" action="/agenda/{{ a.id }}/status" style="display:inline;">
+    <input type="hidden" name="date" value="{{ selected_day }}">
+    <input type="hidden" name="status" value="Confirmado">
+    <button type="submit">✅ Confirmar</button>
+</form>
+
+<form method="post" action="/agenda/{{ a.id }}/status" style="display:inline;">
+    <input type="hidden" name="date" value="{{ selected_day }}">
+    <input type="hidden" name="status" value="Realizado">
+    <button type="submit">✔ Realizado</button>
+</form>
+
+<form method="post" action="/agenda/{{ a.id }}/status" style="display:inline;">
+    <input type="hidden" name="date" value="{{ selected_day }}">
+    <input type="hidden" name="status" value="Cancelado">
+    <button type="submit">❌ Cancelar</button>
+</form>
+
+</div>
                                 </div>
                             {% endif %}
                         {% endfor %}
