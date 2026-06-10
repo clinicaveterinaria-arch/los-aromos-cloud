@@ -290,17 +290,17 @@ events = (
 )
 today = datetime.now().date()
 
-    upcoming_events = (
-        db.query(ClinicalEvent)
-        .filter(
-            ClinicalEvent.patient_id == patient.id,
-            ClinicalEvent.reminder_date != None,
-            ClinicalEvent.reminder_date >= today
-        )
-        .order_by(ClinicalEvent.reminder_date.asc())
-        .limit(5)
-        .all()
+upcoming_events = (
+    db.query(ClinicalEvent)
+    .filter(
+        ClinicalEvent.patient_id == patient.id,
+        ClinicalEvent.reminder_date != None,
+        ClinicalEvent.reminder_date >= today
     )
+    .order_by(ClinicalEvent.reminder_date.asc())
+    .limit(5)
+    .all()
+)
     last_anesthesia = (
         db.query(ClinicalEvent)
         .filter(
