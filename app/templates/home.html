@@ -225,4 +225,34 @@
         <p>No hay recordatorios pendientes.</p>
     {% endfor %}
 </div>
+<div class="panel wide">
+    <h2>📅 Próximos turnos</h2>
+
+    {% for a in upcoming_appointments %}
+    <div class="timeline-item">
+
+        <span style="color:#6f42c1;font-weight:bold;">
+            {{ a.appointment_date.strftime('%d/%m/%Y') }}
+        </span>
+
+        {% if a.start_time %}
+            - {{ a.start_time }}
+        {% endif %}
+
+        <br>
+
+        <b>{{ a.service }}</b>
+
+        {% if a.patient %}
+            - {{ a.patient.name }}
+        {% elif a.owner %}
+            - {{ a.owner.name }}
+        {% endif %}
+
+    </div>
+
+    {% else %}
+        <p>No hay turnos próximos.</p>
+    {% endfor %}
+</div>
 {% endblock %}
