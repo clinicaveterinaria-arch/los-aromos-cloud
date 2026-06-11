@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h1>✏️ Editar propietario</h1>
+
+<div class="panel">
+
+<form method="post">
+
+<label><b>Nombre</b></label>
+<input name="name" value="{{ owner.name }}" required>
+
+<br><br>
+
+<label><b>Teléfono</b></label>
+<input name="phone" value="{{ owner.phone or '' }}">
+
+<br><br>
+
+<label><b>WhatsApp</b></label>
+<input name="whatsapp" value="{{ owner.whatsapp or '' }}">
+
+<br><br>
+
+<label><b>Email</b></label>
+<input name="email" value="{{ owner.email or '' }}">
+
+<br><br>
+
+<label><b>Dirección</b></label>
+<input name="address" value="{{ owner.address or '' }}">
+
+<br><br>
+
+<label><b>Notas</b></label>
+<textarea name="notes">{{ owner.notes or '' }}</textarea>
+
+<br><br>
+
+<button type="submit" class="btn">
+💾 Guardar cambios
+</button>
+
+<a href="/owners" class="btn">
+↩️ Cancelar
+</a>
+
+</form>
+
+</div>
+
+{% endblock %}
