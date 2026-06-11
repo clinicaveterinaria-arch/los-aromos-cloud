@@ -21,7 +21,10 @@
                 {% set slot = "%02d:%02d"|format(hour, minute) %}
 
                 <div style="display:grid; grid-template-columns:80px 1fr; border-bottom:1px solid #eee; min-height:60px;">
-                    <div style="font-weight:bold; padding:10px;">{{ slot }}</div>
+                    <div onclick="document.querySelector('[name=start_time]').value='{{ slot }}'; document.querySelector('[name=end_time]').value='{{ slot }}';"
+     style="font-weight:bold; padding:10px; cursor:pointer;">
+    {{ slot }}
+</div>
 
                     <div style="padding:8px;">
                         {% for a in appointments %}
