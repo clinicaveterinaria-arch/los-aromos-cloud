@@ -118,7 +118,7 @@
                                     </form>
                                     {% endif %}
                                     <br>
-
+{% if a.status|default('Pendiente') == 'Pendiente' or a.status|default('Pendiente') == 'Confirmado' %}
                                     <a href="/agenda/{{ a.id }}/edit"
                                        style="
                                           display:inline-block;
@@ -133,6 +133,7 @@
                                        ">
                                        ✏️ Editar
                                     </a>
+                                    {% endif %}
                                     {% set raw_phone = '' %}
 
 {% if a.contact_whatsapp %}
