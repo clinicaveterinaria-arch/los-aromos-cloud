@@ -34,7 +34,12 @@
 
         <label><b>Sexo</b></label>
         <input name="sex" value="{{ patient.sex or '' }}">
+        <br><br>
 
+       <label><b>Fecha de nacimiento</b></label>
+       <input type="date"
+       name="birth_date"
+       value="{{ patient.birth_date.strftime('%Y-%m-%d') if patient.birth_date else '' }}">   
         <br><br>
 
         <label><b>Peso</b></label>
