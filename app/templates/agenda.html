@@ -182,6 +182,7 @@
 {% else %}
     {% set msg = 'Hola. Te recordamos que tenés turno en Clínica Veterinaria Los Aromos el ' ~ a.appointment_date.strftime('%d/%m/%Y') ~ ' a las ' ~ a.start_time ~ ' hs para ' ~ patient_name ~ '. Servicio: ' ~ a.service ~ '.' %}
 {% endif %}
+{% if a.status|default('Pendiente') == 'Pendiente' or a.status|default('Pendiente') == 'Confirmado' %}                                    
 {% if raw_phone %}
     <br>
     <a href="https://wa.me/{{ wa_phone }}?text={{ msg|urlencode }}" target="_blank"
@@ -198,6 +199,7 @@
        ">
         📲 WhatsApp
     </a>
+{% endif %}
 {% endif %}
                                 </div>
                             {% endif %}
