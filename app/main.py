@@ -417,6 +417,8 @@ def agenda_update(
     patient_id: str = Form(''),
     notes: str = Form(''),
     reminder_24h: str = Form(''),
+    reminder_12h: str = Form(''),
+    contact_whatsapp: str = Form(''),
     db: Session = Depends(get_db),
     user: User = Depends(require_user)
 ):
@@ -435,6 +437,8 @@ def agenda_update(
     appointment.end_time = end_time
     appointment.owner_id = int(owner_id) if owner_id else None
     appointment.patient_id = int(patient_id) if patient_id else None
+    appointment.reminder_12h = True if reminder_12h else False
+    appointment.contact_whatsapp = contact_whatsapp
     appointment.notes = notes
     appointment.reminder_24h = True if reminder_24h else False
 
