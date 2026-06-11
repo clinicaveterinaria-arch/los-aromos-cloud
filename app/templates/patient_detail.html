@@ -18,21 +18,45 @@
         border-radius:12px;
         padding:16px;
      ">
-  <div><b>Propietario:</b> {{ patient.owner.name }}</div>
-  <div><b>Tel:</b> {{ patient.owner.phone }} {{ patient.owner.whatsapp }}</div>
-  <div>
-    <b>Especie:</b> {{ patient.species or '-' }}
-    |
-    <b>Raza:</b> {{ patient.breed or '-' }}
-    |
-    <b>Sexo:</b> {{ patient.sex or '-' }}
-    |
-    <b>Edad:</b>
-    {% if patient.birth_date %}
-        {{ ((today - patient.birth_date).days // 365) }} años
-    {% else %}
-        -
-    {% endif %}
+  <div class="panel patient-head"
+     style="
+     background:#dfe3e8;
+     border:1px solid #c5ccd3;
+     border-radius:12px;
+     padding:16px;
+     display:grid;
+     grid-template-columns:repeat(4,1fr);
+     gap:20px;
+     align-items:center;
+     ">
+
+    <div>
+        <b>Propietario:</b> {{ patient.owner.name }}
+    </div>
+
+    <div>
+        <b>Tel:</b> {{ patient.owner.phone }}
+        {% if patient.owner.whatsapp %}
+            | {{ patient.owner.whatsapp }}
+        {% endif %}
+    </div>
+
+    <div>
+        <b>Especie:</b> {{ patient.species or '-' }}<br>
+        <b>Raza:</b> {{ patient.breed or '-' }}
+    </div>
+
+    <div>
+        <b>Sexo:</b> {{ patient.sex or '-' }}<br>
+        <b>Edad:</b>
+        {% if patient.birth_date %}
+            {{ ((today - patient.birth_date).days // 365) }} años
+        {% else %}
+            -
+        {% endif %}
+    </div>
+
+</div>
 </div>
 </div>
   <div>
