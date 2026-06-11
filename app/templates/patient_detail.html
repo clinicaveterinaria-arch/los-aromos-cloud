@@ -11,7 +11,13 @@
 <a href="/patients/{{ patient.id }}/edit" class="btn">✏️ Editar paciente</a>
 
 
-<div class="panel patient-head">
+<div class="panel patient-head"
+     style="
+        background:#f3f4f6;
+        border:1px solid #e5e7eb;
+        border-radius:12px;
+        padding:16px;
+     ">
   <div><b>Propietario:</b> {{ patient.owner.name }}</div>
   <div><b>Tel:</b> {{ patient.owner.phone }} {{ patient.owner.whatsapp }}</div>
   <div><b>Especie:</b> {{ patient.species }} | <b>Raza:</b> {{ patient.breed }}</div>
