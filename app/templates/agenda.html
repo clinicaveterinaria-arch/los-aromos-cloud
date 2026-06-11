@@ -21,7 +21,7 @@
                 {% set slot = "%02d:%02d"|format(hour, minute) %}
 
                 <div style="display:grid; grid-template-columns:80px 1fr; border-bottom:1px solid #eee; min-height:60px;">
-                    <div onclick="document.querySelector('[name=start_time]').value='{{ slot }}'; document.querySelector('[name=end_time]').value='{{ slot }}';"
+                    <div onclick="document.querySelector('[name=start_time]').value='{{ slot }}'; document.querySelector('[name=end_time]').value='{{ '%02d:%02d'|format(hour + (1 if minute == 30 else 0), 0 if minute == 30 else 30) }}';"
      style="font-weight:bold; padding:10px; cursor:pointer;">
     {{ slot }}
 </div>
