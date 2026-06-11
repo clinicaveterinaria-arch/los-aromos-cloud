@@ -551,6 +551,7 @@ def patient_detail(request: Request, patient_id: int, db: Session = Depends(get_
         {
             'request': request,
             'patient': patient,
+            'today': today,
             'events': events,
             'event_types': EVENT_TYPES,
             'upcoming_events': upcoming_events,
