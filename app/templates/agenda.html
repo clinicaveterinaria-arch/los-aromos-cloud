@@ -80,11 +80,11 @@
     <span style="background:#dcfce7;color:#166534;padding:4px 8px;border-radius:6px;font-size:12px;font-weight:bold;">
         ✅ Confirmado
     </span>
-{% elif a.status == 'Realizado' %}
+{% elif a.status|default('Pendiente') == 'Realizado' %}
     <span style="background:#dbeafe;color:#1e40af;padding:4px 8px;border-radius:6px;font-size:12px;font-weight:bold;">
         ✔ Realizado
     </span>
-{% elif a.status == 'Cancelado' %}
+{% elif a.status|default('Pendiente') == 'Cancelado' %}
     <span style="background:#fee2e2;color:#991b1b;padding:4px 8px;border-radius:6px;font-size:12px;font-weight:bold;">
         ❌ Cancelado
     </span>
