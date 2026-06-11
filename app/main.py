@@ -579,6 +579,7 @@ def patient_edit_save(
     species: str = Form(''),
     breed: str = Form(''),
     sex: str = Form(''),
+    birth_date: str = Form(''),
     weight: str = Form(''),
     alerts: str = Form(''),
     notes: str = Form(''),
@@ -594,6 +595,7 @@ def patient_edit_save(
     patient.species = species
     patient.breed = breed
     patient.sex = sex
+    patient.birth_date = datetime.strptime(birth_date, '%Y-%m-%d').date() if birth_date.strip() else None
     patient.weight = float(weight.replace(',', '.')) if weight.strip() else None
     patient.alerts = alerts
     patient.notes = notes
