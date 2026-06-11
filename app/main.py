@@ -523,6 +523,47 @@ def patient_detail(request: Request, patient_id: int, db: Session = Depends(get_
             'anesthesia_history': anesthesia_history,
         }
     )
+@app.get('/patients/{patient_id}/edit', response_class=HTMLResponse)
+def patient_edit_form(request: Request, patient_id: int, db: Session = Depends(get_db), user: User = Depends(require_user)):
+    patient = db.get(Patient, patient_id)
+    if not patient:
+        raise HTTPException(status_code=404)
+    owners = db.query(Owner).order_by(Owner.name).limit(500).all()
+    return templates.TemplateResponse(
+        'patient_edit.html',
+        {'request': request, 'patient': patient, 'owners': owners}
+    )
+
+
+@app.post('/patients/{patient_id}/edit')
+def patient_edit_save(
+    patient_id: int,
+    name: str = Form(...),
+    owner_id: int = Form(...),
+    species: str = Form(''),
+    breed: str = Form(''),
+    sex: str = Form(''),
+    weight: str = Form(''),
+    alerts: str = Form(''),
+    notes: str = Form(''),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    patient = db.get(Patient, patient_id)
+    if not patient:
+        raise HTTPException(status_code=404)
+
+    patient.name = name
+    patient.owner_id = owner_id
+    patient.species = species
+    patient.breed = breed
+    patient.sex = sex
+    patient.weight = float(weight.replace(',', '.')) if weight.strip() else None
+    patient.alerts = alerts
+    patient.notes = notes
+
+    db.commit()
+    return RedirectResponse(f'/patients/{patient.id}', status_code=303)
 @app.get('/patients/{patient_id}/events/{event_id}', response_class=HTMLResponse)
 def event_detail(
     request: Request,
