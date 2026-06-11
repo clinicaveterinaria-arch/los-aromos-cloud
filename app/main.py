@@ -329,6 +329,8 @@ def agenda_create(
     patient_id: str = Form(''),
     notes: str = Form(''),
     reminder_24h: str = Form(''),
+    reminder_12h: str = Form(''),
+    contact_whatsapp: str = Form(''),
     db: Session = Depends(get_db),
     user: User = Depends(require_user)
 ):
@@ -346,6 +348,8 @@ def agenda_create(
         end_time=end_time,
         owner_id=owner_value,
         patient_id=patient_value,
+        reminder_12h=True if reminder_12h else False,
+        contact_whatsapp=contact_whatsapp,
         notes=notes,
         reminder_24h=True if reminder_24h else False,
         status='Pendiente'
