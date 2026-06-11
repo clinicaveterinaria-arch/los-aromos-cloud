@@ -10,7 +10,20 @@
         <button type="submit">Ver día</button>
     </form>
 </div>
+<div class="panel" style="margin-bottom:20px;">
+    <b>📊 Resumen del día</b><br><br>
 
+    {% set pendientes = appointments|selectattr('status', 'equalto', 'Pendiente')|list|length %}
+    {% set confirmados = appointments|selectattr('status', 'equalto', 'Confirmado')|list|length %}
+    {% set realizados = appointments|selectattr('status', 'equalto', 'Realizado')|list|length %}
+    {% set cancelados = appointments|selectattr('status', 'equalto', 'Cancelado')|list|length %}
+
+    ⏳ Pendientes: <b>{{ pendientes }}</b> &nbsp;&nbsp;
+    ✅ Confirmados: <b>{{ confirmados }}</b> &nbsp;&nbsp;
+    ✔ Realizados: <b>{{ realizados }}</b> &nbsp;&nbsp;
+    ❌ Cancelados: <b>{{ cancelados }}</b> &nbsp;&nbsp;
+    📅 Total: <b>{{ appointments|length }}</b>
+</div>
 <div class="panel" style="display:grid; grid-template-columns:minmax(0,1fr) 360px; gap:20px; align-items:start;">
 
     <div>
