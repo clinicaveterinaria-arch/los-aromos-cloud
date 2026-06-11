@@ -138,16 +138,28 @@
     {% set patient_name = a.patient.name if a.patient else (a.title if a.title else 'tu mascota') %}
 
     {% if a.reminder_12h or a.service == 'Cirugía' %}
-        {% set msg = 'Hola. Te recordamos que tenés un turno quirúrgico en Clínica Veterinaria Los Aromos el ' ~ a.appointment_date.strftime('%d/%m/%Y') ~ ' a las ' ~ a.start_time ~ ' hs para ' ~ patient_name ~ '. Recordá que debe concurrir con 12 hs de ayuno de sólidos y líquidos, salvo indicación médica diferente.' %}
-    {% else %}
-        {% set msg = 'Hola. Te recordamos que tenés turno en Clínica Veterinaria Los Aromos el ' ~ a.appointment_date.strftime('%d/%m/%Y') ~ ' a las ' ~ a.start_time ~ ' hs para ' ~ patient_name ~ '. Servicio: ' ~ a.service ~ '.' %}
-    {% endif %}
+    {% set msg = 'Hola. Te recordamos que tenés un turno quirúrgico en Clínica Veterinaria Los Aromos el ' ~ a.appointment_date.strftime('%d/%m/%Y') ~ ' a las ' ~ a.start_time ~ ' hs para ' ~ patient_name ~ '. Recordá que debe concurrir con 12 hs de ayuno de sólidos y líquidos, salvo indicación médica diferente.' %}
 
-    <a href="https://wa.me/{{ wa_phone }}?text={{ msg|urlencode }}"
-       target="_blank"
-       style="display:inline-block; margin-top:6px; padding:6px 12px; background:#25D366; border-radius:6px; text-decoration:none; color:white; font-size:13px; font-weight:bold;">
-       📲 WhatsApp
-    </a>
+{% elif a.service == 'Vacuna' %}
+    {% set msg = 'Hola. Te recordamos que ' ~ patient_name ~ ' tiene turno para vacunación en Clínica Veterinaria Los Aromos el ' ~ a.appointment_date.strftime('%d/%m/%Y') ~ ' a las ' ~ a.start_time ~ ' hs. Recordá traer su carnet sanitario si lo tenés.' %}
+
+{% elif a.service == 'Desparasitación' %}
+    {% set msg = 'Hola. Te recordamos que ' ~ patient_name ~ ' tiene turno para desparasitación en Clínica Veterinaria Los Aromos el ' ~ a.appointment_date.strftime('%d/%m/%Y') ~ ' a las ' ~ a.start_time ~ ' hs.' %}
+
+{% elif a.service == 'ECG' %}
+    {% set msg = 'Hola. Te recordamos que ' ~ patient_name ~ ' tiene turno para electrocardiograma en Clínica Veterinaria Los Aromos el ' ~ a.appointment_date.strftime('%d/%m/%Y') ~ ' a las ' ~ a.start_time ~ ' hs.' %}
+
+{% elif a.service == 'Ecografía' %}
+    {% set msg = 'Hola. Te recordamos que ' ~ patient_name ~ ' tiene turno para ecografía en Clínica Veterinaria Los Aromos el ' ~ a.appointment_date.strftime('%d/%m/%Y') ~ ' a las ' ~ a.start_time ~ ' hs.' %}
+
+{% elif a.service == 'Radiografía' %}
+    {% set msg = 'Hola. Te recordamos que ' ~ patient_name ~ ' tiene turno para radiografía en Clínica Veterinaria Los Aromos el ' ~ a.appointment_date.strftime('%d/%m/%Y') ~ ' a las ' ~ a.start_time ~ ' hs.' %}
+
+{% elif a.service == 'Control' %}
+    {% set msg = 'Hola. Te recordamos que ' ~ patient_name ~ ' tiene turno de control en Clínica Veterinaria Los Aromos el ' ~ a.appointment_date.strftime('%d/%m/%Y') ~ ' a las ' ~ a.start_time ~ ' hs.' %}
+
+{% else %}
+    {% set msg = 'Hola. Te recordamos que tenés turno en Clínica Veterinaria Los Aromos el ' ~ a.appointment_date.strftime('%d/%m/%Y') ~ ' a las ' ~ a.start_time ~ ' hs para ' ~ patient_name ~ '. Servicio: ' ~ a.service ~ '.' %}
 {% endif %}
                                 </div>
                             {% endif %}
