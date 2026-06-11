@@ -99,7 +99,8 @@ class Appointment(Base):
 
     status: Mapped[str] = mapped_column(String(40), default='Pendiente')
     reminder_24h: Mapped[bool] = mapped_column(Boolean, default=True)
-
+    reminder_12h: Mapped[bool] = mapped_column(Boolean, default=False)
+    contact_whatsapp: Mapped[str] = mapped_column(String(80), default='')
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     owner: Mapped[Optional['Owner']] = relationship()
     patient: Mapped[Optional['Patient']] = relationship()
