@@ -29,7 +29,18 @@
                     <div style="padding:8px;">
                         {% for a in appointments %}
                             {% if a.start_time == slot %}
-                                <div style="background:#fce7f3; border-left:5px solid #d85b9f; padding:8px; border-radius:8px; margin-bottom:6px;">
+                                {% if a.status|default('Pendiente') == 'Confirmado' %}
+<div style="background:#dbeafe; border-left:5px solid #2563eb; padding:8px; border-radius:8px; margin-bottom:6px;">
+
+{% elif a.status|default('Pendiente') == 'Realizado' %}
+<div style="background:#dcfce7; border-left:5px solid #16a34a; padding:8px; border-radius:8px; margin-bottom:6px;">
+
+{% elif a.status|default('Pendiente') == 'Cancelado' %}
+<div style="background:#f3f4f6; border-left:5px solid #6b7280; padding:8px; border-radius:8px; margin-bottom:6px;">
+
+{% else %}
+<div style="background:#fce7f3; border-left:5px solid #d85b9f; padding:8px; border-radius:8px; margin-bottom:6px;">
+{% endif %}
 
                                     <small><b>
                                         {% if a.status == 'Realizado' %}🟢 Realizado
