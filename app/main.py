@@ -18,6 +18,17 @@ supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 from .database import Base, engine, get_db
 from .models import User, Owner, Patient, ClinicalEvent, EventAttachment, Appointment
 Base.metadata.create_all(bind=engine)
+try:
+    with engine.begin() as conn:
+        conn.execute(text("ALTER TABLE appointments ADD COLUMN reminder_12h BOOLEAN DEFAULT FALSE"))
+except Exception:
+    pass
+
+try:
+    with engine.begin() as conn:
+        conn.execute(text("ALTER TABLE appointments ADD COLUMN contact_whatsapp VARCHAR(80) DEFAULT ''"))
+except Exception:
+    pass
 app = FastAPI(title='Los Aromos Cloud')
 app.add_middleware(SessionMiddleware, secret_key=os.getenv('SECRET_KEY', 'dev-secret-change-me'))
 app.mount('/static', StaticFiles(directory='app/static'), name='static')
