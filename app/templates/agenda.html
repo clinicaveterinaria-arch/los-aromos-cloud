@@ -128,12 +128,11 @@
 
 {% set phone = raw_phone|replace(' ', '')|replace('-', '')|replace('(', '')|replace(')', '')|replace('+', '') %}
 
-{% if phone %}
-    {% if phone.startswith('54') %}
-        {% set wa_phone = phone %}
-    {% else %}
-        {% set wa_phone = '54' ~ phone %}
-    {% endif %}
+{% if phone[:2] == '54' %}
+    {% set wa_phone = phone %}
+{% else %}
+    {% set wa_phone = '54' ~ phone %}
+{% endif %}
 
     {% set patient_name = a.patient.name if a.patient else (a.title if a.title else 'tu mascota') %}
 
