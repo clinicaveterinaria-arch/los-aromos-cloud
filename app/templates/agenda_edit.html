@@ -77,13 +77,26 @@
         <label><b>Nota / Precio</b></label>
         <textarea name="notes" rows="4" placeholder="Observaciones, presupuesto o precio estimado">{{ appointment.notes or '' }}</textarea>
 
-        <br><br>
+<br><br>
+
+<label><b>WhatsApp de contacto</b></label>
+<input name="contact_whatsapp" value="{{ appointment.contact_whatsapp or '' }}" placeholder="Ej: 3496652050">
+
+<br><br>
 
         <div style="background:#fff8fb; border-left:4px solid #d85b9f; border-radius:10px; padding:12px;">
             <label style="display:flex; align-items:center; gap:10px; cursor:pointer; margin:0;">
                 <input type="checkbox" name="reminder_24h" {% if appointment.reminder_24h %}checked{% endif %} style="margin:0; width:16px; height:16px;">
                 <span style="font-size:14px;">🔔 <b>Enviar recordatorio 24 hs antes</b></span>
             </label>
+            <br>
+
+<label style="display:flex; align-items:center; gap:10px; cursor:pointer; margin:0;">
+    <input type="checkbox" name="reminder_12h"
+           {% if appointment.reminder_12h %}checked{% endif %}
+           style="margin:0; width:16px; height:16px;">
+    <span style="font-size:14px;">🍽️ <b>Ayuno + recordatorio 12 hs</b></span>
+</label>
         </div>
 
         <br><br>
