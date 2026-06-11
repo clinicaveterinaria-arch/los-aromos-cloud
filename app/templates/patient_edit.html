@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h1>✏️ Editar paciente</h1>
+
+<div class="panel">
+    <form method="post" action="/patients/{{ patient.id }}/edit">
+
+        <label><b>Nombre</b></label>
+        <input name="name" value="{{ patient.name }}" required>
+
+        <br><br>
+
+        <label><b>Propietario</b></label>
+        <select name="owner_id" required>
+            {% for owner in owners %}
+                <option value="{{ owner.id }}" {% if patient.owner_id == owner.id %}selected{% endif %}>
+                    {{ owner.name }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <br><br>
+
+        <label><b>Especie</b></label>
+        <input name="species" value="{{ patient.species or '' }}">
+
+        <br><br>
+
+        <label><b>Raza</b></label>
+        <input name="breed" value="{{ patient.breed or '' }}">
+
+        <br><br>
+
+        <label><b>Sexo</b></label>
+        <input name="sex" value="{{ patient.sex or '' }}">
+
+        <br><br>
+
+        <label><b>Peso</b></label>
+        <input name="weight" value="{{ patient.weight or '' }}">
+
+        <br><br>
+
+        <label><b>Alertas</b></label>
+        <input name="alerts" value="{{ patient.alerts or '' }}">
+
+        <br><br>
+
+        <label><b>Notas</b></label>
+        <textarea name="notes">{{ patient.notes or '' }}</textarea>
+
+        <br><br>
+
+        <button type="submit">💾 Guardar cambios</button>
+        <a href="/patients/{{ patient.id }}" class="btn">Cancelar</a>
+
+    </form>
+</div>
+
+{% endblock %}
