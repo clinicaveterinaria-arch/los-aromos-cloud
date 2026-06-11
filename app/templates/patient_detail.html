@@ -8,6 +8,9 @@
 <a href="/patients/{{ patient.id }}/anesthesia" class="btn">
     🩺 Anestesia
 </a>
+<a href="/patients/{{ patient.id }}/edit" class="btn">✏️ Editar paciente</a>
+
+
 <div class="panel patient-head">
   <div><b>Propietario:</b> {{ patient.owner.name }}</div>
   <div><b>Tel:</b> {{ patient.owner.phone }} {{ patient.owner.whatsapp }}</div>
