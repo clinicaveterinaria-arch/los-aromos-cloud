@@ -76,7 +76,25 @@
                                     {% if a.notes and a.notes != a.title %}
                                         <br><small>{{ a.notes }}</small>
                                     {% endif %}
+                                    {% if a.status == 'Confirmado' %}
+    <span style="background:#dcfce7;color:#166534;padding:4px 8px;border-radius:6px;font-size:12px;font-weight:bold;">
+        ✅ Confirmado
+    </span>
+{% elif a.status == 'Realizado' %}
+    <span style="background:#dbeafe;color:#1e40af;padding:4px 8px;border-radius:6px;font-size:12px;font-weight:bold;">
+        ✔ Realizado
+    </span>
+{% elif a.status == 'Cancelado' %}
+    <span style="background:#fee2e2;color:#991b1b;padding:4px 8px;border-radius:6px;font-size:12px;font-weight:bold;">
+        ❌ Cancelado
+    </span>
+{% else %}
+    <span style="background:#fef3c7;color:#92400e;padding:4px 8px;border-radius:6px;font-size:12px;font-weight:bold;">
+        ⏳ Pendiente
+    </span>
+{% endif %}
 
+<br><br>
                                     <br><br>
 
                                     <form method="post" action="/agenda/{{ a.id }}/status" style="display:inline;">
