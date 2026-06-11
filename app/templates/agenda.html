@@ -112,6 +112,43 @@
                                        ">
                                        ✏️ Editar
                                     </a>
+                                    {% set raw_phone = '' %}
+
+{% if a.contact_whatsapp %}
+    {% set raw_phone = a.contact_whatsapp %}
+{% elif a.patient and a.patient.owner and a.patient.owner.whatsapp %}
+    {% set raw_phone = a.patient.owner.whatsapp %}
+{% elif a.patient and a.patient.owner and a.patient.owner.phone %}
+    {% set raw_phone = a.patient.owner.phone %}
+{% elif a.owner and a.owner.whatsapp %}
+    {% set raw_phone = a.owner.whatsapp %}
+{% elif a.owner and a.owner.phone %}
+    {% set raw_phone = a.owner.phone %}
+{% endif %}
+
+{% set phone = raw_phone|replace(' ', '')|replace('-', '')|replace('(', '')|replace(')', '')|replace('+', '') %}
+
+{% if phone %}
+    {% if phone.startswith('54') %}
+        {% set wa_phone = phone %}
+    {% else %}
+        {% set wa_phone = '54' ~ phone %}
+    {% endif %}
+
+    {% set patient_name = a.patient.name if a.patient else (a.title if a.title else 'tu mascota') %}
+
+    {% if a.reminder_12h or a.service == 'Cirugía' %}
+        {% set msg = 'Hola. Te recordamos que tenés un turno quirúrgico en Clínica Veterinaria Los Aromos el ' ~ a.appointment_date.strftime('%d/%m/%Y') ~ ' a las ' ~ a.start_time ~ ' hs para ' ~ patient_name ~ '. Recordá que debe concurrir con 12 hs de ayuno de sólidos y líquidos, salvo indicación médica diferente.' %}
+    {% else %}
+        {% set msg = 'Hola. Te recordamos que tenés turno en Clínica Veterinaria Los Aromos el ' ~ a.appointment_date.strftime('%d/%m/%Y') ~ ' a las ' ~ a.start_time ~ ' hs para ' ~ patient_name ~ '. Servicio: ' ~ a.service ~ '.' %}
+    {% endif %}
+
+    <a href="https://wa.me/{{ wa_phone }}?text={{ msg|urlencode }}"
+       target="_blank"
+       style="display:inline-block; margin-top:6px; padding:6px 12px; background:#25D366; border-radius:6px; text-decoration:none; color:white; font-size:13px; font-weight:bold;">
+       📲 WhatsApp
+    </a>
+{% endif %}
                                 </div>
                             {% endif %}
                         {% endfor %}
