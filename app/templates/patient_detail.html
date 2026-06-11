@@ -26,6 +26,14 @@
     <b>Raza:</b> {{ patient.breed or '-' }}
     |
     <b>Sexo:</b> {{ patient.sex or '-' }}
+    |
+    <b>Edad:</b>
+    {% if patient.birth_date %}
+        {{ ((today - patient.birth_date).days // 365) }} años
+    {% else %}
+        -
+    {% endif %}
+</div>
 </div>
   <div>
     <b>Peso actual:</b>
