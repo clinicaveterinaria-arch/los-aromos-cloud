@@ -268,7 +268,43 @@ def owner_create(name: str = Form(...), phone: str = Form(''), whatsapp: str = F
     owner = Owner(name=name, phone=phone, whatsapp=whatsapp, email=email, address=address, notes=notes)
     db.add(owner); db.commit()
     return RedirectResponse('/owners', status_code=303)
+@app.get('/owners/{owner_id}/edit', response_class=HTMLResponse)
+def owner_edit_form(request: Request, owner_id: int, db: Session = Depends(get_db), user: User = Depends(require_user)):
+    owner = db.get(Owner, owner_id)
+    if not owner:
+        raise HTTPException(status_code=404)
 
+    return templates.TemplateResponse(
+        'owner_edit.html',
+        {'request': request, 'owner': owner}
+    )
+
+
+@app.post('/owners/{owner_id}/edit')
+def owner_edit_save(
+    owner_id: int,
+    name: str = Form(...),
+    phone: str = Form(''),
+    whatsapp: str = Form(''),
+    email: str = Form(''),
+    address: str = Form(''),
+    notes: str = Form(''),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    owner = db.get(Owner, owner_id)
+    if not owner:
+        raise HTTPException(status_code=404)
+
+    owner.name = name
+    owner.phone = phone
+    owner.whatsapp = whatsapp
+    owner.email = email
+    owner.address = address
+    owner.notes = notes
+
+    db.commit()
+    return RedirectResponse('/owners', status_code=303)
 @app.get('/patients/new', response_class=HTMLResponse)
 def patient_new(request: Request, owner_id: Optional[int] = None, db: Session = Depends(get_db), user: User = Depends(require_user)):
     owners = db.query(Owner).order_by(Owner.name).limit(500).all()
