@@ -20,7 +20,13 @@
      ">
   <div><b>Propietario:</b> {{ patient.owner.name }}</div>
   <div><b>Tel:</b> {{ patient.owner.phone }} {{ patient.owner.whatsapp }}</div>
-  <div><b>Especie:</b> {{ patient.species }} | <b>Raza:</b> {{ patient.breed }}</div>
+  <div>
+    <b>Especie:</b> {{ patient.species or '-' }}
+    |
+    <b>Raza:</b> {{ patient.breed or '-' }}
+    |
+    <b>Sexo:</b> {{ patient.sex or '-' }}
+</div>
   <div>
     <b>Peso actual:</b>
 
