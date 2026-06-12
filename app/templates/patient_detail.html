@@ -265,7 +265,17 @@
         {% if e.reminder_date %}
             ({{ e.reminder_date.strftime('%d/%m/%Y') }})
         {% endif %}
+{% if patient.owner and patient.owner.whatsapp %}
+<br>
 
+<a
+    class="btn"
+    target="_blank"
+    href="https://wa.me/54{{ patient.owner.whatsapp|replace(' ','') }}?text=Hola.%20Les%20recordamos%20que%20{{ patient.name }}%20tiene%20programado:%20{{ e.title or e.event_type }}%20el%20día%20{{ e.reminder_date.strftime('%d/%m/%Y') if e.reminder_date else '' }}."
+>
+📲 WhatsApp
+</a>
+{% endif %}
     </a>
 
     <div style="margin-top:6px;">
