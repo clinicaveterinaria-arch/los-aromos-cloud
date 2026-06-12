@@ -66,7 +66,11 @@
   {% if e.title %}
   <p style="margin:4px 0;"><b>Título:</b> {{ e.title }}</p>
   {% endif %}
-
+  {% if e.description %}
+<p style="margin:4px 0;color:#374151;background:#fff;padding:8px;border-radius:8px;">
+    <b>📝 Nota:</b> {{ e.description }}
+</p>
+  {% endif %}
   {% if e.description %}
   <p style="margin:4px 0;"><b>Descripción:</b> {{ e.description }}</p>
   {% endif %}
