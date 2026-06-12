@@ -148,7 +148,7 @@
         <div style="background:#f7f7f7; padding:10px; border-radius:8px;">
             <b>💉 Última vacuna</b><br>
             {% if ns.vacuna %}
-                {{ ns.vacuna.vaccine_name or ns.vacuna.title or ns.vacuna.event_type }}<br>
+                <b>{{ ns.vacuna.vaccine_name or ns.vacuna.title or ns.vacuna.event_type }}</b><br>
                 <small>{{ ns.vacuna.event_date.strftime('%d/%m/%Y') }}</small>
             {% else %}
                 <span style="color:#888;">Sin vacuna registrada</span>
@@ -158,8 +158,8 @@
         <div style="background:#f7f7f7; padding:10px; border-radius:8px;">
             <b>🪱 Última desparasitación</b><br>
             {% if ns.desparasitacion %}
-                {{ ns.desparasitacion.dewormer_product or ns.desparasitacion.title or ns.desparasitacion.event_type }}<br>
-                <small>{{ ns.desparasitacion.event_date.strftime('%d/%m/%Y') }}</small>
+                <b>{{ ns.desparasitacion.dewormer_product or ns.desparasitacion.title or ns.desparasitacion.event_type }}</b><br>
+<small>{{ ns.desparasitacion.event_date.strftime('%d/%m/%Y') }}</small>
             {% else %}
                 <span style="color:#888;">Sin desparasitación registrada</span>
             {% endif %}
