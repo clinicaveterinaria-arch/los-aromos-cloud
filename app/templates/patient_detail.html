@@ -207,7 +207,43 @@
 </div>
 </div>    
 
+<div class="panel">
+    <h3>💉 Historial de vacunación</h3>
 
+    {% for e in events %}
+        {% if e.vaccine_name %}
+            <div style="border-bottom:1px solid #eee; padding:6px 0;">
+                <b>{{ e.vaccine_name }}</b>
+                <span style="float:right;">
+                    {{ e.event_date.strftime('%d/%m/%Y') }}
+                </span>
+            </div>
+        {% endif %}
+    {% endfor %}
+
+    {% if not ns.vacuna %}
+        <span style="color:#888;">Sin vacunas registradas</span>
+    {% endif %}
+</div>
+
+<div class="panel">
+    <h3>🪱 Historial de desparasitación</h3>
+
+    {% for e in events %}
+        {% if e.dewormer_product %}
+            <div style="border-bottom:1px solid #eee; padding:6px 0;">
+                <b>{{ e.dewormer_product }}</b>
+                <span style="float:right;">
+                    {{ e.event_date.strftime('%d/%m/%Y') }}
+                </span>
+            </div>
+        {% endif %}
+    {% endfor %}
+
+    {% if not ns.desparasitacion %}
+        <span style="color:#888;">Sin desparasitaciones registradas</span>
+    {% endif %}
+</div>
 
 {% if upcoming_events %}
 <div class="panel">
