@@ -194,7 +194,27 @@
 </div>
 {% endif %}
     <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:10px;">
+{% if upcoming_events or (ns.vacuna and ns.vacuna.next_vaccine_date) or (ns.desparasitacion and ns.desparasitacion.next_deworming_date) %}
+<div style="background:#fff7ed; border:2px solid #fdba74; border-radius:12px; padding:14px; margin-bottom:14px;">
+    <h3>📌 Próximos eventos importantes</h3>
 
+    {% if ns.vacuna and ns.vacuna.next_vaccine_date %}
+        <p><b>💉 Próxima vacuna:</b> {{ ns.vacuna.vaccine_expiration or '-' }}<br>
+        📅 {{ ns.vacuna.next_vaccine_date }}</p>
+    {% endif %}
+
+    {% if ns.desparasitacion and ns.desparasitacion.next_deworming_date %}
+        <p><b>🪱 Próxima desparasitación:</b> {{ ns.desparasitacion.dewormer_dose or '-' }}<br>
+        📅 {{ ns.desparasitacion.next_deworming_date }}</p>
+    {% endif %}
+
+    {% for e in upcoming_events[:5] %}
+        <p><b>{{ e.event_type }}</b>{% if e.title %} - {{ e.title }}{% endif %}<br>
+        📅 {{ e.reminder_date.strftime('%d/%m/%Y') }}
+        {% if e.description %}<br>📝 {{ e.description }}{% endif %}</p>
+    {% endfor %}
+</div>
+{% endif %}
         <div style="background:#f7f7f7; padding:10px; border-radius:8px;">
             <b>💉 Última vacuna</b><br>
             {% if ns.vacuna %}
