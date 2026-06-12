@@ -349,7 +349,20 @@
 
 <div class="vaccine-box" style="grid-column:1 / -1;">
     <h4>💉 Datos de vacunación</h4>
-<input name="vaccine_name" placeholder="Vacuna aplicada">
+<input name="vaccine_name" list="vaccines_list" placeholder="Vacuna aplicada">
+
+<datalist id="vaccines_list">
+    <option value="Triple Felina">
+    <option value="Antirrábica">
+    <option value="Leucemia Felina">
+
+    <option value="Puppy DP">
+    <option value="DHPPI">
+    <option value="Séxtuple">
+    <option value="Antirrábica">
+    <option value="Traqueobronquitis">
+    <option value="Leptospirosis">
+</datalist>
 <input name="vaccine_lot" placeholder="Lote">
 
 <input name="vaccine_expiration"
@@ -370,7 +383,25 @@
 <div style="grid-column:1 / -1; padding:12px; background:#f7f7f7; border-radius:10px;">
     <h4>🪱 Desparasitación</h4>
 
-    <input name="dewormer_product" placeholder="Producto / marca comercial">
+    <input name="dewormer_product" list="dewormers_list" placeholder="Producto / marca comercial">
+
+<datalist id="dewormers_list">
+    <option value="Total Full CG">
+    <option value="Total Full suspensión">
+    <option value="Aprax suspensión">
+    <option value="Levamisol">
+    <option value="Trivermex suspensión">
+    <option value="Meltra Spot On">
+    <option value="Fewline Full Spot">
+    <option value="Feline Endo Spot">
+    <option value="Total Full LC">
+    <option value="Aprax">
+    <option value="Endofour">
+    <option value="Trivermex">
+    <option value="Meltra Gold">
+    <option value="Apto">
+    <option value="Moxidex Plus">
+</datalist>
     <input name="dewormer_drug" placeholder="Principio activo">
     <input name="dewormer_dose" placeholder="Dosis administrada">
     <input type="date" name="next_deworming_date">
