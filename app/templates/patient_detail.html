@@ -57,69 +57,9 @@
     </div>
 
 </div>
-{% if upcoming_events %}
-<div class="panel"
-     style="background:#fff7ed;
-            border:2px solid #fdba74;
-            margin-bottom:16px;">
 
-    <h3>📌 Próximos eventos importantes</h3>
-{% if ns.vacuna and ns.vacuna.next_vaccine_date %}
-<div style="border-bottom:1px solid #fed7aa; padding:8px 0;">
-    <b>💉 Próxima vacuna</b>
 
-    {% if ns.vacuna.vaccine_expiration %}
-        - {{ ns.vacuna.vaccine_expiration }}
-    {% endif %}
 
-    <br>
-    📅 {{ ns.vacuna.next_vaccine_date }}
-</div>
-{% endif %}
-
-{% if ns.desparasitacion and ns.desparasitacion.next_deworming_date %}
-<div style="border-bottom:1px solid #fed7aa; padding:8px 0;">
-    <b>🪱 Próxima desparasitación</b>
-
-    {% if ns.desparasitacion.dewormer_dose %}
-        - {{ ns.desparasitacion.dewormer_dose }}
-    {% endif %}
-
-    <br>
-    📅 {{ ns.desparasitacion.next_deworming_date }}
-</div>
-{% endif %}
-    {% for e in upcoming_events[:5] %}
-    <div style="border-bottom:1px solid #fed7aa; padding:8px 0;">
-
-        <b>{{ e.event_type }}</b>
-
-        {% if e.title %}
-            - {{ e.title }}
-        {% endif %}
-
-        <br>
-        📅 {{ e.reminder_date.strftime('%d/%m/%Y') }}
-
-        {% if e.description %}
-            <br>
-            📝 {{ e.description }}
-        {% endif %}
-
-        <br><br>
-
-        <a class="btn"
-           href="/patients/{{ patient.id }}/events/{{ e.id }}">
-           👁 Ver evento
-        </a>
-
-    </div>
-    {% endfor %}
-
-</div>
-{% endif %}
-</div>
-</div>
   <div>
     <b>Peso actual:</b>
 
@@ -203,7 +143,56 @@
             {% set ns.lab = e %}
         {% endif %}
     {% endfor %}
+{% if upcoming_events or (ns.vacuna and ns.vacuna.next_vaccine_date) or (ns.desparasitacion and ns.desparasitacion.next_deworming_date) %}
+<div class="panel"
+     style="background:#fff7ed;
+            border:2px solid #fdba74;
+            margin-bottom:16px;">
 
+    <h3>📌 Próximos eventos importantes</h3>
+
+    {% if ns.vacuna and ns.vacuna.next_vaccine_date %}
+    <div style="border-bottom:1px solid #fed7aa; padding:8px 0;">
+        <b>💉 Próxima vacuna</b>
+        {% if ns.vacuna.vaccine_expiration %}
+            - {{ ns.vacuna.vaccine_expiration }}
+        {% endif %}
+        <br>
+        📅 {{ ns.vacuna.next_vaccine_date }}
+    </div>
+    {% endif %}
+
+    {% if ns.desparasitacion and ns.desparasitacion.next_deworming_date %}
+    <div style="border-bottom:1px solid #fed7aa; padding:8px 0;">
+        <b>🪱 Próxima desparasitación</b>
+        {% if ns.desparasitacion.dewormer_dose %}
+            - {{ ns.desparasitacion.dewormer_dose }}
+        {% endif %}
+        <br>
+        📅 {{ ns.desparasitacion.next_deworming_date }}
+    </div>
+    {% endif %}
+
+    {% for e in upcoming_events[:5] %}
+    <div style="border-bottom:1px solid #fed7aa; padding:8px 0;">
+        <b>{{ e.event_type }}</b>
+        {% if e.title %}
+            - {{ e.title }}
+        {% endif %}
+        <br>
+        📅 {{ e.reminder_date.strftime('%d/%m/%Y') }}
+        {% if e.description %}
+            <br>📝 {{ e.description }}
+        {% endif %}
+        <br><br>
+        <a class="btn" href="/patients/{{ patient.id }}/events/{{ e.id }}">
+            👁 Ver evento
+        </a>
+    </div>
+    {% endfor %}
+
+</div>
+{% endif %}
     <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:10px;">
 
         <div style="background:#f7f7f7; padding:10px; border-radius:8px;">
