@@ -383,7 +383,16 @@
 
         <label><b>Fecha próxima visita</b></label>
         <input type="date" name="reminder_date" required>
+<div style="margin-top:8px;">
+    <b>Programar rápido:</b><br><br>
 
+    <button type="button" onclick="setReminderDays(3)">+3 días</button>
+    <button type="button" onclick="setReminderDays(7)">+7 días</button>
+    <button type="button" onclick="setReminderDays(10)">+10 días</button>
+    <button type="button" onclick="setReminderDays(15)">+15 días</button>
+    <button type="button" onclick="setReminderDays(21)">+21 días</button>
+    <button type="button" onclick="setReminderDays(30)">+30 días</button>
+</div>
         <br><br>
 
         <label><b>Nota</b></label>
@@ -646,5 +655,18 @@ function setNextVaccineMonths(months) {
     input.value = date.toISOString().split('T')[0];
 }
 </script>
+<script>
+function setReminderDays(days) {
+    const campo = document.querySelector('input[name="reminder_date"]');
 
+    let fecha = new Date();
+    fecha.setDate(fecha.getDate() + days);
+
+    const yyyy = fecha.getFullYear();
+    const mm = String(fecha.getMonth() + 1).padStart(2, '0');
+    const dd = String(fecha.getDate()).padStart(2, '0');
+
+    campo.value = `${yyyy}-${mm}-${dd}`;
+}
+</script>
 {% endblock %}
