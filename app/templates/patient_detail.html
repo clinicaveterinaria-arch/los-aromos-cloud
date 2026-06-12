@@ -57,7 +57,7 @@
     </div>
 
 </div>
-{% if upcoming_events %}
+{% if upcoming_events or (ns.vacuna and ns.vacuna.next_vaccine_date) or (ns.desparasitacion and ns.desparasitacion.next_deworming_date) %}
 <div class="panel"
      style="background:#fff7ed;
             border:2px solid #fdba74;
