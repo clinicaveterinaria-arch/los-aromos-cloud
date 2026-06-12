@@ -57,26 +57,40 @@
     </div>
 
 </div>
-{% if next_visit %}
+{% if upcoming_events %}
 <div class="panel"
      style="background:#fff7ed;
             border:2px solid #fdba74;
             margin-bottom:16px;">
 
-    <h3>📌 Próxima visita</h3>
+    <h3>📌 Próximos eventos importantes</h3>
 
-    <p><b>{{ next_visit.title or next_visit.event_type }}</b></p>
+    {% for e in upcoming_events[:5] %}
+    <div style="border-bottom:1px solid #fed7aa; padding:8px 0;">
 
-    <p>📅 {{ next_visit.reminder_date.strftime('%d/%m/%Y') }}</p>
+        <b>{{ e.event_type }}</b>
 
-    {% if next_visit.description %}
-    <p>📝 {{ next_visit.description }}</p>
-    {% endif %}
+        {% if e.title %}
+            - {{ e.title }}
+        {% endif %}
 
-    <a class="btn"
-       href="/patients/{{ patient.id }}/events/{{ next_visit.id }}">
-       👁 Ver evento
-    </a>
+        <br>
+        📅 {{ e.reminder_date.strftime('%d/%m/%Y') }}
+
+        {% if e.description %}
+            <br>
+            📝 {{ e.description }}
+        {% endif %}
+
+        <br><br>
+
+        <a class="btn"
+           href="/patients/{{ patient.id }}/events/{{ e.id }}">
+           👁 Ver evento
+        </a>
+
+    </div>
+    {% endfor %}
 
 </div>
 {% endif %}
