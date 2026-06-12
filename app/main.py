@@ -496,7 +496,21 @@ def search(
         like = f'%{q}%'
         results = db.query(Patient).join(Owner).filter(or_(Patient.name.ilike(like), Owner.name.ilike(like), Owner.phone.ilike(like), Owner.whatsapp.ilike(like))).order_by(Patient.name).limit(100).all()
     return templates.TemplateResponse('search.html', {'request': request, 'q': q, 'results': results})
+@app.post('/patients/{patient_id}/weight')
+def patient_update_weight(
+    patient_id: int,
+    weight: str = Form(''),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    patient = db.get(Patient, patient_id)
+    if not patient:
+        raise HTTPException(status_code=404)
 
+    patient.weight = float(weight.replace(',', '.')) if weight.strip() else None
+    db.commit()
+
+    return RedirectResponse(f'/patients/{patient.id}', status_code=303)
 @app.get('/patients/{patient_id}', response_class=HTMLResponse)
 def patient_detail(request: Request, patient_id: int, db: Session = Depends(get_db), user: User = Depends(require_user)):
     patient = db.get(Patient, patient_id)
