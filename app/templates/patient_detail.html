@@ -346,6 +346,38 @@
 
 
 <div class="panel">
+<div class="panel" style="background:#fff7ed; border:1px solid #fed7aa;">
+    <h3>📌 Próxima visita / Recordatorio</h3>
+
+    <form method="post" action="/patients/{{ patient.id }}/events">
+
+        <input type="hidden" name="event_type" value="Recordatorio">
+
+        <label><b>Motivo</b></label>
+        <select name="title">
+            <option>Control</option>
+            <option>Extracción de puntos</option>
+            <option>Curación</option>
+            <option>Laboratorio</option>
+            <option>Revisión postquirúrgica</option>
+            <option>Otro</option>
+        </select>
+
+        <br><br>
+
+        <label><b>Fecha próxima visita</b></label>
+        <input type="date" name="reminder_date" required>
+
+        <br><br>
+
+        <label><b>Nota</b></label>
+        <textarea name="description" placeholder="Ej: debe sacarse sangre para laboratorio"></textarea>
+
+        <br><br>
+
+        <button type="submit">💾 Guardar próxima visita</button>
+    </form>
+</div>    
   <h2>Nuevo evento clínico</h2>
 
   <form method="post"
