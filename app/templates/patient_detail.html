@@ -476,6 +476,28 @@
     <textarea name="physical_exam" placeholder="Examen físico"></textarea>
     <textarea name="diagnosis" placeholder="Diagnóstico / conclusión"></textarea>
     <textarea name="treatment" placeholder="Tratamiento / indicaciones"></textarea>
+    <div id="ecg-box" style="display:none; margin-top:15px; padding:12px; background:#fff0f5; border-radius:10px;">
+    <h4>❤️ Datos ECG</h4>
+
+    <input name="ecg_hr" placeholder="FC">
+    <input name="ecg_rhythm" placeholder="Ritmo">
+
+    <input name="ecg_p" placeholder="Onda P">
+    <input name="ecg_pr" placeholder="Intervalo PR">
+
+    <input name="ecg_qrs" placeholder="QRS">
+    <input name="ecg_st" placeholder="Segmento ST">
+
+    <input name="ecg_t" placeholder="Onda T">
+    <input name="ecg_qt" placeholder="Intervalo QT">
+
+    <input name="ecg_axis" placeholder="Eje eléctrico">
+
+    <textarea
+        name="ecg_interpretation"
+        placeholder="Interpretación electrocardiográfica">
+    </textarea>
+</div>
 </div>
 
 <div style="grid-column:1 / -1; padding:12px; background:#f7f7f7; border-radius:10px;">
@@ -560,6 +582,30 @@
         <button type="button" onclick="setNextDewormingMonths(3)">+3 meses</button>
         <button type="button" onclick="setNextDewormingMonths(6)">+6 meses</button>
     </div>
+<div id="ecg-box" style="display:none; grid-column:1 / -1; padding:12px; background:#fff0f5; border-radius:10px;">
+
+    <h4>❤️ ECG</h4>
+
+    <input name="ecg_hr" placeholder="FC">
+    <input name="ecg_rhythm" placeholder="Ritmo">
+
+    <input name="ecg_p" placeholder="Onda P">
+    <input name="ecg_pr" placeholder="Intervalo PR">
+
+    <input name="ecg_qrs" placeholder="QRS">
+    <input name="ecg_st" placeholder="Segmento ST">
+
+    <input name="ecg_t" placeholder="Onda T">
+    <input name="ecg_qt" placeholder="Intervalo QT">
+
+    <input name="ecg_axis" placeholder="Eje eléctrico">
+
+    <textarea
+        name="ecg_interpretation"
+        placeholder="Interpretación electrocardiográfica">
+    </textarea>
+
+</div>
 </div>
 
     <div style="margin-top:10px; grid-column:1 / -1; padding:12px; background:#f7f7f7; border-radius:10px;">
@@ -727,5 +773,40 @@ function setReminderDays(days) {
 
     campo.value = `${yyyy}-${mm}-${dd}`;
 }
+function setReminderDays(days) {
+
+    const campo = document.querySelector('input[name="reminder_date"]');
+
+    let fecha = new Date();
+    fecha.setDate(fecha.getDate() + days);
+
+    const yyyy = fecha.getFullYear();
+    const mm = String(fecha.getMonth() + 1).padStart(2, '0');
+    const dd = String(fecha.getDate()).padStart(2, '0');
+
+    campo.value = `${yyyy}-${mm}-${dd}`;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+
+    const selector = document.getElementById('event_type');
+    const ecgBox = document.getElementById('ecg-box');
+
+    function actualizarCampos() {
+        if (selector.value === 'ECG') {
+            ecgBox.style.display = 'block';
+        } else {
+            ecgBox.style.display = 'none';
+        }
+    }
+
+    selector.addEventListener('change', actualizarCampos);
+    actualizarCampos();
+
+});
+
+</script>
+
+{% endblock %}
 </script>
 {% endblock %}
