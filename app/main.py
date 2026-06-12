@@ -956,6 +956,33 @@ def event_whatsapp(
     url = f"https://wa.me/{number}?text={urllib.parse.quote(message)}"
 
     return RedirectResponse(url, status_code=303)
+@app.get('/patients/{patient_id}/history', response_class=HTMLResponse)
+def patient_history(
+    request: Request,
+    patient_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    patient = db.get(Patient, patient_id)
+
+    if not patient:
+        raise HTTPException(status_code=404)
+
+    events = (
+        db.query(ClinicalEvent)
+        .filter(ClinicalEvent.patient_id == patient.id)
+        .order_by(ClinicalEvent.event_date.desc())
+        .all()
+    )
+
+    return templates.TemplateResponse(
+        'patient_history.html',
+        {
+            'request': request,
+            'patient': patient,
+            'events': events
+        }
+    )
 @app.get('/patients/{patient_id}/print', response_class=HTMLResponse)
 def patient_print(
     request: Request,
