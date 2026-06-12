@@ -265,6 +265,12 @@
         {% if e.reminder_date %}
             ({{ e.reminder_date.strftime('%d/%m/%Y') }})
         {% endif %}
+        {% if e.description %}
+<br>
+<small style="color:#555;">
+📝 {{ e.description }}
+</small>
+{% endif %}
 {% if patient.owner and patient.owner.whatsapp %}
 <br>
 
