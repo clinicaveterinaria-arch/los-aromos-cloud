@@ -976,13 +976,14 @@ def patient_history(
     )
 
     return templates.TemplateResponse(
-        'patient_history.html',
-        {
-            'request': request,
-            'patient': patient,
-            'events': events
-        }
-    )
+    'patient_history.html',
+    {
+        'request': request,
+        'patient': patient,
+        'events': events,
+        'timedelta': timedelta
+    }
+)
 @app.get('/patients/{patient_id}/print', response_class=HTMLResponse)
 def patient_print(
     request: Request,
