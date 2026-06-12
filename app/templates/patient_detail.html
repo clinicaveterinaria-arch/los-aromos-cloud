@@ -57,6 +57,29 @@
     </div>
 
 </div>
+{% if next_visit %}
+<div class="panel"
+     style="background:#fff7ed;
+            border:2px solid #fdba74;
+            margin-bottom:16px;">
+
+    <h3>📌 Próxima visita</h3>
+
+    <p><b>{{ next_visit.title or next_visit.event_type }}</b></p>
+
+    <p>📅 {{ next_visit.reminder_date.strftime('%d/%m/%Y') }}</p>
+
+    {% if next_visit.description %}
+    <p>📝 {{ next_visit.description }}</p>
+    {% endif %}
+
+    <a class="btn"
+       href="/patients/{{ patient.id }}/events/{{ next_visit.id }}">
+       👁 Ver evento
+    </a>
+
+</div>
+{% endif %}
 </div>
 </div>
   <div>
