@@ -64,7 +64,31 @@
             margin-bottom:16px;">
 
     <h3>📌 Próximos eventos importantes</h3>
+{% if ns.vacuna and ns.vacuna.next_vaccine_date %}
+<div style="border-bottom:1px solid #fed7aa; padding:8px 0;">
+    <b>💉 Próxima vacuna</b>
 
+    {% if ns.vacuna.vaccine_expiration %}
+        - {{ ns.vacuna.vaccine_expiration }}
+    {% endif %}
+
+    <br>
+    📅 {{ ns.vacuna.next_vaccine_date }}
+</div>
+{% endif %}
+
+{% if ns.desparasitacion and ns.desparasitacion.next_deworming_date %}
+<div style="border-bottom:1px solid #fed7aa; padding:8px 0;">
+    <b>🪱 Próxima desparasitación</b>
+
+    {% if ns.desparasitacion.dewormer_dose %}
+        - {{ ns.desparasitacion.dewormer_dose }}
+    {% endif %}
+
+    <br>
+    📅 {{ ns.desparasitacion.next_deworming_date }}
+</div>
+{% endif %}
     {% for e in upcoming_events[:5] %}
     <div style="border-bottom:1px solid #fed7aa; padding:8px 0;">
 
