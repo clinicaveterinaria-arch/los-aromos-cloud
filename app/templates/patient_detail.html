@@ -561,7 +561,16 @@
         <span>{{ (e.event_date - timedelta(hours=3)).strftime('%d/%m/%Y %H:%M') }}</span>
         — <a href="/patients/{{ patient.id }}/events/{{ e.id }}">{{ e.title }}</a>
     </summary>
+<form method="post"
+      action="/patients/{{ patient.id }}/events/{{ e.id }}/delete"
+      style="display:inline;"
+      onsubmit="return confirm('¿Eliminar este evento de la historia clínica? Esta acción no se puede deshacer.');">
 
+    <button type="submit"
+            style="background:#fee2e2;color:#991b1b;border:none;border-radius:6px;padding:4px 8px;margin:6px 0;cursor:pointer;">
+        🗑 Eliminar
+    </button>
+</form>
     <div class="timeline-detail">
         {% if e.vaccine_name or e.vaccine_lot or e.vaccine_expiration or e.next_vaccine_date %}
             {% if e.vaccine_name %}<p><b>Vacuna aplicada:</b> {{ e.vaccine_name }}</p>{% endif %}
