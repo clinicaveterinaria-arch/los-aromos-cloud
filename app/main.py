@@ -559,7 +559,7 @@ def patient_detail(request: Request, patient_id: int, db: Session = Depends(get_
         .order_by(ClinicalEvent.event_date.desc())
         .all()
     )
-
+    next_visit = upcoming_events[0] if upcoming_events else None
     return templates.TemplateResponse(
         'patient_detail.html',
         {
@@ -572,6 +572,7 @@ def patient_detail(request: Request, patient_id: int, db: Session = Depends(get_
             'timedelta': timedelta,
             'last_anesthesia': last_anesthesia,
             'anesthesia_history': anesthesia_history,
+            'next_visit': next_visit,
         }
     )
 @app.get('/patients/{patient_id}/edit', response_class=HTMLResponse)
