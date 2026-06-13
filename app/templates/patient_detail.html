@@ -773,19 +773,7 @@ function setReminderDays(days) {
 
     campo.value = `${yyyy}-${mm}-${dd}`;
 }
-function setReminderDays(days) {
 
-    const campo = document.querySelector('input[name="reminder_date"]');
-
-    let fecha = new Date();
-    fecha.setDate(fecha.getDate() + days);
-
-    const yyyy = fecha.getFullYear();
-    const mm = String(fecha.getMonth() + 1).padStart(2, '0');
-    const dd = String(fecha.getDate()).padStart(2, '0');
-
-    campo.value = `${yyyy}-${mm}-${dd}`;
-}
 
 document.addEventListener('DOMContentLoaded', function() {
 
