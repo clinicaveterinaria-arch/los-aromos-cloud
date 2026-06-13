@@ -65,7 +65,57 @@
             <td>{{ event.ecg_axis }}°</td>
         </tr>
     </table>
+<hr>
 
+<h4>📊 Tabla comparativa ECG</h4>
+
+<table style="width:auto; border-collapse:collapse; margin-top:8px;">
+    <tr>
+        <th style="border:1px solid #ccc; padding:6px;">Parámetro</th>
+        <th style="border:1px solid #ccc; padding:6px;">Valor</th>
+        <th style="border:1px solid #ccc; padding:6px;">Valor normal</th>
+    </tr>
+    <tr>
+        <td style="border:1px solid #ccc; padding:6px;"><strong>FC</strong></td>
+        <td style="border:1px solid #ccc; padding:6px;">{{ event.ecg_hr }} lpm</td>
+        <td style="border:1px solid #ccc; padding:6px;">60–160 lpm</td>
+    </tr>
+    <tr>
+        <td style="border:1px solid #ccc; padding:6px;"><strong>Onda P</strong></td>
+        <td style="border:1px solid #ccc; padding:6px;">{{ event.ecg_p }}</td>
+        <td style="border:1px solid #ccc; padding:6px;">&lt; 0.04 seg / &lt; 0.4 mV</td>
+    </tr>
+    <tr>
+        <td style="border:1px solid #ccc; padding:6px;"><strong>Intervalo PR</strong></td>
+        <td style="border:1px solid #ccc; padding:6px;">{{ event.ecg_pr }}</td>
+        <td style="border:1px solid #ccc; padding:6px;">0.06–0.13 seg</td>
+    </tr>
+    <tr>
+        <td style="border:1px solid #ccc; padding:6px;"><strong>QRS</strong></td>
+        <td style="border:1px solid #ccc; padding:6px;">{{ event.ecg_qrs }}</td>
+        <td style="border:1px solid #ccc; padding:6px;">&lt; 0.06 seg / hasta 3.0 mV</td>
+    </tr>
+    <tr>
+        <td style="border:1px solid #ccc; padding:6px;"><strong>Segmento ST</strong></td>
+        <td style="border:1px solid #ccc; padding:6px;">{{ event.ecg_st }}</td>
+        <td style="border:1px solid #ccc; padding:6px;">Isoeléctrico o mínima variación</td>
+    </tr>
+    <tr>
+        <td style="border:1px solid #ccc; padding:6px;"><strong>Onda T</strong></td>
+        <td style="border:1px solid #ccc; padding:6px;">{{ event.ecg_t }}</td>
+        <td style="border:1px solid #ccc; padding:6px;">≤ 25% de R</td>
+    </tr>
+    <tr>
+        <td style="border:1px solid #ccc; padding:6px;"><strong>Intervalo QT</strong></td>
+        <td style="border:1px solid #ccc; padding:6px;">{{ event.ecg_qt }}</td>
+        <td style="border:1px solid #ccc; padding:6px;">Variable según FC</td>
+    </tr>
+    <tr>
+        <td style="border:1px solid #ccc; padding:6px;"><strong>Eje eléctrico</strong></td>
+        <td style="border:1px solid #ccc; padding:6px;">{{ event.ecg_axis }}°</td>
+        <td style="border:1px solid #ccc; padding:6px;">+40° a +100°</td>
+    </tr>
+</table>
     {% if event.ecg_interpretation %}
     <hr>
     <strong>Interpretación:</strong><br>
