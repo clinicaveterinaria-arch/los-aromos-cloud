@@ -604,7 +604,25 @@
 
 </div>
 </div>
+<div id="eco-box" style="display:none; grid-column:1 / -1; padding:12px; background:#fff0f5; border-radius:10px;">
 
+    <h4>🫀 Ecocardiografía</h4>
+
+    <input name="eco_aiao" placeholder="AI/Ao">
+
+    <input name="eco_fs" placeholder="Fracción de acortamiento (%)">
+
+    <input name="eco_acvim" placeholder="Clasificación ACVIM">
+
+    <textarea
+        name="eco_diagnosis"
+        placeholder="Diagnóstico ecocardiográfico"></textarea>
+
+    <textarea
+        name="eco_treatment"
+        placeholder="Tratamiento cardiológico"></textarea>
+
+</div>
     <div style="margin-top:10px; grid-column:1 / -1; padding:12px; background:#f7f7f7; border-radius:10px;">
     <h4>🧪 Métodos complementarios</h4>
     <label><b>Adjuntar PDF / imagen / estudio</b></label><br>
@@ -774,15 +792,14 @@ function setReminderDays(days) {
 
 document.addEventListener('DOMContentLoaded', function() {
 
-    const selector = document.getElementById('event_type');
-    const ecgBox = document.getElementById('ecg-box');
+   const selector = document.getElementById('event_type');
+const ecgBox = document.getElementById('ecg-box');
+const ecoBox = document.getElementById('eco-box');
 
-    function actualizarCampos() {
-        if (selector.value === 'ECG') {
-            ecgBox.style.display = 'block';
-        } else {
-            ecgBox.style.display = 'none';
-        }
+function actualizarCampos() {
+    ecgBox.style.display = selector.value === 'ECG' ? 'block' : 'none';
+    ecoBox.style.display = selector.value === 'Ecocardiografía' ? 'block' : 'none';
+}
     }
 
     selector.addEventListener('change', actualizarCampos);
