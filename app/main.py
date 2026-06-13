@@ -638,20 +638,20 @@ def event_detail(
 ):
     patient = db.get(Patient, patient_id)
     event = db.get(ClinicalEvent, event_id)
-previous_ecg = None
+    previous_ecg = None
 
-if event and event.event_type == "ECG":
-    previous_ecg = (
-        db.query(ClinicalEvent)
-        .filter(
-            ClinicalEvent.patient_id == patient_id,
-            ClinicalEvent.event_type == "ECG",
-            ClinicalEvent.id != event.id,
-            ClinicalEvent.event_date < event.event_date
+    if event and event.event_type == "ECG":
+        previous_ecg = (
+            db.query(ClinicalEvent)
+            .filter(
+                ClinicalEvent.patient_id == patient_id,
+                ClinicalEvent.event_type == "ECG",
+                ClinicalEvent.id != event.id,
+                ClinicalEvent.event_date < event.event_date
+            )
+            .order_by(ClinicalEvent.event_date.desc())
+            .first()
         )
-        .order_by(ClinicalEvent.event_date.desc())
-        .first()
-    )
     if not patient or not event:
         raise HTTPException(status_code=404)
 
