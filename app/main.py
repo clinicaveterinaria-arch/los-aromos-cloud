@@ -70,6 +70,16 @@ def init_db():
         conn.execute(text("ALTER TABLE clinical_events ADD COLUMN IF NOT EXISTS dewormer_drug TEXT DEFAULT ''"))
         conn.execute(text("ALTER TABLE clinical_events ADD COLUMN IF NOT EXISTS dewormer_dose TEXT DEFAULT ''"))
         conn.execute(text("ALTER TABLE clinical_events ADD COLUMN IF NOT EXISTS next_deworming_date TEXT DEFAULT ''"))
+        conn.execute(text("ALTER TABLE clinical_events ADD COLUMN IF NOT EXISTS ecg_hr TEXT DEFAULT ''"))
+        conn.execute(text("ALTER TABLE clinical_events ADD COLUMN IF NOT EXISTS ecg_rhythm TEXT DEFAULT ''"))
+        conn.execute(text("ALTER TABLE clinical_events ADD COLUMN IF NOT EXISTS ecg_p TEXT DEFAULT ''"))
+        conn.execute(text("ALTER TABLE clinical_events ADD COLUMN IF NOT EXISTS ecg_pr TEXT DEFAULT ''"))
+        conn.execute(text("ALTER TABLE clinical_events ADD COLUMN IF NOT EXISTS ecg_qrs TEXT DEFAULT ''"))
+        conn.execute(text("ALTER TABLE clinical_events ADD COLUMN IF NOT EXISTS ecg_st TEXT DEFAULT ''"))
+        conn.execute(text("ALTER TABLE clinical_events ADD COLUMN IF NOT EXISTS ecg_t TEXT DEFAULT ''"))
+        conn.execute(text("ALTER TABLE clinical_events ADD COLUMN IF NOT EXISTS ecg_qt TEXT DEFAULT ''"))
+        conn.execute(text("ALTER TABLE clinical_events ADD COLUMN IF NOT EXISTS ecg_axis TEXT DEFAULT ''"))
+        conn.execute(text("ALTER TABLE clinical_events ADD COLUMN IF NOT EXISTS ecg_interpretation TEXT DEFAULT ''"))
         conn.execute(text("""
 CREATE TABLE IF NOT EXISTS event_attachments (
     id SERIAL PRIMARY KEY,
@@ -684,6 +694,20 @@ def event_create(
     mucous_membranes: str = Form(''),
     crt: str = Form(''),
     hydration: str = Form(''),
+    ecg_hr: str = Form(''),
+    ecg_rhythm: str = Form(''),
+
+    ecg_p: str = Form(''),
+    ecg_pr: str = Form(''),
+
+    ecg_qrs: str = Form(''),
+    ecg_st: str = Form(''),
+
+    ecg_t: str = Form(''),
+    ecg_qt: str = Form(''),
+
+    ecg_axis: str = Form(''),
+    ecg_interpretation: str = Form(''),
     attachments: list[UploadFile] = File(default=[]),
     db: Session = Depends(get_db),
     user: User = Depends(require_user)
@@ -755,6 +779,20 @@ def event_create(
         mucous_membranes=mucous_membranes or '',
         crt=crt or '',
         hydration=hydration or '',
+        ecg_hr=ecg_hr or '',
+        ecg_rhythm=ecg_rhythm or '',
+
+        ecg_p=ecg_p or '',
+        ecg_pr=ecg_pr or '',
+
+        ecg_qrs=ecg_qrs or '',
+        ecg_st=ecg_st or '',
+
+        ecg_t=ecg_t or '',
+        ecg_qt=ecg_qt or '',
+
+        ecg_axis=ecg_axis or '',
+        ecg_interpretation=ecg_interpretation or '',
         created_by=user.username
     )
 
