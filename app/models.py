@@ -64,7 +64,20 @@ class ClinicalEvent(Base):
     mucous_membranes: Mapped[str] = mapped_column(String(100), default='')
     crt: Mapped[str] = mapped_column(String(50), default='')
     hydration: Mapped[str] = mapped_column(String(100), default='')
+    ecg_hr: Mapped[str] = mapped_column(String(50), default='')
+    ecg_rhythm: Mapped[str] = mapped_column(String(100), default='')
 
+    ecg_p: Mapped[str] = mapped_column(String(50), default='')
+    ecg_pr: Mapped[str] = mapped_column(String(50), default='')
+
+    ecg_qrs: Mapped[str] = mapped_column(String(50), default='')
+    ecg_st: Mapped[str] = mapped_column(String(50), default='')
+
+    ecg_t: Mapped[str] = mapped_column(String(50), default='')
+    ecg_qt: Mapped[str] = mapped_column(String(50), default='')
+
+    ecg_axis: Mapped[str] = mapped_column(String(50), default='')
+    ecg_interpretation: Mapped[str] = mapped_column(Text, default='')
     anamnesis: Mapped[str] = mapped_column(Text, default='')
     physical_exam: Mapped[str] = mapped_column(Text, default='')
     vaccine_name: Mapped[str] = mapped_column(String(150), default='')
