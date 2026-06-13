@@ -22,24 +22,57 @@
 <p><b>Tratamiento:</b> {{ event.treatment }}</p>
 {% if event.event_type == 'ECG' %}
 <hr>
-<h3>💗 Electrocardiograma</h3>
 
-<p><b>FC:</b> {{ event.ecg_hr }}</p>
-<p><b>Ritmo:</b> {{ event.ecg_rhythm }}</p>
+<div style="background:#f8f9fa; border:1px solid #dee2e6; border-radius:10px; padding:15px; margin:10px 0;">
 
-<p><b>Onda P:</b> {{ event.ecg_p }}</p>
-<p><b>Intervalo PR:</b> {{ event.ecg_pr }}</p>
+    <h3 style="margin-top:0;">💗 Electrocardiograma</h3>
 
-<p><b>QRS:</b> {{ event.ecg_qrs }}</p>
-<p><b>Segmento ST:</b> {{ event.ecg_st }}</p>
+    <table style="width:100%;">
+        <tr>
+            <td><strong>FC:</strong></td>
+            <td>{{ event.ecg_hr }} lpm</td>
+        </tr>
+        <tr>
+            <td><strong>Ritmo:</strong></td>
+            <td>{{ event.ecg_rhythm }}</td>
+        </tr>
+        <tr>
+            <td><strong>Onda P:</strong></td>
+            <td>{{ event.ecg_p }}</td>
+        </tr>
+        <tr>
+            <td><strong>Intervalo PR:</strong></td>
+            <td>{{ event.ecg_pr }}</td>
+        </tr>
+        <tr>
+            <td><strong>QRS:</strong></td>
+            <td>{{ event.ecg_qrs }}</td>
+        </tr>
+        <tr>
+            <td><strong>Segmento ST:</strong></td>
+            <td>{{ event.ecg_st }}</td>
+        </tr>
+        <tr>
+            <td><strong>Onda T:</strong></td>
+            <td>{{ event.ecg_t }}</td>
+        </tr>
+        <tr>
+            <td><strong>Intervalo QT:</strong></td>
+            <td>{{ event.ecg_qt }}</td>
+        </tr>
+        <tr>
+            <td><strong>Eje eléctrico:</strong></td>
+            <td>{{ event.ecg_axis }}°</td>
+        </tr>
+    </table>
 
-<p><b>Onda T:</b> {{ event.ecg_t }}</p>
-<p><b>Intervalo QT:</b> {{ event.ecg_qt }}</p>
+    {% if event.ecg_interpretation %}
+    <hr>
+    <strong>Interpretación:</strong><br>
+    {{ event.ecg_interpretation }}
+    {% endif %}
 
-<p><b>Eje eléctrico:</b> {{ event.ecg_axis }}</p>
-
-<p><b>Interpretación:</b></p>
-<p>{{ event.ecg_interpretation }}</p>
+</div>
 {% endif %}
 {% if event.event_type == 'Vacuna' %}
 <hr>
