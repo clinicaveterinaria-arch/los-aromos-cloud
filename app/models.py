@@ -78,6 +78,12 @@ class ClinicalEvent(Base):
 
     ecg_axis: Mapped[str] = mapped_column(String(50), default='')
     ecg_interpretation: Mapped[str] = mapped_column(Text, default='')
+    eco_aiao: Mapped[str] = mapped_column(String(50), default='')
+    eco_fs: Mapped[str] = mapped_column(String(50), default='')
+    eco_acvim: Mapped[str] = mapped_column(String(50), default='')
+
+    eco_diagnosis: Mapped[str] = mapped_column(Text, default='')
+    eco_treatment: Mapped[str] = mapped_column(Text, default='')
     anamnesis: Mapped[str] = mapped_column(Text, default='')
     physical_exam: Mapped[str] = mapped_column(Text, default='')
     vaccine_name: Mapped[str] = mapped_column(String(150), default='')
