@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h1>❤️ Electrocardiogramas - {{ patient.name }}</h1>
+
+<a href="/patients/{{ patient.id }}" class="btn">⬅️ Volver a ficha</a>
+
+<div class="panel" style="margin-top:20px;">
+    {% if ecg_events %}
+        <table style="width:100%; border-collapse:collapse;">
+            <tr>
+                <th>Fecha</th>
+                <th>FC</th>
+                <th>Ritmo</th>
+                <th>QRS</th>
+                <th>QT</th>
+                <th>Eje</th>
+                <th>Acción</th>
+            </tr>
+
+            {% for ecg in ecg_events %}
+            <tr>
+                <td>{{ ecg.event_date.strftime('%d/%m/%Y %H:%M') }}</td>
+                <td>{{ ecg.ecg_hr }} lpm</td>
+                <td>{{ ecg.ecg_rhythm }}</td>
+                <td>{{ ecg.ecg_qrs }}</td>
+                <td>{{ ecg.ecg_qt }}</td>
+                <td>{{ ecg.ecg_axis }}°</td>
+                <td>
+                    <a href="/patients/{{ patient.id }}/events/{{ ecg.id }}" class="btn">
+                        Ver ECG
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>No hay ECG registrados.</p>
+    {% endif %}
+</div>
+
+{% endblock %}
