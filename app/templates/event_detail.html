@@ -116,6 +116,49 @@
         <td style="border:1px solid #ccc; padding:6px;">+40° a +100°</td>
     </tr>
 </table>
+{% if previous_ecg %}
+<hr>
+
+<h4>📈 Comparación con ECG previo</h4>
+
+<table style="width:auto; border-collapse:collapse; margin-top:8px;">
+    <tr>
+        <th style="border:1px solid #ccc; padding:6px;">Parámetro</th>
+        <th style="border:1px solid #ccc; padding:6px;">ECG actual</th>
+        <th style="border:1px solid #ccc; padding:6px;">ECG previo</th>
+    </tr>
+    <tr>
+        <td style="border:1px solid #ccc; padding:6px;"><strong>Fecha</strong></td>
+        <td style="border:1px solid #ccc; padding:6px;">{{ event.event_date.strftime('%d/%m/%Y') }}</td>
+        <td style="border:1px solid #ccc; padding:6px;">{{ previous_ecg.event_date.strftime('%d/%m/%Y') }}</td>
+    </tr>
+    <tr>
+        <td style="border:1px solid #ccc; padding:6px;"><strong>FC</strong></td>
+        <td style="border:1px solid #ccc; padding:6px;">{{ event.ecg_hr }} lpm</td>
+        <td style="border:1px solid #ccc; padding:6px;">{{ previous_ecg.ecg_hr }} lpm</td>
+    </tr>
+    <tr>
+        <td style="border:1px solid #ccc; padding:6px;"><strong>Ritmo</strong></td>
+        <td style="border:1px solid #ccc; padding:6px;">{{ event.ecg_rhythm }}</td>
+        <td style="border:1px solid #ccc; padding:6px;">{{ previous_ecg.ecg_rhythm }}</td>
+    </tr>
+    <tr>
+        <td style="border:1px solid #ccc; padding:6px;"><strong>QRS</strong></td>
+        <td style="border:1px solid #ccc; padding:6px;">{{ event.ecg_qrs }}</td>
+        <td style="border:1px solid #ccc; padding:6px;">{{ previous_ecg.ecg_qrs }}</td>
+    </tr>
+    <tr>
+        <td style="border:1px solid #ccc; padding:6px;"><strong>QT</strong></td>
+        <td style="border:1px solid #ccc; padding:6px;">{{ event.ecg_qt }}</td>
+        <td style="border:1px solid #ccc; padding:6px;">{{ previous_ecg.ecg_qt }}</td>
+    </tr>
+    <tr>
+        <td style="border:1px solid #ccc; padding:6px;"><strong>Eje eléctrico</strong></td>
+        <td style="border:1px solid #ccc; padding:6px;">{{ event.ecg_axis }}°</td>
+        <td style="border:1px solid #ccc; padding:6px;">{{ previous_ecg.ecg_axis }}°</td>
+    </tr>
+</table>
+{% endif %}
     {% if event.ecg_interpretation %}
     <hr>
     <strong>Interpretación:</strong><br>
