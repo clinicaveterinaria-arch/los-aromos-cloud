@@ -20,7 +20,27 @@
 <p><b>Diagnóstico:</b> {{ event.diagnosis }}</p>
 
 <p><b>Tratamiento:</b> {{ event.treatment }}</p>
+{% if event.event_type == 'ECG' %}
+<hr>
+<h3>💗 Electrocardiograma</h3>
 
+<p><b>FC:</b> {{ event.ecg_hr }}</p>
+<p><b>Ritmo:</b> {{ event.ecg_rhythm }}</p>
+
+<p><b>Onda P:</b> {{ event.ecg_p }}</p>
+<p><b>Intervalo PR:</b> {{ event.ecg_pr }}</p>
+
+<p><b>QRS:</b> {{ event.ecg_qrs }}</p>
+<p><b>Segmento ST:</b> {{ event.ecg_st }}</p>
+
+<p><b>Onda T:</b> {{ event.ecg_t }}</p>
+<p><b>Intervalo QT:</b> {{ event.ecg_qt }}</p>
+
+<p><b>Eje eléctrico:</b> {{ event.ecg_axis }}</p>
+
+<p><b>Interpretación:</b></p>
+<p>{{ event.ecg_interpretation }}</p>
+{% endif %}
 {% if event.event_type == 'Vacuna' %}
 <hr>
 <h3>💉 Vacunación</h3>
