@@ -766,6 +766,12 @@ def event_create(
 
     ecg_axis: str = Form(''),
     ecg_interpretation: str = Form(''),
+    eco_aiao: str = Form(''),
+    eco_fs: str = Form(''),
+    eco_acvim: str = Form(''),
+
+    eco_diagnosis: str = Form(''),
+    eco_treatment: str = Form(''),
     attachments: list[UploadFile] = File(default=[]),
     db: Session = Depends(get_db),
     user: User = Depends(require_user)
@@ -851,6 +857,14 @@ def event_create(
 
         ecg_axis=ecg_axis or '',
         ecg_interpretation=ecg_interpretation or '',
+
+        eco_aiao=eco_aiao or '',
+        eco_fs=eco_fs or '',
+        eco_acvim=eco_acvim or '',
+
+        eco_diagnosis=eco_diagnosis or '',
+        eco_treatment=eco_treatment or '',
+
         created_by=user.username
     )
 
