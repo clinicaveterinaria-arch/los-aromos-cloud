@@ -46,7 +46,7 @@ def get_pending_count():
 templates.env.globals['get_pending_count'] = get_pending_count
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 
-EVENT_TYPES = ['Consulta clínica','Control','Vacuna','Desparasitación','Radiografía','ECG','Ecografía','Laboratorio','Cirugía','Anestesia','Internación','Alta','Otro procedimiento']
+EVENT_TYPES = ['Consulta clínica','Control','Vacuna','Desparasitación','Radiografía','ECG','Ecocardiografía','Ecografía','Laboratorio','Cirugía','Anestesia','Internación','Alta','Otro procedimiento']
 
 def init_db():
     Base.metadata.create_all(bind=engine)
