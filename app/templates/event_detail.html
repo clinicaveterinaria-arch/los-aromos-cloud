@@ -2,9 +2,22 @@
 <html>
 <head>
     <title>Detalle de evento</title>
+
+    <style>
+    @media print {
+        button {
+            display: none;
+        }
+    }
+    </style>
+
 </head>
 <body>
-
+<div style="margin:15px 0;">
+    <button onclick="window.print()" style="padding:10px 16px; border-radius:8px; border:none; background:#6c757d; color:white; cursor:pointer;">
+        🖨️ Imprimir / Guardar PDF
+    </button>
+</div>
 <h1>{{ event.event_type }}</h1>
 
 <p><b>Fecha:</b> {{ event.event_date.strftime('%d/%m/%Y %H:%M') }}</p>
