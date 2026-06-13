@@ -569,6 +569,18 @@ def patient_detail(request: Request, patient_id: int, db: Session = Depends(get_
         .order_by(ClinicalEvent.event_date.desc())
         .all()
     )
+        cardiology_ecgs = (
+        db.query(ClinicalEvent)
+        .filter(
+            ClinicalEvent.patient_id == patient.id,
+            ClinicalEvent.event_type == "ECG"
+        )
+        .order_by(ClinicalEvent.event_date.desc())
+        .all()
+    )
+
+    last_ecg = cardiology_ecgs[0] if cardiology_ecgs else None
+    ecg_count = len(cardiology_ecgs)
     next_visit = upcoming_events[0] if upcoming_events else None
     return templates.TemplateResponse(
         'patient_detail.html',
@@ -583,6 +595,8 @@ def patient_detail(request: Request, patient_id: int, db: Session = Depends(get_
             'last_anesthesia': last_anesthesia,
             'anesthesia_history': anesthesia_history,
             'next_visit': next_visit,
+            'last_ecg': last_ecg,
+            'ecg_count': ecg_count,
         }
     )
 @app.get('/patients/{patient_id}/edit', response_class=HTMLResponse)
