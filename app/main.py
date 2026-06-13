@@ -569,15 +569,15 @@ def patient_detail(request: Request, patient_id: int, db: Session = Depends(get_
         .order_by(ClinicalEvent.event_date.desc())
         .all()
     )
-        cardiology_ecgs = (
-        db.query(ClinicalEvent)
-        .filter(
-            ClinicalEvent.patient_id == patient.id,
-            ClinicalEvent.event_type == "ECG"
-        )
-        .order_by(ClinicalEvent.event_date.desc())
-        .all()
+    cardiology_ecgs = (
+    db.query(ClinicalEvent)
+    .filter(
+        ClinicalEvent.patient_id == patient.id,
+        ClinicalEvent.event_type == "ECG"
     )
+    .order_by(ClinicalEvent.event_date.desc())
+    .all()
+)
 
     last_ecg = cardiology_ecgs[0] if cardiology_ecgs else None
     ecg_count = len(cardiology_ecgs)
