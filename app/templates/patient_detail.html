@@ -494,7 +494,50 @@
     <textarea name="physical_exam" placeholder="Examen físico"></textarea>
     <textarea name="diagnosis" placeholder="Diagnóstico / conclusión"></textarea>
     <textarea name="treatment" placeholder="Tratamiento / indicaciones"></textarea>
-    
+<div id="ecg-box" style="display:none; grid-column:1 / -1; padding:12px; background:#fff0f5; border-radius:10px;">
+
+    <h4>❤️ ECG</h4>
+
+    <input name="ecg_hr" placeholder="FC">
+    <input name="ecg_rhythm" placeholder="Ritmo">
+
+    <input name="ecg_p" placeholder="Onda P">
+    <input name="ecg_pr" placeholder="Intervalo PR">
+
+    <input name="ecg_qrs" placeholder="QRS">
+    <input name="ecg_st" placeholder="Segmento ST">
+
+    <input name="ecg_t" placeholder="Onda T">
+    <input name="ecg_qt" placeholder="Intervalo QT">
+
+    <input name="ecg_axis" placeholder="Eje eléctrico">
+
+    <textarea
+        name="ecg_interpretation"
+        placeholder="Interpretación electrocardiográfica">
+    </textarea>
+
+</div>
+</div>
+<div id="eco-box" style="display:none; grid-column:1 / -1; padding:12px; background:#fff0f5; border-radius:10px;">
+
+    <h4>🫀 Ecocardiografía</h4>
+
+    <input name="eco_aiao" placeholder="AI/Ao">
+
+    <input name="eco_fs" placeholder="Fracción de acortamiento (%)">
+
+    <input name="eco_acvim" placeholder="Clasificación ACVIM">
+
+    <textarea
+        name="eco_diagnosis"
+        placeholder="Diagnóstico ecocardiográfico"></textarea>
+
+    <textarea
+        name="eco_treatment"
+        placeholder="Tratamiento cardiológico"></textarea>
+
+</div>    
 
 
 <div style="grid-column:1 / -1; padding:12px; background:#f7f7f7; border-radius:10px;">
@@ -579,50 +622,7 @@
         <button type="button" onclick="setNextDewormingMonths(3)">+3 meses</button>
         <button type="button" onclick="setNextDewormingMonths(6)">+6 meses</button>
     </div>
-<div id="ecg-box" style="display:none; grid-column:1 / -1; padding:12px; background:#fff0f5; border-radius:10px;">
 
-    <h4>❤️ ECG</h4>
-
-    <input name="ecg_hr" placeholder="FC">
-    <input name="ecg_rhythm" placeholder="Ritmo">
-
-    <input name="ecg_p" placeholder="Onda P">
-    <input name="ecg_pr" placeholder="Intervalo PR">
-
-    <input name="ecg_qrs" placeholder="QRS">
-    <input name="ecg_st" placeholder="Segmento ST">
-
-    <input name="ecg_t" placeholder="Onda T">
-    <input name="ecg_qt" placeholder="Intervalo QT">
-
-    <input name="ecg_axis" placeholder="Eje eléctrico">
-
-    <textarea
-        name="ecg_interpretation"
-        placeholder="Interpretación electrocardiográfica">
-    </textarea>
-
-</div>
-</div>
-<div id="eco-box" style="display:none; grid-column:1 / -1; padding:12px; background:#fff0f5; border-radius:10px;">
-
-    <h4>🫀 Ecocardiografía</h4>
-
-    <input name="eco_aiao" placeholder="AI/Ao">
-
-    <input name="eco_fs" placeholder="Fracción de acortamiento (%)">
-
-    <input name="eco_acvim" placeholder="Clasificación ACVIM">
-
-    <textarea
-        name="eco_diagnosis"
-        placeholder="Diagnóstico ecocardiográfico"></textarea>
-
-    <textarea
-        name="eco_treatment"
-        placeholder="Tratamiento cardiológico"></textarea>
-
-</div>
     <div style="margin-top:10px; grid-column:1 / -1; padding:12px; background:#f7f7f7; border-radius:10px;">
     <h4>🧪 Métodos complementarios</h4>
     <label><b>Adjuntar PDF / imagen / estudio</b></label><br>
