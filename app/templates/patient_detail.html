@@ -740,7 +740,9 @@
 </div>
 <script>
 function setEventType(type) {
-    document.getElementById('event_type').value = type;
+    const selector = document.getElementById('event_type');
+    selector.value = type;
+    selector.dispatchEvent(new Event('change'));
 }
 
 
