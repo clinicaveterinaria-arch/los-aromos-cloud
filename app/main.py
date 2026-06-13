@@ -599,6 +599,36 @@ def patient_detail(request: Request, patient_id: int, db: Session = Depends(get_
             'ecg_count': ecg_count,
         }
     )
+@app.get('/patients/{patient_id}/cardiology/ecg', response_class=HTMLResponse)
+def patient_ecg_list(
+    request: Request,
+    patient_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    patient = db.get(Patient, patient_id)
+
+    if not patient:
+        raise HTTPException(status_code=404)
+
+    ecg_events = (
+        db.query(ClinicalEvent)
+        .filter(
+            ClinicalEvent.patient_id == patient.id,
+            ClinicalEvent.event_type == "ECG"
+        )
+        .order_by(ClinicalEvent.event_date.desc())
+        .all()
+    )
+
+    return templates.TemplateResponse(
+        'patient_ecg_list.html',
+        {
+            'request': request,
+            'patient': patient,
+            'ecg_events': ecg_events
+        }
+    )
 @app.get('/patients/{patient_id}/edit', response_class=HTMLResponse)
 def patient_edit_form(request: Request, patient_id: int, db: Session = Depends(get_db), user: User = Depends(require_user)):
     patient = db.get(Patient, patient_id)
