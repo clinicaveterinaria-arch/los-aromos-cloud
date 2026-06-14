@@ -1,156 +1,221 @@
 {% extends 'base.html' %}
 {% block content %}
 
-<h1>{{ patient.name }}</h1>
-<a href="/patients/{{ patient.id }}/print" target="_blank" class="btn">
-    Imprimir / Guardar PDF
-</a>
-<a href="/patients/{{ patient.id }}/anesthesia" class="btn">
-    🩺 Anestesia
-</a>
-<a href="/patients/{{ patient.id }}/edit" class="btn">✏️ Editar paciente</a>
+<style>
+    .hc-header {
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap:16px;
+        margin-bottom:18px;
+    }
 
+    .hc-actions {
+        display:flex;
+        gap:10px;
+        flex-wrap:wrap;
+    }
 
-<div class="panel patient-head"
-     style="
-        background:#dfe3e8;
-        border:1px solid #c5ccd3;
-        border-radius:12px;
+    .hc-grid {
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+        gap:16px;
+        margin-bottom:18px;
+    }
+
+    .hc-card {
+        background:white;
+        border:1px solid #f3c6d8;
+        border-radius:14px;
         padding:16px;
-     ">
-  <div class="panel patient-head"
-     style="
-     background:#dfe3e8;
-     border:1px solid #c5ccd3;
-     border-radius:12px;
-     padding:16px;
-     display:grid;
-     grid-template-columns:repeat(4,1fr);
-     gap:20px;
-     align-items:center;
-     ">
+        box-shadow:0 6px 18px rgba(0,0,0,0.04);
+    }
 
+    .hc-card h3 {
+        margin-top:0;
+    }
+
+    .hc-info-grid {
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+        gap:10px;
+    }
+
+    .hc-stat-grid {
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+        gap:12px;
+        margin-bottom:18px;
+    }
+
+    .hc-stat {
+        background:#f7f7f7;
+        border-radius:12px;
+        padding:14px;
+    }
+
+    .hc-stat b {
+        display:block;
+        margin-bottom:6px;
+    }
+
+    .hc-stat span {
+        font-size:24px;
+    }
+
+    details.hc-section {
+        background:white;
+        border:1px solid #f3c6d8;
+        border-radius:14px;
+        margin:14px 0;
+        padding:0;
+        overflow:hidden;
+        box-shadow:0 6px 18px rgba(0,0,0,0.04);
+    }
+
+    details.hc-section summary {
+        cursor:pointer;
+        padding:16px;
+        font-weight:bold;
+        font-size:20px;
+        background:#fff0f5;
+    }
+
+    .hc-section-body {
+        padding:16px;
+    }
+
+    .hc-muted {
+        color:#777;
+    }
+</style>
+
+<div class="hc-header">
     <div>
-        <b>Propietario:</b> {{ patient.owner.name }}
+        <h1 style="margin-bottom:4px;">{{ patient.name }}</h1>
+        <div class="hc-muted">Historia clínica</div>
     </div>
 
-    <div>
-        <b>Tel:</b> {{ patient.owner.phone }}
-        {% if patient.owner.whatsapp %}
-            | {{ patient.owner.whatsapp }}
+    <div class="hc-actions">
+        <a href="/patients/{{ patient.id }}/print" target="_blank" class="btn">🖨️ Imprimir / Guardar PDF</a>
+        <a href="/patients/{{ patient.id }}/anesthesia" class="btn">💉 Anestesia</a>
+        <a href="/patients/{{ patient.id }}/edit" class="btn">✏️ Editar paciente / propietario</a>
+    </div>
+</div>
+
+<div class="hc-grid">
+
+    <div class="hc-card">
+        <h3>🐾 Datos del paciente</h3>
+
+        <div class="hc-info-grid">
+            <div><b>Nombre:</b><br>{{ patient.name }}</div>
+            <div><b>Especie:</b><br>{{ patient.species or '-' }}</div>
+            <div><b>Raza:</b><br>{{ patient.breed or '-' }}</div>
+            <div><b>Sexo:</b><br>{{ patient.sex or '-' }}</div>
+            <div>
+                <b>Edad:</b><br>
+                {% if patient.birth_date %}
+                    {{ ((today - patient.birth_date).days // 365) }} años
+                {% else %}
+                    -
+                {% endif %}
+            </div>
+            <div>
+                <b>Peso actual:</b><br>
+                <form method="post" action="/patients/{{ patient.id }}/weight" style="display:flex; gap:8px; align-items:center;">
+                    <input name="weight" value="{{ patient.weight or '' }}" style="width:80px;">
+                    kg
+                    <button type="submit" class="btn">Guardar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="hc-card">
+        <h3>👤 Datos del propietario</h3>
+
+        {% if patient.owner %}
+        <div class="hc-info-grid">
+            <div><b>Nombre:</b><br>{{ patient.owner.name }}</div>
+            <div><b>Teléfono:</b><br>{{ patient.owner.phone or '-' }}</div>
+            <div><b>WhatsApp:</b><br>{{ patient.owner.whatsapp or '-' }}</div>
+            <div><b>Email:</b><br>{{ patient.owner.email or '-' }}</div>
+            <div><b>Dirección:</b><br>{{ patient.owner.address or '-' }}</div>
+        </div>
+        {% else %}
+            <p>No hay propietario asociado.</p>
         {% endif %}
     </div>
 
-    <div>
-        <b>Especie:</b> {{ patient.species or '-' }}<br>
-        <b>Raza:</b> {{ patient.breed or '-' }}
+</div>
+
+<div class="hc-stat-grid">
+    <div class="hc-stat">
+        <b>📋 Eventos</b>
+        <span>{{ events|length if events else 0 }}</span>
     </div>
 
-    <div>
-        <b>Sexo:</b> {{ patient.sex or '-' }}<br>
-        <b>Edad:</b>
-        {% if patient.birth_date %}
-            {{ ((today - patient.birth_date).days // 365) }} años
+    <div class="hc-stat">
+        <b>🗓️ Próximos</b>
+        <span>{{ upcoming_events|length if upcoming_events else 0 }}</span>
+    </div>
+
+    <div class="hc-stat">
+        <b>💉 Anestesias</b>
+        <span>{{ anesthesia_history|length if anesthesia_history else 0 }}</span>
+    </div>
+
+    <div class="hc-stat">
+        <b>⚖️ Peso</b>
+        <span>{{ patient.weight or '-' }}</span> kg
+    </div>
+
+    <div class="hc-stat">
+        <b>🩺 Última atención</b>
+        {% if events %}
+            {{ events[0].event_date.strftime('%d/%m/%Y') }}
         {% else %}
             -
         {% endif %}
     </div>
-
 </div>
 
+<details class="hc-section">
+    <summary>💗 Resumen cardiológico</summary>
 
+    <div class="hc-section-body">
 
-  <div>
-    <b>Peso actual:</b>
+        {% if last_ecg %}
+            <p><b>Último ECG:</b> {{ last_ecg.event_date.strftime('%d/%m/%Y') }}</p>
+            <p><b>FC:</b> {{ last_ecg.ecg_hr }} lpm</p>
+            <p><b>Eje:</b> {{ last_ecg.ecg_axis }}°</p>
+            <p><b>ECG registrados:</b> {{ ecg_count }}</p>
 
-    <form method="post"
-          action="/patients/{{ patient.id }}/weight"
-          style="display:inline;">
-
-        <input name="weight"
-               value="{{ patient.weight or '' }}"
-               style="width:70px;">
-
-        kg
-
-        <button type="submit">
-            Guardar
-        </button>
-
-    </form>
-</div>
-</div>
-<div class="panel" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px;">
-
-    <div style="background:#f7f7f7; padding:12px; border-radius:10px;">
-        <b>📋 Eventos</b><br>
-        <span style="font-size:24px;">{{ events|length if events else 0 }}</span>
-    </div>
-
-    <div style="background:#f7f7f7; padding:12px; border-radius:10px;">
-        <b>📅 Próximos</b><br>
-        <span style="font-size:24px;">{{ upcoming_events|length if upcoming_events else 0 }}</span>
-    </div>
-
-    <div style="background:#f7f7f7; padding:12px; border-radius:10px;">
-        <b>💉 Anestesias</b><br>
-        <span style="font-size:24px;">{{ anesthesia_history|length if anesthesia_history else 0 }}</span>
-    </div>
-
-    <div style="background:#f7f7f7; padding:12px; border-radius:10px;">
-        <b>⚖️ Peso actual</b><br>
-        <span style="font-size:24px;">{{ patient.weight or '-' }}</span> kg
-    </div>
-
-    <div style="background:#f7f7f7; padding:12px; border-radius:10px;">
-        <b>🩺 Última atención</b><br>
-        {% if events %}
-            <span>{{ events[0].event_date.strftime('%d/%m/%Y') }}</span>
+            <a href="/patients/{{ patient.id }}/events/{{ last_ecg.id }}" class="btn">Ver último ECG</a>
         {% else %}
-            <span>-</span>
+            <p><b>ECG:</b> No hay ECG registrados.</p>
         {% endif %}
+
+        <hr>
+
+        {% if last_eco %}
+            <p><b>Última Ecocardiografía:</b> {{ last_eco.event_date.strftime('%d/%m/%Y') }}</p>
+            <p><b>AI/Ao:</b> {{ last_eco.eco_aiao }}</p>
+            <p><b>FS:</b> {{ last_eco.eco_fs }}%</p>
+            <p><b>ACVIM:</b> {{ last_eco.eco_acvim }}</p>
+            <p><b>Ecocardiografías registradas:</b> {{ eco_count }}</p>
+
+            <a href="/patients/{{ patient.id }}/events/{{ last_eco.id }}" class="btn">Ver última Ecocardiografía</a>
+        {% else %}
+            <p><b>Ecocardiografía:</b> No hay ecocardiografías registradas.</p>
+        {% endif %}
+
+        <br><br>
+
+        <a href="/patients/{{ patient.id }}/cardiology" class="btn">💗 Historial cardiológico</a>
     </div>
-
-</div>
-<div style="background:#fff0f5; border:1px solid #f3c6d8; border-radius:10px; padding:15px; margin:15px 0;">
-    <h3>💗 Resumen cardiológico</h3>
-
-    {% if last_ecg %}
-        <p><strong>Último ECG:</strong> {{ last_ecg.event_date.strftime('%d/%m/%Y') }}</p>
-        <p><strong>FC:</strong> {{ last_ecg.ecg_hr }} lpm</p>
-        <p><strong>Eje:</strong> {{ last_ecg.ecg_axis }}°</p>
-        <p><strong>ECG registrados:</strong> {{ ecg_count }}</p>
-
-        <a href="/patients/{{ patient.id }}/events/{{ last_ecg.id }}" class="btn">
-            Ver último ECG
-        </a>
-    {% else %}
-        <p><strong>ECG:</strong> No hay ECG registrados.</p>
-    {% endif %}
-
-    <hr>
-
-    {% if last_eco %}
-        <p><strong>Última Ecocardiografía:</strong> {{ last_eco.event_date.strftime('%d/%m/%Y') }}</p>
-        <p><strong>AI/Ao:</strong> {{ last_eco.eco_aiao }}</p>
-        <p><strong>FS:</strong> {{ last_eco.eco_fs }}%</p>
-        <p><strong>ACVIM:</strong> {{ last_eco.eco_acvim }}</p>
-        <p><strong>Ecocardiografías registradas:</strong> {{ eco_count }}</p>
-
-        <a href="/patients/{{ patient.id }}/events/{{ last_eco.id }}" class="btn">
-            Ver última Ecocardiografía
-        </a>
-    {% else %}
-        <p><strong>Ecocardiografía:</strong> No hay ecocardiografías registradas.</p>
-    {% endif %}
-
-    <br><br>
-
-    <a href="/patients/{{ patient.id }}/cardiology" class="btn">
-        💗 Historial cardiológico
-    </a>
-</div>
-</div>
+</details>
 <div class="panel">
     <h3>📋 Resumen clínico</h3>
 
