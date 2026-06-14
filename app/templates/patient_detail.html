@@ -816,47 +816,7 @@
         </div>
     {% endif %}
 
-    {% if e.vaccine_name or e.vaccine_lot or e.vaccine_expiration or e.next_vaccine_date %}
-        <div class="hc-card">
-            <h4>💉 Vacunación</h4>
-            {% if e.vaccine_name %}<p><b>Vacuna aplicada:</b> {{ e.vaccine_name }}</p>{% endif %}
-            {% if e.vaccine_lot %}<p><b>Lote:</b> {{ e.vaccine_lot }}</p>{% endif %}
-            {% if e.vaccine_expiration %}<p><b>Vencimiento:</b> {{ e.vaccine_expiration }}</p>{% endif %}
-            {% if e.next_vaccine_date %}<p><b>Próxima dosis:</b> {{ e.next_vaccine_date }}</p>{% endif %}
-        </div>
-    {% endif %}
-
-    {% if e.dewormer_product or e.dewormer_drug or e.dewormer_dose or e.next_deworming_date %}
-        <div class="hc-card">
-            <h4>🪱 Desparasitación</h4>
-            {% if e.dewormer_product %}<p><b>Producto:</b> {{ e.dewormer_product }}</p>{% endif %}
-            {% if e.dewormer_drug %}<p><b>Principio activo:</b> {{ e.dewormer_drug }}</p>{% endif %}
-            {% if e.dewormer_dose %}<p><b>Dosis:</b> {{ e.dewormer_dose }}</p>{% endif %}
-            {% if e.next_deworming_date %}<p><b>Próxima desparasitación:</b> {{ e.next_deworming_date }}</p>{% endif %}
-        </div>
-    {% endif %}
-
-    {% if e.reminder_date %}
-        <p class="reminder"><b>⏰ Recordatorio:</b> {{ e.reminder_date.strftime('%d/%m/%Y') }}</p>
-    {% endif %}
-
-    {% if e.attachments %}
-        <hr>
-        <p><b>📎 Adjuntos:</b></p>
-
-        {% for a in e.attachments %}
-            <p>
-                <a href="{{ a.file_path }}" target="_blank">📄 {{ a.filename }}</a>
-
-                <form method="post"
-                      action="/attachment/{{ a.id }}/delete"
-                      style="display:inline;">
-                    <button type="submit">🗑️ Eliminar</button>
-                </form>
-            </p>
-        {% endfor %}
-    {% endif %}
-
+    
 </div>
     </div>
 </details>
