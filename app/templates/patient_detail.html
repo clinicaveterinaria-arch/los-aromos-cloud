@@ -257,116 +257,104 @@
             {% set ns.lab = e %}
         {% endif %}
     {% endfor %}
-{% if upcoming_events or (ns.vacuna and ns.vacuna.next_vaccine_date) or (ns.desparasitacion and ns.desparasitacion.next_deworming_date) %}
-<div class="panel"
-     style="background:#fff7ed;
-            border:2px solid #fdba74;
-            margin-bottom:16px;">
+<div class="panel" style="background:#fff7ed; border:2px solid #fdba74; margin-bottom:16px;">
+    <h3>📌 Panel resumen clínico</h3>
 
-    <h3>📌 Próximos eventos importantes</h3>
+    <div class="hc-grid">
 
-    {% if ns.vacuna and ns.vacuna.next_vaccine_date %}
-    <div style="border-bottom:1px solid #fed7aa; padding:8px 0;">
-        <b>💉 Próxima vacuna</b>
-        {% if ns.vacuna.vaccine_expiration %}
-            - {{ ns.vacuna.vaccine_expiration }}
-        {% endif %}
-        <br>
-        📅 {{ ns.vacuna.next_vaccine_date }}
-    </div>
-    {% endif %}
+        <div class="hc-card">
+            <h4>💉 Próxima vacuna</h4>
+            {% if ns.vacuna and ns.vacuna.next_vaccine_date %}
+                <p><b>{{ ns.vacuna.vaccine_expiration or ns.vacuna.vaccine_name or ns.vacuna.title or 'Vacuna' }}</b></p>
+                <p>🗓️ {{ ns.vacuna.next_vaccine_date }}</p>
+            {% else %}
+                <p>Sin próxima vacuna registrada.</p>
+            {% endif %}
+        </div>
 
-    {% if ns.desparasitacion and ns.desparasitacion.next_deworming_date %}
-    <div style="border-bottom:1px solid #fed7aa; padding:8px 0;">
-        <b>🪱 Próxima desparasitación</b>
-        {% if ns.desparasitacion.dewormer_dose %}
-            - {{ ns.desparasitacion.dewormer_dose }}
-        {% endif %}
-        <br>
-        📅 {{ ns.desparasitacion.next_deworming_date }}
-    </div>
-    {% endif %}
+        <div class="hc-card">
+            <h4>🪱 Próxima desparasitación</h4>
+            {% if ns.desparasitacion and ns.desparasitacion.next_deworming_date %}
+                <p><b>{{ ns.desparasitacion.dewormer_dose or ns.desparasitacion.dewormer_product or ns.desparasitacion.title or 'Desparasitación' }}</b></p>
+                <p>🗓️ {{ ns.desparasitacion.next_deworming_date }}</p>
+            {% else %}
+                <p>Sin próxima desparasitación registrada.</p>
+            {% endif %}
+        </div>
 
-    {% for e in upcoming_events[:5] %}
-    <div style="border-bottom:1px solid #fed7aa; padding:8px 0;">
-        <b>{{ e.event_type }}</b>
-        {% if e.title %}
-            - {{ e.title }}
-        {% endif %}
-        <br>
-        📅 {{ e.reminder_date.strftime('%d/%m/%Y') }}
-        {% if e.description %}
-            <br>📝 {{ e.description }}
-        {% endif %}
-        <br><br>
-        <a class="btn" href="/patients/{{ patient.id }}/events/{{ e.id }}">
-            👁 Ver evento
-        </a>
-    </div>
-    {% endfor %}
+        <div class="hc-card">
+            <h4>📅 Próximos eventos</h4>
+            {% if upcoming_events %}
+                {% for e in upcoming_events[:3] %}
+                    <p>
+                        <b>{{ e.event_type }}</b>
+                        {% if e.title %} - {{ e.title }}{% endif %}<br>
+                        🗓️ {{ e.reminder_date.strftime('%d/%m/%Y') }}
+                    </p>
+                {% endfor %}
+            {% else %}
+                <p>Sin próximos eventos registrados.</p>
+            {% endif %}
+        </div>
 
-</div>
-{% endif %}
-    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:10px;">
-
-        <div style="background:#f7f7f7; padding:10px; border-radius:8px;">
-            <b>💉 Última vacuna</b><br>
+        <div class="hc-card">
+            <h4>💉 Última vacuna</h4>
             {% if ns.vacuna %}
-                <b>{{ ns.vacuna.vaccine_name or ns.vacuna.title or ns.vacuna.event_type }}</b><br>
-                <small>{{ ns.vacuna.event_date.strftime('%d/%m/%Y') }}</small>
+                <p><b>{{ ns.vacuna.vaccine_name or ns.vacuna.title or ns.vacuna.event_type }}</b></p>
+                <p>{{ ns.vacuna.event_date.strftime('%d/%m/%Y') }}</p>
             {% else %}
-                <span style="color:#888;">Sin vacuna registrada</span>
+                <p>Sin vacuna registrada.</p>
             {% endif %}
         </div>
 
-        <div style="background:#f7f7f7; padding:10px; border-radius:8px;">
-            <b>🪱 Última desparasitación</b><br>
+        <div class="hc-card">
+            <h4>🪱 Última desparasitación</h4>
             {% if ns.desparasitacion %}
-                <b>{{ ns.desparasitacion.dewormer_product or ns.desparasitacion.title or ns.desparasitacion.event_type }}</b><br>
-<small>{{ ns.desparasitacion.event_date.strftime('%d/%m/%Y') }}</small>
+                <p><b>{{ ns.desparasitacion.dewormer_product or ns.desparasitacion.title or ns.desparasitacion.event_type }}</b></p>
+                <p>{{ ns.desparasitacion.event_date.strftime('%d/%m/%Y') }}</p>
             {% else %}
-                <span style="color:#888;">Sin desparasitación registrada</span>
+                <p>Sin desparasitación registrada.</p>
             {% endif %}
         </div>
 
-        <div style="background:#f7f7f7; padding:10px; border-radius:8px;">
-            <b>💗 Último ECG</b><br>
+        <div class="hc-card">
+            <h4>💗 Último ECG</h4>
             {% if ns.ecg %}
-                {{ ns.ecg.event_date.strftime('%d/%m/%Y') }}
+                <p>{{ ns.ecg.event_date.strftime('%d/%m/%Y') }}</p>
             {% else %}
-                <span style="color:#888;">Sin ECG registrado</span>
+                <p>Sin ECG registrado.</p>
             {% endif %}
         </div>
 
-        <div style="background:#f7f7f7; padding:10px; border-radius:8px;">
-            <b>☢️ Última RX</b><br>
+        <div class="hc-card">
+            <h4>☢️ Última RX</h4>
             {% if ns.rx %}
-                {{ ns.rx.event_date.strftime('%d/%m/%Y') }}
+                <p>{{ ns.rx.event_date.strftime('%d/%m/%Y') }}</p>
             {% else %}
-                <span style="color:#888;">Sin RX registrada</span>
+                <p>Sin RX registrada.</p>
             {% endif %}
         </div>
 
-        <div style="background:#f7f7f7; padding:10px; border-radius:8px;">
-            <b>🖥️ Última ecografía</b><br>
+        <div class="hc-card">
+            <h4>🖥️ Última ecografía</h4>
             {% if ns.eco %}
-                {{ ns.eco.event_date.strftime('%d/%m/%Y') }}
+                <p>{{ ns.eco.event_date.strftime('%d/%m/%Y') }}</p>
             {% else %}
-                <span style="color:#888;">Sin ecografía registrada</span>
+                <p>Sin ecografía registrada.</p>
             {% endif %}
         </div>
 
-        <div style="background:#f7f7f7; padding:10px; border-radius:8px;">
-            <b>🧪 Último laboratorio</b><br>
+        <div class="hc-card">
+            <h4>🧪 Último laboratorio</h4>
             {% if ns.lab %}
-                {{ ns.lab.event_date.strftime('%d/%m/%Y') }}
+                <p>{{ ns.lab.event_date.strftime('%d/%m/%Y') }}</p>
             {% else %}
-                <span style="color:#888;">Sin laboratorio registrado</span>
+                <p>Sin laboratorio registrado.</p>
             {% endif %}
         </div>
 
     </div>
-
+</div>
     
 </div>
 </div>    
