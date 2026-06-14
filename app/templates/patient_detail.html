@@ -742,24 +742,35 @@
       {% for e in events %}
 <details class="timeline-row">
     <summary>
-        {% if e.event_type == 'Radiografía' %}📷
-        {% elif e.event_type == 'ECG' %}❤️
-        {% elif e.event_type == 'Ecografía' %}🔊
-        {% elif e.event_type == 'Laboratorio' %}🧪
-        {% elif e.event_type == 'Informe' %}📄
-        {% elif e.event_type == 'Vacuna' %}💉
-        {% elif e.event_type == 'Desparasitación' %}🪱
-        {% elif e.event_type == 'Cirugía' %}🔨
-        {% elif e.event_type == 'Anestesia' %}💤
-        {% elif e.event_type == 'Internación' %}🏥
-        {% elif e.event_type == 'Consulta clínica' %}🩺
-        {% else %}📌
-        {% endif %}
 
-        <b>{{ e.event_type }}</b>
-        <span>{{ (e.event_date - timedelta(hours=3)).strftime('%d/%m/%Y %H:%M') }}</span>
-        — <a href="/patients/{{ patient.id }}/events/{{ e.id }}">{{ e.title }}</a>
-    </summary>
+    {% if e.event_type == 'Radiografía' %}📷
+    {% elif e.event_type == 'ECG' %}💗
+    {% elif e.event_type == 'Ecografía' %}🖥️
+    {% elif e.event_type == 'Laboratorio' %}🧪
+    {% elif e.event_type == 'Informe' %}📄
+    {% elif e.event_type == 'Vacuna' %}💉
+    {% elif e.event_type == 'Desparasitación' %}🪱
+    {% elif e.event_type == 'Cirugía' %}🔪
+    {% elif e.event_type == 'Anestesia' %}💤
+    {% elif e.event_type == 'Internación' %}🏥
+    {% elif e.event_type == 'Consulta clínica' %}🩺
+    {% else %}📌
+    {% endif %}
+
+    <b>{{ e.event_type }}</b>
+
+    <small style="color:#666; margin-left:8px;">
+        {{ (e.event_date - timedelta(hours=3)).strftime('%d/%m/%Y %H:%M') }}
+    </small>
+
+    {% if e.title %}
+        <br>
+        <span style="font-weight:normal;">
+            {{ e.title }}
+        </span>
+    {% endif %}
+
+</summary>
 <form method="post"
       action="/patients/{{ patient.id }}/events/{{ e.id }}/delete"
       style="display:inline;"
