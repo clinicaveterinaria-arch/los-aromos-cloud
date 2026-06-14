@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h1>💗 Cardiología - {{ patient.name }}</h1>
+
+<a href="/patients/{{ patient.id }}" class="btn">⬅️ Volver a ficha</a>
+
+<div class="panel" style="margin-top:20px;">
+    {% if cardiology_events %}
+        <table style="width:100%; border-collapse:collapse;">
+            <tr>
+                <th>Fecha</th>
+                <th>Tipo</th>
+                <th>Resumen</th>
+                <th>Acción</th>
+            </tr>
+
+            {% for e in cardiology_events %}
+            <tr>
+                <td>{{ e.event_date.strftime('%d/%m/%Y %H:%M') }}</td>
+                <td>{{ e.event_type }}</td>
+
+                <td>
+                    {% if e.event_type == 'ECG' %}
+                        FC: {{ e.ecg_hr }} lpm | Eje: {{ e.ecg_axis }}°
+                    {% elif e.event_type == 'Ecocardiografía' %}
+                        AI/Ao: {{ e.eco_aiao }} | FS: {{ e.eco_fs }}% | ACVIM: {{ e.eco_acvim }}
+                    {% elif e.event_type == 'Radiografía' %}
+                        {{ e.title or e.description or 'Radiografía cardíaca' }}
+                    {% else %}
+                        {{ e.title or e.description }}
+                    {% endif %}
+                </td>
+
+                <td>
+                    <a href="/patients/{{ patient.id }}/events/{{ e.id }}" class="btn">
+                        Ver
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>No hay eventos cardiológicos registrados.</p>
+    {% endif %}
+</div>
+
+{% endblock %}
