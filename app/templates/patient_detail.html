@@ -167,83 +167,9 @@
 
 </div>
 
-<div class="hc-stat-grid">
-    <div class="hc-stat">
-        <b>📋 Eventos</b>
-        <span>{{ events|length if events else 0 }}</span>
-    </div>
 
-    <div class="hc-stat">
-        <b>🗓️ Próximos</b>
-        <span>{{ upcoming_events|length if upcoming_events else 0 }}</span>
-    </div>
 
-    <div class="hc-stat">
-        <b>💉 Anestesias</b>
-        <span>{{ anesthesia_history|length if anesthesia_history else 0 }}</span>
-    </div>
 
-    <div class="hc-stat">
-        <b>⚖️ Peso</b>
-        <span>{{ patient.weight or '-' }}</span> kg
-    </div>
-
-    <div class="hc-stat">
-        <b>🩺 Última atención</b>
-        {% if events %}
-            {{ events[0].event_date.strftime('%d/%m/%Y') }}
-        {% else %}
-            -
-        {% endif %}
-    </div>
-</div>
-
-<details class="hc-section" open>
-    <summary>💗 Resumen cardiológico</summary>
-
-    <div class="hc-section-body">
-
-        <div class="hc-grid">
-
-            <div class="hc-card">
-                <h4>📈 Último ECG</h4>
-
-                {% if last_ecg %}
-                    <p><b>Fecha:</b> {{ last_ecg.event_date.strftime('%d/%m/%Y') }}</p>
-                    <p><b>FC:</b> {{ last_ecg.ecg_hr or '-' }} lpm</p>
-                    <p><b>Eje:</b> {{ last_ecg.ecg_axis or '-' }}°</p>
-                    <p><b>ECG registrados:</b> {{ ecg_count }}</p>
-
-                    <a href="/patients/{{ patient.id }}/events/{{ last_ecg.id }}" class="btn">Ver último ECG</a>
-                {% else %}
-                    <p>No hay ECG registrados.</p>
-                {% endif %}
-            </div>
-
-            <div class="hc-card">
-                <h4>🫀 Última Ecocardiografía</h4>
-
-                {% if last_eco %}
-                    <p><b>Fecha:</b> {{ last_eco.event_date.strftime('%d/%m/%Y') }}</p>
-                    <p><b>AI/Ao:</b> {{ last_eco.eco_aiao or '-' }}</p>
-                    <p><b>FS:</b> {{ last_eco.eco_fs or '-' }}%</p>
-                    <p><b>ACVIM:</b> {{ last_eco.eco_acvim or '-' }}</p>
-                    <p><b>Ecocardiografías registradas:</b> {{ eco_count }}</p>
-
-                    <a href="/patients/{{ patient.id }}/events/{{ last_eco.id }}" class="btn">Ver última Ecocardiografía</a>
-                {% else %}
-                    <p>No hay ecocardiografías registradas.</p>
-                {% endif %}
-            </div>
-
-        </div>
-
-        <br>
-
-        <a href="/patients/{{ patient.id }}/cardiology" class="btn">💗 Historial cardiológico</a>
-
-    </div>
-</details>
 <div class="panel">
     <h3>📋 Resumen clínico</h3>
 
@@ -375,7 +301,52 @@
     
 </div>
 </div>    
+<details class="hc-section" open>
+    <summary>💗 Resumen cardiológico</summary>
 
+    <div class="hc-section-body">
+
+        <div class="hc-grid">
+
+            <div class="hc-card">
+                <h4>📈 Último ECG</h4>
+
+                {% if last_ecg %}
+                    <p><b>Fecha:</b> {{ last_ecg.event_date.strftime('%d/%m/%Y') }}</p>
+                    <p><b>FC:</b> {{ last_ecg.ecg_hr or '-' }} lpm</p>
+                    <p><b>Eje:</b> {{ last_ecg.ecg_axis or '-' }}°</p>
+                    <p><b>ECG registrados:</b> {{ ecg_count }}</p>
+
+                    <a href="/patients/{{ patient.id }}/events/{{ last_ecg.id }}" class="btn">Ver último ECG</a>
+                {% else %}
+                    <p>No hay ECG registrados.</p>
+                {% endif %}
+            </div>
+
+            <div class="hc-card">
+                <h4>🫀 Última Ecocardiografía</h4>
+
+                {% if last_eco %}
+                    <p><b>Fecha:</b> {{ last_eco.event_date.strftime('%d/%m/%Y') }}</p>
+                    <p><b>AI/Ao:</b> {{ last_eco.eco_aiao or '-' }}</p>
+                    <p><b>FS:</b> {{ last_eco.eco_fs or '-' }}%</p>
+                    <p><b>ACVIM:</b> {{ last_eco.eco_acvim or '-' }}</p>
+                    <p><b>Ecocardiografías registradas:</b> {{ eco_count }}</p>
+
+                    <a href="/patients/{{ patient.id }}/events/{{ last_eco.id }}" class="btn">Ver última Ecocardiografía</a>
+                {% else %}
+                    <p>No hay ecocardiografías registradas.</p>
+                {% endif %}
+            </div>
+
+        </div>
+
+        <br>
+
+        <a href="/patients/{{ patient.id }}/cardiology" class="btn">💗 Historial cardiológico</a>
+
+    </div>
+</details>
 <div class="panel">
     <h3>💉 Historial de vacunación</h3>
 
