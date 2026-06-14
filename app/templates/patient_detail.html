@@ -771,16 +771,7 @@
     {% endif %}
 
 </summary>
-<form method="post"
-      action="/patients/{{ patient.id }}/events/{{ e.id }}/delete"
-      style="display:inline;"
-      onsubmit="return confirm('¿Eliminar este evento de la historia clínica? Esta acción no se puede deshacer.');">
 
-    <button type="submit"
-            style="background:#fee2e2;color:#991b1b;border:none;border-radius:6px;padding:4px 8px;margin:6px 0;cursor:pointer;">
-        🗑 Eliminar
-    </button>
-</form>
     <div class="timeline-detail">
 
     {% if e.description %}
@@ -815,7 +806,25 @@
             {% if e.hydration %}<p><b>Hidratación:</b> {{ e.hydration }}</p>{% endif %}
         </div>
     {% endif %}
+<hr>
 
+<form method="post"
+      action="/patients/{{ patient.id }}/events/{{ e.id }}/delete"
+      onsubmit="return confirm('¿Eliminar este evento de la historia clínica? Esta acción no se puede deshacer.');">
+
+    <button type="submit"
+            style="
+                background:#fee2e2;
+                color:#991b1b;
+                border:none;
+                border-radius:8px;
+                padding:8px 12px;
+                cursor:pointer;
+            ">
+        🗑 Eliminar evento
+    </button>
+
+</form>
     
 </div>
   
