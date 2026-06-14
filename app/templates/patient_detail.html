@@ -814,15 +814,41 @@
 
     {% if e.weight or e.temperature or e.heart_rate or e.respiratory_rate or e.mucous_membranes or e.crt or e.hydration %}
         <div class="hc-card">
-            <h4>🩹 Parámetros clínicos</h4>
-            {% if e.weight %}<p><b>Peso:</b> {{ e.weight }} kg</p>{% endif %}
-            {% if e.temperature %}<p><b>Temperatura:</b> {{ e.temperature }} °C</p>{% endif %}
-            {% if e.heart_rate %}<p><b>FC:</b> {{ e.heart_rate }}</p>{% endif %}
-            {% if e.respiratory_rate %}<p><b>FR:</b> {{ e.respiratory_rate }}</p>{% endif %}
-            {% if e.mucous_membranes %}<p><b>Mucosas:</b> {{ e.mucous_membranes }}</p>{% endif %}
-            {% if e.crt %}<p><b>TLLC:</b> {{ e.crt }}</p>{% endif %}
-            {% if e.hydration %}<p><b>Hidratación:</b> {{ e.hydration }}</p>{% endif %}
-        </div>
+            <div style="
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+gap:10px;
+">
+
+{% if e.weight %}
+<div class="hc-card"><b>Peso</b><br>{{ e.weight }} kg</div>
+{% endif %}
+
+{% if e.temperature %}
+<div class="hc-card"><b>Temperatura</b><br>{{ e.temperature }} °C</div>
+{% endif %}
+
+{% if e.heart_rate %}
+<div class="hc-card"><b>FC</b><br>{{ e.heart_rate }}</div>
+{% endif %}
+
+{% if e.respiratory_rate %}
+<div class="hc-card"><b>FR</b><br>{{ e.respiratory_rate }}</div>
+{% endif %}
+
+{% if e.mucous_membranes %}
+<div class="hc-card"><b>Mucosas</b><br>{{ e.mucous_membranes }}</div>
+{% endif %}
+
+{% if e.crt %}
+<div class="hc-card"><b>TLLC</b><br>{{ e.crt }}</div>
+{% endif %}
+
+{% if e.hydration %}
+<div class="hc-card"><b>Hidratación</b><br>{{ e.hydration }}</div>
+{% endif %}
+
+</div>
     {% endif %}
 <hr>
 <style>
