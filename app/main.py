@@ -586,20 +586,23 @@ def patient_detail(request: Request, patient_id: int, db: Session = Depends(get_
 
     last_ecg = cardiology_ecgs[0] if cardiology_ecgs else None
     ecg_count = len(cardiology_ecgs)
-    cardiology_ecos = (
-    db.query(ClinicalEvent)
-    .filter(
-        ClinicalEvent.patient_id == patient.id,
-        ClinicalEvent.event_type == "Ecocardiografía"
-    )
-    .order_by(ClinicalEvent.event_date.desc())
-    .all()
-)
 
-last_eco = cardiology_ecos[0] if cardiology_ecos else None
-eco_count = len(cardiology_ecos)
-next_visit = upcoming_events[0] if upcoming_events else None
-return templates.TemplateResponse(
+    cardiology_ecos = (
+        db.query(ClinicalEvent)
+        .filter(
+            ClinicalEvent.patient_id == patient.id,
+            ClinicalEvent.event_type == "Ecocardiografía"
+        )
+        .order_by(ClinicalEvent.event_date.desc())
+        .all()
+    )
+
+    last_eco = cardiology_ecos[0] if cardiology_ecos else None
+    eco_count = len(cardiology_ecos)
+
+    next_visit = upcoming_events[0] if upcoming_events else None
+
+    return templates.TemplateResponse(
         'patient_detail.html',
         {
             'request': request,
