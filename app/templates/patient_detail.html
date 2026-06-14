@@ -353,8 +353,10 @@
 </div>
     </div>
 </details>
-<div class="panel">
-    <h3>💉 Historial de vacunación</h3>
+<details class="hc-section">
+    <summary>💉 Historial de vacunación</summary>
+
+    <div class="hc-section-body">
 
     {% for e in events %}
         {% if e.vaccine_name %}
@@ -370,10 +372,13 @@
     {% if not ns.vacuna %}
         <span style="color:#888;">Sin vacunas registradas</span>
     {% endif %}
-</div>
+    </div>
+</details>
 
-<div class="panel">
-    <h3>🪱 Historial de desparasitación</h3>
+<details class="hc-section">
+    <summary>🪱 Historial de desparasitación</summary>
+
+    <div class="hc-section-body">
 
     {% for e in events %}
         {% if e.dewormer_product %}
@@ -390,7 +395,7 @@
         <span style="color:#888;">Sin desparasitaciones registradas</span>
     {% endif %}
 </div>
-
+</details>
 {% if upcoming_events %}
 <div class="panel">
     <h3>📌 Próximos eventos programados</h3>
