@@ -92,10 +92,20 @@
 
 <div class="hc-header">
     <div>
-        <h1 style="margin-bottom:4px;">{{ patient.name }}</h1>
-        <div class="hc-muted">Historia clínica</div>
-    </div>
+    <h1 style="margin-bottom:4px;">🐾 {{ patient.name }}</h1>
 
+    <div class="hc-muted">
+        👤 {{ patient.owner_name or "-" }}
+        &nbsp;&nbsp;|&nbsp;&nbsp;
+        🚻 {{ patient.sex or "-" }}
+        &nbsp;&nbsp;|&nbsp;&nbsp;
+        🎂 {{ patient.age or "-" }}
+        {% if patient.weight %}
+        &nbsp;&nbsp;|&nbsp;&nbsp;
+        ⚖️ {{ patient.weight }} kg
+        {% endif %}
+    </div>
+</div>
     <div class="hc-actions">
         <a href="/patients/{{ patient.id }}/print" target="_blank" class="btn">🖨️ Imprimir / Guardar PDF</a>
         <a href="/patients/{{ patient.id }}/anesthesia" class="btn">💉 Anestesia</a>
