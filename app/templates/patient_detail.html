@@ -799,12 +799,18 @@
     {% endif %}
 
     {% if e.diagnosis %}
-        <p><b>🔎 Diagnóstico:</b><br>{{ e.diagnosis }}</p>
-    {% endif %}
+<div class="hc-card">
+    <h4>🔎 Diagnóstico</h4>
+    <p>{{ e.diagnosis }}</p>
+</div>
+{% endif %}
 
-    {% if e.treatment %}
-        <p><b>💊 Tratamiento / indicaciones:</b><br>{{ e.treatment }}</p>
-    {% endif %}
+{% if e.treatment %}
+<div class="hc-card">
+    <h4>💊 Tratamiento / indicaciones</h4>
+    <p>{{ e.treatment }}</p>
+</div>
+{% endif %}
 
     {% if e.weight or e.temperature or e.heart_rate or e.respiratory_rate or e.mucous_membranes or e.crt or e.hydration %}
         <div class="hc-card">
@@ -819,7 +825,24 @@
         </div>
     {% endif %}
 <hr>
+<style>
+.hc-card{
+    background:#fafafa;
+    border:1px solid #ececec;
+    border-radius:10px;
+    padding:12px;
+    margin:10px 0;
+}
 
+.hc-card h4{
+    margin:0 0 8px 0;
+    color:#d85c9f;
+}
+
+.hc-card p{
+    margin:0;
+}
+</style>
 <form method="post"
       action="/patients/{{ patient.id }}/events/{{ e.id }}/delete"
       onsubmit="return confirm('¿Eliminar este evento de la historia clínica? Esta acción no se puede deshacer.');">
