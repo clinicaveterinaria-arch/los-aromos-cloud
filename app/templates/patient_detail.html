@@ -472,8 +472,10 @@
 </details>
 {% endif %}
 {% if last_anesthesia %}
-<div class="panel">
-    <h2>🩺 Último protocolo anestésico</h2>
+<details class="hc-section">
+    <summary>💤 Último protocolo anestésico</summary>
+
+    <div class="hc-section-body">
 
     <p>
         <strong>Fecha:</strong>
@@ -483,7 +485,8 @@
     <a href="/patients/{{ patient.id }}/anesthesia/print"
         Ver / Imprimir protocolo anestésico
     </a>
-</div>
+    </div>
+</details>
 {% endif %}
 {% if anesthesia_history %}
 <div class="panel">
