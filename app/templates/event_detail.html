@@ -180,6 +180,42 @@
 
 </div>
 {% endif %}
+{% if event.event_type == 'Ecocardiografía' %}
+<hr>
+
+<div style="background:#fff0f5; border:1px solid #f3c6d8; border-radius:10px; padding:15px; margin:10px 0;">
+
+    <h3>🫀 Ecocardiografía</h3>
+
+    <table style="width:auto; border-spacing:8px;">
+        <tr>
+            <td><strong>AI/Ao:</strong></td>
+            <td>{{ event.eco_aiao }}</td>
+        </tr>
+        <tr>
+            <td><strong>Fracción de acortamiento:</strong></td>
+            <td>{{ event.eco_fs }}%</td>
+        </tr>
+        <tr>
+            <td><strong>Clasificación ACVIM:</strong></td>
+            <td>{{ event.eco_acvim }}</td>
+        </tr>
+    </table>
+
+    {% if event.eco_diagnosis %}
+    <hr>
+    <strong>Diagnóstico ecocardiográfico:</strong><br>
+    {{ event.eco_diagnosis }}
+    {% endif %}
+
+    {% if event.eco_treatment %}
+    <hr>
+    <strong>Tratamiento cardiológico:</strong><br>
+    {{ event.eco_treatment }}
+    {% endif %}
+
+</div>
+{% endif %}
 {% if event.event_type == 'Vacuna' %}
 <hr>
 <h3>💉 Vacunación</h3>
