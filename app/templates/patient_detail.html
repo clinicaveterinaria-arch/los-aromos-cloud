@@ -822,11 +822,21 @@ background:#fff;
     </small>
 
     {% if e.title %}
-        <br>
-        <span style="font-weight:normal;">
-            {{ e.title }}
-        </span>
-    {% endif %}
+    <br>
+    <span style="font-weight:normal; color:#666;">
+        {{ e.title }}
+    </span>
+{% elif e.description %}
+    <br>
+    <span style="font-weight:normal; color:#666;">
+        {{ e.description[:80] }}{% if e.description|length > 80 %}...{% endif %}
+    </span>
+{% else %}
+    <br>
+    <span style="font-weight:normal; color:#999;">
+        Sin detalle cargado
+    </span>
+{% endif %}
 
 </summary>
 
