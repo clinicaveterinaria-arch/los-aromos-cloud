@@ -170,8 +170,10 @@
 
 
 
-<div class="panel">
-    <h3>📋 Resumen clínico</h3>
+<details class="hc-section" open>
+    <summary>📋 Resumen clínico</summary>
+
+    <div class="hc-section-body">
 
     {% set ns = namespace(vacuna=None, desparasitacion=None, ecg=None, rx=None, eco=None, lab=None) %}
 
@@ -300,11 +302,15 @@
 </div>
     
 </div>
-</div>    
+    </div>
+</details>    
 <details class="hc-section" open>
     <summary>💗 Resumen cardiológico</summary>
 
     <div class="hc-section-body">
+
+    <div class="panel" style="background:#fff7ed; border:2px solid #fdba74; margin-bottom:16px;">
+        <h3>💗 Panel resumen cardiológico</h3>
 
         <div class="hc-grid">
 
@@ -344,7 +350,7 @@
         <br>
 
         <a href="/patients/{{ patient.id }}/cardiology" class="btn">💗 Historial cardiológico</a>
-
+</div>
     </div>
 </details>
 <div class="panel">
