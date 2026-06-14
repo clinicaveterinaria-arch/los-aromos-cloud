@@ -555,7 +555,10 @@
         <button type="submit">💾 Guardar próxima visita</button>
     </form>
 </div>    
-  <h2>Nuevo evento clínico</h2>
+  <details class="hc-section">
+<summary>🩺 Nuevo evento clínico</summary>
+
+<div class="hc-section-body">
 
   <form method="post"
       action="/patients/{{ patient.id }}/events"
@@ -734,6 +737,8 @@
 </button>
 </div>
 </form>
+</div>
+</details>
 <div class="panel">
   <h2>Línea de tiempo</h2>
 
