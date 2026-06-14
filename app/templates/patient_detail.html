@@ -743,10 +743,26 @@
   <h2>Línea de tiempo</h2>
 
   <a href="/patients/{{ patient.id }}/history" class="btn">Ver historial completo</a>
-  <div class="timeline-compact">
+  <div class="timeline-compact" style="
+display:flex;
+flex-direction:column;
+gap:12px;
+margin-top:15px;
+">
       {% for e in events %}
-<details class="timeline-row">
-    <summary>
+<details class="timeline-row" style="
+background:white;
+border-radius:12px;
+padding:0;
+box-shadow:0 2px 8px rgba(0,0,0,0.06);
+overflow:hidden;
+">
+    <summary style="
+padding:14px;
+cursor:pointer;
+list-style:none;
+background:#fff;
+">
 
     {% if e.event_type == 'Radiografía' %}📷
     {% elif e.event_type == 'ECG' %}💗
