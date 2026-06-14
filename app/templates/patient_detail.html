@@ -397,8 +397,11 @@
 </div>
 </details>
 {% if upcoming_events %}
-<div class="panel">
-    <h3>📌 Próximos eventos programados</h3>
+
+<details class="hc-section">
+    <summary>📌 Próximos eventos programados</summary>
+
+    <div class="hc-section-body">
 
 {% for e in upcoming_events[:3] %}
 
@@ -465,7 +468,8 @@
     {% if upcoming_events|length > 3 %}
         <small>Mostrando los primeros 3 eventos.</small>
     {% endif %}
-</div>
+    </div>
+</details>
 {% endif %}
 {% if last_anesthesia %}
 <div class="panel">
