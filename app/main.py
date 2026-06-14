@@ -705,6 +705,11 @@ def patient_edit_save(
     weight: str = Form(''),
     alerts: str = Form(''),
     notes: str = Form(''),
+    owner_name: str = Form(''),
+    owner_phone: str = Form(''),
+    owner_whatsapp: str = Form(''),
+    owner_email: str = Form(''),
+    owner_address: str = Form(''),
     db: Session = Depends(get_db),
     user: User = Depends(require_user)
 ):
@@ -721,6 +726,14 @@ def patient_edit_save(
     patient.weight = float(weight.replace(',', '.')) if weight.strip() else None
     patient.alerts = alerts
     patient.notes = notes
+    owner = db.get(Owner, owner_id)
+
+    if owner:
+        owner.name = owner_name
+        owner.phone = owner_phone
+        owner.whatsapp = owner_whatsapp
+        owner.email = owner_email
+        owner.address = owner_address
 
     db.commit()
     return RedirectResponse(f'/patients/{patient.id}', status_code=303)
