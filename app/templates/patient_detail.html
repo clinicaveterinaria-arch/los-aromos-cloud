@@ -119,27 +119,28 @@
         <h3>🐾 Datos del paciente</h3>
 
         <div class="hc-info-grid">
-            <div><b>Nombre:</b><br>{{ patient.name }}</div>
-            <div><b>Especie:</b><br>{{ patient.species or '-' }}</div>
-            <div><b>Raza:</b><br>{{ patient.breed or '-' }}</div>
-            <div><b>Sexo:</b><br>{{ patient.sex or '-' }}</div>
-            <div>
-                <b>Edad:</b><br>
-                {% if patient.birth_date %}
-                    {{ ((today - patient.birth_date).days // 365) }} años
-                {% else %}
-                    -
-                {% endif %}
-            </div>
-            <div>
-                <b>Peso actual:</b><br>
-                <form method="post" action="/patients/{{ patient.id }}/weight" style="display:flex; gap:8px; align-items:center;">
-                    <input name="weight" value="{{ patient.weight or '' }}" style="width:80px;">
-                    kg
-                    <button type="submit" class="btn">Guardar</button>
-                </form>
-            </div>
-        </div>
+    <div><b>Especie</b><br>{{ patient.species or '-' }}</div>
+    <div><b>Raza</b><br>{{ patient.breed or '-' }}</div>
+    <div><b>Sexo</b><br>{{ patient.sex or '-' }}</div>
+
+    <div>
+        <b>Edad</b><br>
+        {% if patient.birth_date %}
+            {{ ((today - patient.birth_date).days // 365) }} años
+        {% else %}
+            -
+        {% endif %}
+    </div>
+
+    <div>
+        <b>Peso actual</b><br>
+        <form method="post" action="/patients/{{ patient.id }}/weight" style="display:flex; gap:6px; align-items:center;">
+            <input name="weight" value="{{ patient.weight or '' }}" style="width:80px;">
+            kg
+            <button type="submit" class="btn">Guardar</button>
+        </form>
+    </div>
+</div>
     </div>
 
     <div class="hc-card">
