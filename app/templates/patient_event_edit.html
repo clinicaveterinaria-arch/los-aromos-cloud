@@ -106,12 +106,22 @@
 
 {% if event.attachments %}
     {% for a in event.attachments %}
-        <p>
-            <a href="{{ a.file_path }}" target="_blank">
-                📄 {{ a.filename }}
-            </a>
-        </p>
-    {% endfor %}
+    <p>
+        <a href="{{ a.file_path }}" target="_blank">
+            📄 {{ a.filename }}
+        </a>
+
+        <form method="post"
+              action="/patients/{{ patient.id }}/events/{{ event.id }}/attachments/{{ a.id }}/delete"
+              style="display:inline;"
+              onsubmit="return confirm('¿Eliminar este adjunto?');">
+            <button type="submit"
+                    style="background:#fee2e2;color:#991b1b;border:none;border-radius:6px;padding:4px 8px;">
+                🗑 Eliminar
+            </button>
+        </form>
+    </p>
+{% endfor %}
 {% else %}
     <p>Sin adjuntos cargados.</p>
 {% endif %}
