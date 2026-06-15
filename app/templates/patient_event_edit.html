@@ -10,7 +10,7 @@
         <b>Paciente:</b> {{ patient.name }}
     </p>
 
-    <form method="post">
+    <form method="post" enctype="multipart/form-data">
 
         <label>Tipo de evento</label>
         <select name="event_type">
@@ -100,10 +100,29 @@
             placeholder="Tratamiento cardiológico"
         >{{ event.eco_treatment or '' }}</textarea>
 
-        <br><br>
+<br><br>
 
-        <button
-            type="submit"
+<h3>📎 Adjuntos</h3>
+
+{% if event.attachments %}
+    {% for a in event.attachments %}
+        <p>
+            <a href="{{ a.file_path }}" target="_blank">
+                📄 {{ a.filename }}
+            </a>
+        </p>
+    {% endfor %}
+{% else %}
+    <p>Sin adjuntos cargados.</p>
+{% endif %}
+
+<label>Agregar nuevos adjuntos</label>
+<input type="file" name="attachments" multiple>
+
+<br><br>
+
+<button
+    type="submit"
             class="btn"
             style="background:#22c55e;color:white;"
         >
