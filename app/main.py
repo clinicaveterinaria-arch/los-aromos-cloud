@@ -621,6 +621,71 @@ def patient_detail(request: Request, patient_id: int, db: Session = Depends(get_
             'eco_count': eco_count,
         }
     )
+@app.get('/patients/{patient_id}/events/{event_id}/edit', response_class=HTMLResponse)
+def edit_clinical_event_form(
+    request: Request,
+    patient_id: int,
+    event_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    patient = db.get(Patient, patient_id)
+    event = db.get(ClinicalEvent, event_id)
+
+    if not patient or not event or event.patient_id != patient.id:
+        raise HTTPException(status_code=404)
+
+    return templates.TemplateResponse(
+        'patient_event_edit.html',
+        {
+            'request': request,
+            'patient': patient,
+            'event': event,
+            'event_types': EVENT_TYPES,
+        }
+    )
+
+
+@app.post('/patients/{patient_id}/events/{event_id}/edit')
+async def edit_clinical_event_save(
+    patient_id: int,
+    event_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    patient = db.get(Patient, patient_id)
+    event = db.get(ClinicalEvent, event_id)
+
+    if not patient or not event or event.patient_id != patient.id:
+        raise HTTPException(status_code=404)
+
+    form = await request.form()
+
+    fields = [
+        'event_type', 'title', 'description', 'anamnesis', 'physical_exam',
+        'diagnosis', 'treatment',
+        'weight', 'temperature', 'heart_rate', 'respiratory_rate',
+        'mucous_membranes', 'crt', 'hydration',
+        'ecg_hr', 'ecg_rhythm', 'ecg_p', 'ecg_pr', 'ecg_qrs',
+        'ecg_st', 'ecg_t', 'ecg_qt', 'ecg_axis', 'ecg_interpretation',
+        'eco_aiao', 'eco_fs', 'eco_acvim', 'eco_diagnosis', 'eco_treatment',
+        'vaccine_name', 'vaccine_lot', 'vaccine_expiration', 'next_vaccine_date',
+        'dewormer_product', 'dewormer_drug', 'dewormer_dose', 'next_deworming_date',
+        'reminder_date'
+    ]
+
+    for field in fields:
+        if hasattr(event, field):
+            value = form.get(field)
+            setattr(event, field, value if value != '' else None)
+
+    db.commit()
+
+    return RedirectResponse(
+        url=f'/patients/{patient_id}',
+        status_code=303
+    )
 @app.get('/patients/{patient_id}/cardiology/ecg', response_class=HTMLResponse)
 def patient_ecg_list(
     request: Request,
