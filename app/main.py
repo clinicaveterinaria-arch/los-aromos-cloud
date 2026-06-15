@@ -675,7 +675,6 @@ async def edit_clinical_event_save(
         'dewormer_product', 'dewormer_drug', 'dewormer_dose', 'next_deworming_date',
         'reminder_date'
     ]
-
     for field in fields:
         if hasattr(event, field):
             value = form.get(field)
@@ -690,8 +689,9 @@ async def edit_clinical_event_save(
                 value = datetime.strptime(value, '%Y-%m-%d').date()
 
             setattr(event, field, value)
+
     upload_dir = "/opt/render/project/src/app/uploads"
-os.makedirs(upload_dir, exist_ok=True)
+    os.makedirs(upload_dir, exist_ok=True)
 
     for file in attachments:
         if file and file.filename:
@@ -707,7 +707,9 @@ os.makedirs(upload_dir, exist_ok=True)
                 file_path="/uploads/" + safe_filename
             )
 
-        db.add(attachment)
+            db.add(attachment)
+
+  
     db.commit()
 
     return RedirectResponse(
