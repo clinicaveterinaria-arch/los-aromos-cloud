@@ -724,12 +724,8 @@ def delete_event_attachment_from_edit(
     user: User = Depends(require_user)
 ):
     attachment = db.get(EventAttachment, attachment_id)
-    event = db.get(ClinicalEvent, event_id)
 
-    if not attachment or not event:
-        raise HTTPException(status_code=404)
-
-    if attachment.event_id != event.id:
+    if not attachment:
         raise HTTPException(status_code=404)
 
     db.delete(attachment)
