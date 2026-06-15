@@ -19,15 +19,12 @@
 
             <br>
 
-            <span>
-                Propietario: {{ p.owner.name }}
-                {% if p.owner.phone %}
-                    — Tel: {{ p.owner.phone }}
-                {% endif %}
-                {% if p.owner.whatsapp %}
-                    — WhatsApp: {{ p.owner.whatsapp }}
-                {% endif %}
-            </span>
+           <span>
+               Propietario: {{ p.owner.name if p.owner else "Sin propietario" }}
+               {% if p.owner and (p.owner.whatsapp or p.owner.phone) %}
+                   — WP: {{ p.owner.whatsapp or p.owner.phone }}
+               {% endif %}
+           </span>
         </a>
     {% endfor %}
 </div>
