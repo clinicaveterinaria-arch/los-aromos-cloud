@@ -181,6 +181,22 @@
 
     <div style="grid-column:1 / -1; padding:12px; background:#f7f7f7; border-radius:10px;">
     <h4>🩺 Consulta clínica</h4>
+    <h4>📅 Fecha de la consulta / evento</h4>
+    <input
+        type="date"
+        name="event_date"
+        value="{{ today.strftime('%Y-%m-%d') }}"
+    >
+</div>
+    <h4>📏 Parámetros clínicos</h4>
+
+    <input name="weight" placeholder="Peso kg">
+    <input name="temperature" placeholder="Temperatura °C">
+    <input name="heart_rate" placeholder="FC">
+    <input name="respiratory_rate" placeholder="FR">
+    <input name="mucous_membranes" placeholder="Mucosas">
+    <input name="crt" placeholder="TLLC">
+    <input name="hydration" placeholder="Hidratación">
 
     <select name="event_type" id="event_type">
         {% for t in event_types %}
@@ -241,29 +257,13 @@
 </div>    
 
 
-<div style="grid-column:1 / -1; padding:12px; background:#f7f7f7; border-radius:10px;">
-    <h4>📏 Parámetros clínicos</h4>
 
-    <input name="weight" placeholder="Peso kg">
-    <input name="temperature" placeholder="Temperatura °C">
-    <input name="heart_rate" placeholder="FC">
-    <input name="respiratory_rate" placeholder="FR">
-    <input name="mucous_membranes" placeholder="Mucosas">
-    <input name="crt" placeholder="TLLC">
-    <input name="hydration" placeholder="Hidratación">
-</div>
 
 <div class="vaccine-box" style="grid-column:1 / -1;">
     <h4>💉 Datos de vacunación</h4>
 <input name="vaccine_name" list="vaccines_list" placeholder="Vacuna aplicada">
 <div style="grid-column:1 / -1; padding:12px; background:#f7f7f7; border-radius:10px;">
-    <h4>📅 Fecha de la consulta / evento</h4>
-    <input
-        type="date"
-        name="event_date"
-        value="{{ today.strftime('%Y-%m-%d') }}"
-    >
-</div>
+    
 <datalist id="vaccines_list">
     <option value="Triple Felina">
     <option value="Antirrábica">
