@@ -56,7 +56,23 @@
         </div>
     </form>
 </div>
+<div class="card" style="margin-bottom:20px;">
+    <h3>📥 Importar Excel MyVete</h3>
 
+    <form method="post"
+          action="/products/import"
+          enctype="multipart/form-data">
+
+        <input type="file"
+               name="file"
+               accept=".xlsx,.xls">
+
+        <button type="submit">
+            Importar Excel
+        </button>
+
+    </form>
+</div>
 <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;">
 
     <div class="card">
