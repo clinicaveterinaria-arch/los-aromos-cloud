@@ -510,7 +510,7 @@ def search(
     if q:
         like = f'%{q}%'
         results = db.query(Patient).join(Owner).filter(or_(Patient.name.ilike(like), Owner.name.ilike(like), Owner.phone.ilike(like), Owner.whatsapp.ilike(like))).order_by(Patient.name).limit(100).all()
-    return templates.TemplateResponse('search.html', {'request': request, 'q': q, 'results': results})
+    return templates.TemplateResponse('search.html', {'request': request, 'q': q, 'results': results, 'today': datetime.now().date()})
 @app.post('/patients/{patient_id}/weight')
 def patient_update_weight(
     patient_id: int,
