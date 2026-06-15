@@ -1108,7 +1108,7 @@ if event_date and event_date.strip():
         url=f"/patients/{patient_id}",
         status_code=303
     )
-    )
+    
 
 
 @app.get('/migration', response_class=HTMLResponse)
