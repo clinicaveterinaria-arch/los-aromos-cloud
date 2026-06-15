@@ -651,7 +651,7 @@ async def edit_clinical_event_save(
     patient_id: int,
     event_id: int,
     request: Request,
-    attachments: list[UploadFile] = File(default=[]),
+    attachments: list[UploadFile] = File([]),
     db: Session = Depends(get_db),
     user: User = Depends(require_user)
 ):
