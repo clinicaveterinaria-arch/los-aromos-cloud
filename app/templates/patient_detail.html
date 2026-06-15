@@ -755,7 +755,7 @@ flex-direction:column;
 gap:12px;
 margin-top:15px;
 ">
-      {% for e in events[:5] %}
+      {% for e in events[:10] %}
 <details class="timeline-row" style="
 background:white;
 border-radius:12px;
@@ -1014,6 +1014,14 @@ gap:10px;
 </details>
 
 {% endfor %}
+
+{% if events|length > 5 %}
+    <p style="margin-top:12px;">
+        <a href="/patients/{{ patient.id }}/history" class="btn">
+            📂 Ver eventos anteriores / historial completo
+        </a>
+    </p>
+{% endif %}
 </div>
 </div>
 <script>
