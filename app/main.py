@@ -932,6 +932,7 @@ def event_create(
     dewormer_dose: str = Form(''),
     next_deworming_date: str = Form(''),
     reminder_date: str = Form(''),
+    event_date: str = Form(''),
     weight: str = Form(''),
     temperature: str = Form(''),
     heart_rate: str = Form(''),
@@ -1005,8 +1006,19 @@ def event_create(
             rd = datetime.strptime(next_vaccine_date.strip(), '%Y-%m-%d').date()
         except ValueError:
             rd = None
+    event_created_at = datetime.now()
+
+if event_date and event_date.strip():
+    try:
+        event_created_at = datetime.strptime(
+            event_date.strip(),
+            "%Y-%m-%d"
+        )
+    except ValueError:
+        pass
     event = ClinicalEvent(
         patient_id=patient_id,
+        event_date=event_created_at,
         event_type=event_type,
         title=title or event_type,
         description=description or '',
