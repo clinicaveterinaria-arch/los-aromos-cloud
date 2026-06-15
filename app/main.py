@@ -676,16 +676,19 @@ async def edit_clinical_event_save(
     ]
 
     for field in fields:
-        if hasattr(event, field):
-            value = form.get(field)
+    if hasattr(event, field):
+        value = form.get(field)
 
-            if value == '':
-                value = None
+        if value == '':
+            value = None
 
-            if field in ['next_vaccine_date', 'next_deworming_date', 'reminder_date'] and value:
-                value = datetime.strptime(value, '%Y-%m-%d').date()
+        if field in ['diagnosis', 'treatment', 'description', 'anamnesis', 'physical_exam']:
+            value = value or ''
 
-            setattr(event, field, value)
+        if field in ['next_vaccine_date', 'next_deworming_date', 'reminder_date'] and value:
+            value = datetime.strptime(value, '%Y-%m-%d').date()
+
+        setattr(event, field, value)
 
     db.commit()
 
