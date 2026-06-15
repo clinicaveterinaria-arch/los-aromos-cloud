@@ -1006,16 +1006,17 @@ def event_create(
             rd = datetime.strptime(next_vaccine_date.strip(), '%Y-%m-%d').date()
         except ValueError:
             rd = None
-    event_created_at = datetime.now()
+        event_created_at = datetime.now()
 
-if event_date and event_date.strip():
-    try:
-        event_created_at = datetime.strptime(
-            event_date.strip(),
-            "%Y-%m-%d"
-        )
-    except ValueError:
-        pass
+    if event_date and event_date.strip():
+        try:
+            event_created_at = datetime.strptime(
+                event_date.strip(),
+                "%Y-%m-%d"
+            )
+        except ValueError:
+            pass
+
     event = ClinicalEvent(
         patient_id=patient_id,
         event_date=event_created_at,
@@ -1044,26 +1045,19 @@ if event_date and event_date.strip():
         hydration=hydration or '',
         ecg_hr=ecg_hr or '',
         ecg_rhythm=ecg_rhythm or '',
-
         ecg_p=ecg_p or '',
         ecg_pr=ecg_pr or '',
-
         ecg_qrs=ecg_qrs or '',
         ecg_st=ecg_st or '',
-
         ecg_t=ecg_t or '',
         ecg_qt=ecg_qt or '',
-
         ecg_axis=ecg_axis or '',
         ecg_interpretation=ecg_interpretation or '',
-
         eco_aiao=eco_aiao or '',
         eco_fs=eco_fs or '',
         eco_acvim=eco_acvim or '',
-
         eco_diagnosis=eco_diagnosis or '',
         eco_treatment=eco_treatment or '',
-
         created_by=user.username
     )
 
