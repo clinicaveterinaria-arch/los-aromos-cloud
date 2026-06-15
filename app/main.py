@@ -692,7 +692,7 @@ async def edit_clinical_event_save(
             setattr(event, field, value)
     for file in attachments:
         if file and file.filename:
-            file_path = f"static/uploads/{file.filename}"
+            ffile_path = f"/app/uploads/{file.filename}"
 
             with open(file_path, "wb") as buffer:
                 buffer.write(await file.read())
@@ -700,7 +700,7 @@ async def edit_clinical_event_save(
             attachment = EventAttachment(
                 event_id=event.id,
                 filename=file.filename,
-                file_path="/" + file_path
+                file_path="/uploads/" + file.filename
             )
         
 
