@@ -123,6 +123,33 @@ class Appointment(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     owner: Mapped[Optional['Owner']] = relationship()
     patient: Mapped[Optional['Patient']] = relationship()
+class Product(Base):
+    __tablename__ = 'products'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+
+    rubro: Mapped[str] = mapped_column(String(120), default='', index=True)
+    tipo: Mapped[str] = mapped_column(String(120), default='')
+    name: Mapped[str] = mapped_column(String(200), default='', index=True)
+    code: Mapped[str] = mapped_column(String(100), default='', index=True)
+    barcode: Mapped[str] = mapped_column(String(120), default='', index=True)
+
+    cost_price: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    sale_price: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    margin_percent: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+
+    stock: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    min_stock: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+
+    expiration_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
+
+    provider: Mapped[str] = mapped_column(String(180), default='')
+    manufacturer: Mapped[str] = mapped_column(String(180), default='')
+
+    active: Mapped[bool] = mapped_column(Boolean, default=True)
+    notes: Mapped[str] = mapped_column(Text, default='')
+
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 class EventAttachment(Base):
     __tablename__ = 'event_attachments'
 
