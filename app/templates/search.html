@@ -1,5 +1,41 @@
-{% extends 'base.html' %}{% block content %}
+{% extends 'base.html' %}
+
+{% block content %}
+
 <h1>Historia clínica</h1>
-<form class="searchbar" method="get"><input name="q" value="{{ q }}" placeholder="Buscar paciente, propietario o teléfono"><button>Buscar</button></form>
-<div class="panel"><h2>Resultados</h2>{% for p in results %}<a class="result" href="/patients/{{ p.id }}"><b>{{ p.name }}</b> — {{ p.species }} {{ p.breed }}<br><span>Propietario: {{ p.owner.name }} — {{ p.owner.phone }} {{ p.owner.whatsapp }}</span></a>{% else %}<p>Escribí una búsqueda para encontrar pacientes.</p>{% endfor %}</div>
+
+<form class="searchbar" method="get">
+    <input
+        name="q"
+        value="{{ q }}"
+        placeholder="Buscar paciente, propietario o teléfono">
+    <button>Buscar</button>
+</form>
+
+<div class="panel">
+    <h2>Resultados</h2>
+
+    {% for p in results %}
+    <a class="result" href="/patients/{{ p.id }}">
+
+        <b>{{ p.name }}</b>
+        — {{ p.species or '' }}
+        {{ p.breed or '' }}
+        {% if p.age %}
+            — {{ p.age }} años
+        {% endif %}
+
+        <br>
+
+        <span>
+            Propietario:
+            {{ p.owner.name if p.owner else '-' }}
+            — {{ p.owner.phone if p.owner else '-' }}
+        </span>
+
+    </a>
+    {% endfor %}
+
+</div>
+
 {% endblock %}
