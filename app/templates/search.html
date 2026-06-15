@@ -20,7 +20,13 @@
             <br>
 
             <span>
-                Propietario: {{ p.owner.name }} — {{ p.owner.phone }}
+                Propietario: {{ p.owner.name }}
+                {% if p.owner.phone %}
+                    — Tel: {{ p.owner.phone }}
+                {% endif %}
+                {% if p.owner.whatsapp %}
+                    — WhatsApp: {{ p.owner.whatsapp }}
+                {% endif %}
             </span>
         </a>
     {% endfor %}
