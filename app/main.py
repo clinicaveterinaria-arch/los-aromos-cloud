@@ -651,7 +651,6 @@ async def edit_clinical_event_save(
     patient_id: int,
     event_id: int,
     request: Request,
-    attachments: list[UploadFile] = File([]),
     db: Session = Depends(get_db),
     user: User = Depends(require_user)
 ):
@@ -689,7 +688,7 @@ async def edit_clinical_event_save(
                 value = datetime.strptime(value, '%Y-%m-%d').date()
 
             setattr(event, field, value)
-
+    attachments = form.getlist("attachments")
     upload_dir = "/opt/render/project/src/app/uploads"
     os.makedirs(upload_dir, exist_ok=True)
 
