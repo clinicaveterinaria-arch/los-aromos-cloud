@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>📦 Productos y Stock</h1>
+
+<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px;">
+    <div class="card">
+        <h3>{{ total_products }}</h3>
+        <small>Productos</small>
+    </div>
+
+    <div class="card">
+        <h3>${{ "%.0f"|format(total_sale) }}</h3>
+        <small>Valor venta stock</small>
+    </div>
+
+    <div class="card">
+        <h3>${{ "%.0f"|format(total_cost) }}</h3>
+        <small>Valor costo stock</small>
+    </div>
+
+    <div class="card">
+        <h3>{{ "%.1f"|format(avg_margin) }}%</h3>
+        <small>Margen promedio</small>
+    </div>
+
+    <div class="card">
+        <h3>{{ low_stock }}</h3>
+        <small>A reponer</small>
+    </div>
+</div>
+
+<div class="card" style="margin-bottom:20px;">
+    <form method="get" action="/products">
+        <div style="display:grid;grid-template-columns:2fr 1fr auto;gap:10px;">
+            <input
+                name="q"
+                value="{{ q }}"
+                placeholder="Buscar producto, código, proveedor..."
+            >
+
+            <select name="rubro">
+                <option value="">Todos los rubros</option>
+
+                {% for r in rubros %}
+                    <option value="{{ r }}" {% if rubro==r %}selected{% endif %}>
+                        {{ r }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <button type="submit">
+                Buscar
+            </button>
+        </div>
+    </form>
+</div>
+
+<div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;">
+
+    <div class="card">
+
+        <table style="width:100%;">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Rubro</th>
+                    <th>Stock</th>
+                    <th>Costo</th>
+                    <th>Venta</th>
+                    <th>Margen</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+            {% for p in products %}
+
+                <tr>
+                    <td>{{ p.name }}</td>
+                    <td>{{ p.rubro }}</td>
+                    <td>{{ p.stock or '' }}</td>
+                    <td>${{ p.cost_price or '' }}</td>
+                    <td>${{ p.sale_price or '' }}</td>
+                    <td>{{ "%.1f"|format(p.margin_percent or 0) }}%</td>
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+    <div class="card">
+
+        <h3>➕ Nuevo producto</h3>
+
+        <form method="post" action="/products">
+
+            <input name="name" placeholder="Nombre">
+
+            <input name="rubro" placeholder="Rubro">
+
+            <input name="tipo" placeholder="Tipo">
+
+            <input name="code" placeholder="Código">
+
+            <input name="barcode" placeholder="Código de barras">
+
+            <input name="cost_price" placeholder="Precio costo">
+
+            <input name="sale_price" placeholder="Precio venta">
+
+            <input name="stock" placeholder="Stock">
+
+            <input name="min_stock" placeholder="Stock mínimo">
+
+            <label>Vencimiento</label>
+            <input type="date" name="expiration_date">
+
+            <input name="provider" placeholder="Proveedor">
+
+            <input name="manufacturer" placeholder="Laboratorio / elaborador">
+
+            <textarea
+                name="notes"
+                rows="4"
+                placeholder="Observaciones"
+            ></textarea>
+
+            <button
+                type="submit"
+                style="width:100%;background:green;color:white;padding:10px;border:none;border-radius:8px;"
+            >
+                Guardar producto
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}
