@@ -980,47 +980,34 @@ gap:10px;
 
 {% endif %}
 <hr>
-<style>
-.hc-card{
-    background:white;
-    border:1px solid #ececec;
-    border-left:4px solid #d85c9f;
-    border-radius:12px;
-    padding:14px;
-    margin:10px 0;
-    box-shadow:0 2px 8px rgba(0,0,0,0.06);
-}
 
-.hc-card h4{
-    margin:0 0 10px 0;
-    color:#d85c9f;
-    font-size:15px;
-}
+<div style="display:flex; gap:8px; align-items:center; margin-top:10px;">
 
-.hc-card p{
-    margin:0;
-}
-</style>
-<form method="post"
-      action="/patients/{{ patient.id }}/events/{{ e.id }}/delete"
-      onsubmit="return confirm('¿Eliminar este evento de la historia clínica? Esta acción no se puede deshacer.');">
-<a href="/patients/{{ patient.id }}/events/{{ e.id }}/edit"
-   class="btn"
-   style="margin-right:6px;">
-    ✏️ Editar evento
-</a>
-    <button type="submit"
-            style="
-                background:#fee2e2;
-                color:#991b1b;
-                border:none;
-                border-radius:8px;
-                padding:8px 12px;
-                cursor:pointer;
+    <a href="/patients/{{ patient.id }}/events/{{ e.id }}/edit"
+       class="btn">
+        ✏️ Editar evento
+    </a>
 
-    </button>
+    <form method="post"
+          action="/patients/{{ patient.id }}/events/{{ e.id }}/delete"
+          style="display:inline;"
+          onsubmit="return confirm('¿Eliminar este evento de la historia clínica? Esta acción no se puede deshacer.');">
 
-</form>
+        <button type="submit"
+                style="
+                    background:#fee2e2;
+                    color:#991b1b;
+                    border:none;
+                    border-radius:8px;
+                    padding:8px 12px;
+                    cursor:pointer;
+                ">
+            🗑 Eliminar evento
+        </button>
+
+    </form>
+
+</div>
     
 </div>
   
