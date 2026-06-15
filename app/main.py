@@ -1067,46 +1067,48 @@ if event_date and event_date.strip():
         created_by=user.username
     )
 
-        db.add(event)
-        db.commit()
-        db.refresh(event)
-        if weight and str(weight).strip():
-            try:
-                patient.weight = float(str(weight).replace(',', '.'))
-                db.commit()
-            except ValueError:
-                pass
-    
-        for file in attachments:
-            if not file.filename:
-                continue
-    
-            content = file.file.read()
-            safe_name = file.filename.replace(" ", "_")
-            storage_path = f"patient_{patient_id}/event_{event.id}/{safe_name}"
-    
-            supabase.storage.from_("adjuntos").upload(
-                storage_path,
-                content,
-                {"content-type": file.content_type}
-            )
-    
-            public_url = supabase.storage.from_("adjuntos").get_public_url(storage_path)
-    
-            attachment = EventAttachment(
-                event_id=event.id,
-                filename=file.filename,
-                file_path=public_url
-            )
-    
-            db.add(attachment)
-    
-        db.commit()
-    
-        return RedirectResponse(
-            url=f"/patients/{patient_id}",
-            status_code=303
+    db.add(event)
+    db.commit()
+    db.refresh(event)
+
+    if weight and str(weight).strip():
+        try:
+            patient.weight = float(str(weight).replace(',', '.'))
+            db.commit()
+        except ValueError:
+            pass
+
+    for file in attachments:
+        if not file.filename:
+            continue
+
+        content = file.file.read()
+        safe_name = file.filename.replace(" ", "_")
+        storage_path = f"patient_{patient_id}/event_{event.id}/{safe_name}"
+
+        supabase.storage.from_("adjuntos").upload(
+            storage_path,
+            content,
+            {"content-type": file.content_type}
         )
+
+        public_url = supabase.storage.from_("adjuntos").get_public_url(storage_path)
+
+        attachment = EventAttachment(
+            event_id=event.id,
+            filename=file.filename,
+            file_path=public_url
+        )
+
+        db.add(attachment)
+
+    db.commit()
+
+    return RedirectResponse(
+        url=f"/patients/{patient_id}",
+        status_code=303
+    )
+    )
 
 
 @app.get('/migration', response_class=HTMLResponse)
