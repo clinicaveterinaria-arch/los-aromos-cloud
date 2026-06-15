@@ -979,17 +979,17 @@ def event_create(
 
     if quick_event_type in quick_map:
         event_type = quick_map[quick_event_type]
-    def to_float(value):
-        try:
-            return float(value.replace(',', '.')) if value and value.strip() else None
-        except ValueError:
-            return None
-
-    def to_int(value):
-        try:
-            return int(float(value.replace(',', '.'))) if value and value.strip() else None
-        except ValueError:
-            return None 
+        def to_float(value):
+            try:
+                return float(value.replace(',', '.')) if value and value.strip() else None
+            except ValueError:
+                return None
+    
+        def to_int(value):
+            try:
+                return int(float(value.replace(',', '.'))) if value and value.strip() else None
+            except ValueError:
+                return None 
 
 
 
