@@ -256,7 +256,14 @@
 <div class="vaccine-box" style="grid-column:1 / -1;">
     <h4>💉 Datos de vacunación</h4>
 <input name="vaccine_name" list="vaccines_list" placeholder="Vacuna aplicada">
-
+<div style="grid-column:1 / -1; padding:12px; background:#f7f7f7; border-radius:10px;">
+    <h4>📅 Fecha de la consulta / evento</h4>
+    <input
+        type="date"
+        name="event_date"
+        value="{{ today.strftime('%Y-%m-%d') }}"
+    >
+</div>
 <datalist id="vaccines_list">
     <option value="Triple Felina">
     <option value="Antirrábica">
