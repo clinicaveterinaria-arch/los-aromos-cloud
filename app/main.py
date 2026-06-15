@@ -715,6 +715,30 @@ async def edit_clinical_event_save(
         url=f'/patients/{patient_id}',
         status_code=303
     )
+@app.post('/patients/{patient_id}/events/{event_id}/attachments/{attachment_id}/delete')
+def delete_event_attachment_from_edit(
+    patient_id: int,
+    event_id: int,
+    attachment_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    attachment = db.get(EventAttachment, attachment_id)
+    event = db.get(ClinicalEvent, event_id)
+
+    if not attachment or not event:
+        raise HTTPException(status_code=404)
+
+    if attachment.event_id != event.id:
+        raise HTTPException(status_code=404)
+
+    db.delete(attachment)
+    db.commit()
+
+    return RedirectResponse(
+        url=f'/patients/{patient_id}/events/{event_id}/edit',
+        status_code=303
+    )
 @app.get('/patients/{patient_id}/cardiology/ecg', response_class=HTMLResponse)
 def patient_ecg_list(
     request: Request,
