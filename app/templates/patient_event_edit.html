@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="panel">
+
+    <h2>✏️ Editar evento clínico</h2>
+
+    <p>
+        <b>Paciente:</b> {{ patient.name }}
+    </p>
+
+    <form method="post">
+
+        <label>Tipo de evento</label>
+        <select name="event_type">
+            {% for t in event_types %}
+                <option value="{{ t }}" {% if event.event_type == t %}selected{% endif %}>
+                    {{ t }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <br><br>
+
+        <label>Título</label>
+        <input type="text" name="title" value="{{ event.title or '' }}">
+
+        <br><br>
+
+        <label>Descripción</label>
+        <textarea name="description">{{ event.description or '' }}</textarea>
+
+        <br><br>
+
+        <label>Anamnesis</label>
+        <textarea name="anamnesis">{{ event.anamnesis or '' }}</textarea>
+
+        <br><br>
+
+        <label>Examen físico</label>
+        <textarea name="physical_exam">{{ event.physical_exam or '' }}</textarea>
+
+        <br><br>
+
+        <label>Diagnóstico</label>
+        <textarea name="diagnosis">{{ event.diagnosis or '' }}</textarea>
+
+        <br><br>
+
+        <label>Tratamiento</label>
+        <textarea name="treatment">{{ event.treatment or '' }}</textarea>
+
+        <br><br>
+
+        <h3>🩺 Parámetros clínicos</h3>
+
+        <input name="weight" placeholder="Peso" value="{{ event.weight or '' }}">
+        <input name="temperature" placeholder="Temperatura" value="{{ event.temperature or '' }}">
+        <input name="heart_rate" placeholder="FC" value="{{ event.heart_rate or '' }}">
+        <input name="respiratory_rate" placeholder="FR" value="{{ event.respiratory_rate or '' }}">
+        <input name="mucous_membranes" placeholder="Mucosas" value="{{ event.mucous_membranes or '' }}">
+        <input name="crt" placeholder="TLLC" value="{{ event.crt or '' }}">
+        <input name="hydration" placeholder="Hidratación" value="{{ event.hydration or '' }}">
+
+        <br><br>
+
+        <h3>💗 ECG</h3>
+
+        <input name="ecg_hr" placeholder="FC" value="{{ event.ecg_hr or '' }}">
+        <input name="ecg_rhythm" placeholder="Ritmo" value="{{ event.ecg_rhythm or '' }}">
+        <input name="ecg_p" placeholder="Onda P" value="{{ event.ecg_p or '' }}">
+        <input name="ecg_pr" placeholder="PR" value="{{ event.ecg_pr or '' }}">
+        <input name="ecg_qrs" placeholder="QRS" value="{{ event.ecg_qrs or '' }}">
+        <input name="ecg_st" placeholder="ST" value="{{ event.ecg_st or '' }}">
+        <input name="ecg_t" placeholder="Onda T" value="{{ event.ecg_t or '' }}">
+        <input name="ecg_qt" placeholder="QT" value="{{ event.ecg_qt or '' }}">
+        <input name="ecg_axis" placeholder="Eje" value="{{ event.ecg_axis or '' }}">
+
+        <textarea
+            name="ecg_interpretation"
+            placeholder="Interpretación ECG"
+        >{{ event.ecg_interpretation or '' }}</textarea>
+
+        <br><br>
+
+        <h3>💓 Ecocardiografía</h3>
+
+        <input name="eco_aiao" placeholder="AI/Ao" value="{{ event.eco_aiao or '' }}">
+        <input name="eco_fs" placeholder="FS %" value="{{ event.eco_fs or '' }}">
+        <input name="eco_acvim" placeholder="ACVIM" value="{{ event.eco_acvim or '' }}">
+
+        <textarea
+            name="eco_diagnosis"
+            placeholder="Diagnóstico ecocardiográfico"
+        >{{ event.eco_diagnosis or '' }}</textarea>
+
+        <textarea
+            name="eco_treatment"
+            placeholder="Tratamiento cardiológico"
+        >{{ event.eco_treatment or '' }}</textarea>
+
+        <br><br>
+
+        <button
+            type="submit"
+            class="btn"
+            style="background:#22c55e;color:white;"
+        >
+            💾 Guardar cambios
+        </button>
+
+        <a
+            href="/patients/{{ patient.id }}"
+            class="btn"
+        >
+            Cancelar
+        </a>
+
+    </form>
+
+</div>
+
+{% endblock %}
