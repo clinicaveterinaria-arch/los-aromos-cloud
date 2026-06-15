@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, date, timedelta
 import os
 
 from typing import Optional
@@ -1124,7 +1124,147 @@ def event_create(
     )
     
 
+@app.get('/products', response_class=HTMLResponse)
+def products_page(
+    request: Request,
+    q: str = '',
+    rubro: str = '',
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    query = db.query(Product).filter(Product.active == True)
 
+    if q:
+        like = f"%{q}%"
+        query = query.filter(
+            or_(
+                Product.name.ilike(like),
+                Product.code.ilike(like),
+                Product.barcode.ilike(like),
+                Product.provider.ilike(like),
+                Product.manufacturer.ilike(like),
+            )
+        )
+
+    if rubro:
+        query = query.filter(Product.rubro == rubro)
+
+    products = query.order_by(Product.name).limit(300).all()
+
+    total_products = db.query(Product).filter(Product.active == True).count()
+    low_stock = db.query(Product).filter(
+        Product.active == True,
+        Product.stock != None,
+        Product.min_stock != None,
+        Product.stock <= Product.min_stock
+    ).count()
+
+    today = datetime.now().date()
+    soon = today + timedelta(days=60)
+
+    expired_or_soon = db.query(Product).filter(
+        Product.active == True,
+        Product.expiration_date != None,
+        Product.expiration_date <= soon
+    ).count()
+
+    total_cost = 0
+    total_sale = 0
+
+    for p in db.query(Product).filter(Product.active == True).all():
+        stock = p.stock or 0
+        total_cost += stock * (p.cost_price or 0)
+        total_sale += stock * (p.sale_price or 0)
+
+    avg_margin = 0
+    if total_cost > 0:
+        avg_margin = ((total_sale - total_cost) / total_cost) * 100
+
+    rubros = [
+        r[0] for r in db.query(Product.rubro)
+        .filter(Product.rubro != '')
+        .distinct()
+        .order_by(Product.rubro)
+        .all()
+    ]
+
+    return templates.TemplateResponse(
+        'products.html',
+        {
+            'request': request,
+            'products': products,
+            'q': q,
+            'rubro': rubro,
+            'rubros': rubros,
+            'total_products': total_products,
+            'low_stock': low_stock,
+            'expired_or_soon': expired_or_soon,
+            'total_cost': total_cost,
+            'total_sale': total_sale,
+            'avg_margin': avg_margin,
+            'today': today
+        }
+    )
+
+
+@app.post('/products')
+def product_create(
+    name: str = Form(''),
+    rubro: str = Form(''),
+    tipo: str = Form(''),
+    code: str = Form(''),
+    barcode: str = Form(''),
+    cost_price: str = Form(''),
+    sale_price: str = Form(''),
+    stock: str = Form(''),
+    min_stock: str = Form(''),
+    expiration_date: str = Form(''),
+    provider: str = Form(''),
+    manufacturer: str = Form(''),
+    notes: str = Form(''),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    def to_float(value):
+        try:
+            return float(value.replace(',', '.')) if value and value.strip() else None
+        except ValueError:
+            return None
+
+    exp = None
+    if expiration_date and expiration_date.strip():
+        try:
+            exp = datetime.strptime(expiration_date.strip(), "%Y-%m-%d").date()
+        except ValueError:
+            exp = None
+
+    cost = to_float(cost_price)
+    sale = to_float(sale_price)
+    margin = None
+    if cost and sale:
+        margin = ((sale - cost) / cost) * 100
+
+    product = Product(
+        name=name or '',
+        rubro=rubro or '',
+        tipo=tipo or '',
+        code=code or '',
+        barcode=barcode or '',
+        cost_price=cost,
+        sale_price=sale,
+        margin_percent=margin,
+        stock=to_float(stock),
+        min_stock=to_float(min_stock),
+        expiration_date=exp,
+        provider=provider or '',
+        manufacturer=manufacturer or '',
+        notes=notes or ''
+    )
+
+    db.add(product)
+    db.commit()
+
+    return RedirectResponse('/products', status_code=303)
 @app.get('/migration', response_class=HTMLResponse)
 def migration(request: Request, user: User = Depends(require_user)):
     return templates.TemplateResponse('migration.html', {'request': request})
