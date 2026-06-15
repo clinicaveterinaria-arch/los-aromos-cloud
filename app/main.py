@@ -690,21 +690,24 @@ async def edit_clinical_event_save(
                 value = datetime.strptime(value, '%Y-%m-%d').date()
 
             setattr(event, field, value)
-    for file in attachments:
-        if file and file.filename:
-            ffile_path = f"/app/uploads/{file.filename}"
+    upload_dir = "/opt/render/project/src/app/uploads"
+os.makedirs(upload_dir, exist_ok=True)
 
-            with open(file_path, "wb") as buffer:
-                buffer.write(await file.read())
+for file in attachments:
+    if file and file.filename:
+        safe_filename = os.path.basename(file.filename)
+        full_path = os.path.join(upload_dir, safe_filename)
 
-            attachment = EventAttachment(
-                event_id=event.id,
-                filename=file.filename,
-                file_path="/uploads/" + file.filename
-            )
-        
+        with open(full_path, "wb") as buffer:
+            buffer.write(await file.read())
 
-            db.add(attachment)
+        attachment = EventAttachment(
+            event_id=event.id,
+            filename=safe_filename,
+            file_path="/uploads/" + safe_filename
+        )
+
+        db.add(attachment)
     db.commit()
 
     return RedirectResponse(
