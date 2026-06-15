@@ -16,7 +16,7 @@ SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 from .database import Base, engine, get_db
-from .models import User, Owner, Patient, ClinicalEvent, EventAttachment, Appointment
+from .models import User, Owner, Patient, ClinicalEvent, EventAttachment, Appointment, Product
 Base.metadata.create_all(bind=engine)
 try:
     with engine.begin() as conn:
@@ -93,7 +93,27 @@ CREATE TABLE IF NOT EXISTS event_attachments (
     file_path VARCHAR(500) NOT NULL
 )
 """))
-
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS products (
+                id SERIAL PRIMARY KEY,
+                rubro VARCHAR(120) DEFAULT '',
+                tipo VARCHAR(120) DEFAULT '',
+                name VARCHAR(200) DEFAULT '',
+                code VARCHAR(100) DEFAULT '',
+                barcode VARCHAR(120) DEFAULT '',
+                cost_price FLOAT,
+                sale_price FLOAT,
+                margin_percent FLOAT,
+                stock FLOAT,
+                min_stock FLOAT,
+                expiration_date DATE,
+                provider VARCHAR(180) DEFAULT '',
+                manufacturer VARCHAR(180) DEFAULT '',
+                active BOOLEAN DEFAULT TRUE,
+                notes TEXT DEFAULT '',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """))
     try:
         admin = db.query(User).filter(User.username == 'admin').first()
         if not admin:
