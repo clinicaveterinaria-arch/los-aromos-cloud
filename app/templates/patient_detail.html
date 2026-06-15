@@ -755,8 +755,8 @@ flex-direction:column;
 gap:12px;
 margin-top:15px;
 ">
-      {% for e in events %}
-<details class="timeline-row" {% if loop.first %}open{% endif %} style="
+      {% for e in events[:5] %}
+<details class="timeline-row" style="
 background:white;
 border-radius:12px;
 padding:0;
