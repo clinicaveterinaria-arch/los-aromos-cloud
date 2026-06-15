@@ -651,6 +651,7 @@ async def edit_clinical_event_save(
     patient_id: int,
     event_id: int,
     request: Request,
+    attachments: list[UploadFile] = File(default=[]),
     db: Session = Depends(get_db),
     user: User = Depends(require_user)
 ):
@@ -689,7 +690,21 @@ async def edit_clinical_event_save(
                 value = datetime.strptime(value, '%Y-%m-%d').date()
 
             setattr(event, field, value)
+    for file in attachments:
+        if file and file.filename:
+            file_path = f"static/uploads/{file.filename}"
 
+            with open(file_path, "wb") as buffer:
+                buffer.write(await file.read())
+
+            attachment = EventAttachment(
+                event_id=event.id,
+                filename=file.filename,
+                file_path="/" + file_path
+            )
+        
+
+            db.add(attachment)
     db.commit()
 
     return RedirectResponse(
