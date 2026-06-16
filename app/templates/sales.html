@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>Ventas</h2>
+
+<div class="card mb-4">
+    <div class="card-header">
+        Nueva venta
+    </div>
+
+    <div class="card-body">
+        <form method="post" action="/sales">
+
+            <div id="items-container">
+
+                <div class="row mb-2 sale-item">
+                    <div class="col-md-5">
+                        <label>Producto</label>
+                        <select name="product_id" class="form-control product-select" onchange="updatePrice(this)">
+                            <option value="">Seleccionar producto</option>
+                            {% for product in products %}
+                            <option 
+                                value="{{ product.id }}"
+                                data-price="{{ product.sale_price or 0 }}">
+                                {{ product.name }} - Stock: {{ product.stock or 0 }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label>Cantidad</label>
+                        <input type="number" step="0.01" name="quantity" class="form-control quantity" value="1" oninput="calculateTotal()">
+                    </div>
+
+                    <div class="col-md-2">
+                        <label>Precio unitario</label>
+                        <input type="number" step="0.01" name="unit_price" class="form-control unit-price" value="0" oninput="calculateTotal()">
+                    </div>
+
+                    <div class="col-md-2">
+                        <label>Subtotal</label>
+                        <input type="text" class="form-control subtotal" value="0" readonly>
+                    </div>
+
+                    <div class="col-md-1 d-flex align-items-end">
+                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeItem(this)">X</button>
+                    </div>
+                </div>
+
+            </div>
+
+            <button type="button" class="btn btn-sm btn-secondary mb-3" onclick="addItem()">
+                + Agregar producto
+            </button>
+
+            <div class="mb-3">
+                <label>Notas</label>
+                <textarea name="notes" class="form-control" rows="2"></textarea>
+            </div>
+
+            <h4>Total: $ <span id="total-sale">0.00</span></h4>
+
+            <button type="submit" class="btn btn-success mt-3">
+                Guardar venta
+            </button>
+
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        Últimas ventas
+    </div>
+
+    <div class="card-body">
+        {% if sales %}
+        <table class="table table-sm">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Total</th>
+                    <th>Notas</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for sale in sales %}
+                <tr>
+                    <td>{{ sale.date.strftime("%d/%m/%Y %H:%M") }}</td>
+                    <td>$ {{ "%.2f"|format(sale.total or 0) }}</td>
+                    <td>{{ sale.notes or "" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No hay ventas registradas.</p>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function updatePrice(select) {
+    const row = select.closest(".sale-item");
+    const selected = select.options[select.selectedIndex];
+    const price = selected.getAttribute("data-price") || 0;
+
+    row.querySelector(".unit-price").value = price;
+    calculateTotal();
+}
+
+function calculateTotal() {
+    let total = 0;
+
+    document.querySelectorAll(".sale-item").forEach(row => {
+        const qty = parseFloat(row.querySelector(".quantity").value) || 0;
+        const price = parseFloat(row.querySelector(".unit-price").value) || 0;
+        const subtotal = qty * price;
+
+        row.querySelector(".subtotal").value = subtotal.toFixed(2);
+        total += subtotal;
+    });
+
+    document.getElementById("total-sale").innerText = total.toFixed(2);
+}
+
+function addItem() {
+    const container = document.getElementById("items-container");
+    const firstItem = document.querySelector(".sale-item");
+    const newItem = firstItem.cloneNode(true);
+
+    newItem.querySelector(".product-select").value = "";
+    newItem.querySelector(".quantity").value = 1;
+    newItem.querySelector(".unit-price").value = 0;
+    newItem.querySelector(".subtotal").value = 0;
+
+    container.appendChild(newItem);
+    calculateTotal();
+}
+
+function removeItem(button) {
+    const items = document.querySelectorAll(".sale-item");
+
+    if (items.length > 1) {
+        button.closest(".sale-item").remove();
+        calculateTotal();
+    }
+}
+</script>
+
+{% endblock %}
