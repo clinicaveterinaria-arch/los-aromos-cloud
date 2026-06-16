@@ -1213,35 +1213,73 @@ async def import_products(
     db: Session = Depends(get_db),
     user: User = Depends(require_user)
 ):
-    wb = load_workbook(BytesIO(await file.read()))
-    ws = wb.active
+    content = await file.read()
+    text_content = content.decode("utf-8-sig", errors="ignore")
+
+    import csv
+    from io import StringIO
+
+    reader = csv.DictReader(StringIO(text_content), delimiter=";")
+
+    def to_float(value):
+        try:
+            if value is None:
+                return None
+            value = str(value).strip()
+            if value == "":
+                return None
+            return float(value.replace(",", "."))
+        except ValueError:
+            return None
+
+    def to_date(value):
+        try:
+            if not value:
+                return None
+            value = str(value).strip()
+            if value == "" or value.lower() == "sin asignar":
+                return None
+            return datetime.strptime(value, "%d/%m/%Y").date()
+        except ValueError:
+            return None
 
     imported = 0
 
-    for row in ws.iter_rows(min_row=2, values_only=True):
-        try:
-            product = Product(
-                name=str(row[0] or ''),
-                rubro=str(row[1] or ''),
-                code=str(row[2] or ''),
-                barcode=str(row[3] or ''),
-                cost_price=float(row[4] or 0),
-                sale_price=float(row[5] or 0),
-                stock=float(row[6] or 0),
-                provider=str(row[7] or ''),
-                manufacturer=str(row[8] or '')
-            )
-
-            db.add(product)
-            imported += 1
-
-        except Exception:
+    for row in reader:
+        name = str(row.get("Nombre") or "").strip()
+        if not name:
             continue
+
+        cost = to_float(row.get("Costo"))
+        sale = to_float(row.get("Precio"))
+        margin = to_float(row.get("Margen (%)"))
+
+        if margin is None and cost and sale:
+            margin = ((sale - cost) / cost) * 100
+
+        product = Product(
+            rubro=str(row.get("Rubro") or "").strip(),
+            name=name,
+            code=str(row.get("Código") or "").strip(),
+            barcode=str(row.get("Código de Barras") or "").strip(),
+            sale_price=sale,
+            cost_price=cost,
+            margin_percent=margin,
+            stock=to_float(row.get("Stock")),
+            min_stock=to_float(row.get("Stock Min")),
+            expiration_date=to_date(row.get("Vencimiento")),
+            manufacturer=str(row.get("Elaborador") or "").strip(),
+            provider=str(row.get("Proveedores") or "").strip(),
+            notes=str(row.get("Nota") or "").strip()
+        )
+
+        db.add(product)
+        imported += 1
 
     db.commit()
 
     return RedirectResponse(
-        url='/products',
+        url=f"/products?imported={imported}",
         status_code=303
     )
 
