@@ -1504,6 +1504,101 @@ def product_adjust_stock(
         url='/products',
         status_code=303
     )
+# ===== VENTAS =====
+
+@app.get('/sales', response_class=HTMLResponse)
+def sales_page(
+    request: Request,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    products = (
+        db.query(Product)
+        .filter(Product.active == True)
+        .order_by(Product.name)
+        .all()
+    )
+
+    sales = (
+        db.query(Sale)
+        .order_by(Sale.date.desc())
+        .limit(30)
+        .all()
+    )
+
+    return templates.TemplateResponse(
+        'sales.html',
+        {
+            'request': request,
+            'products': products,
+            'sales': sales
+        }
+    )
+
+
+@app.post('/sales')
+def sales_create(
+    product_id: list[int] = Form([]),
+    quantity: list[str] = Form([]),
+    unit_price: list[str] = Form([]),
+    notes: str = Form(''),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    def to_float(value):
+        try:
+            return float(str(value).replace(',', '.')) if value and str(value).strip() else 0
+        except ValueError:
+            return 0
+
+    sale = Sale(
+        status='paid',
+        total=0,
+        notes=notes or ''
+    )
+
+    db.add(sale)
+    db.flush()
+
+    total = 0
+
+    for pid, qty_raw, price_raw in zip(product_id, quantity, unit_price):
+
+        product = db.get(Product, pid)
+
+        if not product:
+            continue
+
+        qty = to_float(qty_raw)
+        price = to_float(price_raw)
+
+        if qty <= 0:
+            continue
+
+        subtotal = qty * price
+        total += subtotal
+
+        item = SaleItem(
+            sale_id=sale.id,
+            product_id=product.id,
+            quantity=qty,
+            unit_price=price,
+            subtotal=subtotal
+        )
+
+        db.add(item)
+
+        current_stock = product.stock or 0
+        product.stock = current_stock - qty
+
+    sale.total = total
+
+    db.commit()
+
+    return RedirectResponse(
+        url='/sales',
+        status_code=303
+    )
 @app.get('/migration', response_class=HTMLResponse)
 def migration(request: Request, user: User = Depends(require_user)):
     return templates.TemplateResponse('migration.html', {'request': request})
