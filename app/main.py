@@ -1412,6 +1412,7 @@ def product_edit_save(
     barcode: str = Form(''),
     cost_price: str = Form(''),
     sale_price: str = Form(''),
+    margin_percent: str = Form(''),
     stock: str = Form(''),
     min_stock: str = Form(''),
     provider: str = Form(''),
@@ -1441,17 +1442,14 @@ def product_edit_save(
     product.barcode = barcode
     product.cost_price = to_float(cost_price)
     product.sale_price = to_float(sale_price)
+    product.margin_percent = to_float(margin_percent)
     product.stock = to_float(stock)
     product.min_stock = to_float(min_stock)
     product.provider = provider
     product.manufacturer = manufacturer
     product.notes = notes
 
-    if product.cost_price and product.sale_price and product.cost_price > 0:
-        product.margin_percent = (
-            (product.sale_price - product.cost_price)
-            / product.cost_price
-        ) * 100
+    
 
     db.commit()
 
