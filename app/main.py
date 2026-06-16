@@ -1176,9 +1176,10 @@ def products_page(
         if (
             p.stock is not None and
             p.min_stock is not None and
+            p.min_stock > 0 and
             p.stock <= p.min_stock
         ):
-            p.row_color = '#ffe5e5'
+                p.row_color = '#ffe5e5'
     expired_or_soon = db.query(Product).filter(
         Product.active == True,
         Product.expiration_date != None,
