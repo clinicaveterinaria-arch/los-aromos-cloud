@@ -1214,34 +1214,37 @@ async def import_products(
     user: User = Depends(require_user)
 ):
     content = await file.read()
-    text_content = content.decode("utf-8-sig", errors="ignore")
 
-    import csv
-    from io import StringIO
+    wb = load_workbook(BytesIO(content), data_only=True)
+    ws = wb.active
 
-    text_content = text_content.replace("\r\n", "\n").replace("\r", "\n")
-    reader = csv.DictReader(StringIO(text_content), delimiter=";")
-    print("COLUMNAS CSV:", reader.fieldnames)
+    headers = []
+    for cell in ws[1]:
+        headers.append(str(cell.value).strip() if cell.value else "")
+
+    def get_value(row, column_name):
+        if column_name not in headers:
+            return None
+        idx = headers.index(column_name)
+        return row[idx] if idx < len(row) else None
 
     def to_float(value):
         try:
             if value is None:
                 return None
-
             value = str(value).strip()
-
             if value == "" or value == "---":
                 return None
-
             return float(value.replace(",", "."))
-
         except ValueError:
             return None
 
     def to_date(value):
         try:
-            if not value:
+            if value is None:
                 return None
+            if hasattr(value, "date"):
+                return value.date()
             value = str(value).strip()
             if value == "" or value.lower() == "sin asignar":
                 return None
@@ -1251,32 +1254,32 @@ async def import_products(
 
     imported = 0
 
-    for row in reader:
-        name = str(row.get("Nombre") or "").strip()
+    for row in ws.iter_rows(min_row=2, values_only=True):
+        name = str(get_value(row, "Nombre") or "").strip()
         if not name:
             continue
 
-        cost = to_float(row.get("Costo"))
-        sale = to_float(row.get("Precio"))
-        margin = to_float(row.get("Margen (%)"))
+        cost = to_float(get_value(row, "Costo"))
+        sale = to_float(get_value(row, "Precio"))
+        margin = to_float(get_value(row, "Margen (%)"))
 
         if margin is None and cost and sale:
             margin = ((sale - cost) / cost) * 100
 
         product = Product(
-            rubro=str(row.get("Rubro") or "").strip(),
+            rubro=str(get_value(row, "Rubro") or "").strip(),
             name=name,
-            code=str(row.get("Código") or "").strip(),
-            barcode=str(row.get("Código de Barras") or "").strip(),
+            code=str(get_value(row, "Código") or "").strip(),
+            barcode=str(get_value(row, "Código de Barras") or "").strip(),
             sale_price=sale,
             cost_price=cost,
             margin_percent=margin,
-            stock=to_float(row.get("Stock")),
-            min_stock=to_float(row.get("Stock Min")),
-            expiration_date=to_date(row.get("Vencimiento")),
-            manufacturer=str(row.get("Elaborador") or "").strip(),
-            provider=str(row.get("Proveedores") or "").strip(),
-            notes=str(row.get("Nota") or "").strip()
+            stock=to_float(get_value(row, "Stock")),
+            min_stock=to_float(get_value(row, "Stock Min")),
+            expiration_date=to_date(get_value(row, "Vencimiento")),
+            manufacturer=str(get_value(row, "Elaborador") or "").strip(),
+            provider=str(get_value(row, "Proveedores") or "").strip(),
+            notes=str(get_value(row, "Nota") or "").strip()
         )
 
         db.add(product)
@@ -1288,7 +1291,6 @@ async def import_products(
         url=f"/products?imported={imported}",
         status_code=303
     )
-
 @app.post('/products')
 def product_create(
     name: str = Form(''),
