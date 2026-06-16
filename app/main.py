@@ -1221,6 +1221,7 @@ async def import_products(
 
     text_content = text_content.replace("\r\n", "\n").replace("\r", "\n")
     reader = csv.DictReader(StringIO(text_content), delimiter=";")
+    print("COLUMNAS CSV:", reader.fieldnames)
 
     def to_float(value):
         try:
