@@ -8,15 +8,20 @@
 
 <form method="post">
 
-    <input name="name" value="{{ product.name }}" placeholder="Nombre">
+<label><b>Nombre</b></label>
+<input name="name" value="{{ product.name }}" placeholder="Nombre">
 
-    <input name="rubro" value="{{ product.rubro or '' }}" placeholder="Rubro">
+<label><b>Rubro</b></label>
+<input name="rubro" value="{{ product.rubro or '' }}" placeholder="Rubro">
 
-    <input name="tipo" value="{{ product.tipo or '' }}" placeholder="Tipo">
+<label><b>Tipo</b></label>
+<input name="tipo" value="{{ product.tipo or '' }}" placeholder="Tipo">
 
-    <input name="code" value="{{ product.code or '' }}" placeholder="Código">
+<label><b>Código</b></label>
+<input name="code" value="{{ product.code or '' }}" placeholder="Código">
 
-    <input name="barcode" value="{{ product.barcode or '' }}" placeholder="Código de barras">
+<label><b>Código de barras</b></label>
+<input name="barcode" value="{{ product.barcode or '' }}" placeholder="Código de barras">
 
     <label><b>Precio costo</b></label>
     <input
@@ -48,13 +53,19 @@
         Ganancia por unidad: $0
     </p>
 
+    <label><b>Stock</b></label>
     <input name="stock" value="{{ product.stock or '' }}" placeholder="Stock">
-
+    
+    <label><b>Stock mínimo</b></label>
     <input name="min_stock" value="{{ product.min_stock or '' }}" placeholder="Stock mínimo">
-
+    
+    <label><b>Proveedor</b></label>
     <input name="provider" value="{{ product.provider or '' }}" placeholder="Proveedor">
-
+    
+    <label><b>Elaborador</b></label>
     <input name="manufacturer" value="{{ product.manufacturer or '' }}" placeholder="Elaborador">
+
+    <label><b>Observaciones</b></label>
 
     <textarea
         name="notes"
