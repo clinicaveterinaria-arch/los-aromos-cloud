@@ -1402,6 +1402,63 @@ def product_edit_page(
             'product': product
         }
     )
+@app.post('/products/{product_id}/edit')
+def product_edit_save(
+    product_id: int,
+    name: str = Form(''),
+    rubro: str = Form(''),
+    tipo: str = Form(''),
+    code: str = Form(''),
+    barcode: str = Form(''),
+    cost_price: str = Form(''),
+    sale_price: str = Form(''),
+    stock: str = Form(''),
+    min_stock: str = Form(''),
+    provider: str = Form(''),
+    manufacturer: str = Form(''),
+    notes: str = Form(''),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    product = db.get(Product, product_id)
+
+    if not product:
+        raise HTTPException(
+            status_code=404,
+            detail="Producto no encontrado"
+        )
+
+    def to_float(value):
+        try:
+            return float(value.replace(',', '.')) if value and value.strip() else None
+        except ValueError:
+            return None
+
+    product.name = name
+    product.rubro = rubro
+    product.tipo = tipo
+    product.code = code
+    product.barcode = barcode
+    product.cost_price = to_float(cost_price)
+    product.sale_price = to_float(sale_price)
+    product.stock = to_float(stock)
+    product.min_stock = to_float(min_stock)
+    product.provider = provider
+    product.manufacturer = manufacturer
+    product.notes = notes
+
+    if product.cost_price and product.sale_price and product.cost_price > 0:
+        product.margin_percent = (
+            (product.sale_price - product.cost_price)
+            / product.cost_price
+        ) * 100
+
+    db.commit()
+
+    return RedirectResponse(
+        url='/products',
+        status_code=303
+    )
 @app.get('/migration', response_class=HTMLResponse)
 def migration(request: Request, user: User = Depends(require_user)):
     return templates.TemplateResponse('migration.html', {'request': request})
