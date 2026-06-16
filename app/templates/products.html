@@ -118,14 +118,42 @@
                               action="/products/{{ p.id }}/adjust"
                               style="display:inline;">
                             <input type="hidden" name="qty" value="-1">
-                            <button type="submit">➖</button>
+                                <button
+                                type="submit"
+                                style="
+                                    width:24px;
+                                    height:24px;
+                                    padding:0;
+                                    background:#e5e7eb;
+                                    border:1px solid #d1d5db;
+                                    border-radius:4px;
+                                    cursor:pointer;
+                                    margin-left:2px;
+                                "
+                            >
+                            ➖
+                            </button>
                         </form>
                     
                         <form method="post"
                               action="/products/{{ p.id }}/adjust"
                               style="display:inline;">
                             <input type="hidden" name="qty" value="1">
-                            <button type="submit">➕</button>
+                            <button
+                                type="submit"
+                                style="
+                                    width:24px;
+                                    height:24px;
+                                    padding:0;
+                                    background:#e5e7eb;
+                                    border:1px solid #d1d5db;
+                                    border-radius:4px;
+                                    cursor:pointer;
+                                    margin-left:2px;
+                                "
+                            >
+                            ➕
+                            </button>
                         </form>
                     </td>
                 </tr>
