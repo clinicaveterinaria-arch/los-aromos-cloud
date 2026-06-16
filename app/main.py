@@ -1219,7 +1219,8 @@ async def import_products(
     import csv
     from io import StringIO
 
-    reader = csv.DictReader(StringIO(text_content), delimiter=";")
+    text_content = text_content.replace("\r\n", "\n").replace("\r", "\n")
+    reader = csv.DictReader(StringIO(text_content, newline=""), delimiter=",")
 
     def to_float(value):
         try:
