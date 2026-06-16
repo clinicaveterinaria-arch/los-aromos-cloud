@@ -1380,6 +1380,28 @@ def product_create(
     db.commit()
 
     return RedirectResponse('/products', status_code=303)
+@app.get('/products/{product_id}/edit', response_class=HTMLResponse)
+def product_edit_page(
+    request: Request,
+    product_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    product = db.get(Product, product_id)
+
+    if not product:
+        raise HTTPException(
+            status_code=404,
+            detail="Producto no encontrado"
+        )
+
+    return templates.TemplateResponse(
+        'product_edit.html',
+        {
+            'request': request,
+            'product': product
+        }
+    )
 @app.get('/migration', response_class=HTMLResponse)
 def migration(request: Request, user: User = Depends(require_user)):
     return templates.TemplateResponse('migration.html', {'request': request})
