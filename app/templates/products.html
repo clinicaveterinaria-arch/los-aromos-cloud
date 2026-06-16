@@ -94,7 +94,7 @@
 
             {% for p in products %}
 
-                <tr>
+                <tr style="background:{{ p.row_color }};">
                     <td>{{ p.name }}</td>
                     <td>{{ p.rubro }}</td>
                     <td>{{ p.stock or '' }}</td>
