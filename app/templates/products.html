@@ -86,7 +86,7 @@
                     <th>Costo</th>
                     <th>Venta</th>
                     <th>Margen</th>
-                    <th>Acciones</th>
+                    <th>Estado</th>
                 </tr>
             </thead>
 
@@ -94,13 +94,24 @@
 
             {% for p in products %}
 
-                <tr style="background:{{ p.row_color }};">
+                <tr>
                     <td>{{ p.name }}</td>
                     <td>{{ p.rubro }}</td>
                     <td>{{ p.stock or '' }}</td>
                     <td>${{ p.cost_price or '' }}</td>
                     <td>${{ p.sale_price or '' }}</td>
                     <td>{{ "%.1f"|format(p.margin_percent or 0) }}%</td>
+                    <td>
+                    {% if p.stock is not none and p.stock < 0 %}
+                    🔴 Stock negativo
+                    {% elif p.expiration_date and p.expiration_date < today %}
+                    🔴 Vencido
+                    {% elif p.expiration_date and (p.expiration_date - today).days <= 60 %}
+                    🟡 Vence pronto
+                    {% else %}
+                    🟢 OK
+                    {% endif %}
+                    </td>
                     <td>
                         <a href="/products/{{ p.id }}/edit">✏️ Editar</a>
                     </td>
