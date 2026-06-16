@@ -1473,6 +1473,35 @@ def product_edit_save(
         url='/products',
         status_code=303
     )
+@app.post('/products/{product_id}/adjust')
+def product_adjust_stock(
+    product_id: int,
+    qty: str = Form(''),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    product = db.get(Product, product_id)
+
+    if not product:
+        raise HTTPException(
+            status_code=404,
+            detail="Producto no encontrado"
+        )
+
+    try:
+        amount = float(str(qty).replace(',', '.'))
+    except ValueError:
+        amount = 0
+
+    current_stock = product.stock or 0
+    product.stock = current_stock + amount
+
+    db.commit()
+
+    return RedirectResponse(
+        url='/products',
+        status_code=303
+    )
 @app.get('/migration', response_class=HTMLResponse)
 def migration(request: Request, user: User = Depends(require_user)):
     return templates.TemplateResponse('migration.html', {'request': request})
