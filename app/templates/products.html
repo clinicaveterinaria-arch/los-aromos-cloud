@@ -104,8 +104,7 @@
                     <td>
                     {% if p.stock is not none and p.stock < 0 %}
                     🔴 Stock negativo
-                    {% elif p.expiration_date and p.expiration_date < today %}
-                    🔴 Vencido
+                    
                     {% elif p.expiration_date and (p.expiration_date - today).days <= 60 %}
                     🟡 Vence pronto
                     {% else %}
@@ -114,6 +113,20 @@
                     </td>
                     <td>
                         <a href="/products/{{ p.id }}/edit">✏️ Editar</a>
+                    
+                        <form method="post"
+                              action="/products/{{ p.id }}/adjust"
+                              style="display:inline;">
+                            <input type="hidden" name="qty" value="-1">
+                            <button type="submit">➖</button>
+                        </form>
+                    
+                        <form method="post"
+                              action="/products/{{ p.id }}/adjust"
+                              style="display:inline;">
+                            <input type="hidden" name="qty" value="1">
+                            <button type="submit">➕</button>
+                        </form>
                     </td>
                 </tr>
 
