@@ -1538,7 +1538,7 @@ def sales_page(
 
 @app.post('/sales')
 def sales_create(
-    product_id: list[int] = Form([]),
+    product_id: list[str] = Form([]),
     quantity: list[str] = Form([]),
     unit_price: list[str] = Form([]),
     notes: str = Form(''),
@@ -1564,7 +1564,10 @@ def sales_create(
 
     for pid, qty_raw, price_raw in zip(product_id, quantity, unit_price):
 
-        product = db.get(Product, pid)
+        if not pid:
+            continue
+
+        product = db.get(Product, int(pid))
 
         if not product:
             continue
