@@ -150,6 +150,61 @@ class Product(Base):
     notes: Mapped[str] = mapped_column(Text, default='')
 
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+class Sale(Base):
+    __tablename__ = 'sales'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+
+    date: Mapped[datetime] = mapped_column(
+        DateTime,
+        default=datetime.utcnow
+    )
+
+    status: Mapped[str] = mapped_column(
+        String(20),
+        default='paid'
+    )
+
+    total: Mapped[float] = mapped_column(
+        Float,
+        default=0
+    )
+
+    notes: Mapped[str] = mapped_column(
+        Text,
+        default=''
+    )
+
+
+class SaleItem(Base):
+    __tablename__ = 'sale_items'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+
+    sale_id: Mapped[int] = mapped_column(
+        ForeignKey('sales.id'),
+        index=True
+    )
+
+    product_id: Mapped[int] = mapped_column(
+        ForeignKey('products.id'),
+        index=True
+    )
+
+    quantity: Mapped[float] = mapped_column(
+        Float,
+        default=1
+    )
+
+    unit_price: Mapped[float] = mapped_column(
+        Float,
+        default=0
+    )
+
+    subtotal: Mapped[float] = mapped_column(
+        Float,
+        default=0
+    )
 class EventAttachment(Base):
     __tablename__ = 'event_attachments'
 
