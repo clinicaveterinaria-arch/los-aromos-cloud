@@ -1220,16 +1220,20 @@ async def import_products(
     from io import StringIO
 
     text_content = text_content.replace("\r\n", "\n").replace("\r", "\n")
-    reader = csv.DictReader(StringIO(text_content, newline=""), delimiter=",")
+    reader = csv.DictReader(StringIO(text_content), delimiter=";")
 
     def to_float(value):
         try:
             if value is None:
                 return None
+
             value = str(value).strip()
-            if value == "":
+
+            if value == "" or value == "---":
                 return None
+
             return float(value.replace(",", "."))
+
         except ValueError:
             return None
 
