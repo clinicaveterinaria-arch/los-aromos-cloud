@@ -1152,21 +1152,21 @@ def products_page(
         query = query.filter(Product.rubro == rubro)
 
     products = query.order_by(Product.name).limit(300).all()
-    for p in products:
-        p.row_color = ''
+for p in products:
+    p.row_color = ''
 
-        if p.expiration_date:
-            if p.expiration_date < today:
+    if p.expiration_date:
+        if p.expiration_date < today:
             p.row_color = '#ffd6d6'
         elif (p.expiration_date - today).days <= 60:
             p.row_color = '#fff6cc'
 
-        if (
-            p.stock is not None and
-            p.min_stock is not None and
-            p.stock <= p.min_stock
-        ):
-            p.row_color = '#ffe5e5'
+    if (
+        p.stock is not None and
+        p.min_stock is not None and
+        p.stock <= p.min_stock
+    ):
+        p.row_color = '#ffe5e5'
 
     total_products = db.query(Product).filter(Product.active == True).count()
     low_stock = db.query(Product).filter(
