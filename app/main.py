@@ -1207,7 +1207,43 @@ def products_page(
             'today': today
         }
     )
+@app.post('/products/import')
+async def import_products(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    wb = load_workbook(BytesIO(await file.read()))
+    ws = wb.active
 
+    imported = 0
+
+    for row in ws.iter_rows(min_row=2, values_only=True):
+        try:
+            product = Product(
+                name=str(row[0] or ''),
+                rubro=str(row[1] or ''),
+                code=str(row[2] or ''),
+                barcode=str(row[3] or ''),
+                cost_price=float(row[4] or 0),
+                sale_price=float(row[5] or 0),
+                stock=float(row[6] or 0),
+                provider=str(row[7] or ''),
+                manufacturer=str(row[8] or '')
+            )
+
+            db.add(product)
+            imported += 1
+
+        except Exception:
+            continue
+
+    db.commit()
+
+    return RedirectResponse(
+        url='/products',
+        status_code=303
+    )
 
 @app.post('/products')
 def product_create(
