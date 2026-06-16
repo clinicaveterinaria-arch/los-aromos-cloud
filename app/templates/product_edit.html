@@ -18,9 +18,35 @@
 
     <input name="barcode" value="{{ product.barcode or '' }}" placeholder="Código de barras">
 
-    <input name="cost_price" value="{{ product.cost_price or '' }}" placeholder="Precio costo">
-
-    <input name="sale_price" value="{{ product.sale_price or '' }}" placeholder="Precio venta">
+    <label><b>Precio costo</b></label>
+    <input
+        id="cost_price"
+        name="cost_price"
+        value="{{ product.cost_price or '' }}"
+        placeholder="Precio costo"
+        oninput="recalculateSalePrice()"
+    >
+    
+    <label><b>Margen %</b></label>
+    <input
+        id="margin_percent"
+        name="margin_percent"
+        value="{{ product.margin_percent or '' }}"
+        placeholder="Margen %"
+        oninput="recalculateSalePrice()"
+    >
+    
+    <label><b>Precio venta</b></label>
+    <input
+        id="sale_price"
+        name="sale_price"
+        value="{{ product.sale_price or '' }}"
+        placeholder="Precio venta"
+    >
+    
+    <p id="profit_preview" style="font-weight:bold; margin-top:8px;">
+        Ganancia por unidad: $0
+    </p>
 
     <input name="stock" value="{{ product.stock or '' }}" placeholder="Stock">
 
@@ -46,5 +72,26 @@
 </form>
 
 </div>
+<script>
+function parseNumber(value) {
+    if (!value) return 0;
+    return parseFloat(String(value).replace(",", ".")) || 0;
+}
 
+function recalculateSalePrice() {
+    const cost = parseNumber(document.getElementById("cost_price").value);
+    const margin = parseNumber(document.getElementById("margin_percent").value);
+
+    const sale = cost + (cost * margin / 100);
+    const profit = sale - cost;
+
+    if (cost > 0 && margin >= 0) {
+        document.getElementById("sale_price").value = sale.toFixed(2);
+        document.getElementById("profit_preview").innerText =
+            "Ganancia por unidad: $" + profit.toFixed(2);
+    }
+}
+
+document.addEventListener("DOMContentLoaded", recalculateSalePrice);
+</script>
 {% endblock %}
