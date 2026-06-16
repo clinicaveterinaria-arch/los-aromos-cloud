@@ -86,6 +86,7 @@
                     <th>Costo</th>
                     <th>Venta</th>
                     <th>Margen</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
 
@@ -100,6 +101,9 @@
                     <td>${{ p.cost_price or '' }}</td>
                     <td>${{ p.sale_price or '' }}</td>
                     <td>{{ "%.1f"|format(p.margin_percent or 0) }}%</td>
+                    <td>
+                        <a href="/products/{{ p.id }}/edit">✏️ Editar</a>
+                    </td>
                 </tr>
 
             {% endfor %}
