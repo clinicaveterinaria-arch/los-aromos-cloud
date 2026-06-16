@@ -1025,12 +1025,14 @@ def event_create(
 
     if rd is None and next_vaccine_date and next_vaccine_date.strip():
         try:
-            rd = datetime.strptime(next_vaccine_date.strip(), '%Y-%m-%d').date()
+            rd = datetime.strptime(next_vaccine_date.strip(), "%Y-%m-%d").date()
         except ValueError:
             rd = None
-        event_created_at = datetime.now()
-
-    if event_date and event_date.strip():
+    
+    event_created_at = datetime.now()
+    event_date = event_date or ""
+    
+    if event_date.strip():
         try:
             event_created_at = datetime.strptime(
                 event_date.strip(),
