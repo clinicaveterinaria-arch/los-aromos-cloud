@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>✏️ Editar producto</h1>
+
+<div class="card">
+
+<form method="post">
+
+    <input name="name" value="{{ product.name }}" placeholder="Nombre">
+
+    <input name="rubro" value="{{ product.rubro or '' }}" placeholder="Rubro">
+
+    <input name="tipo" value="{{ product.tipo or '' }}" placeholder="Tipo">
+
+    <input name="code" value="{{ product.code or '' }}" placeholder="Código">
+
+    <input name="barcode" value="{{ product.barcode or '' }}" placeholder="Código de barras">
+
+    <input name="cost_price" value="{{ product.cost_price or '' }}" placeholder="Precio costo">
+
+    <input name="sale_price" value="{{ product.sale_price or '' }}" placeholder="Precio venta">
+
+    <input name="stock" value="{{ product.stock or '' }}" placeholder="Stock">
+
+    <input name="min_stock" value="{{ product.min_stock or '' }}" placeholder="Stock mínimo">
+
+    <input name="provider" value="{{ product.provider or '' }}" placeholder="Proveedor">
+
+    <input name="manufacturer" value="{{ product.manufacturer or '' }}" placeholder="Elaborador">
+
+    <textarea
+        name="notes"
+        rows="4"
+        placeholder="Observaciones"
+    >{{ product.notes or '' }}</textarea>
+
+    <button
+        type="submit"
+        style="width:100%;background:green;color:white;padding:10px;border:none;border-radius:8px;"
+    >
+        Guardar cambios
+    </button>
+
+</form>
+
+</div>
+
+{% endblock %}
