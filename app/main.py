@@ -1521,7 +1521,8 @@ def sales_page(
         .order_by(Product.name)
         .all()
     )
-
+    patients = db.query(Patient).order_by(Patient.name).all()
+    owners = db.query(Owner).order_by(Owner.name).all()
     sales = (
         db.query(Sale)
         .order_by(Sale.date.desc())
@@ -1569,6 +1570,8 @@ def sales_page(
         {
             'request': request,
             'products': products,
+            'patients': patients,
+            'owners': owners,
             'sales': sales,
             'today_sales_total': today_sales_total,
             'month_sales_total': month_sales_total,
@@ -1577,6 +1580,8 @@ def sales_page(
     )
 @app.post('/sales')
 def sales_create(
+    patient_id: str = Form(''),
+    owner_id: str = Form(''),
     product_id: list[str] = Form([]),
     quantity: list[str] = Form([]),
     unit_price: list[str] = Form([]),
@@ -1590,12 +1595,13 @@ def sales_create(
         except ValueError:
             return 0
 
-    sale = Sale(
-        status='paid',
-        total=0,
-        notes=notes or ''
-    )
-
+sale = Sale(
+    status='paid',
+    total=0,
+    patient_id=int(patient_id) if patient_id else None,
+    owner_id=int(owner_id) if owner_id else None,
+    notes=notes or ''
+)
     db.add(sale)
     db.flush()
 
