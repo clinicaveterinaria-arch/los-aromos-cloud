@@ -143,7 +143,13 @@
 
     </div>
 </div>
-
+{% if sale.status == 'pending' %}
+<form method="post" action="/sales/{{ sale.id }}/confirm" style="margin-top:16px;">
+    <button type="submit" class="btn">
+        💰 Cobrar / Confirmar venta
+    </button>
+</form>
+{% endif %}
 <div style="margin-top:20px;">
     <a href="/sales" class="btn btn-secondary">
         Volver a ventas
