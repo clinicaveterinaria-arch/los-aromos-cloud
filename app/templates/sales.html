@@ -12,46 +12,46 @@
     <div class="card-body">
         <form method="post" action="/sales">
 
-            <div id="items-container">
+<div id="items-container">
 
-                <div class="row mb-2 sale-item">
-                    <div class="col-md-5">
-                        <label>Producto</label>
-                        <select name="product_id" class="form-control product-select" onchange="updatePrice(this)">
-                            <option value="">Seleccionar producto</option>
-                            {% for product in products %}
-                            <option 
-                                value="{{ product.id }}"
-                                data-price="{{ product.sale_price or 0 }}">
-                                {{ product.name }} - Stock: {{ product.stock or 0 }}
-                            </option>
-                            {% endfor %}
-                        </select>
-                    </div>
+    <div class="sale-item" style="display: grid; grid-template-columns: 4fr 1fr 1.5fr 1.5fr 45px; gap: 10px; align-items: end; margin-bottom: 10px;">
 
-                    <div class="col-md-2">
-                        <label>Cantidad</label>
-                        <input type="number" step="0.01" name="quantity" class="form-control quantity" value="1" oninput="calculateTotal()">
-                    </div>
+        <div>
+            <label>Producto</label>
+            <select name="product_id" class="form-control product-select" onchange="updatePrice(this)">
+                <option value="">Seleccionar producto</option>
+                {% for product in products %}
+                <option 
+                    value="{{ product.id }}"
+                    data-price="{{ product.sale_price or 0 }}">
+                    {{ product.name }} - Stock: {{ product.stock or 0 }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
 
-                    <div class="col-md-2">
-                        <label>Precio unitario</label>
-                        <input type="number" step="0.01" name="unit_price" class="form-control unit-price" value="0" oninput="calculateTotal()">
-                    </div>
+        <div>
+            <label>Cant.</label>
+            <input type="number" step="0.01" name="quantity" class="form-control quantity" value="1" oninput="calculateTotal()">
+        </div>
 
-                    <div class="col-md-2">
-                        <label>Subtotal</label>
-                        <input type="text" class="form-control subtotal" value="0" readonly>
-                    </div>
+        <div>
+            <label>Precio</label>
+            <input type="number" step="0.01" name="unit_price" class="form-control unit-price" value="0" oninput="calculateTotal()">
+        </div>
 
-                    <div class="col-md-1 d-flex align-items-end">
-                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeItem(this)">X</button>
-                    </div>
-                </div>
+        <div>
+            <label>Subtotal</label>
+            <input type="text" class="form-control subtotal" value="0" readonly>
+        </div>
 
-            </div>
+        <div>
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeItem(this)">X</button>
+        </div>
 
-            <button type="button" class="btn btn-sm btn-secondary mb-3" onclick="addItem()">
+    </div>
+
+</div>
                 + Agregar producto
             </button>
 
