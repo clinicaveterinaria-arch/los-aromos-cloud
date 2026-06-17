@@ -1526,7 +1526,7 @@ def sales_page(
         .all()
     )
     for sale in sales:
-    sale.items_count = (
+        sale.items_count = (
         db.query(SaleItem)
         .filter(SaleItem.sale_id == sale.id)
         .count()
