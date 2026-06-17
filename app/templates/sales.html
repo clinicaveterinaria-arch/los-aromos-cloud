@@ -154,7 +154,11 @@
                     <td>{{ sale.notes or "" }}</td>
                     <td>
     {% if sale.status == 'cancelled' %}
-        <span style="color:#999;font-weight:bold;">Cancelada</span>
+    <span style="color:#999;font-weight:bold;">Cancelada</span>
+
+    {% elif sale.status == 'pending' %}
+        <span style="color:#d85b9a;font-weight:bold;">Pendiente</span>
+    
     {% else %}
         <span style="color:#198754;font-weight:bold;">Activa</span>
     {% endif %}
