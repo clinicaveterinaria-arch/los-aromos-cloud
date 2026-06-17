@@ -1663,6 +1663,46 @@ def sales_create(
         url='/sales',
         status_code=303
     )
+@app.post('/sales/{sale_id}/cancel')
+def sales_cancel(
+    sale_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    sale = db.get(Sale, sale_id)
+
+    if not sale:
+        raise HTTPException(
+            status_code=404,
+            detail='Venta no encontrada'
+        )
+
+    if sale.status == 'cancelled':
+        return RedirectResponse(
+            url='/sales',
+            status_code=303
+        )
+
+    items = (
+        db.query(SaleItem)
+        .filter(SaleItem.sale_id == sale.id)
+        .all()
+    )
+
+    for item in items:
+        product = db.get(Product, item.product_id)
+        if product:
+            current_stock = product.stock or 0
+            product.stock = current_stock + (item.quantity or 0)
+
+    sale.status = 'cancelled'
+
+    db.commit()
+
+    return RedirectResponse(
+        url='/sales',
+        status_code=303
+    )
 @app.get('/migration', response_class=HTMLResponse)
 def migration(request: Request, user: User = Depends(require_user)):
     return templates.TemplateResponse('migration.html', {'request': request})
