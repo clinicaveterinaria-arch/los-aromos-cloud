@@ -90,9 +90,7 @@ def init_db():
         conn.execute(text("ALTER TABLE sales ADD COLUMN IF NOT EXISTS patient_id INTEGER REFERENCES patients(id)"))
         conn.execute(text("ALTER TABLE sales ADD COLUMN IF NOT EXISTS owner_id INTEGER REFERENCES owners(id)"))
         conn.execute(text("""
-        conn.execute(text(
-            "ALTER TABLE sales ADD COLUMN IF NOT EXISTS payment_method VARCHAR(50)"
-        ))
+       
 CREATE TABLE IF NOT EXISTS event_attachments (
     id SERIAL PRIMARY KEY,
     event_id INTEGER REFERENCES clinical_events(id),
