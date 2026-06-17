@@ -38,7 +38,7 @@
 
     <div>
         <label>Paciente</label>
-        <select name="patient_id" class="form-control">
+        <select name="patient_id" class="form-control" onchange="autoSelectOwner(this.value)">
             <option value="">Seleccionar paciente</option>
             {% for patient in patients %}
             <option value="{{ patient.id }}">
@@ -204,6 +204,17 @@ function removeItem(button) {
     if (items.length > 1) {
         button.closest(".sale-item").remove();
         calculateTotal();
+    }
+}
+const patientOwnerMap = {{ patient_owner_map | tojson }};
+
+function autoSelectOwner(patientId) {
+    const ownerId = patientOwnerMap[patientId];
+
+    const ownerSelect = document.querySelector('select[name="owner_id"]');
+
+    if (ownerSelect && ownerId !== undefined) {
+        ownerSelect.value = ownerId;
     }
 }
 </script>
