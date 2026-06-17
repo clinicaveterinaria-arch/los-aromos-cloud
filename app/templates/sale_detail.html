@@ -42,7 +42,51 @@
 
     </div>
 </div>
+{% if sale.status != 'cancelled' %}
+<div class="card mb-4">
+    <div class="card-header">
+        Agregar producto o servicio
+    </div>
 
+    <div class="card-body">
+        <form method="post" action="/sales/{{ sale.id }}/add-item">
+
+            <div style="display:grid;grid-template-columns:4fr 1fr 1.5fr auto;gap:10px;align-items:end;">
+
+                <div>
+                    <label>Producto / Servicio</label>
+                    <select name="product_id" class="form-control" onchange="updateDetailPrice(this)">
+                        <option value="">Seleccionar producto o servicio</option>
+                        {% for product in products %}
+                        <option value="{{ product.id }}" data-price="{{ product.sale_price or 0 }}">
+                            {{ product.name }} - Stock: {{ product.stock or 0 }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label>Cantidad</label>
+                    <input type="number" step="0.01" name="quantity" class="form-control" value="1">
+                </div>
+
+                <div>
+                    <label>Precio</label>
+                    <input type="number" step="0.01" name="unit_price" class="form-control" value="0">
+                </div>
+
+                <div>
+                    <button type="submit" class="btn">
+                        + Agregar
+                    </button>
+                </div>
+
+            </div>
+
+        </form>
+    </div>
+</div>
+{% endif %}
 <div class="card mb-4">
     <div class="card-header">
         Productos
@@ -105,5 +149,15 @@
         Volver a ventas
     </a>
 </div>
+<script>
+function updateDetailPrice(select) {
+    const selected = select.options[select.selectedIndex];
+    const price = selected.getAttribute("data-price") || 0;
 
+    const form = select.closest("form");
+    const priceInput = form.querySelector('input[name="unit_price"]');
+
+    priceInput.value = price;
+}
+</script>
 {% endblock %}
