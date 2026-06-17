@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2 style="margin-bottom:20px;">Detalle de venta</h2>
+
+<div class="card mb-4">
+    <div class="card-body">
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+
+            <div>
+                <strong>Fecha:</strong><br>
+                {{ sale.date.strftime("%d/%m/%Y %H:%M") }}
+            </div>
+
+            <div>
+                <strong>Estado:</strong><br>
+
+                {% if sale.status == 'cancelled' %}
+                    <span style="color:#999;font-weight:bold;">
+                        Cancelada
+                    </span>
+                {% else %}
+                    <span style="color:#198754;font-weight:bold;">
+                        Activa
+                    </span>
+                {% endif %}
+            </div>
+
+            <div>
+                <strong>Paciente:</strong><br>
+                {{ patient.name if patient else "-" }}
+            </div>
+
+            <div>
+                <strong>Propietario:</strong><br>
+                {{ owner.name if owner else "-" }}
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">
+        Productos
+    </div>
+
+    <div class="card-body">
+
+        <table class="table table-sm">
+
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Cantidad</th>
+                    <th>Precio unitario</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for item in items %}
+                <tr>
+                    <td>{{ item.product_name }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>$ {{ "%.2f"|format(item.unit_price or 0) }}</td>
+                    <td>$ {{ "%.2f"|format(item.subtotal or 0) }}</td>
+                </tr>
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">
+        Observaciones
+    </div>
+
+    <div class="card-body">
+        {{ sale.notes or "-" }}
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+
+        <h4>
+            Total: $
+            {{ "%.2f"|format(sale.total or 0) }}
+        </h4>
+
+    </div>
+</div>
+
+<div style="margin-top:20px;">
+    <a href="/sales" class="btn btn-secondary">
+        Volver a ventas
+    </a>
+</div>
+
+{% endblock %}
