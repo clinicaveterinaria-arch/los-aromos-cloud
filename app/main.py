@@ -1523,6 +1523,10 @@ def sales_page(
     )
     patients = db.query(Patient).order_by(Patient.name).all()
     owners = db.query(Owner).order_by(Owner.name).all()
+    patient_owner_map = {}
+
+    for patient in patients:
+        patient_owner_map[str(patient.id)] = patient.owner_id if patient.owner_id else ''
     sales = (
         db.query(Sale)
         .order_by(Sale.date.desc())
@@ -1582,6 +1586,7 @@ def sales_page(
             'request': request,
             'products': products,
             'patients': patients,
+            'patient_owner_map': patient_owner_map,
             'owners': owners,
             'sales': sales,
             'today_sales_total': today_sales_total,
