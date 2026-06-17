@@ -83,6 +83,10 @@
                     <th>Fecha</th>
                     <th>Total</th>
                     <th>Notas</th>
+                    <th>Fecha</th>
+                    <th>Productos</th>
+                    <th>Total</th>
+                    <th>Notas</th>
                 </tr>
             </thead>
 
@@ -90,6 +94,7 @@
                 {% for sale in sales %}
                 <tr>
                     <td>{{ sale.date.strftime("%d/%m/%Y %H:%M") }}</td>
+                    <td>{{ sale.items_count }}</td>
                     <td>$ {{ "%.2f"|format(sale.total or 0) }}</td>
                     <td>{{ sale.notes or "" }}</td>
                 </tr>
