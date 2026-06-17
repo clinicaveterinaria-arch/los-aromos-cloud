@@ -1524,6 +1524,7 @@ def sales_page(
         .order_by(Sale.date.desc())
         .limit(30)
         .all()
+    )
     today = datetime.now().date()
     month_start = today.replace(day=1)
     
