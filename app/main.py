@@ -1871,6 +1871,25 @@ def sale_add_item(
         url=f'/sales/{sale.id}',
         status_code=303
     )
+@app.post('/sales/{sale_id}/confirm')
+def sale_confirm(
+    sale_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    sale = db.get(Sale, sale_id)
+
+    if not sale:
+        raise HTTPException(status_code=404, detail='Venta no encontrada')
+
+    sale.status = 'paid'
+
+    db.commit()
+
+    return RedirectResponse(
+        url=f'/sales/{sale.id}',
+        status_code=303
+    )
 @app.get('/migration', response_class=HTMLResponse)
 def migration(request: Request, user: User = Depends(require_user)):
     return templates.TemplateResponse('migration.html', {'request': request})
