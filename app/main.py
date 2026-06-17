@@ -1536,7 +1536,18 @@ def sales_page(
             .filter(SaleItem.sale_id == sale.id)
             .count()
         )
+        sale.patient_name = ''
+        sale.owner_name = ''
 
+        if sale.patient_id:
+            patient = db.get(Patient, sale.patient_id)
+            if patient:
+                sale.patient_name = patient.name
+
+        if sale.owner_id:
+            owner = db.get(Owner, sale.owner_id)
+            if owner:
+                sale.owner_name = owner.name
     today = datetime.now().date()
     month_start = today.replace(day=1)
 
