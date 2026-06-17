@@ -1595,13 +1595,13 @@ def sales_create(
         except ValueError:
             return 0
 
-sale = Sale(
-    status='paid',
-    total=0,
-    patient_id=int(patient_id) if patient_id else None,
-    owner_id=int(owner_id) if owner_id else None,
-    notes=notes or ''
-)
+    sale = Sale(
+        status='paid',
+        total=0,
+        patient_id=int(patient_id) if patient_id else None,
+        owner_id=int(owner_id) if owner_id else None,
+        notes=notes or ''
+    )
     db.add(sale)
     db.flush()
 
