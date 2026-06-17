@@ -1525,7 +1525,12 @@ def sales_page(
         .limit(30)
         .all()
     )
-
+    for sale in sales:
+    sale.items_count = (
+        db.query(SaleItem)
+        .filter(SaleItem.sale_id == sale.id)
+        .count()
+    )
     return templates.TemplateResponse(
         'sales.html',
         {
