@@ -169,7 +169,17 @@ class Sale(Base):
         Float,
         default=0
     )
-
+    patient_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey('patients.id'),
+        nullable=True,
+        index=True
+    )
+    
+    owner_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey('owners.id'),
+        nullable=True,
+        index=True
+    )
     notes: Mapped[str] = mapped_column(
         Text,
         default=''
