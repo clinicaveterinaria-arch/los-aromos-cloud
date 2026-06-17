@@ -1794,7 +1794,12 @@ def sales_detail(
             'unit_price': item.unit_price,
             'subtotal': item.subtotal
         })
-
+    products = (
+        db.query(Product)
+        .filter(Product.active == True)
+        .order_by(Product.name)
+        .all()
+    )
     return templates.TemplateResponse(
         'sale_detail.html',
         {
@@ -1802,8 +1807,69 @@ def sales_detail(
             'sale': sale,
             'patient': patient,
             'owner': owner,
-            'items': item_details
+            'items': item_details,
+            'products': products
         }
+    )
+@app.post('/sales/{sale_id}/add-item')
+def sale_add_item(
+    sale_id: int,
+    product_id: str = Form(''),
+    quantity: str = Form('1'),
+    unit_price: str = Form(''),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    def to_float(value):
+        try:
+            return float(str(value).replace(',', '.')) if value and str(value).strip() else 0
+        except ValueError:
+            return 0
+
+    sale = db.get(Sale, sale_id)
+
+    if not sale:
+        raise HTTPException(status_code=404, detail='Venta no encontrada')
+
+    if not product_id:
+        return RedirectResponse(
+            url=f'/sales/{sale.id}',
+            status_code=303
+        )
+
+    product = db.get(Product, int(product_id))
+
+    if not product:
+        raise HTTPException(status_code=404, detail='Producto no encontrado')
+
+    qty = to_float(quantity)
+    price = to_float(unit_price)
+
+    if price <= 0:
+        price = product.sale_price or 0
+
+    subtotal = qty * price
+
+    item = SaleItem(
+        sale_id=sale.id,
+        product_id=product.id,
+        quantity=qty,
+        unit_price=price,
+        subtotal=subtotal
+    )
+
+    db.add(item)
+
+    sale.total = (sale.total or 0) + subtotal
+
+    if product.stock is not None:
+        product.stock = (product.stock or 0) - qty
+
+    db.commit()
+
+    return RedirectResponse(
+        url=f'/sales/{sale.id}',
+        status_code=303
     )
 @app.get('/migration', response_class=HTMLResponse)
 def migration(request: Request, user: User = Depends(require_user)):
