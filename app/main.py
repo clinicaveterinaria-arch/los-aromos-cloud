@@ -1542,6 +1542,22 @@ def sales_page(
         )
         sale.patient_name = ''
         sale.owner_name = ''
+        sale.items_detail = []
+
+        items = (
+            db.query(SaleItem)
+            .filter(SaleItem.sale_id == sale.id)
+            .all()
+        )
+    
+        for item in items:
+            product = db.get(Product, item.product_id)
+            sale.items_detail.append({
+                'product_name': product.name if product else 'Producto eliminado',
+                'quantity': item.quantity,
+                'unit_price': item.unit_price,
+                'subtotal': item.subtotal
+            })
 
         if sale.patient_id:
             patient = db.get(Patient, sale.patient_id)
