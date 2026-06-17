@@ -559,6 +559,49 @@ def patient_update_weight(
     db.commit()
 
     return RedirectResponse(f'/patients/{patient.id}', status_code=303)
+@app.get('/patients/{patient_id}/cart')
+def patient_cart(
+    patient_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    patient = db.get(Patient, patient_id)
+
+    if not patient:
+        raise HTTPException(
+            status_code=404,
+            detail='Paciente no encontrado'
+        )
+
+    owner_id = patient.owner_id if patient.owner_id else None
+
+    sale = (
+        db.query(Sale)
+        .filter(
+            Sale.patient_id == patient.id,
+            Sale.status == 'pending'
+        )
+        .order_by(Sale.date.desc())
+        .first()
+    )
+
+    if not sale:
+        sale = Sale(
+            status='pending',
+            total=0,
+            patient_id=patient.id,
+            owner_id=owner_id,
+            notes='Carrito generado desde historia clínica'
+        )
+
+        db.add(sale)
+        db.commit()
+        db.refresh(sale)
+
+    return RedirectResponse(
+        url=f'/sales/{sale.id}',
+        status_code=303
+    )
 @app.get('/patients/{patient_id}', response_class=HTMLResponse)
 def patient_detail(request: Request, patient_id: int, db: Session = Depends(get_db), user: User = Depends(require_user)):
     patient = db.get(Patient, patient_id)
