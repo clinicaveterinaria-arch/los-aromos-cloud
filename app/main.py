@@ -1525,40 +1525,42 @@ def sales_page(
         .limit(30)
         .all()
     )
+
+    for sale in sales:
+        sale.items_count = (
+            db.query(SaleItem)
+            .filter(SaleItem.sale_id == sale.id)
+            .count()
+        )
+
     today = datetime.now().date()
     month_start = today.replace(day=1)
-    
+
     today_sales_total = 0
     month_sales_total = 0
     today_products_count = 0
-    
+
     all_sales = db.query(Sale).all()
-    
+
     for sale in all_sales:
         sale_date = sale.date.date() if sale.date else None
-    
+
         if sale_date == today:
             today_sales_total += sale.total or 0
-    
+
         if sale_date and sale_date >= month_start:
             month_sales_total += sale.total or 0
-    
+
     today_items = (
         db.query(SaleItem)
         .join(Sale, SaleItem.sale_id == Sale.id)
         .filter(Sale.date >= datetime.combine(today, datetime.min.time()))
         .all()
     )
-    
+
     for item in today_items:
         today_products_count += item.quantity or 0
-    )
-    for sale in sales:
-        sale.items_count = (
-        db.query(SaleItem)
-        .filter(SaleItem.sale_id == sale.id)
-        .count()
-    )
+
     return templates.TemplateResponse(
         'sales.html',
         {
@@ -1570,8 +1572,6 @@ def sales_page(
             'today_products_count': today_products_count
         }
     )
-
-
 @app.post('/sales')
 def sales_create(
     product_id: list[str] = Form([]),
