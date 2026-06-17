@@ -34,7 +34,33 @@
 
     <div class="card-body">
         <form method="post" action="/sales">
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
 
+    <div>
+        <label>Paciente</label>
+        <select name="patient_id" class="form-control">
+            <option value="">Seleccionar paciente</option>
+            {% for patient in patients %}
+            <option value="{{ patient.id }}">
+                {{ patient.name }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div>
+        <label>Propietario</label>
+        <select name="owner_id" class="form-control">
+            <option value="">Seleccionar propietario</option>
+            {% for owner in owners %}
+            <option value="{{ owner.id }}">
+                {{ owner.name }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+
+</div>
 <div id="items-container">
 
     <div class="sale-item" style="display: grid; grid-template-columns: 4fr 1fr 1.5fr 1.5fr 45px; gap: 10px; align-items: end; margin-bottom: 10px;">
