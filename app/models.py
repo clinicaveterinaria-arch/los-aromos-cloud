@@ -169,6 +169,10 @@ class Sale(Base):
         Float,
         default=0
     )
+    payment_method: Mapped[str] = mapped_column(
+        String(50),
+        default='Efectivo'
+    )
     patient_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey('patients.id'),
         nullable=True,
