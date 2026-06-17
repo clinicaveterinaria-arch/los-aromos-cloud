@@ -1719,6 +1719,49 @@ def sales_cancel(
         url='/sales',
         status_code=303
     )
+@app.get('/sales/{sale_id}', response_class=HTMLResponse)
+def sales_detail(
+    sale_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    sale = db.get(Sale, sale_id)
+
+    if not sale:
+        raise HTTPException(status_code=404, detail='Venta no encontrada')
+
+    patient = db.get(Patient, sale.patient_id) if sale.patient_id else None
+    owner = db.get(Owner, sale.owner_id) if sale.owner_id else None
+
+    items = (
+        db.query(SaleItem)
+        .filter(SaleItem.sale_id == sale.id)
+        .all()
+    )
+
+    item_details = []
+
+    for item in items:
+        product = db.get(Product, item.product_id)
+
+        item_details.append({
+            'product_name': product.name if product else 'Producto eliminado',
+            'quantity': item.quantity,
+            'unit_price': item.unit_price,
+            'subtotal': item.subtotal
+        })
+
+    return templates.TemplateResponse(
+        'sale_detail.html',
+        {
+            'request': request,
+            'sale': sale,
+            'patient': patient,
+            'owner': owner,
+            'items': item_details
+        }
+    )
 @app.get('/migration', response_class=HTMLResponse)
 def migration(request: Request, user: User = Depends(require_user)):
     return templates.TemplateResponse('migration.html', {'request': request})
