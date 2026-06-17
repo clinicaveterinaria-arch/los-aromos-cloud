@@ -139,6 +139,7 @@
                     <th>Notas</th>
                     <th>Estado</th>
                     <th>Acción</th>
+                    <th>Detalle</th>
                 </tr>
             </thead>
 
@@ -171,6 +172,13 @@
     {% else %}
     <span style="color:#999;">-</span>
     {% endif %}
+</td>
+<td>
+    {% for item in sale.items_detail %}
+        <div>
+            {{ item.product_name }} x {{ item.quantity }}
+        </div>
+    {% endfor %}
 </td>
                 </tr>
                 {% endfor %}
