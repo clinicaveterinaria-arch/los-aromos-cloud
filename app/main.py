@@ -1701,6 +1701,7 @@ def sales_create(
     pay_credito: str = Form('0'),
     pay_transferencia: str = Form('0'),
     pay_cuenta_corriente: str = Form('0'),
+    db: Session = Depends(get_db),
     user: User = Depends(require_user)
 ):
     def to_float(value):
