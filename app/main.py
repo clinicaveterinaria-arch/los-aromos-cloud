@@ -1562,6 +1562,7 @@ def product_adjust_stock(
 @app.get('/sales', response_class=HTMLResponse)
 def sales_page(
     request: Request,
+    sale_date: str = '',
     db: Session = Depends(get_db),
     user: User = Depends(require_user)
 ):
@@ -1577,10 +1578,15 @@ def sales_page(
 
     for patient in patients:
         patient_owner_map[str(patient.id)] = patient.owner_id if patient.owner_id else ''
+    selected_date = datetime.strptime(sale_date, "%Y-%m-%d").date() if sale_date else datetime.now().date()
+    
+    day_start = datetime.combine(selected_date, datetime.min.time())
+    day_end = datetime.combine(selected_date, datetime.max.time())
+    
     sales = (
         db.query(Sale)
+        .filter(Sale.date >= day_start, Sale.date <= day_end)
         .order_by(Sale.date.desc())
-        .limit(30)
         .all()
     )
 
@@ -1658,6 +1664,7 @@ def sales_page(
             'today_sales_total': today_sales_total,
             'month_sales_total': month_sales_total,
             'today_products_count': today_products_count
+            'selected_date': selected_date,
         }
     )
 @app.post('/sales')
