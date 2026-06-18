@@ -1661,10 +1661,11 @@ def sales_page(
             'patient_owner_map': patient_owner_map,
             'owners': owners,
             'sales': sales,
+            'selected_date': selected_date,
             'today_sales_total': today_sales_total,
             'month_sales_total': month_sales_total,
             'today_products_count': today_products_count
-            'selected_date': selected_date,
+            
         }
     )
 @app.post('/sales')
