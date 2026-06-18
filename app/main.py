@@ -1766,7 +1766,12 @@ def sales_create(
     ]
 
     total_paid = 0
+    sum_payments = sum(amount for method, amount in payments_to_create)
 
+    if total > 0 and sum_payments <= 0:
+        payments_to_create = [
+            ('Efectivo', total)
+        ]
     for method, amount in payments_to_create:
         if amount <= 0:
             continue
