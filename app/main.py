@@ -1695,8 +1695,12 @@ def sales_create(
     quantity: list[str] = Form([]),
     unit_price: list[str] = Form([]),
     notes: str = Form(''),
-    payment_method: str = Form('Efectivo'),
-    db: Session = Depends(get_db),
+
+    pay_efectivo: str = Form('0'),
+    pay_debito: str = Form('0'),
+    pay_credito: str = Form('0'),
+    pay_transferencia: str = Form('0'),
+    pay_cuenta_corriente: str = Form('0'),
     user: User = Depends(require_user)
 ):
     def to_float(value):
@@ -1708,7 +1712,7 @@ def sales_create(
     sale = Sale(
         status='paid',
         total=0,
-        payment_method=payment_method or 'Efectivo',
+        payment_method='Mixto',
         patient_id=int(patient_id) if patient_id else None,
         owner_id=int(owner_id) if owner_id else None,
         notes=notes or ''
@@ -1751,20 +1755,36 @@ def sales_create(
         product.stock = current_stock - qty
 
     sale.total = total
-    
-    if total > 0:
+
+    payments_to_create = [
+        ('Efectivo', to_float(pay_efectivo)),
+        ('Débito', to_float(pay_debito)),
+        ('Crédito', to_float(pay_credito)),
+        ('Transferencia', to_float(pay_transferencia)),
+        ('Cuenta corriente', to_float(pay_cuenta_corriente)),
+    ]
+
+    total_paid = 0
+
+    for method, amount in payments_to_create:
+        if amount <= 0:
+            continue
+
         payment = SalePayment(
             sale_id=sale.id,
-            method=payment_method or 'Efectivo',
-            amount=0 if payment_method == 'Cuenta corriente' else total
+            method=method,
+            amount=amount
         )
 
         db.add(payment)
 
-        if payment_method == 'Cuenta corriente':
-            sale.status = 'pending'
-        else:
-            sale.status = 'paid'
+        if method != 'Cuenta corriente':
+            total_paid += amount
+
+    if total_paid >= total:
+        sale.status = 'paid'
+    else:
+        sale.status = 'pending'
 
     db.commit()
 
