@@ -1668,6 +1668,7 @@ def sales_create(
     quantity: list[str] = Form([]),
     unit_price: list[str] = Form([]),
     notes: str = Form(''),
+    payment_method: str = Form('Efectivo'),
     db: Session = Depends(get_db),
     user: User = Depends(require_user)
 ):
@@ -1680,6 +1681,7 @@ def sales_create(
     sale = Sale(
         status='paid',
         total=0,
+        payment_method=payment_method or 'Efectivo',
         patient_id=int(patient_id) if patient_id else None,
         owner_id=int(owner_id) if owner_id else None,
         notes=notes or ''
