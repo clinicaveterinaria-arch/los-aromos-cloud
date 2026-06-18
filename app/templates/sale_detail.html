@@ -17,15 +17,31 @@
             <div>
                 <strong>Estado:</strong><br>
 
-                {% if sale.status == 'cancelled' %}
-                    <span style="color:#999;font-weight:bold;">
-                        Cancelada
-                    </span>
-                {% else %}
-                    <span style="color:#198754;font-weight:bold;">
-                        Activa
-                    </span>
-                {% endif %}
+{% if sale.status == 'cancelled' %}
+
+    <span style="color:#999;font-weight:bold;">
+        Cancelada
+    </span>
+
+{% elif sale.balance_due <= 0 %}
+
+    <span style="color:#198754;font-weight:bold;">
+        Pagada
+    </span>
+
+{% elif sale.balance_due < sale.total %}
+
+    <span style="color:#d68c00;font-weight:bold;">
+        Parcial
+    </span>
+
+{% else %}
+
+    <span style="color:#d85b9a;font-weight:bold;">
+        Cuenta corriente
+    </span>
+
+{% endif %}
             </div>
 
             <div>
