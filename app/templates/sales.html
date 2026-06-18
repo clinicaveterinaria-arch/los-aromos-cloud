@@ -153,17 +153,19 @@
             📒 Cuenta corriente
         </button>
 
+<div id="payment-status-box" style="margin-top:14px; padding:14px; border-radius:12px; background:#fff4d6; border:1px solid #f0c36d;">
+    <strong id="payment-status-title">🟠 Saldo pendiente</strong><br>
+    <div style="margin-top:8px;">
+        Total pagos: $ <span id="total-payments">0.00</span><br>
+        Saldo: $ <span id="payment-balance">0.00</span>
     </div>
 </div>
-    <label><strong>Medios de pago</strong></label>
 
-    <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:10px; margin-top:8px;">
+<h4>Total: $ <span id="total-sale">0.00</span></h4>
 
-        <div>
-            <label>Efectivo</label>
-            <input type="number" step="0.01" name="pay_efectivo" class="form-control payment-input" value="0" oninput="calculateTotal()">
-        </div>
-
+<button type="submit" id="save-sale-button" class="btn btn-success mt-3">
+    Guardar venta
+</button>
         <div>
             <label>Débito</label>
             <input type="number" step="0.01" name="pay_debito" class="form-control payment-input" value="0" oninput="calculateTotal()">
@@ -186,16 +188,19 @@
 
     </div>
 
-    <div style="margin-top:10px;">
-        <strong>Total pagos: $ <span id="total-payments">0.00</span></strong><br>
-        <strong>Saldo: $ <span id="payment-balance">0.00</span></strong>
+<div id="payment-status-box" style="margin-top:14px; padding:14px; border-radius:12px; background:#fff4d6; border:1px solid #f0c36d;">
+    <strong id="payment-status-title">🟠 Saldo pendiente</strong><br>
+    <div style="margin-top:8px;">
+        Total pagos: $ <span id="total-payments">0.00</span><br>
+        Saldo: $ <span id="payment-balance">0.00</span>
     </div>
 </div>
-            <h4>Total: $ <span id="total-sale">0.00</span></h4>
 
-            <button type="submit" class="btn btn-success mt-3">
-                Guardar venta
-            </button>
+<h4>Total: $ <span id="total-sale">0.00</span></h4>
+
+<button type="submit" id="save-sale-button" class="btn btn-success mt-3">
+    Guardar venta
+</button>
 
         </form>
     </div>
