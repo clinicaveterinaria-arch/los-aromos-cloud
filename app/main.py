@@ -1928,6 +1928,61 @@ def sale_confirm(
         url=f'/sales/{sale.id}',
         status_code=303
     )
+@app.post('/sales/{sale_id}/add-payment')
+def sale_add_payment(
+    sale_id: int,
+    method: str = Form('Efectivo'),
+    amount: str = Form('0'),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    def to_float(value):
+        try:
+            return float(str(value).replace(',', '.')) if value and str(value).strip() else 0
+        except ValueError:
+            return 0
+
+    sale = db.get(Sale, sale_id)
+
+    if not sale:
+        raise HTTPException(status_code=404, detail='Venta no encontrada')
+
+    payment_amount = to_float(amount)
+
+    if payment_amount <= 0:
+        return RedirectResponse(
+            url=f'/sales/{sale.id}',
+            status_code=303
+        )
+
+    payment = SalePayment(
+        sale_id=sale.id,
+        method=method or 'Efectivo',
+        amount=payment_amount
+    )
+
+    db.add(payment)
+
+    payments = (
+        db.query(SalePayment)
+        .filter(SalePayment.sale_id == sale.id)
+        .all()
+    )
+
+    total_paid = sum(p.amount or 0 for p in payments) + payment_amount
+    balance_due = (sale.total or 0) - total_paid
+
+    if balance_due <= 0:
+        sale.status = 'paid'
+    else:
+        sale.status = 'pending'
+
+    db.commit()
+
+    return RedirectResponse(
+        url=f'/sales/{sale.id}',
+        status_code=303
+    )
 @app.get('/migration', response_class=HTMLResponse)
 def migration(request: Request, user: User = Depends(require_user)):
     return templates.TemplateResponse('migration.html', {'request': request})
