@@ -17,7 +17,7 @@
             <div>
                 <strong>Estado:</strong><br>
 
-{% set paid_total = sale.payments | sum(attribute='amount') %}
+{% set paid_total = payments | sum(attribute='amount') %}
 {% set balance_due = (sale.total or 0) - (paid_total or 0) %}
 
 {% if sale.status == 'cancelled' %}
@@ -180,13 +180,14 @@
             </div>
         {% endif %}
 
-        <hr>
+<hr>
 
-        <h5>
-            Saldo pendiente:
-            $ {{ "%.2f"|format(balance_due or 0) }}
-        </h5>
-{% if balance_due > 0 %}
+<h5>
+    Saldo pendiente:
+    $ {{ "%.2f"|format(balance_due if balance_due > 0 else 0) }}
+</h5>
+
+{% if balance_due > 0 and sale.status != 'cancelled' %}
 <hr>
 
 <h5>Registrar pago</h5>
@@ -211,36 +212,20 @@
                step="0.01"
                name="amount"
                class="form-control"
-               value="{{ "%.2f"|format(balance_due or 0) }}">
+               value="{{ '%.2f'|format(balance_due) }}">
     </div>
 
     <button type="submit" class="btn">
         + Registrar pago
     </button>
-
 </form>
 {% endif %}
-    </div>
+
+<div style="margin-top:20px;">
+    <a href="/sales" class="btn btn-secondary">
+        Volver a ventas
+    </a>
 </div>
-
-{% if sale.status == 'pending' %}
-<form method="post" action="/sales/{{ sale.id }}/confirm" style="margin-top:16px;">
-    <label><strong>Medio de pago</strong></label>
-
-    <select name="payment_method"
-            class="form-control"
-            style="max-width:300px; margin-top:8px; margin-bottom:12px;">
-        <option value="Efectivo">Efectivo</option>
-        <option value="Débito">Débito</option>
-        <option value="Crédito">Crédito</option>
-        <option value="Transferencia">Transferencia</option>
-        <option value="Cuenta corriente">Cuenta corriente</option>
-    </select>
-    <button type="submit" class="btn">
-        💰 Cobrar / Confirmar venta
-    </button>
-</form>
-{% endif %}
 <div style="margin-top:20px;">
     <a href="/sales" class="btn btn-secondary">
         Volver a ventas
