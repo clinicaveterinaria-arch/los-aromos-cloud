@@ -143,25 +143,20 @@
 
     </div>
 </div>
-<div class="card mb-3">
-    <div class="card-body">
 
-        <label><strong>Medio de pago</strong></label>
-
-        <select name="payment_method"
-                class="form-control"
-                style="max-width:300px; margin-top:8px;">
-            <option value="Efectivo">Efectivo</option>
-            <option value="Débito">Débito</option>
-            <option value="Crédito">Crédito</option>
-            <option value="Transferencia">Transferencia</option>
-            <option value="Cuenta corriente">Cuenta corriente</option>
-        </select>
-
-    </div>
-</div>
 {% if sale.status == 'pending' %}
 <form method="post" action="/sales/{{ sale.id }}/confirm" style="margin-top:16px;">
+    <label><strong>Medio de pago</strong></label>
+
+    <select name="payment_method"
+            class="form-control"
+            style="max-width:300px; margin-top:8px; margin-bottom:12px;">
+        <option value="Efectivo">Efectivo</option>
+        <option value="Débito">Débito</option>
+        <option value="Crédito">Crédito</option>
+        <option value="Transferencia">Transferencia</option>
+        <option value="Cuenta corriente">Cuenta corriente</option>
+    </select>
     <button type="submit" class="btn">
         💰 Cobrar / Confirmar venta
     </button>
