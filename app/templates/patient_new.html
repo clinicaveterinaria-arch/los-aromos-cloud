@@ -2,7 +2,20 @@
 <h1>Nuevo paciente</h1>
 <div class="panel"><form method="post" action="/patients" class="form-grid">
 <input name="name" placeholder="Nombre del paciente" required>
-<select name="owner_id" required><option value="">Seleccionar propietario</option>{% for o in owners %}<option value="{{ o.id }}" {% if owner_id==o.id %}selected{% endif %}>{{ o.name }} - {{ o.phone }}</option>{% endfor %}</select>
+<select name="owner_id">
+    <option value="">➕ Crear propietario nuevo</option>
+    {% for o in owners %}
+    <option value="{{ o.id }}" {% if owner_id==o.id %}selected{% endif %}>
+        {{ o.name }} - {{ o.phone }}
+    </option>
+    {% endfor %}
+</select>
+
+<input name="owner_name" placeholder="Nombre del propietario">
+<input name="owner_phone" placeholder="Teléfono">
+<input name="owner_whatsapp" placeholder="WhatsApp">
+<input name="owner_address" placeholder="Dirección">
+<input name="owner_email" placeholder="Email">
 <input name="species" placeholder="Especie"><input name="breed" placeholder="Raza"><input name="sex" placeholder="Sexo"><input name="weight" placeholder="Peso kg"><textarea name="alerts" placeholder="Alertas clínicas"></textarea><textarea name="notes" placeholder="Observaciones"></textarea><button>Guardar paciente</button>
 </form></div>
 {% endblock %}
