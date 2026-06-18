@@ -141,6 +141,30 @@
             {{ "%.2f"|format(sale.total or 0) }}
         </h4>
 
+        <hr>
+
+        <h5>Pagos registrados</h5>
+
+        {% if payments %}
+            {% for payment in payments %}
+                <div style="margin-bottom:6px;">
+                    {{ payment.method }}:
+                    <strong>$ {{ "%.2f"|format(payment.amount or 0) }}</strong>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div style="color:#777;">
+                Sin pagos registrados
+            </div>
+        {% endif %}
+
+        <hr>
+
+        <h5>
+            Saldo pendiente:
+            $ {{ "%.2f"|format(balance_due or 0) }}
+        </h5>
+
     </div>
 </div>
 
