@@ -31,6 +31,13 @@ try:
         conn.execute(text("ALTER TABLE appointments ADD COLUMN contact_whatsapp VARCHAR(80) DEFAULT ''"))
 except Exception:
     pass
+try:
+    with engine.begin() as conn:
+        conn.execute(text(
+            "ALTER TABLE sales ADD COLUMN IF NOT EXISTS payment_method VARCHAR(50)"
+        ))
+except Exception:
+    pass
 app = FastAPI(title='Los Aromos Cloud')
 app.add_middleware(SessionMiddleware, secret_key=os.getenv('SECRET_KEY', 'dev-secret-change-me'))
 app.mount('/static', StaticFiles(directory='app/static'), name='static')
