@@ -1759,19 +1759,19 @@ def sales_create(
             amount=0 if payment_method == 'Cuenta corriente' else total
         )
 
-    db.add(payment)
+        db.add(payment)
 
-    if payment_method == 'Cuenta corriente':
-        sale.status = 'pending'
-    else:
-        sale.status = 'paid'
+        if payment_method == 'Cuenta corriente':
+            sale.status = 'pending'
+        else:
+            sale.status = 'paid'
 
-db.commit()
+    db.commit()
 
-return RedirectResponse(
-    url='/sales',
-    status_code=303
-)
+    return RedirectResponse(
+        url='/sales',
+        status_code=303
+    )
 @app.post('/sales/{sale_id}/cancel')
 def sales_cancel(
     sale_id: int,
