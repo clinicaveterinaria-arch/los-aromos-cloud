@@ -164,21 +164,38 @@
 
         <hr>
 
-        <h5>Pagos registrados</h5>
+<h5>Pagos registrados</h5>
 
-        {% if payments %}
-            {% for payment in payments %}
-                <div style="margin-bottom:6px;">
-                    {{ payment.method }}:
-                    <strong>$ {{ "%.2f"|format(payment.amount or 0) }}</strong>
-                </div>
-            {% endfor %}
-        {% else %}
-            <div style="color:#777;">
-                Sin pagos registrados
+{% if payments %}
+    <div style="max-width:420px;">
+        {% for payment in payments %}
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 10px; margin-bottom:6px; border:1px solid #f3cfe0; border-radius:8px; background:#fff7fb;">
+                <span>
+                    {% if payment.method == 'Efectivo' %}
+                        💵
+                    {% elif payment.method == 'Débito' %}
+                        💳
+                    {% elif payment.method == 'Crédito' %}
+                        💳
+                    {% elif payment.method == 'Transferencia' %}
+                        🏦
+                    {% elif payment.method == 'Cuenta corriente' %}
+                        📒
+                    {% else %}
+                        💰
+                    {% endif %}
+                    {{ payment.method }}
+                </span>
+
+                <strong>$ {{ "%.2f"|format(payment.amount or 0) }}</strong>
             </div>
-        {% endif %}
-
+        {% endfor %}
+    </div>
+{% else %}
+    <div style="color:#777;">
+        Sin pagos registrados
+    </div>
+{% endif %}
 <hr>
 
 <h5>
