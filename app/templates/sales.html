@@ -123,6 +123,38 @@
                 <textarea name="notes" class="form-control" rows="2"></textarea>
             </div>
             <div class="mb-3">
+<div style="margin-top:15px; margin-bottom:10px;">
+    <label><strong>Cobro rápido</strong></label>
+
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+
+        <button type="button" onclick="quickPay('efectivo')"
+            class="btn btn-success">
+            💵 Efectivo
+        </button>
+
+        <button type="button" onclick="quickPay('debito')"
+            class="btn btn-primary">
+            💳 Débito
+        </button>
+
+        <button type="button" onclick="quickPay('credito')"
+            class="btn btn-secondary">
+            💳 Crédito
+        </button>
+
+        <button type="button" onclick="quickPay('transferencia')"
+            class="btn btn-warning">
+            🏦 Transferencia
+        </button>
+
+        <button type="button" onclick="quickPay('cuenta')"
+            class="btn btn-dark">
+            📒 Cuenta corriente
+        </button>
+
+    </div>
+</div>
     <label><strong>Medios de pago</strong></label>
 
     <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:10px; margin-top:8px;">
@@ -309,7 +341,44 @@ function calculateTotal() {
 
     calculatePayments();
 }
+function quickPay(method) {
 
+    let total = 0;
+
+    document.querySelectorAll(".sale-item").forEach(row => {
+        const qty = parseFloat(row.querySelector(".quantity").value) || 0;
+        const price = parseFloat(row.querySelector(".unit-price").value) || 0;
+        total += qty * price;
+    });
+
+    document.querySelector('[name="pay_efectivo"]').value = 0;
+    document.querySelector('[name="pay_debito"]').value = 0;
+    document.querySelector('[name="pay_credito"]').value = 0;
+    document.querySelector('[name="pay_transferencia"]').value = 0;
+    document.querySelector('[name="pay_cuenta_corriente"]').value = 0;
+
+    if (method === "efectivo") {
+        document.querySelector('[name="pay_efectivo"]').value = total.toFixed(2);
+    }
+
+    if (method === "debito") {
+        document.querySelector('[name="pay_debito"]').value = total.toFixed(2);
+    }
+
+    if (method === "credito") {
+        document.querySelector('[name="pay_credito"]').value = total.toFixed(2);
+    }
+
+    if (method === "transferencia") {
+        document.querySelector('[name="pay_transferencia"]').value = total.toFixed(2);
+    }
+
+    if (method === "cuenta") {
+        document.querySelector('[name="pay_cuenta_corriente"]').value = total.toFixed(2);
+    }
+
+    calculatePayments();
+}
 function addItem() {
     const container = document.getElementById("items-container");
     const firstItem = document.querySelector(".sale-item");
