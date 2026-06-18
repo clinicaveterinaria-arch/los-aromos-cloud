@@ -1881,6 +1881,7 @@ def sale_add_item(
 @app.post('/sales/{sale_id}/confirm')
 def sale_confirm(
     sale_id: int,
+    payment_method: str = Form('Efectivo'),
     db: Session = Depends(get_db),
     user: User = Depends(require_user)
 ):
@@ -1888,7 +1889,7 @@ def sale_confirm(
 
     if not sale:
         raise HTTPException(status_code=404, detail='Venta no encontrada')
-
+    sale.payment_method = payment_method or 'Efectivo'
     sale.status = 'paid'
 
     db.commit()
