@@ -1826,16 +1826,27 @@ def sales_detail(
         .order_by(Product.name)
         .all()
     )
+    payments = (
+        db.query(SalePayment)
+        .filter(SalePayment.sale_id == sale.id)
+        .all()
+    )
+    
+    total_paid = sum(p.amount or 0 for p in payments)
+    
+    balance_due = (sale.total or 0) - total_paid
     return templates.TemplateResponse(
         'sale_detail.html',
-        {
-            'request': request,
-            'sale': sale,
-            'patient': patient,
-            'owner': owner,
-            'items': item_details,
-            'products': products
-        }
+    {
+        'request': request,
+        'sale': sale,
+        'patient': patient,
+        'owner': owner,
+        'items': item_details,
+        'products': products,
+        'payments': payments,
+        'balance_due': balance_due
+    }
     )
 @app.post('/sales/{sale_id}/add-item')
 def sale_add_item(
