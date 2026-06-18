@@ -17,19 +17,22 @@
             <div>
                 <strong>Estado:</strong><br>
 
+{% set paid_total = sale.payments | sum(attribute='amount') %}
+{% set balance_due = (sale.total or 0) - (paid_total or 0) %}
+
 {% if sale.status == 'cancelled' %}
 
     <span style="color:#999;font-weight:bold;">
         Cancelada
     </span>
 
-{% elif sale.balance_due <= 0 %}
+{% elif balance_due <= 0 %}
 
     <span style="color:#198754;font-weight:bold;">
         Pagada
     </span>
 
-{% elif sale.balance_due < sale.total %}
+{% elif paid_total > 0 %}
 
     <span style="color:#d68c00;font-weight:bold;">
         Parcial
