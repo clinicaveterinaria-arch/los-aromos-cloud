@@ -123,64 +123,56 @@
                 <textarea name="notes" class="form-control" rows="2"></textarea>
             </div>
             <div class="mb-3">
-<div style="margin-top:15px; margin-bottom:10px;">
+<div style="margin-top:15px; margin-bottom:12px;">
     <label><strong>Cobro rápido</strong></label>
 
-    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:6px;">
-
-        <button type="button" onclick="quickPay('efectivo')"
-        style="background:#d9b6c7; color:#444; border:1px solid #cfa8ba; border-radius:8px; padding:4px 10px; font-size:12px; font-weight:600; min-width:110px; height:36px;"
-        💵 Efectivo
-        </button>
-
-        <button type="button" onclick="quickPay('debito')"
-        style="background:#d9b6c7; color:#444; border:1px solid #cfa8ba; border-radius:8px; padding:4px 10px; font-size:12px; font-weight:600; min-width:110px; height:36px;"
-        💳 Débito
-        </button>
-
-        <button type="button" onclick="quickPay('credito')"
-        style="background:#d9b6c7; color:#444; border:1px solid #cfa8ba; border-radius:8px; padding:4px 10px; font-size:12px; font-weight:600; min-width:110px; height:36px;"
-        💳 Crédito
-        </button>
-
-        <button type="button" onclick="quickPay('transferencia')"
-        style="background:#d9b6c7; color:#444; border:1px solid #cfa8ba; border-radius:8px; padding:4px 10px; font-size:12px; font-weight:600; min-width:110px; height:36px;"
-        🏦 Transferencia
-        </button>
-
-        <button type="button" onclick="quickPay('cuenta')"
-        style="background:#d9b6c7; color:#444; border:1px solid #cfa8ba; border-radius:8px; padding:4px 10px; font-size:12px; font-weight:600; min-width:110px; height:36px;"
-        📒 Cuenta corriente
-        </button>
-
-
-        <div>
-            <label>Débito</label>
-            <input type="number" step="0.01" name="pay_debito" class="form-control payment-input" value="0" oninput="calculateTotal()">
-        </div>
-
-        <div>
-            <label>Crédito</label>
-            <input type="number" step="0.01" name="pay_credito" class="form-control payment-input" value="0" oninput="calculateTotal()">
-        </div>
-
-        <div>
-            <label>Transferencia</label>
-            <input type="number" step="0.01" name="pay_transferencia" class="form-control payment-input" value="0" oninput="calculateTotal()">
-        </div>
-
-        <div>
-            <label>Cuenta corriente</label>
-            <input type="number" step="0.01" name="pay_cuenta_corriente" class="form-control payment-input" value="0" oninput="calculateTotal()">
-        </div>
-
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+        <button type="button" onclick="quickPay('efectivo')" style="background:#e8a9c3; color:#333; border:1px solid #d9b6c7; border-radius:8px; padding:7px 14px; font-size:13px; font-weight:600;">💵 Efectivo</button>
+        <button type="button" onclick="quickPay('debito')" style="background:#e8a9c3; color:#333; border:1px solid #d9b6c7; border-radius:8px; padding:7px 14px; font-size:13px; font-weight:600;">💳 Débito</button>
+        <button type="button" onclick="quickPay('credito')" style="background:#e8a9c3; color:#333; border:1px solid #d9b6c7; border-radius:8px; padding:7px 14px; font-size:13px; font-weight:600;">💳 Crédito</button>
+        <button type="button" onclick="quickPay('transferencia')" style="background:#e8a9c3; color:#333; border:1px solid #d9b6c7; border-radius:8px; padding:7px 14px; font-size:13px; font-weight:600;">🏦 Transferencia</button>
+        <button type="button" onclick="quickPay('cuenta')" style="background:#e8a9c3; color:#333; border:1px solid #d9b6c7; border-radius:8px; padding:7px 14px; font-size:13px; font-weight:600;">📒 Cuenta corriente</button>
     </div>
-<h4>Total: $ <span id="total-sale">0.00</span></h4>
+</div>
 
-<button type="submit" id="save-sale-button" class="btn btn-success mt-3"
-style="height:32px; padding:3px 10px; font-size:11px;">
-    Guardar venta
-</button>
+<label><strong>Medios de pago</strong></label>
+
+<div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:10px; margin-top:8px;">
+    <div>
+        <label>Efectivo</label>
+        <input type="number" step="0.01" name="pay_efectivo" class="form-control payment-input" value="0" oninput="calculateTotal()">
+    </div>
+
+    <div>
+        <label>Débito</label>
+        <input type="number" step="0.01" name="pay_debito" class="form-control payment-input" value="0" oninput="calculateTotal()">
+    </div>
+
+    <div>
+        <label>Crédito</label>
+        <input type="number" step="0.01" name="pay_credito" class="form-control payment-input" value="0" oninput="calculateTotal()">
+    </div>
+
+    <div>
+        <label>Transferencia</label>
+        <input type="number" step="0.01" name="pay_transferencia" class="form-control payment-input" value="0" oninput="calculateTotal()">
+    </div>
+
+    <div>
+        <label>Cuenta corriente</label>
+        <input type="number" step="0.01" name="pay_cuenta_corriente" class="form-control payment-input" value="0" oninput="calculateTotal()">
+    </div>
+</div>
+
+<div style="margin-top:14px; display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+    <h4 style="margin:0;">Total: $ <span id="total-sale">0.00</span></h4>
+
+    <button type="submit" id="save-sale-button" class="btn btn-success"
+    style="height:34px; padding:4px 14px; font-size:12px; background:#d85b9a; border:0;">
+        Guardar venta
+    </button>
+</div>
+
 <div id="payment-status-box" style="margin-top:14px; padding:10px 14px; border-radius:10px; background:#fff4d6; border:1px solid #f0c36d; max-width:420px;">
     <strong id="payment-status-title">🟠 Saldo pendiente</strong><br>
     <div style="margin-top:6px; font-size:13px;">
@@ -188,12 +180,6 @@ style="height:32px; padding:3px 10px; font-size:11px;">
         Saldo: $ <span id="payment-balance">0.00</span>
     </div>
 </div>
-
-<h4>Total: $ <span id="total-sale">0.00</span></h4>
-
-<button type="submit" id="save-sale-button" class="btn btn-success mt-3">
-    Guardar venta
-</button>
 
         </form>
     </div>
