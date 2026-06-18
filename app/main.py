@@ -1750,14 +1750,14 @@ def sales_create(
         current_stock = product.stock or 0
         product.stock = current_stock - qty
 
-sale.total = total
-
-if total > 0:
-    payment = SalePayment(
-        sale_id=sale.id,
-        method=payment_method or 'Efectivo',
-        amount=0 if payment_method == 'Cuenta corriente' else total
-    )
+    sale.total = total
+    
+    if total > 0:
+        payment = SalePayment(
+            sale_id=sale.id,
+            method=payment_method or 'Efectivo',
+            amount=0 if payment_method == 'Cuenta corriente' else total
+        )
 
     db.add(payment)
 
