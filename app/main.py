@@ -367,10 +367,55 @@ def patient_new(request: Request, owner_id: Optional[int] = None, db: Session = 
     return templates.TemplateResponse('patient_new.html', {'request': request, 'owners': owners, 'owner_id': owner_id})
 
 @app.post('/patients')
-def patient_create(name: str = Form(...), owner_id: int = Form(...), species: str = Form(''), breed: str = Form(''), sex: str = Form(''), weight: str = Form(''), alerts: str = Form(''), notes: str = Form(''), db: Session = Depends(get_db), user: User = Depends(require_user)):
+def patient_create(
+    name: str = Form(...),
+    owner_id: int | None = Form(None),
+    owner_name: str = Form(""),
+    owner_phone: str = Form(""),
+    owner_whatsapp: str = Form(""),
+    owner_address: str = Form(""),
+    owner_email: str = Form(""),
+    species: str = Form(""),
+    breed: str = Form(""),
+    sex: str = Form(""),
+    weight: str = Form(""),
+    alerts: str = Form(""),
+    notes: str = Form(""),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    if not owner_id:
+        if owner_name.strip():
+            owner = Owner(
+                name=owner_name.strip(),
+                phone=owner_phone.strip(),
+                whatsapp=owner_whatsapp.strip(),
+                address=owner_address.strip(),
+                email=owner_email.strip()
+            )
+            db.add(owner)
+            db.commit()
+            db.refresh(owner)
+            owner_id = owner.id
+        else:
+            owner_id = None
+
     w = float(weight.replace(',', '.')) if weight.strip() else None
-    p = Patient(name=name, owner_id=owner_id, species=species, breed=breed, sex=sex, weight=w, alerts=alerts, notes=notes)
-    db.add(p); db.commit()
+
+    p = Patient(
+        name=name,
+        owner_id=owner_id,
+        species=species,
+        breed=breed,
+        sex=sex,
+        weight=w,
+        alerts=alerts,
+        notes=notes
+    )
+
+    db.add(p)
+    db.commit()
+
     return RedirectResponse(f'/patients/{p.id}', status_code=303)
 @app.get('/agenda', response_class=HTMLResponse)
 def agenda(
