@@ -342,7 +342,6 @@ function calculateTotal() {
     calculatePayments();
 }
 function quickPay(method) {
-
     let total = 0;
 
     document.querySelectorAll(".sale-item").forEach(row => {
@@ -351,31 +350,35 @@ function quickPay(method) {
         total += qty * price;
     });
 
-    document.querySelector('[name="pay_efectivo"]').value = 0;
-    document.querySelector('[name="pay_debito"]').value = 0;
-    document.querySelector('[name="pay_credito"]').value = 0;
-    document.querySelector('[name="pay_transferencia"]').value = 0;
-    document.querySelector('[name="pay_cuenta_corriente"]').value = 0;
+    const efectivo = document.querySelector('[name="pay_efectivo"]');
+    const debito = document.querySelector('[name="pay_debito"]');
+    const credito = document.querySelector('[name="pay_credito"]');
+    const transferencia = document.querySelector('[name="pay_transferencia"]');
+    const cuenta = document.querySelector('[name="pay_cuenta_corriente"]');
 
-    if (method === "efectivo") {
-        document.querySelector('[name="pay_efectivo"]').value = total.toFixed(2);
+    let totalPagosActual =
+        (parseFloat(efectivo.value) || 0) +
+        (parseFloat(debito.value) || 0) +
+        (parseFloat(credito.value) || 0) +
+        (parseFloat(transferencia.value) || 0) +
+        (parseFloat(cuenta.value) || 0);
+
+    let saldo = total - totalPagosActual;
+
+    if (saldo <= 0) {
+        efectivo.value = 0;
+        debito.value = 0;
+        credito.value = 0;
+        transferencia.value = 0;
+        cuenta.value = 0;
+        saldo = total;
     }
 
-    if (method === "debito") {
-        document.querySelector('[name="pay_debito"]').value = total.toFixed(2);
-    }
-
-    if (method === "credito") {
-        document.querySelector('[name="pay_credito"]').value = total.toFixed(2);
-    }
-
-    if (method === "transferencia") {
-        document.querySelector('[name="pay_transferencia"]').value = total.toFixed(2);
-    }
-
-    if (method === "cuenta") {
-        document.querySelector('[name="pay_cuenta_corriente"]').value = total.toFixed(2);
-    }
+    if (method === "efectivo") efectivo.value = saldo.toFixed(2);
+    if (method === "debito") debito.value = saldo.toFixed(2);
+    if (method === "credito") credito.value = saldo.toFixed(2);
+    if (method === "transferencia") transferencia.value = saldo.toFixed(2);
+    if (method === "cuenta") cuenta.value = saldo.toFixed(2);
 
     calculatePayments();
 }
