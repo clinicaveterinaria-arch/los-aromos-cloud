@@ -31,7 +31,17 @@
     <div class="card-header">
         Nueva venta
     </div>
+    
 
+        <button type="submit" class="btn">
+            Buscar
+        </button>
+
+        <a href="/sales" class="btn btn-secondary">
+            Hoy
+        </a>
+    </form>
+</div>
     <div class="card-body">
         <form method="post" action="/sales">
 <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
@@ -134,7 +144,31 @@
     <div class="card-header">
         Últimas ventas
     </div>
+<div class="card-body" style="padding-bottom:0;">
+    <form method="get"
+          action="/sales"
+          style="display:flex; gap:10px; align-items:end; margin-bottom:15px;">
 
+        <div>
+            <label>Fecha</label>
+            <input type="date"
+                   name="sale_date"
+                   class="form-control"
+                   value="{{ selected_date }}">
+        </div>
+
+        <button type="submit" class="btn">
+            Buscar
+        </button>
+
+        <a href="/sales" class="btn btn-secondary">
+            Hoy
+        </a>
+
+    </form>
+</div>
+
+<div class="card-body">
     <div class="card-body">
         {% if sales %}
         <table class="table table-sm">
