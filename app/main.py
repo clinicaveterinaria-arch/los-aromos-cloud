@@ -1750,14 +1750,28 @@ def sales_create(
         current_stock = product.stock or 0
         product.stock = current_stock - qty
 
-    sale.total = total
+sale.total = total
 
-    db.commit()
-
-    return RedirectResponse(
-        url='/sales',
-        status_code=303
+if total > 0:
+    payment = SalePayment(
+        sale_id=sale.id,
+        method=payment_method or 'Efectivo',
+        amount=0 if payment_method == 'Cuenta corriente' else total
     )
+
+    db.add(payment)
+
+    if payment_method == 'Cuenta corriente':
+        sale.status = 'pending'
+    else:
+        sale.status = 'paid'
+
+db.commit()
+
+return RedirectResponse(
+    url='/sales',
+    status_code=303
+)
 @app.post('/sales/{sale_id}/cancel')
 def sales_cancel(
     sale_id: int,
