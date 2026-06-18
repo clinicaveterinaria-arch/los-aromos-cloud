@@ -1608,6 +1608,16 @@ def sales_page(
         sale.patient_name = ''
         sale.owner_name = ''
         sale.items_detail = []
+        sale.total_paid = (
+            sum(
+                p.amount or 0
+                for p in db.query(SalePayment)
+                .filter(SalePayment.sale_id == sale.id)
+                .all()
+            )
+        )
+
+        sale.balance_due = (sale.total or 0) - sale.total_paid
 
         items = (
             db.query(SaleItem)
