@@ -61,8 +61,7 @@
 
     </div>
 </div>
-{% set paid_total = sale.payments | sum(attribute='amount') %}
-{% set balance_due = (sale.total or 0) - (paid_total or 0) %}
+
 
 {% if sale.status != 'cancelled' and balance_due > 0 %}
 <div class="card mb-4">
@@ -226,11 +225,7 @@
         Volver a ventas
     </a>
 </div>
-<div style="margin-top:20px;">
-    <a href="/sales" class="btn btn-secondary">
-        Volver a ventas
-    </a>
-</div>
+
 <script>
 function updateDetailPrice(select) {
     const selected = select.options[select.selectedIndex];
