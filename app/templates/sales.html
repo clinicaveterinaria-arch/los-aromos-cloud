@@ -110,7 +110,16 @@
                 <label>Notas</label>
                 <textarea name="notes" class="form-control" rows="2"></textarea>
             </div>
-
+            <div class="mb-3" style="max-width:300px;">
+                <label>Medio de pago</label>
+                <select name="payment_method" class="form-control">
+                    <option value="Efectivo">Efectivo</option>
+                    <option value="Débito">Débito</option>
+                    <option value="Crédito">Crédito</option>
+                    <option value="Transferencia">Transferencia</option>
+                    <option value="Cuenta corriente">Cuenta corriente</option>
+                </select>
+            </div>
             <h4>Total: $ <span id="total-sale">0.00</span></h4>
 
             <button type="submit" class="btn btn-success mt-3">
