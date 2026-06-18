@@ -219,6 +219,30 @@ class SaleItem(Base):
         Float,
         default=0
     )
+class SalePayment(Base):
+    __tablename__ = 'sale_payments'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+
+    sale_id: Mapped[int] = mapped_column(
+        ForeignKey('sales.id'),
+        index=True
+    )
+
+    method: Mapped[str] = mapped_column(
+        String(50),
+        default='Efectivo'
+    )
+
+    amount: Mapped[float] = mapped_column(
+        Float,
+        default=0
+    )
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        default=datetime.utcnow
+    )
 class EventAttachment(Base):
     __tablename__ = 'event_attachments'
 
