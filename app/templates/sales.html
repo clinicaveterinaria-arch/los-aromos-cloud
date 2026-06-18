@@ -304,6 +304,13 @@ function calculateTotal() {
     });
 
     document.getElementById("total-sale").innerText = total.toFixed(2);
+
+    const totalComanda = document.getElementById("total-comanda-display");
+    if (totalComanda) {
+        totalComanda.innerText = "$ " + total.toFixed(2);
+    }
+
+    calculatePayments();
 }
 
 function addItem() {
