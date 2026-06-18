@@ -1768,10 +1768,10 @@ def sales_create(
 
 db.commit()
 
-return RedirectResponse(
-    url='/sales',
-    status_code=303
-)
+    return RedirectResponse(
+        url='/sales',
+        status_code=303
+    )
 @app.post('/sales/{sale_id}/cancel')
 def sales_cancel(
     sale_id: int,
