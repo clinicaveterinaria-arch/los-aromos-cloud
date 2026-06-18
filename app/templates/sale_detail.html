@@ -61,7 +61,10 @@
 
     </div>
 </div>
-{% if sale.status != 'cancelled' %}
+{% set paid_total = sale.payments | sum(attribute='amount') %}
+{% set balance_due = (sale.total or 0) - (paid_total or 0) %}
+
+{% if sale.status != 'cancelled' and balance_due > 0 %}
 <div class="card mb-4">
     <div class="card-header">
         Agregar producto o servicio
