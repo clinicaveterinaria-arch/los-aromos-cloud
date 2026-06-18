@@ -145,6 +145,7 @@
                     <th>Propietario</th>
                     <th>Productos</th>
                     <th>Total</th>
+                    <th>Medio de pago</th>
                     <th>Notas</th>
                     <th>Estado</th>
                     <th>Acción</th>
@@ -160,6 +161,7 @@
                     <td>{{ sale.owner_name or "-" }}</td>
                     <td>{{ sale.items_count }}</td>
                     <td>$ {{ "%.2f"|format(sale.total or 0) }}</td>
+                    <td>{{ sale.payment_method or "-" }}</td>
                     <td>{{ sale.notes or "" }}</td>
                     <td>
     {% if sale.status == 'cancelled' %}
