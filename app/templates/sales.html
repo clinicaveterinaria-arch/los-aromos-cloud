@@ -111,21 +111,34 @@
         + Agregar producto / servicio
     </button>
 
-    <div style="margin-top:14px; padding:12px 16px; border-radius:12px; background:#fdf0f7; border:1px solid #f3cfe0; display:flex; justify-content:space-between; align-items:center;">
-        <strong>Total de la comanda</strong>
+<div style="margin-top:14px; padding:12px 16px; border-radius:12px; background:#fdf0f7; border:1px solid #f3cfe0;">
+    <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+        <strong>Subtotal</strong>
+        <strong id="subtotal-display">$ 0.00</strong>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+        <div>
+            <strong>Descuento</strong>
+            <input type="number"
+                   id="discount-percent"
+                   class="form-control"
+                   value="0"
+                   min="0"
+                   max="100"
+                   oninput="calculateTotal()"
+                   style="width:90px; display:inline-block; margin-left:8px;">
+            <span>%</span>
+        </div>
+
+        <strong id="discount-amount-display">- $ 0.00</strong>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; border-top:1px solid #f3cfe0; padding-top:8px;">
+        <strong>Total final</strong>
         <strong id="total-comanda-display" style="font-size:20px;">$ 0.00</strong>
     </div>
 </div>
-<div style="margin-top:10px; max-width:220px;">
-    <label><strong>Descuento (%)</strong></label>
-    <input type="number"
-           id="discount-percent"
-           class="form-control"
-           value="0"
-           min="0"
-           max="100"
-           oninput="calculateTotal()">
-</div>                
 
             <div class="mb-3">
                 <label>Notas</label>
@@ -325,36 +338,28 @@ function calculateTotal() {
     let subtotalGeneral = 0;
 
     document.querySelectorAll(".sale-item").forEach(row => {
-
         const qty = parseFloat(row.querySelector(".quantity").value) || 0;
         const price = parseFloat(row.querySelector(".unit-price").value) || 0;
-
         const subtotal = qty * price;
 
         row.querySelector(".subtotal").value = subtotal.toFixed(2);
-
         subtotalGeneral += subtotal;
     });
 
-    const discountPercent =
-        parseFloat(document.getElementById("discount-percent")?.value) || 0;
+    const discountPercent = parseFloat(document.getElementById("discount-percent")?.value) || 0;
+    const discountAmount = subtotalGeneral * (discountPercent / 100);
+    const total = subtotalGeneral - discountAmount;
 
-    const discountAmount =
-        subtotalGeneral * (discountPercent / 100);
+    const subtotalDisplay = document.getElementById("subtotal-display");
+    if (subtotalDisplay) subtotalDisplay.innerText = "$ " + subtotalGeneral.toFixed(2);
 
-    const total =
-        subtotalGeneral - discountAmount;
+    const discountAmountDisplay = document.getElementById("discount-amount-display");
+    if (discountAmountDisplay) discountAmountDisplay.innerText = "- $ " + discountAmount.toFixed(2);
 
-    document.getElementById("total-sale").innerText =
-        total.toFixed(2);
+    document.getElementById("total-sale").innerText = total.toFixed(2);
 
-    const totalComanda =
-        document.getElementById("total-comanda-display");
-
-    if (totalComanda) {
-        totalComanda.innerText =
-            "$ " + total.toFixed(2);
-    }
+    const totalComanda = document.getElementById("total-comanda-display");
+    if (totalComanda) totalComanda.innerText = "$ " + total.toFixed(2);
 
     calculatePayments();
 }
