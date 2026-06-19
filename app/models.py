@@ -189,7 +189,25 @@ class Sale(Base):
         default=''
     )
 
-
+    discount_percent: Mapped[float] = mapped_column(
+        Float,
+        default=0
+    )
+    
+    discount_amount: Mapped[float] = mapped_column(
+        Float,
+        default=0
+    )
+    
+    credit_surcharge_percent: Mapped[float] = mapped_column(
+        Float,
+        default=0
+    )
+    
+    credit_surcharge_amount: Mapped[float] = mapped_column(
+        Float,
+        default=0
+    )
 class SaleItem(Base):
     __tablename__ = 'sale_items'
 
