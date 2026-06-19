@@ -77,7 +77,7 @@
                     {% for product in products %}
                     <option
                         value="{{ product.id }}"
-                        data-price="999"
+                        data-price="{{ product.price or 0 }}"
                         data-cost="{{ product.cost_price or 0 }}">
                         {{ product.name }} - Stock: {{ product.stock or 0 }}
                     </option>
