@@ -77,7 +77,8 @@
                     {% for product in products %}
                     <option
                         value="{{ product.id }}"
-                        data-price="{{ product.sale_price or 0 }}">
+                        data-price="{{ product.sale_price or 0 }}"
+                        data-cost="{{ product.cost_price or 0 }}">
                         {{ product.name }} - Stock: {{ product.stock or 0 }}
                     </option>
                     {% endfor %}
@@ -161,6 +162,20 @@
     <div style="display:flex; justify-content:space-between; border-top:1px solid #f3cfe0; padding-top:8px;">
         <strong>Total final</strong>
         <strong id="total-comanda-display" style="font-size:20px;">$ 0.00</strong>
+    </div>
+    <div style="display:flex; justify-content:space-between; margin-top:6px; color:#555;">
+        <span>Costo total</span>
+        <span id="cost-total-display">$ 0.00</span>
+    </div>
+    
+    <div style="display:flex; justify-content:space-between; margin-top:4px; color:#555;">
+        <span>Ganancia</span>
+        <span id="profit-amount-display">$ 0.00</span>
+    </div>
+    
+    <div style="display:flex; justify-content:space-between; margin-top:4px; color:#555;">
+        <span>Margen</span>
+        <span id="margin-percent-display">0.00%</span>
     </div>
 </div>
             <input type="hidden" name="discount_percent" id="discount-percent-hidden" value="0">
@@ -374,32 +389,41 @@ function clearDiscountPercent() {
 }
 function calculateTotal() {
     let subtotalGeneral = 0;
+    let costTotal = 0;
 
     document.querySelectorAll(".sale-item").forEach(row => {
         const qty = parseFloat(row.querySelector(".quantity").value) || 0;
         const price = parseFloat(row.querySelector(".unit-price").value) || 0;
         const subtotal = qty * price;
 
+        const productSelect = row.querySelector(".product-select");
+        const selectedOption = productSelect ? productSelect.options[productSelect.selectedIndex] : null;
+        const productCost = selectedOption ? (parseFloat(selectedOption.dataset.cost) || 0) : 0;
+
+        costTotal += qty * productCost;
+
         row.querySelector(".subtotal").value = subtotal.toFixed(2);
         subtotalGeneral += subtotal;
     });
 
-    const discountPercent = parseFloat(document.getElementById("discount-percent")?.value) || 0;
-    const discountFixed = parseFloat(document.getElementById("discount-fixed")?.value) || 0;
-    
+    const discountPercent = parseFloat(document.getElementById("discount-percent").value) || 0;
+    const discountFixed = parseFloat(document.getElementById("discount-fixed").value) || 0;
+
     let discountAmount = 0;
-    
+
     if (discountFixed > 0) {
         discountAmount = discountFixed;
     } else {
         discountAmount = subtotalGeneral * (discountPercent / 100);
     }
-    
+
     if (discountAmount > subtotalGeneral) {
         discountAmount = subtotalGeneral;
     }
-    
+
     const total = subtotalGeneral - discountAmount;
+    const profitAmount = total - costTotal;
+    const marginPercent = total > 0 ? (profitAmount / total) * 100 : 0;
 
     document.getElementById("discount-percent-hidden").value = discountPercent.toFixed(2);
     document.getElementById("discount-amount-hidden").value = discountAmount.toFixed(2);
@@ -422,7 +446,17 @@ function calculateTotal() {
     const totalComanda = document.getElementById("total-comanda-display");
     if (totalComanda) totalComanda.innerText = "$ " + total.toFixed(2);
 
+    const costTotalDisplay = document.getElementById("cost-total-display");
+    if (costTotalDisplay) costTotalDisplay.innerText = "$ " + costTotal.toFixed(2);
+
+    const profitAmountDisplay = document.getElementById("profit-amount-display");
+    if (profitAmountDisplay) profitAmountDisplay.innerText = "$ " + profitAmount.toFixed(2);
+
+    const marginPercentDisplay = document.getElementById("margin-percent-display");
+    if (marginPercentDisplay) marginPercentDisplay.innerText = marginPercent.toFixed(2) + "%";
+
     calculatePayments();
+}
 }
 function quickPay(method) {
     let subtotalGeneral = 0;
