@@ -368,7 +368,7 @@ function calculateTotal() {
     const total = subtotalGeneral - discountAmount;
     const surchargePercent = parseFloat(document.getElementById("credit-surcharge-percent")?.value) || 0;
     const surchargeAmount = total * (surchargePercent / 100);
-    
+    const totalFinal = total + surchargeAmount;
     document.getElementById("discount-percent-hidden").value = discountPercent.toFixed(2);
     document.getElementById("discount-amount-hidden").value = discountAmount.toFixed(2);
     document.getElementById("credit-surcharge-percent-hidden").value = surchargePercent.toFixed(2);
@@ -382,10 +382,10 @@ function calculateTotal() {
     const discountAmountDisplay = document.getElementById("discount-amount-display");
     if (discountAmountDisplay) discountAmountDisplay.innerText = "- $ " + discountAmount.toFixed(2);
 
-    document.getElementById("total-sale").innerText = total.toFixed(2);
+    document.getElementById("total-sale").innerText = totalFinal.toFixed(2);
 
     const totalComanda = document.getElementById("total-comanda-display");
-    if (totalComanda) totalComanda.innerText = "$ " + total.toFixed(2);
+    if (totalComanda) totalComanda.innerText = "$ " + totalFinal.toFixed(2);
 
     calculatePayments();
 }
