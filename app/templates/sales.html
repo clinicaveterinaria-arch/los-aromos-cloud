@@ -366,6 +366,30 @@
 </div>
 
 <script>
+function addItem() {
+    const container = document.getElementById("items-container");
+    const firstItem = container.querySelector(".sale-item");
+    const newItem = firstItem.cloneNode(true);
+
+    newItem.querySelector(".product-select").selectedIndex = 0;
+    newItem.querySelector(".quantity").value = 1;
+    newItem.querySelector(".unit-price").value = 0;
+    newItem.querySelector(".subtotal").value = "0.00";
+
+    container.appendChild(newItem);
+    calculateTotal();
+}
+
+function removeItem(button) {
+    const items = document.querySelectorAll(".sale-item");
+
+    if (items.length <= 1) {
+        return;
+    }
+
+    button.closest(".sale-item").remove();
+    calculateTotal();
+}
 function updatePrice(select) {
     const row = select.closest(".sale-item");
     const selected = select.options[select.selectedIndex];
