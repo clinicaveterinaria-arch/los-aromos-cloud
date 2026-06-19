@@ -116,7 +116,16 @@
         <strong id="total-comanda-display" style="font-size:20px;">$ 0.00</strong>
     </div>
 </div>
-                
+<div style="margin-top:10px; max-width:220px;">
+    <label><strong>Descuento (%)</strong></label>
+    <input type="number"
+           id="discount-percent"
+           class="form-control"
+           value="0"
+           min="0"
+           max="100"
+           oninput="calculateTotal()">
+</div>                
 
             <div class="mb-3">
                 <label>Notas</label>
@@ -312,22 +321,39 @@ function updatePrice(select) {
 }
 
 function calculateTotal() {
-    let total = 0;
+
+    let subtotalGeneral = 0;
 
     document.querySelectorAll(".sale-item").forEach(row => {
+
         const qty = parseFloat(row.querySelector(".quantity").value) || 0;
         const price = parseFloat(row.querySelector(".unit-price").value) || 0;
+
         const subtotal = qty * price;
 
         row.querySelector(".subtotal").value = subtotal.toFixed(2);
-        total += subtotal;
+
+        subtotalGeneral += subtotal;
     });
 
-    document.getElementById("total-sale").innerText = total.toFixed(2);
+    const discountPercent =
+        parseFloat(document.getElementById("discount-percent")?.value) || 0;
 
-    const totalComanda = document.getElementById("total-comanda-display");
+    const discountAmount =
+        subtotalGeneral * (discountPercent / 100);
+
+    const total =
+        subtotalGeneral - discountAmount;
+
+    document.getElementById("total-sale").innerText =
+        total.toFixed(2);
+
+    const totalComanda =
+        document.getElementById("total-comanda-display");
+
     if (totalComanda) {
-        totalComanda.innerText = "$ " + total.toFixed(2);
+        totalComanda.innerText =
+            "$ " + total.toFixed(2);
     }
 
     calculatePayments();
