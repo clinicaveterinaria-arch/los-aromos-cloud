@@ -100,6 +100,9 @@ def init_db():
         conn.execute(text("ALTER TABLE sales ADD COLUMN IF NOT EXISTS discount_amount FLOAT DEFAULT 0"))
         conn.execute(text("ALTER TABLE sales ADD COLUMN IF NOT EXISTS credit_surcharge_percent FLOAT DEFAULT 0"))
         conn.execute(text("ALTER TABLE sales ADD COLUMN IF NOT EXISTS credit_surcharge_amount FLOAT DEFAULT 0"))
+        conn.execute(text("ALTER TABLE sales ADD COLUMN IF NOT EXISTS cost_total FLOAT DEFAULT 0"))
+        conn.execute(text("ALTER TABLE sales ADD COLUMN IF NOT EXISTS profit_amount FLOAT DEFAULT 0"))
+        conn.execute(text("ALTER TABLE sales ADD COLUMN IF NOT EXISTS margin_percent FLOAT DEFAULT 0"))
         conn.execute(text("""
        
 CREATE TABLE IF NOT EXISTS event_attachments (
@@ -1769,9 +1772,9 @@ def sales_create(
     )
     db.add(sale)
     db.flush()
-
+    
     total = 0
-
+    cost_total = 0
     for pid, qty_raw, price_raw in zip(product_id, quantity, unit_price):
 
         if not pid:
@@ -1789,6 +1792,8 @@ def sales_create(
             continue
 
         subtotal = qty * price
+        product_cost = product.cost_price or 0
+        cost_total += qty * product_cost
         total += subtotal
 
         item = SaleItem(
@@ -1805,6 +1810,9 @@ def sales_create(
         product.stock = current_stock - qty
 
     sale.total = total
+    sale.cost_total = cost_total
+    sale.profit_amount = total - cost_total
+    sale.margin_percent = ((total - cost_total) / total * 100) if total > 0 else 0
 
     payments_to_create = [
         ('Efectivo', to_float(pay_efectivo)),
