@@ -351,7 +351,6 @@ function updatePrice(select) {
 }
 
 function calculateTotal() {
-
     let subtotalGeneral = 0;
 
     document.querySelectorAll(".sale-item").forEach(row => {
@@ -366,94 +365,72 @@ function calculateTotal() {
     const discountPercent = parseFloat(document.getElementById("discount-percent")?.value) || 0;
     const discountAmount = subtotalGeneral * (discountPercent / 100);
     const total = subtotalGeneral - discountAmount;
-    const surchargePercent = parseFloat(document.getElementById("credit-surcharge-percent")?.value) || 0;
-    const surchargeAmount = total * (surchargePercent / 100);
-    const totalFinal = total + surchargeAmount;
+
     document.getElementById("discount-percent-hidden").value = discountPercent.toFixed(2);
     document.getElementById("discount-amount-hidden").value = discountAmount.toFixed(2);
-    document.getElementById("credit-surcharge-percent-hidden").value = surchargePercent.toFixed(2);
-    document.getElementById("credit-surcharge-amount-hidden").value = surchargeAmount.toFixed(2);
-    
+    document.getElementById("credit-surcharge-percent-hidden").value = "0.00";
+    document.getElementById("credit-surcharge-amount-hidden").value = "0.00";
+
+    document.getElementById("credit-surcharge-percent").value = 0;
+
     const surchargeDisplay = document.getElementById("credit-surcharge-display");
-    if (surchargeDisplay) surchargeDisplay.innerText = "+ $ " + surchargeAmount.toFixed(2);
+    if (surchargeDisplay) surchargeDisplay.innerText = "+ $ 0.00";
+
     const subtotalDisplay = document.getElementById("subtotal-display");
     if (subtotalDisplay) subtotalDisplay.innerText = "$ " + subtotalGeneral.toFixed(2);
 
     const discountAmountDisplay = document.getElementById("discount-amount-display");
     if (discountAmountDisplay) discountAmountDisplay.innerText = "- $ " + discountAmount.toFixed(2);
 
-    document.getElementById("total-sale").innerText = totalFinal.toFixed(2);
+    document.getElementById("total-sale").innerText = total.toFixed(2);
 
     const totalComanda = document.getElementById("total-comanda-display");
-    if (totalComanda) totalComanda.innerText = "$ " + totalFinal.toFixed(2);
+    if (totalComanda) totalComanda.innerText = "$ " + total.toFixed(2);
 
     calculatePayments();
 }
 function quickPay(method) {
+    calculateTotal();
 
-    let subtotalGeneral = 0;
-
-    document.querySelectorAll(".sale-item").forEach(row => {
-        const qty = parseFloat(row.querySelector(".quantity").value) || 0;
-        const price = parseFloat(row.querySelector(".unit-price").value) || 0;
-        subtotalGeneral += qty * price;
-    });
-
-    const discountPercent =
-        parseFloat(document.getElementById("discount-percent")?.value) || 0;
-
-    const discountAmount =
-        subtotalGeneral * (discountPercent / 100);
-
-    const total =
-        subtotalGeneral - discountAmount;
+    let total = parseFloat(document.getElementById("total-sale").innerText) || 0;
 
     const efectivo = document.querySelector('[name="pay_efectivo"]');
     const debito = document.querySelector('[name="pay_debito"]');
     const credito = document.querySelector('[name="pay_credito"]');
     const transferencia = document.querySelector('[name="pay_transferencia"]');
     const cuenta = document.querySelector('[name="pay_cuenta_corriente"]');
-    const surchargeInput = document.getElementById("credit-surcharge-percent");
 
-    if (surchargeInput) {
-        surchargeInput.value = (method === "credito") ? 26 : 0;
-    }
-    let totalPagosActual =
-        (parseFloat(efectivo.value) || 0) +
-        (parseFloat(debito.value) || 0) +
-        (parseFloat(credito.value) || 0) +
-        (parseFloat(transferencia.value) || 0) +
-        (parseFloat(cuenta.value) || 0);
+    efectivo.value = 0;
+    debito.value = 0;
+    credito.value = 0;
+    transferencia.value = 0;
+    cuenta.value = 0;
 
-    let saldo = total - totalPagosActual;
+    let finalAmount = total;
 
-    if (saldo <= 0) {
-        efectivo.value = 0;
-        debito.value = 0;
-        credito.value = 0;
-        transferencia.value = 0;
-        cuenta.value = 0;
-        saldo = total;
-    }
-    calculateTotal();
-    if (method === "efectivo") efectivo.value = saldo.toFixed(2);
-    if (method === "debito") debito.value = saldo.toFixed(2);
     if (method === "credito") {
-        const surchargePercent =
-            parseFloat(document.getElementById("credit-surcharge-percent")?.value) || 0;
-    
-        const surchargeAmount =
-            saldo * (surchargePercent / 100);
-    
-        credito.value = (saldo + surchargeAmount).toFixed(2);
-    
+        const surchargePercent = 26;
+        const surchargeAmount = total * (surchargePercent / 100);
+        finalAmount = total + surchargeAmount;
+
+        document.getElementById("credit-surcharge-percent").value = surchargePercent;
+        document.getElementById("credit-surcharge-percent-hidden").value = surchargePercent.toFixed(2);
+        document.getElementById("credit-surcharge-amount-hidden").value = surchargeAmount.toFixed(2);
+
         const surchargeDisplay = document.getElementById("credit-surcharge-display");
-        if (surchargeDisplay) {
-            surchargeDisplay.innerText = "+ $ " + surchargeAmount.toFixed(2);
-        }
+        if (surchargeDisplay) surchargeDisplay.innerText = "+ $ " + surchargeAmount.toFixed(2);
+
+        document.getElementById("total-sale").innerText = finalAmount.toFixed(2);
+
+        const totalComanda = document.getElementById("total-comanda-display");
+        if (totalComanda) totalComanda.innerText = "$ " + finalAmount.toFixed(2);
     }
-    if (method === "transferencia") transferencia.value = saldo.toFixed(2);
-    if (method === "cuenta") cuenta.value = saldo.toFixed(2);
+
+    if (method === "efectivo") efectivo.value = finalAmount.toFixed(2);
+    if (method === "debito") debito.value = finalAmount.toFixed(2);
+    if (method === "credito") credito.value = finalAmount.toFixed(2);
+    if (method === "transferencia") transferencia.value = finalAmount.toFixed(2);
+    if (method === "cuenta") cuenta.value = finalAmount.toFixed(2);
 
     calculatePayments();
 }
