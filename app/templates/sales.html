@@ -153,7 +153,10 @@
         <strong id="total-comanda-display" style="font-size:20px;">$ 0.00</strong>
     </div>
 </div>
-
+            <input type="hidden" name="discount_percent" id="discount-percent-hidden" value="0">
+            <input type="hidden" name="discount_amount" id="discount-amount-hidden" value="0">
+            <input type="hidden" name="credit_surcharge_percent" id="credit-surcharge-percent-hidden" value="0">
+            <input type="hidden" name="credit_surcharge_amount" id="credit-surcharge-amount-hidden" value="0">
             <div class="mb-3">
                 <label>Notas</label>
                 <textarea name="notes" class="form-control" rows="2"></textarea>
@@ -363,7 +366,16 @@ function calculateTotal() {
     const discountPercent = parseFloat(document.getElementById("discount-percent")?.value) || 0;
     const discountAmount = subtotalGeneral * (discountPercent / 100);
     const total = subtotalGeneral - discountAmount;
-
+    const surchargePercent = parseFloat(document.getElementById("credit-surcharge-percent")?.value) || 0;
+    const surchargeAmount = total * (surchargePercent / 100);
+    
+    document.getElementById("discount-percent-hidden").value = discountPercent.toFixed(2);
+    document.getElementById("discount-amount-hidden").value = discountAmount.toFixed(2);
+    document.getElementById("credit-surcharge-percent-hidden").value = surchargePercent.toFixed(2);
+    document.getElementById("credit-surcharge-amount-hidden").value = surchargeAmount.toFixed(2);
+    
+    const surchargeDisplay = document.getElementById("credit-surcharge-display");
+    if (surchargeDisplay) surchargeDisplay.innerText = "+ $ " + surchargeAmount.toFixed(2);
     const subtotalDisplay = document.getElementById("subtotal-display");
     if (subtotalDisplay) subtotalDisplay.innerText = "$ " + subtotalGeneral.toFixed(2);
 
