@@ -359,13 +359,23 @@ function calculateTotal() {
     calculatePayments();
 }
 function quickPay(method) {
-    let total = 0;
+
+    let subtotalGeneral = 0;
 
     document.querySelectorAll(".sale-item").forEach(row => {
         const qty = parseFloat(row.querySelector(".quantity").value) || 0;
         const price = parseFloat(row.querySelector(".unit-price").value) || 0;
-        total += qty * price;
+        subtotalGeneral += qty * price;
     });
+
+    const discountPercent =
+        parseFloat(document.getElementById("discount-percent")?.value) || 0;
+
+    const discountAmount =
+        subtotalGeneral * (discountPercent / 100);
+
+    const total =
+        subtotalGeneral - discountAmount;
 
     const efectivo = document.querySelector('[name="pay_efectivo"]');
     const debito = document.querySelector('[name="pay_debito"]');
