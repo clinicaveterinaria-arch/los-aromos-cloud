@@ -120,17 +120,27 @@
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
         <div>
             <strong>Descuento</strong>
+    
             <input type="number"
                    id="discount-percent"
                    class="form-control"
                    value="0"
                    min="0"
                    max="100"
-                   oninput="calculateTotal()"
+                   oninput="clearDiscountAmount(); calculateTotal()"
                    style="width:90px; display:inline-block; margin-left:8px;">
             <span>%</span>
+    
+            <input type="number"
+                   id="discount-fixed"
+                   class="form-control"
+                   value="0"
+                   min="0"
+                   oninput="clearDiscountPercent(); calculateTotal()"
+                   style="width:110px; display:inline-block; margin-left:10px;">
+            <span>$</span>
         </div>
-
+    
         <strong id="discount-amount-display">- $ 0.00</strong>
     </div>
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
@@ -349,7 +359,19 @@ function updatePrice(select) {
     row.querySelector(".unit-price").value = price;
     calculateTotal();
 }
+function clearDiscountAmount() {
+    const discountFixed = document.getElementById("discount-fixed");
+    if (discountFixed) {
+        discountFixed.value = 0;
+    }
+}
 
+function clearDiscountPercent() {
+    const discountPercent = document.getElementById("discount-percent");
+    if (discountPercent) {
+        discountPercent.value = 0;
+    }
+}
 function calculateTotal() {
     let subtotalGeneral = 0;
 
@@ -363,7 +385,20 @@ function calculateTotal() {
     });
 
     const discountPercent = parseFloat(document.getElementById("discount-percent")?.value) || 0;
-    const discountAmount = subtotalGeneral * (discountPercent / 100);
+    const discountFixed = parseFloat(document.getElementById("discount-fixed")?.value) || 0;
+    
+    let discountAmount = 0;
+    
+    if (discountFixed > 0) {
+        discountAmount = discountFixed;
+    } else {
+        discountAmount = subtotalGeneral * (discountPercent / 100);
+    }
+    
+    if (discountAmount > subtotalGeneral) {
+        discountAmount = subtotalGeneral;
+    }
+    
     const total = subtotalGeneral - discountAmount;
 
     document.getElementById("discount-percent-hidden").value = discountPercent.toFixed(2);
