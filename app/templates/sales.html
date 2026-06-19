@@ -133,7 +133,21 @@
 
         <strong id="discount-amount-display">- $ 0.00</strong>
     </div>
-
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+        <div>
+            <strong>Recargo crédito</strong>
+            <input type="number"
+                   id="credit-surcharge-percent"
+                   class="form-control"
+                   value="26"
+                   min="0"
+                   max="100"
+                   style="width:90px; display:inline-block; margin-left:8px;">
+            <span>%</span>
+        </div>
+    
+        <strong id="credit-surcharge-display">+ $ 0.00</strong>
+    </div>
     <div style="display:flex; justify-content:space-between; border-top:1px solid #f3cfe0; padding-top:8px;">
         <strong>Total final</strong>
         <strong id="total-comanda-display" style="font-size:20px;">$ 0.00</strong>
