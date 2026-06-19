@@ -208,6 +208,20 @@ class Sale(Base):
         Float,
         default=0
     )
+    cost_total: Mapped[float] = mapped_column(
+    Float,
+    default=0
+    )
+
+    profit_amount: Mapped[float] = mapped_column(
+        Float,
+        default=0
+    )
+
+    margin_percent: Mapped[float] = mapped_column(
+        Float,
+        default=0
+    )
 class SaleItem(Base):
     __tablename__ = 'sale_items'
 
