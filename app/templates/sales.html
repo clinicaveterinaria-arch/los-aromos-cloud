@@ -390,9 +390,35 @@ function calculateTotal() {
     calculatePayments();
 }
 function quickPay(method) {
-    calculateTotal();
+    let subtotalGeneral = 0;
 
-    let total = parseFloat(document.getElementById("total-sale").innerText) || 0;
+    document.querySelectorAll(".sale-item").forEach(row => {
+        const qty = parseFloat(row.querySelector(".quantity").value) || 0;
+        const price = parseFloat(row.querySelector(".unit-price").value) || 0;
+        subtotalGeneral += qty * price;
+    });
+
+    const discountPercent = parseFloat(document.getElementById("discount-percent")?.value) || 0;
+    const discountAmount = subtotalGeneral * (discountPercent / 100);
+    let totalFinal = subtotalGeneral - discountAmount;
+
+    let surchargePercent = 0;
+    let surchargeAmount = 0;
+
+    if (method === "credito") {
+        surchargePercent = parseFloat(document.getElementById("credit-surcharge-percent")?.value) || 26;
+        surchargeAmount = totalFinal * (surchargePercent / 100);
+        totalFinal = totalFinal + surchargeAmount;
+    } else {
+        document.getElementById("credit-surcharge-percent").value = 0;
+    }
+
+    document.getElementById("credit-surcharge-display").innerText = "+ $ " + surchargeAmount.toFixed(2);
+    document.getElementById("credit-surcharge-percent-hidden").value = surchargePercent.toFixed(2);
+    document.getElementById("credit-surcharge-amount-hidden").value = surchargeAmount.toFixed(2);
+
+    document.getElementById("total-sale").innerText = totalFinal.toFixed(2);
+    document.getElementById("total-comanda-display").innerText = "$ " + totalFinal.toFixed(2);
 
     const efectivo = document.querySelector('[name="pay_efectivo"]');
     const debito = document.querySelector('[name="pay_debito"]');
@@ -406,55 +432,13 @@ function quickPay(method) {
     transferencia.value = 0;
     cuenta.value = 0;
 
-    let finalAmount = total;
-
-    if (method === "credito") {
-        const surchargePercent = 26;
-        const surchargeAmount = total * (surchargePercent / 100);
-        finalAmount = total + surchargeAmount;
-
-        document.getElementById("credit-surcharge-percent").value = surchargePercent;
-        document.getElementById("credit-surcharge-percent-hidden").value = surchargePercent.toFixed(2);
-        document.getElementById("credit-surcharge-amount-hidden").value = surchargeAmount.toFixed(2);
-
-        const surchargeDisplay = document.getElementById("credit-surcharge-display");
-        if (surchargeDisplay) surchargeDisplay.innerText = "+ $ " + surchargeAmount.toFixed(2);
-
-        document.getElementById("total-sale").innerText = finalAmount.toFixed(2);
-
-        const totalComanda = document.getElementById("total-comanda-display");
-        if (totalComanda) totalComanda.innerText = "$ " + finalAmount.toFixed(2);
-    }
-
-    if (method === "efectivo") efectivo.value = finalAmount.toFixed(2);
-    if (method === "debito") debito.value = finalAmount.toFixed(2);
-    if (method === "credito") credito.value = finalAmount.toFixed(2);
-    if (method === "transferencia") transferencia.value = finalAmount.toFixed(2);
-    if (method === "cuenta") cuenta.value = finalAmount.toFixed(2);
+    if (method === "efectivo") efectivo.value = totalFinal.toFixed(2);
+    if (method === "debito") debito.value = totalFinal.toFixed(2);
+    if (method === "credito") credito.value = totalFinal.toFixed(2);
+    if (method === "transferencia") transferencia.value = totalFinal.toFixed(2);
+    if (method === "cuenta") cuenta.value = totalFinal.toFixed(2);
 
     calculatePayments();
-}
-function addItem() {
-    const container = document.getElementById("items-container");
-    const firstItem = document.querySelector(".sale-item");
-    const newItem = firstItem.cloneNode(true);
-
-    newItem.querySelector(".product-select").value = "";
-    newItem.querySelector(".quantity").value = 1;
-    newItem.querySelector(".unit-price").value = 0;
-    newItem.querySelector(".subtotal").value = 0;
-
-    container.appendChild(newItem);
-    calculateTotal();
-}
-
-function removeItem(button) {
-    const items = document.querySelectorAll(".sale-item");
-
-    if (items.length > 1) {
-        button.closest(".sale-item").remove();
-        calculateTotal();
-    }
 }
 const patientOwnerMap = {{ patient_owner_map | tojson }};
 
