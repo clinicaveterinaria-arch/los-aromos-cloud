@@ -422,7 +422,20 @@ function quickPay(method) {
 
     if (method === "efectivo") efectivo.value = saldo.toFixed(2);
     if (method === "debito") debito.value = saldo.toFixed(2);
-    if (method === "credito") credito.value = saldo.toFixed(2);
+    if (method === "credito") {
+        const surchargePercent =
+            parseFloat(document.getElementById("credit-surcharge-percent")?.value) || 0;
+    
+        const surchargeAmount =
+            saldo * (surchargePercent / 100);
+    
+        credito.value = (saldo + surchargeAmount).toFixed(2);
+    
+        const surchargeDisplay = document.getElementById("credit-surcharge-display");
+        if (surchargeDisplay) {
+            surchargeDisplay.innerText = "+ $ " + surchargeAmount.toFixed(2);
+        }
+    }
     if (method === "transferencia") transferencia.value = saldo.toFixed(2);
     if (method === "cuenta") cuenta.value = saldo.toFixed(2);
 
