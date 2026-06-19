@@ -413,7 +413,11 @@ function quickPay(method) {
     const credito = document.querySelector('[name="pay_credito"]');
     const transferencia = document.querySelector('[name="pay_transferencia"]');
     const cuenta = document.querySelector('[name="pay_cuenta_corriente"]');
+    const surchargeInput = document.getElementById("credit-surcharge-percent");
 
+    if (surchargeInput) {
+        surchargeInput.value = (method === "credito") ? 26 : 0;
+    }
     let totalPagosActual =
         (parseFloat(efectivo.value) || 0) +
         (parseFloat(debito.value) || 0) +
@@ -431,7 +435,7 @@ function quickPay(method) {
         cuenta.value = 0;
         saldo = total;
     }
-
+    calculateTotal();
     if (method === "efectivo") efectivo.value = saldo.toFixed(2);
     if (method === "debito") debito.value = saldo.toFixed(2);
     if (method === "credito") {
