@@ -439,7 +439,19 @@ function calculateTotal() {
     }
 
     const total = subtotalGeneral - discountAmount;
+    let costTotal = 0;
 
+    document.querySelectorAll(".sale-item").forEach(row => {
+        const qty = parseFloat(row.querySelector(".quantity").value) || 0;
+        const productSelect = row.querySelector(".product-select");
+        const selectedOption = productSelect ? productSelect.options[productSelect.selectedIndex] : null;
+        const productCost = selectedOption ? (parseFloat(selectedOption.getAttribute("data-cost")) || 0) : 0;
+    
+        costTotal += qty * productCost;
+    });
+    
+    const profitAmount = total - costTotal;
+    const marginPercent = total > 0 ? (profitAmount / total) * 100 : 0;
     document.getElementById("discount-percent-hidden").value = discountPercent.toFixed(2);
     document.getElementById("discount-amount-hidden").value = discountAmount.toFixed(2);
     document.getElementById("credit-surcharge-percent-hidden").value = "0.00";
@@ -460,7 +472,14 @@ function calculateTotal() {
 
     const totalComanda = document.getElementById("total-comanda-display");
     if (totalComanda) totalComanda.innerText = "$ " + total.toFixed(2);
-
+    const costTotalDisplay = document.getElementById("cost-total-display");
+    if (costTotalDisplay) costTotalDisplay.innerText = "$ " + costTotal.toFixed(2);
+    
+    const profitAmountDisplay = document.getElementById("profit-amount-display");
+    if (profitAmountDisplay) profitAmountDisplay.innerText = "$ " + profitAmount.toFixed(2);
+    
+    const marginPercentDisplay = document.getElementById("margin-percent-display");
+    if (marginPercentDisplay) marginPercentDisplay.innerText = marginPercent.toFixed(2) + "%";
     calculatePayments();
 }
 function quickPay(method) {
