@@ -482,6 +482,24 @@ function calculateTotal() {
     if (marginPercentDisplay) marginPercentDisplay.innerText = marginPercent.toFixed(2) + "%";
     calculatePayments();
 }
+function calculatePayments() {
+    const total = parseFloat(document.getElementById("total-sale").innerText) || 0;
+
+    const efectivo = parseFloat(document.querySelector('[name="pay_efectivo"]').value) || 0;
+    const debito = parseFloat(document.querySelector('[name="pay_debito"]').value) || 0;
+    const credito = parseFloat(document.querySelector('[name="pay_credito"]').value) || 0;
+    const transferencia = parseFloat(document.querySelector('[name="pay_transferencia"]').value) || 0;
+    const cuenta = parseFloat(document.querySelector('[name="pay_cuenta_corriente"]').value) || 0;
+
+    const totalPagado = efectivo + debito + credito + transferencia + cuenta;
+    const saldo = total - totalPagado;
+
+    const paidDisplay = document.getElementById("total-paid-display");
+    if (paidDisplay) paidDisplay.innerText = "$ " + totalPagado.toFixed(2);
+
+    const balanceDisplay = document.getElementById("balance-due-display");
+    if (balanceDisplay) balanceDisplay.innerText = "$ " + saldo.toFixed(2);
+}
 function quickPay(method) {
     let subtotalGeneral = 0;
 
