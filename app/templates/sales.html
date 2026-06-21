@@ -553,14 +553,7 @@ function quickPay(method) {
     
     const saldoPendiente = Math.max(totalFinal - totalPagadoActual, 0);
     
-    const totalPagadoActual =
-        (parseFloat((efectivo.value || "0").replace(",", ".")) || 0) +
-        (parseFloat((debito.value || "0").replace(",", ".")) || 0) +
-        (parseFloat((credito.value || "0").replace(",", ".")) || 0) +
-        (parseFloat((transferencia.value || "0").replace(",", ".")) || 0) +
-        (parseFloat((cuenta.value || "0").replace(",", ".")) || 0);
     
-    const saldoPendiente = Math.max(totalFinal - totalPagadoActual, 0);
     
     if (method === "efectivo") efectivo.value = saldoPendiente.toFixed(2);
     if (method === "debito") debito.value = saldoPendiente.toFixed(2);
