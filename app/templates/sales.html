@@ -498,10 +498,10 @@ function calculatePayments() {
     const totalPagado = efectivo + debito + credito + transferencia + cuenta;
     const saldo = total - totalPagado;
 
-    const paidDisplay = document.getElementById("total-paid-display");
+    const paidDisplay = document.getElementById("total-payments");
     if (paidDisplay) paidDisplay.innerText = "$ " + totalPagado.toFixed(2);
 
-    const balanceDisplay = document.getElementById("balance-due-display");
+    const balanceDisplay = document.getElementById("payment-balance");
     if (balanceDisplay) balanceDisplay.innerText = "$ " + saldo.toFixed(2);
 }
 function quickPay(method) {
