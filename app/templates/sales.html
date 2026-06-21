@@ -233,15 +233,12 @@
 
     <button type="submit" id="save-sale-button" class="btn btn-success"
     style="height:34px; padding:4px 14px; font-size:12px; background:#d85b9a; border:0;">
-<div style="margin-top:12px; font-weight:bold;">
-    <div>Total pagado: <span id="total-paid-display">$ 0.00</span></div>
-    <div>Saldo pendiente: <span id="balance-due-display">$ 0.00</span></div>
-</div>
+
         Guardar venta
     </button>
 </div>
 
-<div id="payment-status-box" style="margin-top:14px; padding:10px 14px; border-radius:10px; background:#fff4d6; border:1px solid #f0c36d; max-width:420px;">
+<div id="payment-status-box" style="margin-top:30px; padding:10px 14px; border-radius:10px; background:#fff4d6; border:1px solid #f0c36d; max-width:420px;">
     <strong id="payment-status-title">🟠 Saldo pendiente</strong><br>
     <div style="margin-top:6px; font-size:13px;">
         Total pagos: $ <span id="total-payments">0.00</span><br>
@@ -547,11 +544,20 @@ function quickPay(method) {
     transferencia.value = 0;
     cuenta.value = 0;
 
-    if (method === "efectivo") efectivo.value = totalFinal.toFixed(2);
-    if (method === "debito") debito.value = totalFinal.toFixed(2);
-    if (method === "credito") credito.value = totalFinal.toFixed(2);
-    if (method === "transferencia") transferencia.value = totalFinal.toFixed(2);
-    if (method === "cuenta") cuenta.value = totalFinal.toFixed(2);
+    const totalPagadoActual =
+        (parseFloat((efectivo.value || "0").replace(",", ".")) || 0) +
+        (parseFloat((debito.value || "0").replace(",", ".")) || 0) +
+        (parseFloat((credito.value || "0").replace(",", ".")) || 0) +
+        (parseFloat((transferencia.value || "0").replace(",", ".")) || 0) +
+        (parseFloat((cuenta.value || "0").replace(",", ".")) || 0);
+    
+    const saldoPendiente = Math.max(totalFinal - totalPagadoActual, 0);
+    
+    if (method === "efectivo") efectivo.value = saldoPendiente.toFixed(2);
+    if (method === "debito") debito.value = saldoPendiente.toFixed(2);
+    if (method === "credito") credito.value = saldoPendiente.toFixed(2);
+    if (method === "transferencia") transferencia.value = saldoPendiente.toFixed(2);
+    if (method === "cuenta") cuenta.value = saldoPendiente.toFixed(2);
 
     calculatePayments();
 }
