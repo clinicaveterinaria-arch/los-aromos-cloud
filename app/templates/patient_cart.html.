@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div style="max-width:1100px; margin:0 auto;">
+
+    <div style="background:#bfe6f7; color:#2f5d73; padding:14px 20px; border-radius:14px; margin-bottom:18px;">
+        <h2 style="margin:0;">🛒 Preparar cobro</h2>
+        <div style="margin-top:4px;">
+            {{ patient.name }} - {{ patient.owner_name or '' }}
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+
+            <h4>Productos y servicios</h4>
+
+            <input
+                type="text"
+                id="product-search"
+                class="form-control"
+                placeholder="Buscar producto o servicio..."
+                style="margin-bottom:15px;"
+            >
+
+            <div
+                id="products-list"
+                style="max-height:500px; overflow-y:auto; border:1px solid #ddd; border-radius:8px;"
+            >
+
+                {% for product in products %}
+                <div
+                    class="product-row"
+                    style="padding:10px 12px; border-bottom:1px solid #eee;"
+                >
+                    <strong>{{ product.name }}</strong>
+
+                    {% if product.sale_price %}
+                    - $ {{ "%.2f"|format(product.sale_price) }}
+                    {% endif %}
+                </div>
+                {% endfor %}
+
+            </div>
+
+            <div style="margin-top:20px;">
+                <a
+                    href="/patients/{{ patient.id }}"
+                    class="btn btn-secondary"
+                >
+                    Volver
+                </a>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<script>
+document.getElementById('product-search').addEventListener('keyup', function() {
+
+    const value = this.value.toLowerCase();
+
+    document.querySelectorAll('.product-row').forEach(row => {
+
+        if (row.innerText.toLowerCase().includes(value)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+
+    });
+
+});
+</script>
+
+{% endblock %}
