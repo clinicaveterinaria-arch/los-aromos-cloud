@@ -271,7 +271,7 @@
     </div>
 </div>
 
-<div class="card" style="background:#FFF5FA;">
+<div class="card" style="background:#FFF5FA; width:100%; max-width:none;">
     <div class="card-header">
         Últimas ventas
     </div>
@@ -299,7 +299,8 @@
     </form>
 </div>
 
-<div class="card-body" style="width:100%; overflow-x:auto;">
+<div class="card-body">
+    <div class="card-body">
         {% if sales %}
         <table class="table table-sm" style="width:100%;">
             <thead>
@@ -384,6 +385,7 @@
         <p>No hay ventas registradas.</p>
         {% endif %}
    
+</div>
 </div>
 
 <script>
