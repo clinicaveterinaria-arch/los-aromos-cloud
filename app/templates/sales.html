@@ -52,6 +52,34 @@
     <div>{{ top_product_qty or 0 }} vendidos este mes</div>
 </div>
 </div>
+<div class="card mb-4" style="background:#fffafc; border:1px solid #f3cfe0;">
+    <div class="card-header">
+        🏆 Top 10 productos vendidos del mes
+    </div>
+
+    <div class="card-body">
+        {% if top_products_sold %}
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Cantidad</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product_name, qty in top_products_sold %}
+                    <tr>
+                        <td>{{ product_name }}</td>
+                        <td>{{ qty }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No hay ventas registradas este mes.</p>
+        {% endif %}
+    </div>
+</div>
 <div class="card mb-4">
     <div class="card-header">
         Nueva venta
