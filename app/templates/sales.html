@@ -3,7 +3,7 @@
 {% block content %}
 
 <h2>Ventas</h2>
-<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px;">
+<div style="display: grid; grid-template-columns: repeat(6,1fr); gap: 12px; margin-bottom: 16px;">
 
     <div class="card" style="padding: 16px;">
         <div style="font-size: 22px; font-weight: bold;">
@@ -25,7 +25,26 @@
         </div>
         <div>Productos vendidos hoy</div>
     </div>
+    <div class="card" style="padding: 16px;">
+        <div style="font-size: 22px; font-weight: bold;">
+            $ {{ "%.2f"|format(month_profit_total or 0) }}
+        </div>
+        <div>Ganancia del mes</div>
+    </div>
 
+    <div class="card" style="padding: 16px;">
+        <div style="font-size: 22px; font-weight: bold;">
+            {{ month_sales_count or 0 }}
+        </div>
+        <div>Ventas del mes</div>
+    </div>
+
+    <div class="card" style="padding: 16px;">
+        <div style="font-size: 22px; font-weight: bold;">
+            $ {{ "%.2f"|format(ticket_average or 0) }}
+        </div>
+        <div>Ticket promedio</div>
+    </div>
 </div>
 <div class="card mb-4">
     <div class="card-header">
