@@ -1729,7 +1729,33 @@ def sales_page(
 
     for item in today_items:
         today_products_count += item.quantity or 0
-
+    month_items = (
+        db.query(SaleItem)
+        .join(Sale, SaleItem.sale_id == Sale.id)
+        .filter(Sale.date >= datetime.combine(month_start, datetime.min.time()))
+        .all()
+    )
+    
+    product_stats = {}
+    
+    for item in month_items:
+        product = db.get(Product, item.product_id)
+        if not product:
+            continue
+    
+        name = product.name
+    
+        if name not in product_stats:
+            product_stats[name] = 0
+    
+        product_stats[name] += item.quantity or 0
+    
+    top_product_name = "-"
+    top_product_qty = 0
+    
+    if product_stats:
+        top_product_name = max(product_stats, key=product_stats.get)
+        top_product_qty = product_stats[top_product_name]
     return templates.TemplateResponse(
         'sales.html',
         {
@@ -1746,7 +1772,9 @@ def sales_page(
             'month_cost_total': month_cost_total,
             'month_profit_total': month_profit_total,
             'month_sales_count': month_sales_count,
-            'ticket_average': ticket_average
+            'ticket_average': ticket_average,
+            'top_product_name': top_product_name,
+            'top_product_qty': top_product_qty
             
             
         }
