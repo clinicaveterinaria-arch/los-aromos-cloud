@@ -174,12 +174,12 @@
     $ {{ "%.2f"|format(sale.cost_total or 0) }}
 </div>
 
-<div>
+<div class="internal-profit">
     <strong>Ganancia:</strong>
     $ {{ "%.2f"|format((sale.total or 0) - (sale.cost_total or 0)) }}
 </div>
 
-<div>
+<div class="internal-profit">
     <strong>Margen:</strong>
     {% if sale.total and sale.total > 0 %}
         {{ "%.2f"|format((((sale.total or 0) - (sale.cost_total or 0)) / sale.total) * 100) }} %
