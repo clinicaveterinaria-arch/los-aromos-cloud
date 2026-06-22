@@ -5,21 +5,21 @@
 <h2>Ventas</h2>
 <div style="display: grid; grid-template-columns: repeat(6,1fr); gap: 12px; margin-bottom: 16px;">
 
-    <div class="card" style="padding: 16px;">
+    <div class="card" style="padding:16px; background:#e8f8ef; border:1px solid #b9e6c9;">
         <div style="font-size: 22px; font-weight: bold;">
             $ {{ "%.2f"|format(today_sales_total or 0) }}
         </div>
         <div>Ventas hoy</div>
     </div>
 
-    <div class="card" style="padding: 16px;">
+    <div class="card" style="padding:16px; background:#eef4ff; border:1px solid #bdd2ff;">
         <div style="font-size: 22px; font-weight: bold;">
             $ {{ "%.2f"|format(month_sales_total or 0) }}
         </div>
         <div>Ventas del mes</div>
     </div>
 
-    <div class="card" style="padding: 16px;">
+    <div class="card" style="padding:16px; background:#fff3dd; border:1px solid #ffd89b;">
         <div style="font-size: 22px; font-weight: bold;">
             {{ today_products_count or 0 }}
         </div>
