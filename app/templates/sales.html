@@ -538,12 +538,6 @@ function quickPay(method) {
     const transferencia = document.querySelector('[name="pay_transferencia"]');
     const cuenta = document.querySelector('[name="pay_cuenta_corriente"]');
 
-    efectivo.value = 0;
-    debito.value = 0;
-    credito.value = 0;
-    transferencia.value = 0;
-    cuenta.value = 0;
-
     const totalPagadoActual =
         (parseFloat((efectivo.value || "0").replace(",", ".")) || 0) +
         (parseFloat((debito.value || "0").replace(",", ".")) || 0) +
