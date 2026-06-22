@@ -627,8 +627,9 @@ def patient_update_weight(
     db.commit()
 
     return RedirectResponse(f'/patients/{patient.id}', status_code=303)
-@app.get('/patients/{patient_id}/cart')
+@app.get('/patients/{patient_id}/cart', response_class=HTMLResponse)
 def patient_cart(
+    request: Request,
     patient_id: int,
     db: Session = Depends(get_db),
     user: User = Depends(require_user)
@@ -641,34 +642,21 @@ def patient_cart(
             detail='Paciente no encontrado'
         )
 
-    owner_id = patient.owner_id if patient.owner_id else None
-
-    sale = (
-        db.query(Sale)
-        .filter(
-            Sale.patient_id == patient.id,
-            Sale.status == 'pending'
-        )
-        .order_by(Sale.date.desc())
-        .first()
+    products = (
+        db.query(Product)
+        .filter(Product.active == True)
+        .order_by(Product.name)
+        .limit(300)
+        .all()
     )
 
-    if not sale:
-        sale = Sale(
-            status='pending',
-            total=0,
-            patient_id=patient.id,
-            owner_id=owner_id,
-            notes='Carrito generado desde historia clínica'
-        )
-
-        db.add(sale)
-        db.commit()
-        db.refresh(sale)
-
-    return RedirectResponse(
-        url=f'/sales/{sale.id}',
-        status_code=303
+    return templates.TemplateResponse(
+        'patient_cart.html',
+        {
+            'request': request,
+            'patient': patient,
+            'products': products,
+        }
     )
 @app.get('/patients/{patient_id}', response_class=HTMLResponse)
 def patient_detail(request: Request, patient_id: int, db: Session = Depends(get_db), user: User = Depends(require_user)):
