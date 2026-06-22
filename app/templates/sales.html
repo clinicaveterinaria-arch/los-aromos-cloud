@@ -555,11 +555,11 @@ function quickPay(method) {
     
     
     
-    if (method === "efectivo") efectivo.value = saldoPendiente.toFixed(2);
-    if (method === "debito") debito.value = saldoPendiente.toFixed(2);
-    if (method === "credito") credito.value = saldoPendiente.toFixed(2);
-    if (method === "transferencia") transferencia.value = saldoPendiente.toFixed(2);
-    if (method === "cuenta") cuenta.value = saldoPendiente.toFixed(2);
+    if (method === "efectivo") efectivo.value = Math.max(totalFinal - debito.value - credito.value - transferencia.value - cuenta.value, 0).toFixed(2);
+    if (method === "debito") debito.value = Math.max(totalFinal - efectivo.value - credito.value - transferencia.value - cuenta.value, 0).toFixed(2);
+    if (method === "credito") credito.value = Math.max(totalFinal - efectivo.value - debito.value - transferencia.value - cuenta.value, 0).toFixed(2);
+    if (method === "transferencia") transferencia.value = Math.max(totalFinal - efectivo.value - debito.value - credito.value - cuenta.value, 0).toFixed(2);
+    if (method === "cuenta") cuenta.value = Math.max(totalFinal - efectivo.value - debito.value - credito.value - transferencia.value, 0).toFixed(2);
 
     calculatePayments();
 }
