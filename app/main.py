@@ -1752,7 +1752,11 @@ def sales_page(
     
     top_product_name = "-"
     top_product_qty = 0
-    
+    top_products_sold = sorted(
+        product_stats.items(),
+        key=lambda item: item[1],
+        reverse=True
+    )[:10]
     if product_stats:
         top_product_name = max(product_stats, key=product_stats.get)
         top_product_qty = product_stats[top_product_name]
@@ -1774,7 +1778,8 @@ def sales_page(
             'month_sales_count': month_sales_count,
             'ticket_average': ticket_average,
             'top_product_name': top_product_name,
-            'top_product_qty': top_product_qty
+            'top_product_qty': top_product_qty,
+            'top_products_sold': top_products_sold
             
             
         }
