@@ -3,7 +3,15 @@
 {% block content %}
 
 <h2 style="margin-bottom:20px;">Detalle de venta</h2>
+<div style="margin-bottom:16px;">
+    <button onclick="window.print()" class="btn btn-primary" style="background:#d85b9a; border:0;">
+        🖨️ Imprimir comprobante
+    </button>
 
+    <a href="/sales" class="btn btn-secondary">
+        Volver a ventas
+    </a>
+</div>
 <div class="card mb-4">
     <div class="card-body">
 
@@ -161,7 +169,24 @@
             Total: $
             {{ "%.2f"|format(sale.total or 0) }}
         </h4>
+<div style="margin-top:10px;">
+    <strong>Costo total:</strong>
+    $ {{ "%.2f"|format(sale.cost_total or 0) }}
+</div>
 
+<div>
+    <strong>Ganancia:</strong>
+    $ {{ "%.2f"|format((sale.total or 0) - (sale.cost_total or 0)) }}
+</div>
+
+<div>
+    <strong>Margen:</strong>
+    {% if sale.total and sale.total > 0 %}
+        {{ "%.2f"|format((((sale.total or 0) - (sale.cost_total or 0)) / sale.total) * 100) }} %
+    {% else %}
+        0 %
+    {% endif %}
+</div>
         <hr>
 
 <h5>Pagos registrados</h5>
