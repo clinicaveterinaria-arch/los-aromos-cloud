@@ -1701,7 +1701,10 @@ def sales_page(
     today_sales_total = 0
     month_sales_total = 0
     today_products_count = 0
-
+    month_profit_total = 0
+    month_cost_total = 0
+    month_sales_count = 0
+    ticket_average = 0
     all_sales = db.query(Sale).all()
 
     for sale in all_sales:
@@ -1712,8 +1715,12 @@ def sales_page(
 
         if sale_date and sale_date >= month_start:
             month_sales_total += sale.total or 0
-
-    today_items = (
+            month_cost_total += sale.cost_total or 0
+            month_profit_total += sale.profit_amount or 0
+            month_sales_count += 1
+        if month_sales_count > 0:
+            ticket_average = month_sales_total / month_sales_count
+        today_items = (
         db.query(SaleItem)
         .join(Sale, SaleItem.sale_id == Sale.id)
         .filter(Sale.date >= datetime.combine(today, datetime.min.time()))
@@ -1735,7 +1742,12 @@ def sales_page(
             'selected_date': selected_date,
             'today_sales_total': today_sales_total,
             'month_sales_total': month_sales_total,
-            'today_products_count': today_products_count
+            'today_products_count': today_products_count,
+            'month_cost_total': month_cost_total,
+            'month_profit_total': month_profit_total,
+            'month_sales_count': month_sales_count,
+            'ticket_average': ticket_average
+            
             
         }
     )
