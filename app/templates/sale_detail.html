@@ -169,7 +169,7 @@
             Total: $
             {{ "%.2f"|format(sale.total or 0) }}
         </h4>
-<div style="margin-top:10px;">
+<div class="internal-profit" style="margin-top:10px;">
     <strong>Costo total:</strong>
     $ {{ "%.2f"|format(sale.cost_total or 0) }}
 </div>
@@ -279,4 +279,63 @@ function updateDetailPrice(select) {
     priceInput.value = price;
 }
 </script>
+<style>
+@media print {
+    body {
+        background: white !important;
+        font-size: 12px;
+    }
+
+    .btn,
+    a,
+    form,
+    .no-print {
+        display: none !important;
+    }
+
+    .card {
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    h2 {
+        text-align: center;
+        font-size: 18px;
+        margin-bottom: 8px !important;
+    }
+
+    h2::before {
+        content: "CLÍNICA VETERINARIA LOS AROMOS\A";
+        white-space: pre;
+        display: block;
+        font-size: 16px;
+        font-weight: bold;
+        margin-bottom: 6px;
+    }
+
+    h2::after {
+        content: "Comprobante de venta";
+        display: block;
+        font-size: 13px;
+        font-weight: normal;
+        margin-top: 4px;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+    }
+
+    th, td {
+        border-bottom: 1px solid #ccc;
+        padding: 4px;
+        font-size: 12px;
+    }
+
+    .internal-profit {
+        display: none !important;
+    }
+}
+</style>
 {% endblock %}
