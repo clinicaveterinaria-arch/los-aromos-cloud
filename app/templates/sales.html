@@ -25,21 +25,21 @@
         </div>
         <div>Productos vendidos hoy</div>
     </div>
-    <div class="card" style="padding: 16px;">
+    <div class="card" style="padding:16px; background:#edf8ff; border:1px solid #b8e0ff;">
         <div style="font-size: 22px; font-weight: bold;">
             $ {{ "%.2f"|format(month_profit_total or 0) }}
         </div>
         <div>Ganancia del mes</div>
     </div>
 
-    <div class="card" style="padding: 16px;">
+    <div class="card" style="padding:16px; background:#f3eaff; border:1px solid #d5b8ff;">
         <div style="font-size: 22px; font-weight: bold;">
             {{ month_sales_count or 0 }}
         </div>
         <div>Ventas del mes</div>
     </div>
 
-    <div class="card" style="padding: 16px;">
+    <div class="card" style="padding:16px; background:#fff0f6; border:1px solid #f3b8d0;">
         <div style="font-size: 22px; font-weight: bold;">
             $ {{ "%.2f"|format(ticket_average or 0) }}
         </div>
