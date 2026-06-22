@@ -3,83 +3,6 @@
 {% block content %}
 
 <h2>Ventas</h2>
-<div style="display: grid; grid-template-columns: repeat(7,1fr); gap: 12px; margin-bottom: 16px;">
-
-    <div class="card" style="padding:12px; background:#e8f8ef; border:1px solid #b9e6c9;">
-        <div style="font-size: 22px; font-weight: bold;">
-            $ {{ "%.2f"|format(today_sales_total or 0) }}
-        </div>
-        <div>Ventas hoy</div>
-    </div>
-
-    <div class="card" style="padding:12px; background:#eef4ff; border:1px solid #bdd2ff;">
-        <div style="font-size: 22px; font-weight: bold;">
-            $ {{ "%.2f"|format(month_sales_total or 0) }}
-        </div>
-        <div>Ventas del mes</div>
-    </div>
-
-    <div class="card" style="padding:12px; background:#fff3dd; border:1px solid #ffd89b;">
-        <div style="font-size: 22px; font-weight: bold;">
-            {{ today_products_count or 0 }}
-        </div>
-        <div>Productos vendidos hoy</div>
-    </div>
-    <div class="card" style="padding:12px; background:#edf8ff; border:1px solid #b8e0ff;">
-        <div style="font-size: 22px; font-weight: bold;">
-            $ {{ "%.2f"|format(month_profit_total or 0) }}
-        </div>
-        <div>Ganancia del mes</div>
-    </div>
-
-    <div class="card" style="padding:12px; background:#f3eaff; border:1px solid #d5b8ff;">
-        <div style="font-size: 22px; font-weight: bold;">
-            {{ month_sales_count or 0 }}
-        </div>
-        <div>Ventas del mes</div>
-    </div>
-
-    <div class="card" style="padding:12px; background:#fff0f6; border:1px solid #f3b8d0;">
-        <div style="font-size: 22px; font-weight: bold;">
-            $ {{ "%.2f"|format(ticket_average or 0) }}
-        </div>
-        <div>Ticket promedio</div>
-    </div>
-    <div class="card" style="padding:12px; background:#fff8e8; border:1px solid #f0c36d;">
-    <div style="font-size: 18px; font-weight: bold;">
-        🏆 {{ top_product_name or "-" }}
-    </div>
-    <div>{{ top_product_qty or 0 }} vendidos este mes</div>
-</div>
-</div>
-<div class="card mb-4" style="background:#fffafc; border:1px solid #f3cfe0;">
-    <div class="card-header" onclick="toggleTop10()" style="cursor:pointer; font-weight:bold;">
-        🏆 Top 10 productos vendidos del mes ▼
-    </div>
-
-    <div id="top10-products" class="card-body" style="display:none;">
-        {% if top_products_sold %}
-            <table class="table table-sm">
-                <thead>
-                    <tr>
-                        <th>Producto</th>
-                        <th>Cantidad</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for product_name, qty in top_products_sold %}
-                    <tr>
-                        <td>{{ product_name }}</td>
-                        <td>{{ qty }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        {% else %}
-            <p>No hay ventas registradas este mes.</p>
-        {% endif %}
-    </div>
-</div>
 <div class="card mb-4">
     <div class="card-header">
         Nueva venta
@@ -302,6 +225,84 @@
 </div>
 
         </form>
+<div style="display: grid; grid-template-columns: repeat(7,1fr); gap: 12px; margin-bottom: 16px;">
+
+    <div class="card" style="padding:12px; background:#e8f8ef; border:1px solid #b9e6c9;">
+        <div style="font-size: 22px; font-weight: bold;">
+            $ {{ "%.2f"|format(today_sales_total or 0) }}
+        </div>
+        <div>Ventas hoy</div>
+    </div>
+
+    <div class="card" style="padding:12px; background:#eef4ff; border:1px solid #bdd2ff;">
+        <div style="font-size: 22px; font-weight: bold;">
+            $ {{ "%.2f"|format(month_sales_total or 0) }}
+        </div>
+        <div>Ventas del mes</div>
+    </div>
+
+    <div class="card" style="padding:12px; background:#fff3dd; border:1px solid #ffd89b;">
+        <div style="font-size: 22px; font-weight: bold;">
+            {{ today_products_count or 0 }}
+        </div>
+        <div>Productos vendidos hoy</div>
+    </div>
+    <div class="card" style="padding:12px; background:#edf8ff; border:1px solid #b8e0ff;">
+        <div style="font-size: 22px; font-weight: bold;">
+            $ {{ "%.2f"|format(month_profit_total or 0) }}
+        </div>
+        <div>Ganancia del mes</div>
+    </div>
+
+    <div class="card" style="padding:12px; background:#f3eaff; border:1px solid #d5b8ff;">
+        <div style="font-size: 22px; font-weight: bold;">
+            {{ month_sales_count or 0 }}
+        </div>
+        <div>Ventas del mes</div>
+    </div>
+
+    <div class="card" style="padding:12px; background:#fff0f6; border:1px solid #f3b8d0;">
+        <div style="font-size: 22px; font-weight: bold;">
+            $ {{ "%.2f"|format(ticket_average or 0) }}
+        </div>
+        <div>Ticket promedio</div>
+    </div>
+    <div class="card" style="padding:12px; background:#fff8e8; border:1px solid #f0c36d;">
+    <div style="font-size: 18px; font-weight: bold;">
+        🏆 {{ top_product_name or "-" }}
+    </div>
+    <div>{{ top_product_qty or 0 }} vendidos este mes</div>
+</div>
+</div>
+<div class="card mb-4" style="background:#fffafc; border:1px solid #f3cfe0;">
+    <div class="card-header" onclick="toggleTop10()" style="cursor:pointer; font-weight:bold;">
+        🏆 Top 10 productos vendidos del mes ▼
+    </div>
+
+    <div id="top10-products" class="card-body" style="display:none;">
+        {% if top_products_sold %}
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Cantidad</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product_name, qty in top_products_sold %}
+                    <tr>
+                        <td>{{ product_name }}</td>
+                        <td>{{ qty }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No hay ventas registradas este mes.</p>
+        {% endif %}
+    </div>
+</div>
+
     </div>
 </div>
 </div>
