@@ -658,6 +658,35 @@ def patient_cart(
             'products': products,
         }
     )
+@app.post('/patients/{patient_id}/cart/send')
+def patient_cart_send(
+    patient_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    patient = db.get(Patient, patient_id)
+
+    if not patient:
+        raise HTTPException(status_code=404)
+
+    owner_id = patient.owner_id if patient.owner_id else None
+
+    sale = Sale(
+        status='pending',
+        total=0,
+        payment_method='Pendiente',
+        patient_id=patient.id,
+        owner_id=owner_id,
+        notes='Generado desde carrito clínico'
+    )
+
+    db.add(sale)
+    db.commit()
+
+    return RedirectResponse(
+        url=f'/sales/{sale.id}',
+        status_code=303
+    )
 @app.get('/patients/{patient_id}', response_class=HTMLResponse)
 def patient_detail(request: Request, patient_id: int, db: Session = Depends(get_db), user: User = Depends(require_user)):
     patient = db.get(Patient, patient_id)
