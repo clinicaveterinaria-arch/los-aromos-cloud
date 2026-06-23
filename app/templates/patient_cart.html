@@ -13,60 +13,20 @@
         <div class="card-body">
 
             <h4>⚡ Servicios rápidos</h4>
-            
+
             <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:18px;">
             
-                <button type="button" class="quick-service" data-name="Consulta" data-price="0">
-                    🩺 Consulta
-                </button>
-            
-                <button type="button" class="quick-service" data-name="Iny. cons." data-price="0">
-                    💉 Iny. cons.
-                </button>
-            
-                <button type="button" class="quick-service" data-name="Iny. farm." data-price="0">
-                    💉 Iny. farm.
-                </button>
-            
-                <button type="button" class="quick-service" data-name="Iny. cons. urgencia" data-price="0">
-                    🚨 Iny. cons. urgencia
-                </button>
-            
-                <button type="button" class="quick-service" data-name="Iny. farm. urgencia" data-price="0">
-                    🚨 Iny. farm. urgencia
-                </button>
-            
-                <button type="button" class="quick-service" data-name="Desp. completo cons." data-price="0">
-                    🪱 Desp. completo cons.
-                </button>
-            
-                <button type="button" class="quick-service" data-name="Desp. completo farm." data-price="0">
-                    🪱 Desp. completo farm.
-                </button>
-            
-                <button type="button" class="quick-service" data-name="Int. cons." data-price="0">
-                    🏥 Int. cons.
-                </button>
-            
-                <button type="button" class="quick-service" data-name="Int. farm." data-price="0">
-                    🏥 Int. farm.
-                </button>
-            
-                <button type="button" class="quick-service" data-name="ECG" data-price="0">
-                    ❤️ ECG
-                </button>
-            
-                <button type="button" class="quick-service" data-name="RX x1" data-price="0">
-                    📸 RX x1
-                </button>
-            
-                <button type="button" class="quick-service" data-name="RX x2" data-price="0">
-                    📸 RX x2
-                </button>
-            
-                <button type="button" class="quick-service" data-name="RX x3" data-price="0">
-                    📸 RX x3
-                </button>
+                {% for service in quick_services %}
+                    <button
+                        type="button"
+                        class="quick-service"
+                        data-name="{{ service.name }}"
+                        data-price="{{ service.sale_price or 0 }}"
+                        data-product-id="{{ service.id }}"
+                    >
+                        ⚡ {{ service.name }}
+                    </button>
+                {% endfor %}
             
             </div>
 
