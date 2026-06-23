@@ -1975,7 +1975,12 @@ def sales_create(
         if method != 'Cuenta corriente'
     )
 
-    if total > 0 and sum_payments <= 0:
+    has_account_debt = any(
+        method == 'Cuenta corriente' and amount > 0
+        for method, amount in payments_to_create
+    )
+    
+    if total > 0 and sum_payments <= 0 and not has_account_debt:
         payments_to_create = [
             ('Efectivo', total)
         ]
