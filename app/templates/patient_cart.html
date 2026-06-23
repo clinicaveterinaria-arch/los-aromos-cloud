@@ -118,9 +118,11 @@
 
             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:18px; padding:14px; border-radius:12px; background:#f7f7f7;">
                 <h3 style="margin:0;">Total: $ <span id="cart-total">0.00</span></h3>
-                <button type="button" class="btn" style="background:#d85b9a; color:white; font-weight:bold;">
-                    🛒 Enviar a caja
-                </button>
+                <form method="post" action="/patients/{{ patient.id }}/cart/send">
+                    <button type="submit" class="btn">
+                        🛒 Enviar a caja
+                    </button>
+                </form>
             </div>
 
             <div style="margin-top:20px;">
