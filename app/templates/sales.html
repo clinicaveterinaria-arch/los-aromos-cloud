@@ -368,8 +368,8 @@
                     <td>{{ sale.notes or "" }}</td>
                     <td>
 <td>
-    {% set paid_total = sale.payments | sum(attribute='amount') %}
-    {% set balance_due = (sale.total or 0) - (paid_total or 0) %}
+    {% set paid_total = sale.total_paid or 0 %}
+    {% set balance_due = sale.balance_due or 0 %}
 
     {% if sale.status == 'cancelled' %}
         <span style="color:#999;font-weight:bold;">Cancelada</span>
