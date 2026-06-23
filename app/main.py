@@ -661,9 +661,12 @@ def patient_cart(
 @app.post('/patients/{patient_id}/cart/send')
 def patient_cart_send(
     patient_id: int,
+    cart_json: str = Form('[]'),
     db: Session = Depends(get_db),
     user: User = Depends(require_user)
 ):
+    import json
+
     patient = db.get(Patient, patient_id)
 
     if not patient:
@@ -681,7 +684,62 @@ def patient_cart_send(
     )
 
     db.add(sale)
+    db.flush()
+
+    total = 0
+    cost_total = 0
+
+    try:
+        cart_items = json.loads(cart_json or '[]')
+    except Exception:
+        cart_items = []
+
+    for cart_item in cart_items:
+        product_id = cart_item.get('productId')
+        name = cart_item.get('name', '')
+        qty = float(cart_item.get('quantity') or 1)
+        price = float(cart_item.get('price') or 0)
+
+        if qty <= 0:
+            continue
+
+        subtotal = qty * price
+        total += subtotal
+
+        if product_id:
+            product = db.get(Product, int(product_id))
+
+            if not product:
+                continue
+
+            product_cost = product.cost_price or 0
+            cost_total += qty * product_cost
+
+            item = SaleItem(
+                sale_id=sale.id,
+                product_id=product.id,
+                quantity=qty,
+                unit_price=price,
+                subtotal=subtotal
+            )
+
+            db.add(item)
+
+            if product.stock is not None:
+                product.stock = (product.stock or 0) - qty
+
+        else:
+            # Servicio rápido sin producto asociado:
+            # por ahora se guarda como nota dentro de la venta
+            sale.notes = (sale.notes or '') + f'\n- {name} x {qty} = $ {subtotal:.2f}'
+
+    sale.total = total
+    sale.cost_total = cost_total
+    sale.profit_amount = total - cost_total
+    sale.margin_percent = ((total - cost_total) / total * 100) if total > 0 else 0
+
     db.commit()
+    db.refresh(sale)
 
     return RedirectResponse(
         url=f'/sales/{sale.id}',
