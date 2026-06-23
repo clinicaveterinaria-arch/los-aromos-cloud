@@ -2229,7 +2229,10 @@ def sale_add_payment(
         sale.status = 'paid'
     else:
         sale.status = 'pending'
-
+    if sale.status == 'paid':
+        sale.payment_method = method
+    else:
+        sale.payment_method = 'Cuenta corriente'
     db.commit()
 
     return RedirectResponse(
