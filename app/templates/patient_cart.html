@@ -6,13 +6,69 @@
 
     <div style="background:#bfe6f7; color:#2f5d73; padding:14px 20px; border-radius:14px; margin-bottom:18px;">
         <h2 style="margin:0;">🛒 Preparar cobro</h2>
-        <div style="margin-top:4px;">
-            {{ patient.name }} - {{ patient.owner_name or '' }}
-        </div>
+        <div style="margin-top:4px;">{{ patient.name }} - {{ patient.owner_name or '' }}</div>
     </div>
 
     <div class="card">
         <div class="card-body">
+
+            <h4>⚡ Servicios rápidos</h4>
+            
+            <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:18px;">
+            
+                <button type="button" class="quick-service" data-name="Consulta" data-price="0">
+                    🩺 Consulta
+                </button>
+            
+                <button type="button" class="quick-service" data-name="Iny. cons." data-price="0">
+                    💉 Iny. cons.
+                </button>
+            
+                <button type="button" class="quick-service" data-name="Iny. farm." data-price="0">
+                    💉 Iny. farm.
+                </button>
+            
+                <button type="button" class="quick-service" data-name="Iny. cons. urgencia" data-price="0">
+                    🚨 Iny. cons. urgencia
+                </button>
+            
+                <button type="button" class="quick-service" data-name="Iny. farm. urgencia" data-price="0">
+                    🚨 Iny. farm. urgencia
+                </button>
+            
+                <button type="button" class="quick-service" data-name="Desp. completo cons." data-price="0">
+                    🪱 Desp. completo cons.
+                </button>
+            
+                <button type="button" class="quick-service" data-name="Desp. completo farm." data-price="0">
+                    🪱 Desp. completo farm.
+                </button>
+            
+                <button type="button" class="quick-service" data-name="Int. cons." data-price="0">
+                    🏥 Int. cons.
+                </button>
+            
+                <button type="button" class="quick-service" data-name="Int. farm." data-price="0">
+                    🏥 Int. farm.
+                </button>
+            
+                <button type="button" class="quick-service" data-name="ECG" data-price="0">
+                    ❤️ ECG
+                </button>
+            
+                <button type="button" class="quick-service" data-name="RX x1" data-price="0">
+                    📸 RX x1
+                </button>
+            
+                <button type="button" class="quick-service" data-name="RX x2" data-price="0">
+                    📸 RX x2
+                </button>
+            
+                <button type="button" class="quick-service" data-name="RX x3" data-price="0">
+                    📸 RX x3
+                </button>
+            
+            </div>
 
             <h4>Productos y servicios</h4>
 
@@ -24,33 +80,51 @@
                 style="margin-bottom:15px;"
             >
 
-            <div
-                id="products-list"
-                style="max-height:500px; overflow-y:auto; border:1px solid #ddd; border-radius:8px;"
-            >
-
+            <div id="products-list" style="max-height:330px; overflow-y:auto; border:1px solid #ddd; border-radius:8px; margin-bottom:20px;">
                 {% for product in products %}
                 <div
                     class="product-row"
-                    style="padding:10px 12px; border-bottom:1px solid #eee;"
+                    data-name="{{ product.name }}"
+                    data-price="{{ product.sale_price or 0 }}"
+                    data-product-id="{{ product.id }}"
+                    style="padding:10px 12px; border-bottom:1px solid #eee; cursor:pointer;"
                 >
                     <strong>{{ product.name }}</strong>
-
                     {% if product.sale_price %}
                     - $ {{ "%.2f"|format(product.sale_price) }}
                     {% endif %}
                 </div>
                 {% endfor %}
+            </div>
 
+            <h4>🧾 Comanda preparada</h4>
+
+            <table class="table table-sm" style="margin-top:10px;">
+                <thead>
+                    <tr>
+                        <th>Concepto</th>
+                        <th style="width:90px;">Cant.</th>
+                        <th style="width:140px;">Precio</th>
+                        <th style="width:140px;">Subtotal</th>
+                        <th style="width:60px;"></th>
+                    </tr>
+                </thead>
+                <tbody id="cart-items">
+                    <tr id="empty-cart-row">
+                        <td colspan="5" style="color:#777;">Todavía no agregaste items.</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:18px; padding:14px; border-radius:12px; background:#f7f7f7;">
+                <h3 style="margin:0;">Total: $ <span id="cart-total">0.00</span></h3>
+                <button type="button" class="btn" style="background:#d85b9a; color:white; font-weight:bold;">
+                    🛒 Enviar a caja
+                </button>
             </div>
 
             <div style="margin-top:20px;">
-                <a
-                    href="/patients/{{ patient.id }}"
-                    class="btn btn-secondary"
-                >
-                    Volver
-                </a>
+                <a href="/patients/{{ patient.id }}" class="btn btn-secondary">Volver</a>
             </div>
 
         </div>
@@ -58,21 +132,120 @@
 
 </div>
 
-<script>
-document.getElementById('product-search').addEventListener('keyup', function() {
+<style>
+.quick-service {
+    background:#f3cfe1;
+    color:#8a3f67;
+    border:1px solid #e7abc9;
+    border-radius:8px;
+    padding:7px 11px;
+    font-weight:bold;
+    cursor:pointer;
+}
+.quick-service:hover {
+    background:#e9b9d2;
+}
+.product-row:hover {
+    background:#f8edf3;
+}
+</style>
 
+<script>
+let cart = [];
+
+function addToCart(name, price, productId = '') {
+    const existing = cart.find(item => item.name === name && item.productId === productId);
+
+    if (existing) {
+        existing.quantity += 1;
+    } else {
+        cart.push({
+            name: name,
+            price: parseFloat(price || 0),
+            quantity: 1,
+            productId: productId
+        });
+    }
+
+    renderCart();
+}
+
+function removeFromCart(index) {
+    cart.splice(index, 1);
+    renderCart();
+}
+
+function updateQuantity(index, value) {
+    cart[index].quantity = parseFloat(value || 1);
+    if (cart[index].quantity <= 0) {
+        cart[index].quantity = 1;
+    }
+    renderCart();
+}
+
+function updatePrice(index, value) {
+    cart[index].price = parseFloat(value || 0);
+    renderCart();
+}
+
+function renderCart() {
+    const tbody = document.getElementById('cart-items');
+    tbody.innerHTML = '';
+
+    if (cart.length === 0) {
+        tbody.innerHTML = `
+            <tr id="empty-cart-row">
+                <td colspan="5" style="color:#777;">Todavía no agregaste items.</td>
+            </tr>
+        `;
+        document.getElementById('cart-total').innerText = '0.00';
+        return;
+    }
+
+    let total = 0;
+
+    cart.forEach((item, index) => {
+        const subtotal = item.quantity * item.price;
+        total += subtotal;
+
+        tbody.innerHTML += `
+            <tr>
+                <td>${item.name}</td>
+                <td>
+                    <input type="number" min="0.01" step="0.01" value="${item.quantity}" onchange="updateQuantity(${index}, this.value)" class="form-control">
+                </td>
+                <td>
+                    <input type="number" min="0" step="0.01" value="${item.price}" onchange="updatePrice(${index}, this.value)" class="form-control">
+                </td>
+                <td>$ ${subtotal.toFixed(2)}</td>
+                <td>
+                    <button type="button" onclick="removeFromCart(${index})" class="btn btn-sm btn-outline-danger">X</button>
+                </td>
+            </tr>
+        `;
+    });
+
+    document.getElementById('cart-total').innerText = total.toFixed(2);
+}
+
+document.querySelectorAll('.quick-service').forEach(button => {
+    button.addEventListener('click', function() {
+        addToCart(this.dataset.name, this.dataset.price, '');
+    });
+});
+
+document.querySelectorAll('.product-row').forEach(row => {
+    row.addEventListener('click', function() {
+        addToCart(this.dataset.name, this.dataset.price, this.dataset.productId);
+    });
+});
+
+document.getElementById('product-search').addEventListener('keyup', function() {
     const value = this.value.toLowerCase();
 
     document.querySelectorAll('.product-row').forEach(row => {
-
-        if (row.innerText.toLowerCase().includes(value)) {
-            row.style.display = '';
-        } else {
-            row.style.display = 'none';
-        }
-
+        row.style.display = row.innerText.toLowerCase().includes(value) ? '' : 'none';
     });
-
 });
 </script>
 
