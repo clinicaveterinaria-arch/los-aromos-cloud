@@ -1767,6 +1767,7 @@ def sales_page(
                 for p in db.query(SalePayment)
                 .filter(SalePayment.sale_id == sale.id)
                 .all()
+                if p.method != 'Cuenta corriente'
             )
         )
 
