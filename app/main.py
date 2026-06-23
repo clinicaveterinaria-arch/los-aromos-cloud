@@ -2098,7 +2098,7 @@ def sales_detail(
     total_paid = sum(
         p.amount or 0
         for p in payments
-        if p.method != 'Cuenta corriente'
+        if (p.method or '').strip().lower() != 'cuenta corriente'
     )
     
     balance_due = (sale.total or 0) - total_paid
