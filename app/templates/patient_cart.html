@@ -118,7 +118,9 @@
 
             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:18px; padding:14px; border-radius:12px; background:#f7f7f7;">
                 <h3 style="margin:0;">Total: $ <span id="cart-total">0.00</span></h3>
-                <form method="post" action="/patients/{{ patient.id }}/cart/send">
+                <form method="post" action="/patients/{{ patient.id }}/cart/send" onsubmit="prepareCartSubmit()">
+                    <input type="hidden" name="cart_json" id="cart-json">
+                
                     <button type="submit" class="btn">
                         🛒 Enviar a caja
                     </button>
@@ -151,7 +153,9 @@
     background:#f8edf3;
 }
 </style>
-
+function prepareCartSubmit() {
+    document.getElementById('cart-json').value = JSON.stringify(cart);
+}
 <script>
 let cart = [];
 
