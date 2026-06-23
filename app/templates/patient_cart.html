@@ -153,12 +153,12 @@
     background:#f8edf3;
 }
 </style>
+
+<script>
+let cart = [];
 function prepareCartSubmit() {
     document.getElementById('cart-json').value = JSON.stringify(cart);
 }
-<script>
-let cart = [];
-
 function addToCart(name, price, productId = '') {
     const existing = cart.find(item => item.name === name && item.productId === productId);
 
