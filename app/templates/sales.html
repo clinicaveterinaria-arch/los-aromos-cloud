@@ -309,6 +309,56 @@
     </div>
 </div>
 </div>
+{% set debt_sales = [] %}
+
+{% for sale in sales %}
+    {% if sale.balance_due and sale.balance_due > 0 %}
+        {% set _ = debt_sales.append(sale) %}
+    {% endif %}
+{% endfor %}
+
+{% if debt_sales %}
+<div class="card" style="margin-bottom:15px; border:2px solid #f3d4e3;">
+    <div class="card-header">
+        💳 Cuenta corriente pendiente
+    </div>
+
+    <div class="card-body">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Paciente</th>
+                    <th>Propietario</th>
+                    <th>Total</th>
+                    <th>Pagado</th>
+                    <th>Saldo</th>
+                    <th></th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for sale in debt_sales %}
+                <tr>
+                    <td>{{ sale.patient_name }}</td>
+                    <td>{{ sale.owner_name }}</td>
+                    <td>${{ '%.2f'|format(sale.total or 0) }}</td>
+                    <td>${{ '%.2f'|format(sale.total_paid or 0) }}</td>
+                    <td style="color:#d85b9a;font-weight:bold;">
+                        ${{ '%.2f'|format(sale.balance_due or 0) }}
+                    </td>
+                    <td>
+                        <a href="/sales/{{ sale.id }}" class="btn btn-secondary">
+                            Ver
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+
+        </table>
+    </div>
+</div>
+{% endif %}
 <div class="card" style="background:#FFF5FA; width:100%; max-width:none;">
     <div class="card-header">
         Últimas ventas
