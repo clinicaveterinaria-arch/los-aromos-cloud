@@ -650,9 +650,9 @@ def patient_cart(
         .all()
     )
     quick_names = [
-        'Consulta',
+        'Consulta clínica',
         'INY CONS',
-        'INY FARM',
+        'INY FARM GRANDE',
         'INY CONS URGENCIA',
         'INY FARM URGENCIA',
         'DESP COMPLETO CONS',
