@@ -651,18 +651,18 @@ def patient_cart(
     )
     quick_names = [
         'Consulta',
-        'Iny. cons.',
-        'Iny. farm.',
-        'Iny. cons. urgencia',
-        'Iny. farm. urgencia',
-        'Desp. completo cons.',
-        'Desp. completo farm.',
-        'Int. cons.',
-        'Int. farm.',
+        'Iny cons',
+        'Iny farm',
+        'Iny cons urgencia',
+        'Iny farm urgencia',
+        'Desp completo cons',
+        'Desp completo farm',
+        'Int cons',
+        'Int farm',
         'ECG',
         'RX x1',
         'RX x2',
-        'RX x3',
+        'RX x3'
     ]
     
     quick_services = []
