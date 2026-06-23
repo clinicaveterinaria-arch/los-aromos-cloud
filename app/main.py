@@ -2095,7 +2095,11 @@ def sales_detail(
         .all()
     )
     
-    total_paid = sum(p.amount or 0 for p in payments)
+    total_paid = sum(
+        p.amount or 0
+        for p in payments
+        if p.method != 'Cuenta corriente'
+    )
     
     balance_due = (sale.total or 0) - total_paid
     return templates.TemplateResponse(
