@@ -1,427 +1,734 @@
 {% extends 'base.html' %}
 {% block content %}
 
-<h1>📅 Agenda</h1>
+<style>
+    .agenda-page {
+        padding:24px 28px;
+    }
 
-<div class="panel">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-        <a href="/agenda?date={{ prev_month }}" class="btn btn-secondary">← Mes anterior</a>
+    .agenda-hero {
+        background:white;
+        border:1px solid #f3c6d8;
+        border-radius:22px;
+        padding:22px;
+        box-shadow:0 8px 26px rgba(0,0,0,0.05);
+        margin-bottom:18px;
+    }
 
-        <h2 style="margin:0;">
-            {{ selected_day.strftime('%m/%Y') }}
-        </h2>
+    .agenda-top {
+        display:flex;
+        justify-content:space-between;
+        align-items:flex-start;
+        gap:18px;
+        flex-wrap:wrap;
+    }
 
-        <a href="/agenda?date={{ next_month }}" class="btn btn-secondary">Mes siguiente →</a>
+    .agenda-title h1 {
+        margin:0 0 6px 0;
+        font-size:32px;
+    }
+
+    .agenda-title p {
+        margin:0;
+        color:#6b7280;
+    }
+
+    .agenda-nav {
+        display:flex;
+        gap:10px;
+        flex-wrap:wrap;
+        align-items:center;
+    }
+
+    .agenda-btn {
+        background:white;
+        color:#d85b9a;
+        border:1px solid #f3c6d8;
+        border-radius:12px;
+        padding:10px 14px;
+        text-decoration:none;
+        font-weight:bold;
+        display:inline-block;
+    }
+
+    .agenda-btn.primary {
+        background:#d85b9a;
+        color:white;
+        border-color:#d85b9a;
+    }
+
+    .agenda-section {
+        background:white;
+        border:1px solid #f3c6d8;
+        border-radius:20px;
+        padding:20px;
+        box-shadow:0 8px 24px rgba(0,0,0,0.04);
+        margin-bottom:18px;
+    }
+
+    .month-head {
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap:12px;
+        margin-bottom:16px;
+    }
+
+    .month-head h2 {
+        margin:0;
+    }
+
+    .calendar-weekdays,
+    .calendar-grid {
+        display:grid;
+        grid-template-columns:repeat(7,1fr);
+        gap:8px;
+    }
+
+    .calendar-weekdays {
+        text-align:center;
+        font-weight:bold;
+        color:#6b7280;
+        margin-bottom:8px;
+        font-size:13px;
+    }
+
+    .calendar-day {
+        min-height:78px;
+        border:1px solid #f1d6e2;
+        border-radius:16px;
+        padding:10px;
+        text-decoration:none;
+        color:#1f2937;
+        background:white;
+        position:relative;
+        transition:.15s;
+        display:block;
+    }
+
+    .calendar-day:hover {
+        transform:translateY(-2px);
+        box-shadow:0 8px 20px rgba(216,91,154,0.14);
+    }
+
+    .calendar-day.out-month {
+        opacity:.35;
+        background:#f9fafb;
+    }
+
+    .calendar-day.selected {
+        background:#fff0f7;
+        border:2px solid #d85b9a;
+        box-shadow:0 8px 22px rgba(216,91,154,0.18);
+    }
+
+    .calendar-day.has-turns {
+        background:#fff7fb;
+    }
+
+    .day-number {
+        font-weight:bold;
+        font-size:16px;
+    }
+
+    .day-count {
+        position:absolute;
+        right:9px;
+        bottom:9px;
+        background:#d85b9a;
+        color:white;
+        border-radius:999px;
+        font-size:12px;
+        font-weight:bold;
+        min-width:24px;
+        height:24px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+    }
+
+    .drop-hint {
+        outline:2px dashed #d85b9a;
+        outline-offset:3px;
+        background:#fff0f7 !important;
+    }
+
+    .summary-grid {
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+        gap:12px;
+    }
+
+    .summary-card {
+        border-radius:16px;
+        padding:16px;
+        border:1px solid #f3c6d8;
+        background:white;
+        display:flex;
+        align-items:center;
+        gap:12px;
+    }
+
+    .summary-icon {
+        width:42px;
+        height:42px;
+        border-radius:14px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-size:22px;
+    }
+
+    .summary-card b {
+        font-size:24px;
+        display:block;
+        line-height:1;
+    }
+
+    .summary-card span {
+        color:#6b7280;
+        font-size:13px;
+    }
+
+    .agenda-layout {
+        display:grid;
+        grid-template-columns:minmax(0,1fr) 380px;
+        gap:20px;
+        align-items:start;
+    }
+
+    .day-panel,
+    .new-turn-panel {
+        background:white;
+        border:1px solid #f3c6d8;
+        border-radius:20px;
+        padding:20px;
+        box-shadow:0 8px 24px rgba(0,0,0,0.04);
+    }
+
+    .day-head {
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap:12px;
+        margin-bottom:14px;
+        flex-wrap:wrap;
+    }
+
+    .day-head h2 {
+        margin:0;
+    }
+
+    .slot-row {
+        display:grid;
+        grid-template-columns:82px 1fr;
+        min-height:72px;
+        border-bottom:1px solid #f3edf1;
+    }
+
+    .slot-time {
+        padding:14px 10px;
+        color:#6b7280;
+        font-weight:bold;
+        cursor:pointer;
+    }
+
+    .slot-time:hover {
+        color:#d85b9a;
+    }
+
+    .slot-body {
+        padding:8px 0 8px 10px;
+        min-height:72px;
+        border-left:1px solid #f3edf1;
+    }
+
+    .appointment-card {
+        border-radius:16px;
+        padding:14px;
+        margin-bottom:8px;
+        border:1px solid #f3c6d8;
+        background:#fff8fb;
+        box-shadow:0 4px 14px rgba(0,0,0,0.04);
+        cursor:grab;
+        transition:.15s;
+    }
+
+    .appointment-card:hover {
+        transform:translateY(-2px);
+        box-shadow:0 8px 20px rgba(0,0,0,0.08);
+    }
+
+    .appointment-card:active {
+        cursor:grabbing;
+    }
+
+    .appointment-card.confirmado {
+        background:#eff6ff;
+        border-color:#bfdbfe;
+    }
+
+    .appointment-card.realizado {
+        background:#f0fdf4;
+        border-color:#bbf7d0;
+    }
+
+    .appointment-card.cancelado {
+        background:#f9fafb;
+        border-color:#d1d5db;
+        opacity:.75;
+    }
+
+    .appt-top {
+        display:flex;
+        justify-content:space-between;
+        gap:12px;
+        align-items:flex-start;
+    }
+
+    .appt-service {
+        font-size:13px;
+        font-weight:bold;
+        color:#d85b9a;
+        text-transform:uppercase;
+        letter-spacing:.04em;
+    }
+
+    .appt-status {
+        border-radius:999px;
+        padding:4px 9px;
+        font-size:12px;
+        font-weight:bold;
+        background:white;
+        border:1px solid #f3c6d8;
+        white-space:nowrap;
+    }
+
+    .appt-name {
+        font-size:20px;
+        font-weight:bold;
+        color:#1f2937;
+        text-decoration:none;
+        display:block;
+        margin-top:4px;
+    }
+
+    .appt-owner,
+    .appt-meta {
+        color:#6b7280;
+        font-size:13px;
+        margin-top:4px;
+    }
+
+    .appt-actions {
+        display:flex;
+        gap:8px;
+        flex-wrap:wrap;
+        margin-top:12px;
+    }
+
+    .mini-btn,
+    .mini-form button {
+        border-radius:10px;
+        padding:7px 10px;
+        font-size:12px;
+        font-weight:bold;
+        border:1px solid #f3c6d8;
+        background:white;
+        color:#374151;
+        text-decoration:none;
+        cursor:pointer;
+    }
+
+    .mini-btn.whatsapp {
+        background:#ecfdf5;
+        color:#166534;
+        border-color:#bbf7d0;
+    }
+
+    .mini-form {
+        display:inline;
+        margin:0;
+    }
+
+    .new-turn-panel {
+        position:sticky;
+        top:20px;
+    }
+
+    .new-turn-panel h2 {
+        margin-top:0;
+    }
+
+    .new-turn-panel label {
+        display:block;
+        margin-top:12px;
+        margin-bottom:6px;
+    }
+
+    .new-turn-panel input,
+    .new-turn-panel select,
+    .new-turn-panel textarea {
+        width:100%;
+    }
+
+    .reminder-box {
+        margin-top:14px;
+        background:#fff8fb;
+        border:1px solid #f3c6d8;
+        border-radius:14px;
+        padding:12px;
+    }
+
+    .reminder-box label {
+        display:flex;
+        align-items:center;
+        gap:10px;
+        margin:8px 0;
+    }
+
+    .reminder-box input[type="checkbox"] {
+        width:auto;
+    }
+
+    .save-turn-btn {
+        width:100%;
+        margin-top:16px;
+        padding:14px;
+        border-radius:14px;
+        background:#d85b9a;
+        color:white;
+        border:none;
+        font-weight:bold;
+        cursor:pointer;
+    }
+
+    @media (max-width:1000px) {
+        .agenda-layout {
+            grid-template-columns:1fr;
+        }
+
+        .new-turn-panel {
+            position:static;
+        }
+    }
+</style>
+
+{% set pendientes = appointments|selectattr('status', 'equalto', 'Pendiente')|list|length %}
+{% set confirmados = appointments|selectattr('status', 'equalto', 'Confirmado')|list|length %}
+{% set realizados = appointments|selectattr('status', 'equalto', 'Realizado')|list|length %}
+{% set cancelados = appointments|selectattr('status', 'equalto', 'Cancelado')|list|length %}
+
+<div class="agenda-page">
+
+    <div class="agenda-hero">
+        <div class="agenda-top">
+            <div class="agenda-title">
+                <h1>📅 Agenda</h1>
+                <p>{{ selected_day.strftime('%d/%m/%Y') }} · {{ appointments|length }} turnos programados</p>
+            </div>
+
+            <div class="agenda-nav">
+                <a href="/agenda" class="agenda-btn primary">Hoy</a>
+                <a href="/agenda?date={{ prev_month }}" class="agenda-btn">← Mes anterior</a>
+                <a href="/agenda?date={{ next_month }}" class="agenda-btn">Mes siguiente →</a>
+            </div>
+        </div>
     </div>
 
-    <div style="display:grid; grid-template-columns:repeat(7,1fr); gap:6px; text-align:center; font-weight:bold; margin-bottom:6px;">
-        <div>Lun</div>
-        <div>Mar</div>
-        <div>Mié</div>
-        <div>Jue</div>
-        <div>Vie</div>
-        <div>Sáb</div>
-        <div>Dom</div>
-    </div>
+    <div class="agenda-section">
+        <div class="month-head">
+            <h2>{{ selected_day.strftime('%m/%Y') }}</h2>
+            <span style="color:#6b7280; font-size:14px;">Arrastrá un turno sobre otro día para cambiarlo de fecha.</span>
+        </div>
 
-    <div style="display:grid; grid-template-columns:repeat(7,1fr); gap:6px;">
-        {% for week in month_days %}
-            {% for day in week %}
-                <a
-                    href="/agenda?date={{ day }}"
-                    title="{% if appointments_tooltip_by_day.get(day.day) %}{{ appointments_tooltip_by_day.get(day.day)|join('&#10;') }}{% endif %}"
-                   style="
-                        display:block;
-                        padding:10px;
-                        border-radius:10px;
-                        text-align:center;
-                        text-decoration:none;
-                        border:1px solid #f3cfe0;
-                        color:#1f2d3d;
-                        {% if day.month != selected_day.month %}
-                            opacity:0.35;
-                            background:#f5f5f5;
-                        {% elif day == selected_day %}
-                        background:#d85b9a;
-                        color:white;
-                        font-weight:bold;
-                        border:2px solid #c34182;
-                        {% else %}
-                            background:
-                            {% if appointments_count_by_day.get(day.day, 0) > 0 %}
-                            #ffe6f0;
-                            {% else %}
-                            white;
-                            {% endif %}
+        <div class="calendar-weekdays">
+            <div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div><div>Dom</div>
+        </div>
+
+        <div class="calendar-grid">
+            {% for week in month_days %}
+                {% for day in week %}
+                    <a
+                        href="/agenda?date={{ day }}"
+                        class="calendar-day {% if day.month != selected_day.month %}out-month{% endif %} {% if day == selected_day %}selected{% endif %} {% if appointments_count_by_day.get(day.day, 0) > 0 %}has-turns{% endif %} agenda-drop-date"
+                        data-date="{{ day }}"
+                        title="{% if appointments_tooltip_by_day.get(day.day) %}{{ appointments_tooltip_by_day.get(day.day)|join('&#10;') }}{% endif %}"
+                    >
+                        <div class="day-number">{{ day.day }}</div>
+
+                        {% if appointments_count_by_day.get(day.day, 0) > 0 %}
+                            <div class="day-count">{{ appointments_count_by_day.get(day.day, 0) }}</div>
                         {% endif %}
-                   ">
-                    {{ day.day }}
-
-                    {% if appointments_count_by_day.get(day.day, 0) > 0 %}
-                    <div style="
-                        margin-top:4px;
-                        background:#d85b9a;
-                        color:white;
-                        border-radius:999px;
-                        font-size:11px;
-                        font-weight:bold;
-                        padding:2px 6px;
-                        display:inline-block;
-                    ">
-                        {{ appointments_count_by_day.get(day.day, 0) }}
-                    </div>
-                    {% endif %}
-                </a>
+                    </a>
+                {% endfor %}
             {% endfor %}
-        {% endfor %}
+        </div>
     </div>
-</div>
-<div class="panel" style="margin-bottom:20px;">
-    <b>📊 Resumen del día</b><br><br>
 
-    {% set pendientes = appointments|selectattr('status', 'equalto', 'Pendiente')|list|length %}
-    {% set confirmados = appointments|selectattr('status', 'equalto', 'Confirmado')|list|length %}
-    {% set realizados = appointments|selectattr('status', 'equalto', 'Realizado')|list|length %}
-    {% set cancelados = appointments|selectattr('status', 'equalto', 'Cancelado')|list|length %}
+    <div class="agenda-section">
+        <div class="summary-grid">
+            <div class="summary-card"><div class="summary-icon" style="background:#fef3c7;">⏳</div><div><b>{{ pendientes }}</b><span>Pendientes</span></div></div>
+            <div class="summary-card"><div class="summary-icon" style="background:#dbeafe;">🔵</div><div><b>{{ confirmados }}</b><span>Confirmados</span></div></div>
+            <div class="summary-card"><div class="summary-icon" style="background:#dcfce7;">✔</div><div><b>{{ realizados }}</b><span>Realizados</span></div></div>
+            <div class="summary-card"><div class="summary-icon" style="background:#fee2e2;">✖</div><div><b>{{ cancelados }}</b><span>Cancelados</span></div></div>
+            <div class="summary-card"><div class="summary-icon" style="background:#fff0f7;">📅</div><div><b>{{ appointments|length }}</b><span>Total del día</span></div></div>
+        </div>
+    </div>
 
-    ⏳ Pendientes: <b>{{ pendientes }}</b> &nbsp;&nbsp;
-    ✅ Confirmados: <b>{{ confirmados }}</b> &nbsp;&nbsp;
-    ✔ Realizados: <b>{{ realizados }}</b> &nbsp;&nbsp;
-    ❌ Cancelados: <b>{{ cancelados }}</b> &nbsp;&nbsp;
-    📅 Total: <b>{{ appointments|length }}</b>
-</div>
-<div class="panel" style="display:grid; grid-template-columns:minmax(0,1fr) 360px; gap:20px; align-items:start;">
+    <div class="agenda-layout">
 
-    <div>
-        <h2>{{ selected_day.strftime('%d/%m/%Y') }}</h2>
+        <div class="day-panel">
+            <div class="day-head">
+                <h2>🗓️ {{ selected_day.strftime('%d/%m/%Y') }}</h2>
+                <span style="color:#6b7280; font-size:14px;">Hacé clic en una hora para precargar el turno. Arrastrá tarjetas para cambiar horario.</span>
+            </div>
 
-        {% for hour in range(8, 21) %}
-            {% for minute in [0, 30] %}
-                {% set slot = "%02d:%02d"|format(hour, minute) %}
+            {% for hour in range(8, 21) %}
+                {% for minute in [0, 30] %}
+                    {% set slot = "%02d:%02d"|format(hour, minute) %}
+                    {% set end_slot = "%02d:%02d"|format(hour + (1 if minute == 30 else 0), 0 if minute == 30 else 30) %}
 
-                <div style="display:grid; grid-template-columns:80px 1fr; border-bottom:1px solid #eee; min-height:60px;">
-                    <div onclick="document.querySelector('[name=start_time]').value='{{ slot }}'; document.querySelector('[name=end_time]').value='{{ '%02d:%02d'|format(hour + (1 if minute == 30 else 0), 0 if minute == 30 else 30) }}'; document.getElementById('title_input').focus();"
-     style="font-weight:bold; padding:10px; cursor:pointer;">
-    {{ slot }}
-</div>
+                    <div class="slot-row agenda-drop-slot" data-date="{{ selected_day }}" data-start="{{ slot }}" data-end="{{ end_slot }}">
+                        <div class="slot-time" onclick="document.querySelector('[name=start_time]').value='{{ slot }}'; document.querySelector('[name=end_time]').value='{{ end_slot }}'; document.getElementById('title_input').focus();">
+                            {{ slot }}
+                        </div>
 
-                    <div style="padding:8px;">
-                        {% for a in appointments %}
-                            {% if a.start_time == slot %}
-                                {% if a.status|default('Pendiente') == 'Confirmado' %}
-<div style="background:#dbeafe; border-left:5px solid #2563eb; padding:8px; border-radius:8px; margin-bottom:6px;">
+                        <div class="slot-body">
+                            {% for a in appointments %}
+                                {% if a.start_time == slot %}
 
-{% elif a.status|default('Pendiente') == 'Realizado' %}
-<div style="background:#dcfce7; border-left:5px solid #16a34a; padding:8px; border-radius:8px; margin-bottom:6px;">
+                                    <div
+                                        class="appointment-card {{ (a.status|default('Pendiente'))|lower }}"
+                                        draggable="true"
+                                        data-appointment-id="{{ a.id }}"
+                                    >
+                                        <form id="move-form-{{ a.id }}" method="post" action="/agenda/{{ a.id }}/edit" style="display:none;">
+                                            <input type="hidden" name="service" value="{{ a.service or '' }}">
+                                            <input type="hidden" name="title" value="{{ a.title or '' }}">
+                                            <input type="hidden" name="appointment_date" value="{{ a.appointment_date.strftime('%Y-%m-%d') }}">
+                                            <input type="hidden" name="start_time" value="{{ a.start_time or '' }}">
+                                            <input type="hidden" name="end_time" value="{{ a.end_time or '' }}">
+                                            <input type="hidden" name="owner_id" value="{{ a.owner_id or '' }}">
+                                            <input type="hidden" name="patient_id" value="{{ a.patient_id or '' }}">
+                                            <input type="hidden" name="notes" value="{{ a.notes or '' }}">
+                                            <input type="hidden" name="contact_whatsapp" value="{{ a.contact_whatsapp or '' }}">
+                                            {% if a.reminder_24h %}<input type="hidden" name="reminder_24h" value="on">{% endif %}
+                                            {% if a.reminder_12h %}<input type="hidden" name="reminder_12h" value="on">{% endif %}
+                                        </form>
 
-{% elif a.status|default('Pendiente') == 'Cancelado' %}
-<div style="background:#f3f4f6; border-left:5px solid #6b7280; padding:8px; border-radius:8px; margin-bottom:6px;">
+                                        <div class="appt-top">
+                                            <div>
+                                                <div class="appt-service">
+                                                    {% if a.service == 'ECG' %}💗{% elif a.service == 'Ecografía' %}🖥️{% elif a.service == 'Radiografía' %}📷{% elif a.service == 'Vacuna' %}💉{% elif a.service == 'Cirugía' %}🔪{% elif a.service == 'Desparasitación' %}🪱{% else %}🩺{% endif %}
+                                                    {{ a.service }}
+                                                </div>
 
-{% else %}
-<div style="background:#fce7f3; border-left:5px solid #d85b9f; padding:8px; border-radius:8px; margin-bottom:6px;">
-{% endif %}
-
-                                    <small><b>
-                                        {% if a.status == 'Realizado' %}🟢 Realizado
-                                        {% elif a.status == 'Cancelado' %}🔴 Cancelado
-                                        {% elif a.status == 'Confirmado' %}🔵 Confirmado
-                                        {% else %}🟣 Pendiente
-                                        {% endif %}
-                                    </b></small><br>
-
-                                    <div style="font-size:13px; color:#6b7280; font-weight:bold; text-transform:uppercase;">
-                                        {{ a.service }}
-                                    </div>
-
-                                    {% if a.patient %}
-                                        <a href="/patients/{{ a.patient.id }}"
-                                           style="display:block; font-size:18px; font-weight:bold; color:inherit; text-decoration:none;">
-                                            {{ a.patient.name }}
-                                        </a>
-
-                                        {% if a.patient.owner %}
-                                            <div style="font-size:13px; color:#6b7280;">
-                                                Prop.: {{ a.patient.owner.name }}
+                                                {% if a.patient %}
+                                                    <a href="/patients/{{ a.patient.id }}" class="appt-name">{{ a.patient.name }}</a>
+                                                    {% if a.patient.owner %}
+                                                        <div class="appt-owner">👤 {{ a.patient.owner.name }}</div>
+                                                    {% endif %}
+                                                {% elif a.owner %}
+                                                    <div class="appt-name">{{ a.owner.name }}</div>
+                                                {% elif a.title %}
+                                                    <div class="appt-name">{{ a.title }}</div>
+                                                {% else %}
+                                                    <div class="appt-name">Turno sin paciente</div>
+                                                {% endif %}
                                             </div>
+
+                                            <div class="appt-status">
+                                                {% if a.status == 'Realizado' %}🟢 Realizado
+                                                {% elif a.status == 'Cancelado' %}🔴 Cancelado
+                                                {% elif a.status == 'Confirmado' %}🔵 Confirmado
+                                                {% else %}🟡 Pendiente
+                                                {% endif %}
+                                            </div>
+                                        </div>
+
+                                        {% if a.title and a.patient %}
+                                            <div class="appt-meta">📝 {{ a.title }}</div>
                                         {% endif %}
 
-                                    {% elif a.owner %}
-                                        <div style="font-size:18px; font-weight:bold;">
-                                            {{ a.owner.name }}
+                                        <div class="appt-meta">🕓 {{ a.start_time }}{% if a.end_time %} — {{ a.end_time }}{% endif %}</div>
+
+                                        {% if a.notes and a.notes != a.title %}
+                                            <div class="appt-meta">💬 {{ a.notes }}</div>
+                                        {% endif %}
+
+                                        {% set raw_phone = '' %}
+                                        {% if a.contact_whatsapp %}
+                                            {% set raw_phone = a.contact_whatsapp %}
+                                        {% elif a.patient and a.patient.owner and a.patient.owner.whatsapp %}
+                                            {% set raw_phone = a.patient.owner.whatsapp %}
+                                        {% elif a.patient and a.patient.owner and a.patient.owner.phone %}
+                                            {% set raw_phone = a.patient.owner.phone %}
+                                        {% elif a.owner and a.owner.whatsapp %}
+                                            {% set raw_phone = a.owner.whatsapp %}
+                                        {% elif a.owner and a.owner.phone %}
+                                            {% set raw_phone = a.owner.phone %}
+                                        {% endif %}
+
+                                        {% set phone = raw_phone|replace(' ', '')|replace('-', '')|replace('(', '')|replace(')', '')|replace('+', '') %}
+                                        {% if phone[:2] == '54' %}
+                                            {% set wa_phone = phone %}
+                                        {% else %}
+                                            {% set wa_phone = '54' ~ phone %}
+                                        {% endif %}
+
+                                        {% set patient_name = a.patient.name if a.patient else (a.title if a.title else 'tu mascota') %}
+
+                                        {% if a.reminder_12h or a.service == 'Cirugía' %}
+                                            {% set msg = 'Hola. Te recordamos que tenés un turno quirúrgico en Clínica Veterinaria Los Aromos el ' ~ a.appointment_date.strftime('%d/%m/%Y') ~ ' a las ' ~ a.start_time ~ ' hs para ' ~ patient_name ~ '. Recordá que debe concurrir con 12 hs de ayuno de sólidos y líquidos, salvo indicación médica diferente.' %}
+                                        {% elif a.service == 'Vacuna' %}
+                                            {% set msg = 'Hola. Te recordamos que ' ~ patient_name ~ ' tiene turno para vacunación en Clínica Veterinaria Los Aromos el ' ~ a.appointment_date.strftime('%d/%m/%Y') ~ ' a las ' ~ a.start_time ~ ' hs. Recordá traer su carnet sanitario si lo tenés.' %}
+                                        {% elif a.service == 'Desparasitación' %}
+                                            {% set msg = 'Hola. Te recordamos que ' ~ patient_name ~ ' tiene turno para desparasitación en Clínica Veterinaria Los Aromos el ' ~ a.appointment_date.strftime('%d/%m/%Y') ~ ' a las ' ~ a.start_time ~ ' hs.' %}
+                                        {% elif a.service == 'ECG' %}
+                                            {% set msg = 'Hola. Te recordamos que ' ~ patient_name ~ ' tiene turno para electrocardiograma en Clínica Veterinaria Los Aromos el ' ~ a.appointment_date.strftime('%d/%m/%Y') ~ ' a las ' ~ a.start_time ~ ' hs.' %}
+                                        {% elif a.service == 'Ecografía' %}
+                                            {% set msg = 'Hola. Te recordamos que ' ~ patient_name ~ ' tiene turno para ecografía en Clínica Veterinaria Los Aromos el ' ~ a.appointment_date.strftime('%d/%m/%Y') ~ ' a las ' ~ a.start_time ~ ' hs.' %}
+                                        {% elif a.service == 'Radiografía' %}
+                                            {% set msg = 'Hola. Te recordamos que ' ~ patient_name ~ ' tiene turno para radiografía en Clínica Veterinaria Los Aromos el ' ~ a.appointment_date.strftime('%d/%m/%Y') ~ ' a las ' ~ a.start_time ~ ' hs.' %}
+                                        {% elif a.service == 'Control' %}
+                                            {% set msg = 'Hola. Te recordamos que ' ~ patient_name ~ ' tiene turno de control en Clínica Veterinaria Los Aromos el ' ~ a.appointment_date.strftime('%d/%m/%Y') ~ ' a las ' ~ a.start_time ~ ' hs.' %}
+                                        {% else %}
+                                            {% set msg = 'Hola. Te recordamos que tenés turno en Clínica Veterinaria Los Aromos el ' ~ a.appointment_date.strftime('%d/%m/%Y') ~ ' a las ' ~ a.start_time ~ ' hs para ' ~ patient_name ~ '. Servicio: ' ~ a.service ~ '.' %}
+                                        {% endif %}
+
+                                        <div class="appt-actions">
+                                            {% if a.status|default('Pendiente') == 'Pendiente' %}
+                                                <form method="post" action="/agenda/{{ a.id }}/status" class="mini-form">
+                                                    <input type="hidden" name="date" value="{{ selected_day }}">
+                                                    <input type="hidden" name="status" value="Confirmado">
+                                                    <button type="submit">✅ Confirmar</button>
+                                                </form>
+                                            {% endif %}
+
+                                            {% if a.status|default('Pendiente') == 'Confirmado' %}
+                                                <form method="post" action="/agenda/{{ a.id }}/status" class="mini-form">
+                                                    <input type="hidden" name="date" value="{{ selected_day }}">
+                                                    <input type="hidden" name="status" value="Realizado">
+                                                    <button type="submit">✔ Realizado</button>
+                                                </form>
+                                            {% endif %}
+
+                                            {% if a.status|default('Pendiente') == 'Pendiente' or a.status|default('Pendiente') == 'Confirmado' %}
+                                                <form method="post" action="/agenda/{{ a.id }}/status" class="mini-form">
+                                                    <input type="hidden" name="date" value="{{ selected_day }}">
+                                                    <input type="hidden" name="status" value="Cancelado">
+                                                    <button type="submit">❌ Cancelar</button>
+                                                </form>
+
+                                                <a href="/agenda/{{ a.id }}/edit" class="mini-btn">✏️ Editar</a>
+
+                                                {% if raw_phone %}
+                                                    <a href="https://wa.me/{{ wa_phone }}?text={{ msg|urlencode }}" target="_blank" class="mini-btn whatsapp">📲 WhatsApp</a>
+                                                {% endif %}
+                                            {% endif %}
                                         </div>
 
-                                    {% elif a.title %}
-                                        <div style="font-size:18px; font-weight:bold;">
-                                            {{ a.title }}
-                                        </div>
-                                    {% endif %}
-
-                                    {% if a.title and a.patient %}
-                                        <div style="font-size:13px;">
-                                            {{ a.title }}
-                                        </div>
-                                    {% endif %}
-
-                                    {% if a.end_time %}
-                                        <small>{{ a.start_time }} - {{ a.end_time }}</small>
-                                    {% endif %}
-
-                                    {% if a.notes and a.notes != a.title %}
-                                        <br><small>{{ a.notes }}</small>
-                                    {% endif %}
-                                    {% if a.status|default('Pendiente') == 'Confirmado' %}
-    <span style="background:#dcfce7;color:#166534;padding:4px 8px;border-radius:6px;font-size:12px;font-weight:bold;">
-        ✅ Confirmado
-    </span>
-{% elif a.status|default('Pendiente') == 'Realizado' %}
-    <span style="background:#dbeafe;color:#1e40af;padding:4px 8px;border-radius:6px;font-size:12px;font-weight:bold;">
-        ✔ Realizado
-    </span>
-{% elif a.status|default('Pendiente') == 'Cancelado' %}
-    <span style="background:#fee2e2;color:#991b1b;padding:4px 8px;border-radius:6px;font-size:12px;font-weight:bold;">
-        ❌ Cancelado
-    </span>
-{% else %}
-    <span style="background:#fef3c7;color:#92400e;padding:4px 8px;border-radius:6px;font-size:12px;font-weight:bold;">
-        ⏳ Pendiente
-    </span>
-{% endif %}
-
-<br><br>
-                                    <br><br>
-{% if a.status|default('Pendiente') == 'Pendiente' %}
-                                    <form method="post" action="/agenda/{{ a.id }}/status" style="display:inline;">
-                                        <input type="hidden" name="date" value="{{ selected_day }}">
-                                        <input type="hidden" name="status" value="Confirmado">
-                                        <button type="submit">✅ Confirmar</button>
-                                    </form>
-                                    {% endif %}
-{% if a.status|default('Pendiente') == 'Confirmado' %}
-                                    <form method="post" action="/agenda/{{ a.id }}/status" style="display:inline;">
-                                        <input type="hidden" name="date" value="{{ selected_day }}">
-                                        <input type="hidden" name="status" value="Realizado">
-                                        <button type="submit">✔ Realizado</button>
-                                    </form>
-                                    {% endif %}
-{% if a.status|default('Pendiente') == 'Pendiente' or a.status|default('Pendiente') == 'Confirmado' %}
-                                    <form method="post" action="/agenda/{{ a.id }}/status" style="display:inline;">
-                                        <input type="hidden" name="date" value="{{ selected_day }}">
-                                        <input type="hidden" name="status" value="Cancelado">
-                                        <button type="submit">❌ Cancelar</button>
-                                    </form>
-                                    {% endif %}
-                                    <br>
-{% if a.status|default('Pendiente') == 'Pendiente' or a.status|default('Pendiente') == 'Confirmado' %}
-                                    <a href="/agenda/{{ a.id }}/edit"
-                                       style="
-                                          display:inline-block;
-                                          margin-top:6px;
-                                          padding:6px 12px;
-                                          background:#f3f4f6;
-                                          border-radius:6px;
-                                          text-decoration:none;
-                                          color:#374151;
-                                          font-size:13px;
-                                          font-weight:bold;
-                                       ">
-                                       ✏️ Editar
-                                    </a>
-                                    {% endif %}
-                                    {% set raw_phone = '' %}
-
-{% if a.contact_whatsapp %}
-    {% set raw_phone = a.contact_whatsapp %}
-{% elif a.patient and a.patient.owner and a.patient.owner.whatsapp %}
-    {% set raw_phone = a.patient.owner.whatsapp %}
-{% elif a.patient and a.patient.owner and a.patient.owner.phone %}
-    {% set raw_phone = a.patient.owner.phone %}
-{% elif a.owner and a.owner.whatsapp %}
-    {% set raw_phone = a.owner.whatsapp %}
-{% elif a.owner and a.owner.phone %}
-    {% set raw_phone = a.owner.phone %}
-{% endif %}
-
-{% set phone = raw_phone|replace(' ', '')|replace('-', '')|replace('(', '')|replace(')', '')|replace('+', '') %}
-
-{% if phone[:2] == '54' %}
-    {% set wa_phone = phone %}
-{% else %}
-    {% set wa_phone = '54' ~ phone %}
-{% endif %}
-
-    {% set patient_name = a.patient.name if a.patient else (a.title if a.title else 'tu mascota') %}
-
-    {% if a.reminder_12h or a.service == 'Cirugía' %}
-    {% set msg = 'Hola. Te recordamos que tenés un turno quirúrgico en Clínica Veterinaria Los Aromos el ' ~ a.appointment_date.strftime('%d/%m/%Y') ~ ' a las ' ~ a.start_time ~ ' hs para ' ~ patient_name ~ '. Recordá que debe concurrir con 12 hs de ayuno de sólidos y líquidos, salvo indicación médica diferente.' %}
-
-{% elif a.service == 'Vacuna' %}
-    {% set msg = 'Hola. Te recordamos que ' ~ patient_name ~ ' tiene turno para vacunación en Clínica Veterinaria Los Aromos el ' ~ a.appointment_date.strftime('%d/%m/%Y') ~ ' a las ' ~ a.start_time ~ ' hs. Recordá traer su carnet sanitario si lo tenés.' %}
-
-{% elif a.service == 'Desparasitación' %}
-    {% set msg = 'Hola. Te recordamos que ' ~ patient_name ~ ' tiene turno para desparasitación en Clínica Veterinaria Los Aromos el ' ~ a.appointment_date.strftime('%d/%m/%Y') ~ ' a las ' ~ a.start_time ~ ' hs.' %}
-
-{% elif a.service == 'ECG' %}
-    {% set msg = 'Hola. Te recordamos que ' ~ patient_name ~ ' tiene turno para electrocardiograma en Clínica Veterinaria Los Aromos el ' ~ a.appointment_date.strftime('%d/%m/%Y') ~ ' a las ' ~ a.start_time ~ ' hs.' %}
-
-{% elif a.service == 'Ecografía' %}
-    {% set msg = 'Hola. Te recordamos que ' ~ patient_name ~ ' tiene turno para ecografía en Clínica Veterinaria Los Aromos el ' ~ a.appointment_date.strftime('%d/%m/%Y') ~ ' a las ' ~ a.start_time ~ ' hs.' %}
-
-{% elif a.service == 'Radiografía' %}
-    {% set msg = 'Hola. Te recordamos que ' ~ patient_name ~ ' tiene turno para radiografía en Clínica Veterinaria Los Aromos el ' ~ a.appointment_date.strftime('%d/%m/%Y') ~ ' a las ' ~ a.start_time ~ ' hs.' %}
-
-{% elif a.service == 'Control' %}
-    {% set msg = 'Hola. Te recordamos que ' ~ patient_name ~ ' tiene turno de control en Clínica Veterinaria Los Aromos el ' ~ a.appointment_date.strftime('%d/%m/%Y') ~ ' a las ' ~ a.start_time ~ ' hs.' %}
-
-{% else %}
-    {% set msg = 'Hola. Te recordamos que tenés turno en Clínica Veterinaria Los Aromos el ' ~ a.appointment_date.strftime('%d/%m/%Y') ~ ' a las ' ~ a.start_time ~ ' hs para ' ~ patient_name ~ '. Servicio: ' ~ a.service ~ '.' %}
-{% endif %}
-{% if a.status|default('Pendiente') == 'Pendiente' or a.status|default('Pendiente') == 'Confirmado' %}                                    
-{% if raw_phone %}
-    <br>
-    <a href="https://wa.me/{{ wa_phone }}?text={{ msg|urlencode }}" target="_blank"
-       style="
-           display:inline-block;
-           margin-top:6px;
-           padding:6px 12px;
-           background:#dcfce7;
-           border-radius:6px;
-           text-decoration:none;
-           color:#166534;
-           font-size:13px;
-           font-weight:bold;
-       ">
-        📲 WhatsApp
-    </a>
-{% endif %}
-{% endif %}
-                                </div>
-                            {% endif %}
-                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
                     </div>
-                </div>
+                {% endfor %}
             {% endfor %}
-        {% endfor %}
-    </div>
+        </div>
 
-    <div style="position:sticky; top:20px;">
-        <h2>Nuevo turno</h2>
+        <div class="new-turn-panel">
+            <h2>➕ Nuevo turno</h2>
 
-        <form method="post" action="/agenda">
-            <input type="hidden" name="status" value="Pendiente">
-            <label><b>Servicio</b></label>
-            <select name="service" required>
-                <option value="">Seleccione</option>
-                <option>Consulta</option>
-                <option>Vacuna</option>
-                <option>Desparasitación</option>
-                <option>Cirugía</option>
-                <option>ECG</option>
-                <option>Ecografía</option>
-                <option>Radiografía</option>
-                <option>Control</option>
-                <option>Internación</option>
-                <option>Otro</option>
-            </select>
+            <form method="post" action="/agenda">
+                <input type="hidden" name="status" value="Pendiente">
 
-            <br><br>
+                <label><b>Servicio</b></label>
+                <select name="service" required>
+                    <option value="">Seleccione</option>
+                    <option>Consulta</option>
+                    <option>Vacuna</option>
+                    <option>Desparasitación</option>
+                    <option>Cirugía</option>
+                    <option>ECG</option>
+                    <option>Ecografía</option>
+                    <option>Radiografía</option>
+                    <option>Control</option>
+                    <option>Internación</option>
+                    <option>Otro</option>
+                </select>
 
-            <label><b>Título / detalle</b></label>
-            <input id="title_input" name="title" placeholder="Ej: Luna - OHE">
+                <label><b>Título / detalle</b></label>
+                <input id="title_input" name="title" placeholder="Ej: Luna - OHE">
 
-            <br><br>
+                <label><b>Fecha</b></label>
+                <input type="date" name="appointment_date" value="{{ selected_day }}" required>
 
-            <label><b>Fecha</b></label>
-            <input type="date" name="appointment_date" value="{{ selected_day }}" required>
-
-            <br><br>
-
-            <label><b>Inicio</b></label>
-            <select name="start_time" required>
-                {% for hour in range(8, 21) %}
-                    {% for minute in [0, 30] %}
-                        <option value="{{ '%02d:%02d'|format(hour, minute) }}">{{ '%02d:%02d'|format(hour, minute) }}</option>
+                <label><b>Inicio</b></label>
+                <select name="start_time" required>
+                    {% for hour in range(8, 21) %}
+                        {% for minute in [0, 30] %}
+                            <option value="{{ '%02d:%02d'|format(hour, minute) }}">{{ '%02d:%02d'|format(hour, minute) }}</option>
+                        {% endfor %}
                     {% endfor %}
-                {% endfor %}
-            </select>
+                </select>
 
-            <br><br>
-
-            <label><b>Fin</b></label>
-            <select name="end_time">
-                {% for hour in range(8, 21) %}
-                    {% for minute in [0, 30] %}
-                        <option value="{{ '%02d:%02d'|format(hour, minute) }}">{{ '%02d:%02d'|format(hour, minute) }}</option>
+                <label><b>Fin</b></label>
+                <select name="end_time">
+                    {% for hour in range(8, 21) %}
+                        {% for minute in [0, 30] %}
+                            <option value="{{ '%02d:%02d'|format(hour, minute) }}">{{ '%02d:%02d'|format(hour, minute) }}</option>
+                        {% endfor %}
                     {% endfor %}
-                {% endfor %}
-            </select>
+                </select>
 
-            <br><br>
+                <label><b>Cliente</b></label>
+                <select name="owner_id" id="owner_id">
+                    <option value="">Sin cliente asignado</option>
+                    {% for o in owners %}
+                        <option value="{{ o.id }}" data-whatsapp="{{ o.whatsapp or o.phone or '' }}">
+                            {{ o.name }}
+                        </option>
+                    {% endfor %}
+                </select>
 
-            <label><b>Cliente</b></label>
-            <select name="owner_id" id="owner_id">
-                <option value="">Sin cliente asignado</option>
-                {% for o in owners %}
-                    <option
-                        value="{{ o.id }}"
-                        data-whatsapp="{{ o.whatsapp or o.phone or '' }}"
-                    >
-                        {{ o.name }}
-                    </option>
-                {% endfor %}
-            </select>
+                <label><b>Paciente</b></label>
+                <select name="patient_id" id="patient_id">
+                    <option value="">Sin paciente asignado</option>
+                    {% for p in patients %}
+                        <option value="{{ p.id }}" data-owner="{{ p.owner_id if p.owner_id else '' }}">
+                            {{ p.name }}{% if p.owner %} - {{ p.owner.name }}{% endif %}
+                        </option>
+                    {% endfor %}
+                </select>
 
-            <br><br>
+                <label><b>Nota / Precio</b></label>
+                <textarea name="notes" rows="3" placeholder="Observaciones, presupuesto o precio estimado"></textarea>
 
-            <label><b>Paciente</b></label>
-            <select name="patient_id" id="patient_id">
-                <option value="">Sin paciente asignado</option>
-                {% for p in patients %}
-                    <option
-                        value="{{ p.id }}"
-                        data-owner="{{ p.owner_id if p.owner_id else '' }}"
-                    >
-                        {{ p.name }}{% if p.owner %} - {{ p.owner.name }}{% endif %}
-                    </option>
-                {% endfor %}
-            </select>
+                <label><b>WhatsApp de contacto</b></label>
+                <input id="contact_whatsapp" name="contact_whatsapp" placeholder="Ej: 3496652050">
 
-            <br><br>
+                <div class="reminder-box">
+                    <label>
+                        <input type="checkbox" name="reminder_24h" checked>
+                        <span>🔔 <b>recordatorio 24 hs antes</b></span>
+                    </label>
 
-            <label><b>Nota / Precio</b></label>
-            <textarea name="notes" rows="3" placeholder="Observaciones, presupuesto o precio estimado"></textarea>
+                    <label>
+                        <input type="checkbox" name="reminder_12h">
+                        <span>⏱️ <b>recordatorio 12 hs antes / ayuno</b></span>
+                    </label>
+                </div>
 
-            <br><br>
+                <button type="submit" class="save-turn-btn">Guardar turno</button>
+            </form>
+        </div>
 
-<label><b>WhatsApp de contacto</b></label>
-<input
-    id="contact_whatsapp"
-    name="contact_whatsapp"
-    placeholder="Ej: 3496652050"
->
-
-<br><br>
-
-<div style="background:#fff8fb; border-left:4px solid #d85b9f; border-radius:10px; padding:12px;">
-    <label style="display:flex; align-items:center; gap:10px; cursor:pointer; margin:0;">
-        <input type="checkbox" name="reminder_24h" checked style="margin:0; width:16px; height:16px;">
-        <span style="font-size:14px;">🔔 <b>recordatorio 24 hs antes</b></span>
-    </label>
-
-    <br>
-
-    <label style="display:flex; align-items:center; gap:10px; cursor:pointer; margin:0;">
-        <input type="checkbox" name="reminder_12h" style="margin:0; width:16px; height:16px;">
-        <span style="font-size:14px;">⏱️ <b>recordatorio 12 hs antes / ayuno</b></span>
-    </label>
-</div>
-
-            <br><br>
-
-            <button type="submit">Guardar turno</button>
-        </form>
     </div>
 
 </div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
@@ -429,48 +736,93 @@ document.addEventListener('DOMContentLoaded', function () {
     const patientSelect = document.getElementById('patient_id');
     const whatsappInput = document.getElementById('contact_whatsapp');
 
-    if (!ownerSelect || !patientSelect) return;
+    if (ownerSelect && patientSelect) {
+        const allOptions = Array.from(patientSelect.querySelectorAll('option'));
 
-    const allOptions = Array.from(patientSelect.querySelectorAll('option'));
+        function filterPatients() {
+            const ownerId = ownerSelect.value;
+            const selectedOwner = ownerSelect.options[ownerSelect.selectedIndex];
 
-    function filterPatients() {
-
-        const ownerId = ownerSelect.value;
-        const selectedOwner =
-            ownerSelect.options[ownerSelect.selectedIndex];
-        
-        if (whatsappInput && selectedOwner) {
-            whatsappInput.value =
-                selectedOwner.dataset.whatsapp || '';
-        }
-
-        patientSelect.innerHTML = '';
-
-        const visiblePatients = [];
-
-        allOptions.forEach(option => {
-
-            if (option.value === '') {
-                patientSelect.appendChild(option.cloneNode(true));
-                return;
+            if (whatsappInput && selectedOwner) {
+                whatsappInput.value = selectedOwner.dataset.whatsapp || '';
             }
 
-            if (option.dataset.owner === ownerId) {
-                visiblePatients.push(option.cloneNode(true));
+            patientSelect.innerHTML = '';
+            const visiblePatients = [];
+
+            allOptions.forEach(option => {
+                if (option.value === '') {
+                    patientSelect.appendChild(option.cloneNode(true));
+                    return;
+                }
+
+                if (option.dataset.owner === ownerId) {
+                    visiblePatients.push(option.cloneNode(true));
+                }
+            });
+
+            visiblePatients.forEach(option => patientSelect.appendChild(option));
+
+            if (visiblePatients.length === 1) {
+                patientSelect.value = visiblePatients[0].value;
             }
-        });
-
-        visiblePatients.forEach(option => {
-            patientSelect.appendChild(option);
-        });
-
-        if (visiblePatients.length === 1) {
-            patientSelect.value = visiblePatients[0].value;
         }
+
+        ownerSelect.addEventListener('change', filterPatients);
+        filterPatients();
     }
 
-    ownerSelect.addEventListener('change', filterPatients);
-    filterPatients();
+    let draggedAppointmentId = null;
+
+    document.querySelectorAll('.appointment-card[draggable="true"]').forEach(card => {
+        card.addEventListener('dragstart', function (event) {
+            draggedAppointmentId = this.dataset.appointmentId;
+            event.dataTransfer.setData('text/plain', draggedAppointmentId);
+        });
+    });
+
+    function allowDropzone(el) {
+        el.addEventListener('dragover', function (event) {
+            event.preventDefault();
+            this.classList.add('drop-hint');
+        });
+
+        el.addEventListener('dragleave', function () {
+            this.classList.remove('drop-hint');
+        });
+
+        el.addEventListener('drop', function (event) {
+            event.preventDefault();
+            this.classList.remove('drop-hint');
+
+            const appointmentId = event.dataTransfer.getData('text/plain') || draggedAppointmentId;
+            if (!appointmentId) return;
+
+            const form = document.getElementById('move-form-' + appointmentId);
+            if (!form) return;
+
+            const dateInput = form.querySelector('[name="appointment_date"]');
+            const startInput = form.querySelector('[name="start_time"]');
+            const endInput = form.querySelector('[name="end_time"]');
+
+            if (this.dataset.date && dateInput) {
+                dateInput.value = this.dataset.date;
+            }
+
+            if (this.dataset.start && startInput) {
+                startInput.value = this.dataset.start;
+            }
+
+            if (this.dataset.end && endInput) {
+                endInput.value = this.dataset.end;
+            }
+
+            form.submit();
+        });
+    }
+
+    document.querySelectorAll('.agenda-drop-slot').forEach(allowDropzone);
+    document.querySelectorAll('.agenda-drop-date').forEach(allowDropzone);
 });
 </script>
 {% endblock %}
