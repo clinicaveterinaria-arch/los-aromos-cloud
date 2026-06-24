@@ -24,6 +24,14 @@
     </button>
 </form>
 {% endif %}
+{% if owner and owner.whatsapp %}
+<a target="_blank"
+   href="https://wa.me/{{ owner.whatsapp }}"
+   class="btn"
+   style="background:#25D366; color:white; border:0;">
+   📲 WhatsApp
+</a>
+{% endif %}
     <a href="/sales" class="btn btn-secondary">
         Volver a ventas
     </a>
