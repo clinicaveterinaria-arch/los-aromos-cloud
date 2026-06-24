@@ -40,14 +40,35 @@
                             opacity:0.35;
                             background:#f5f5f5;
                         {% elif day == selected_day %}
-                            background:#d85b9a;
-                            color:white;
-                            font-weight:bold;
+                        background:#d85b9a;
+                        color:white;
+                        font-weight:bold;
+                        border:2px solid #c34182;
                         {% else %}
-                            background:white;
+                            background:
+                            {% if appointments_count_by_day.get(day.day, 0) > 0 %}
+                            #ffe6f0;
+                            {% else %}
+                            white;
+                            {% endif %}
                         {% endif %}
                    ">
                     {{ day.day }}
+
+                    {% if appointments_count_by_day.get(day.day, 0) > 0 %}
+                    <div style="
+                        margin-top:4px;
+                        background:#d85b9a;
+                        color:white;
+                        border-radius:999px;
+                        font-size:11px;
+                        font-weight:bold;
+                        padding:2px 6px;
+                        display:inline-block;
+                    ">
+                        {{ appointments_count_by_day.get(day.day, 0) }}
+                    </div>
+                    {% endif %}
                 </a>
             {% endfor %}
         {% endfor %}
