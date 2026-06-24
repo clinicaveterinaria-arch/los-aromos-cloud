@@ -434,15 +434,18 @@
     {% set paid_total = sale.total_paid or 0 %}
     {% set balance_due = sale.balance_due or 0 %}
 
-    {% if sale.status == 'cancelled' %}
+    {% if sale.status == 'quote' %}
+        <span style="color:#6c757d;font-weight:bold;">Presupuesto</span>
+    
+    {% elif sale.status == 'cancelled' %}
         <span style="color:#999;font-weight:bold;">Cancelada</span>
-
+    
     {% elif balance_due <= 0 %}
         <span style="color:#198754;font-weight:bold;">Pagada</span>
-
+    
     {% elif paid_total > 0 %}
         <span style="color:#d68c00;font-weight:bold;">Parcial</span>
-
+    
     {% else %}
         <span style="color:#d85b9a;font-weight:bold;">Cuenta corriente</span>
     {% endif %}
