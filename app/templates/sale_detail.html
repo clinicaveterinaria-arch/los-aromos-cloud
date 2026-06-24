@@ -14,7 +14,16 @@
     <button onclick="window.print()" class="btn btn-primary" style="background:#d85b9a; border:0;">
         🖨️ Imprimir comprobante
     </button>
-
+{% if sale.status == 'quote' %}
+<form method="post" action="/sales/{{ sale.id }}/convert" style="display:inline;">
+    <button type="submit"
+            class="btn"
+            style="background:#198754; color:white; border:0;"
+            onclick="return confirm('¿Convertir este presupuesto en venta y descontar stock?');">
+        ✅ Convertir en venta
+    </button>
+</form>
+{% endif %}
     <a href="/sales" class="btn btn-secondary">
         Volver a ventas
     </a>
