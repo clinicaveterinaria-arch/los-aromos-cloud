@@ -168,6 +168,139 @@
             grid-template-columns:1fr;
         }
     }
+
+.hc-timeline-panel {
+    background:white;
+    border:1px solid #f3c6d8;
+    border-radius:18px;
+    margin:24px 28px;
+    padding:24px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.04);
+}
+
+.hc-timeline-head {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    margin-bottom:20px;
+}
+
+.hc-timeline-head h2 {
+    margin:0;
+}
+
+.hc-history-btn {
+    background:white;
+    color:#df6aa0;
+    border:1px solid #f3c6d8;
+    padding:10px 14px;
+    border-radius:10px;
+    text-decoration:none;
+    font-weight:bold;
+}
+
+.hc-event-card {
+    display:grid;
+    grid-template-columns:120px 1fr;
+    gap:18px;
+    margin-bottom:14px;
+}
+
+.hc-event-date {
+    text-align:right;
+    color:#df6aa0;
+    font-weight:bold;
+    font-size:14px;
+    padding-top:12px;
+}
+
+.hc-event-time {
+    color:#6b7280;
+    font-weight:normal;
+    margin-top:4px;
+}
+
+.hc-event-body {
+    background:white;
+    border:1px solid #f1d6e2;
+    border-radius:14px;
+    padding:16px;
+    box-shadow:0 3px 12px rgba(0,0,0,0.04);
+    display:grid;
+    grid-template-columns:auto 1fr auto;
+    gap:14px;
+    align-items:center;
+}
+
+.hc-event-icon {
+    width:48px;
+    height:48px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:22px;
+}
+
+.hc-event-title {
+    font-weight:bold;
+    font-size:16px;
+}
+
+.hc-event-subtitle {
+    color:#4b5563;
+    margin-top:5px;
+    font-size:14px;
+}
+
+.hc-event-actions {
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    justify-content:flex-end;
+}
+
+.hc-small-btn {
+    background:white;
+    color:#df6aa0;
+    border:1px solid #f3c6d8;
+    border-radius:9px;
+    padding:8px 10px;
+    text-decoration:none;
+    font-size:13px;
+    font-weight:bold;
+}
+
+.hc-delete-btn {
+    background:#fff1f2;
+    color:#991b1b;
+    border:1px solid #fecdd3;
+    border-radius:9px;
+    padding:8px 10px;
+    cursor:pointer;
+    font-size:13px;
+    font-weight:bold;
+}
+
+@media (max-width:800px) {
+    .hc-event-card {
+        grid-template-columns:1fr;
+    }
+
+    .hc-event-date {
+        text-align:left;
+    }
+
+    .hc-event-body {
+        grid-template-columns:1fr;
+    }
+
+    .hc-event-actions {
+        justify-content:flex-start;
+    }
+}
+
 .hc-legacy {
     display:none;
 }
@@ -233,7 +366,7 @@
             </div>
 
             <div class="hc-actions">
-                <a href="/patients/{{ patient.id }}/events/new" class="btn">➕ Nuevo evento</a>
+                <a href="#nuevo-evento" class="btn">➕ Nuevo evento</a>
                 <a href="/patients/{{ patient.id }}/cardiology" class="btn secondary">💗 Cardio</a>
                 <a href="/patients/{{ patient.id }}/anesthesia" class="btn secondary">💉 Anestesia</a>
                 <a href="/patients/{{ patient.id }}/cart" class="btn secondary">🛒 Venta</a>
@@ -305,7 +438,7 @@
 
 
 
-<details class="hc-section">
+<details class="hc-section" id="nuevo-evento">
 <summary>🩺 Nuevo evento clínico</summary>
 
 <div class="hc-section-body">
@@ -820,252 +953,137 @@
 
 {% for a in anesthesia_history %}
     <div style="margin-bottom:10px;">
-        {% set ns = namespace(procedure='Sin procedimiento') %}
-        {% for line in a.description.split('\n') %}
-            {% if line.startswith('Procedimiento:') %}
-                {% set ns.procedure = line.replace('Procedimiento:', '').strip() %}
-        {% endif %}
-    {% endfor %}
+  <div class="hc-timeline-panel">
 
-    <strong>{{ a.event_date.strftime('%d/%m/%Y %H:%M') }}</strong>
-    - {{ ns.procedure }}
-<a href="/patients/{{ patient.id }}/anesthesia/print?event_id={{ a.id }}" target="_blank" class="btn">
-    Ver
-</a>
+    <div class="hc-timeline-head">
+        <h2>📋 Historia clínica</h2>
+        <a href="/patients/{{ patient.id }}/history" class="hc-history-btn">
+            Ver historial completo
+        </a>
+    </div>
 
-<a href="/patients/{{ patient.id }}/anesthesia/print?event_id={{ a.id }}" target="_blank" class="btn">
-    Imprimir
-</a>
+    {% if events %}
+        {% for e in events[:10] %}
+
+        <div class="hc-event-card">
+
+            <div class="hc-event-date">
+                {{ (e.event_date - timedelta(hours=3)).strftime('%d/%m/%Y') }}
+                <div class="hc-event-time">
+                    {{ (e.event_date - timedelta(hours=3)).strftime('%H:%M') }}
+                </div>
+            </div>
+
+            <div class="hc-event-body">
+
+                <div class="hc-event-icon"
+                    style="
+                        {% if e.event_type == 'ECG' %}
+                            background:#fce7f3; color:#be185d;
+                        {% elif e.event_type == 'Ecocardiografía' %}
+                            background:#fee2e2; color:#b91c1c;
+                        {% elif e.event_type == 'Ecografía' %}
+                            background:#e0f2fe; color:#0369a1;
+                        {% elif e.event_type == 'Radiografía' %}
+                            background:#ede9fe; color:#5b21b6;
+                        {% elif e.event_type == 'Laboratorio' %}
+                            background:#dcfce7; color:#166534;
+                        {% elif e.event_type == 'Vacuna' %}
+                            background:#dbeafe; color:#1d4ed8;
+                        {% elif e.event_type == 'Desparasitación' %}
+                            background:#fef3c7; color:#92400e;
+                        {% elif e.event_type == 'Cirugía' %}
+                            background:#fee2e2; color:#991b1b;
+                        {% elif e.event_type == 'Anestesia' %}
+                            background:#f3e8ff; color:#6b21a8;
+                        {% elif e.event_type == 'Internación' %}
+                            background:#ccfbf1; color:#0f766e;
+                        {% elif e.event_type == 'Consulta clínica' %}
+                            background:#f1f5f9; color:#334155;
+                        {% else %}
+                            background:#fce7f3; color:#be185d;
+                        {% endif %}
+                    "
+                >
+                    {% if e.event_type == 'Radiografía' %}📷
+                    {% elif e.event_type == 'ECG' %}💗
+                    {% elif e.event_type == 'Ecocardiografía' %}🫀
+                    {% elif e.event_type == 'Ecografía' %}🖥️
+                    {% elif e.event_type == 'Laboratorio' %}🧪
+                    {% elif e.event_type == 'Informe' %}📄
+                    {% elif e.event_type == 'Vacuna' %}💉
+                    {% elif e.event_type == 'Desparasitación' %}🪱
+                    {% elif e.event_type == 'Cirugía' %}🔪
+                    {% elif e.event_type == 'Anestesia' %}💤
+                    {% elif e.event_type == 'Internación' %}🏥
+                    {% elif e.event_type == 'Consulta clínica' %}🩺
+                    {% else %}📌
+                    {% endif %}
+                </div>
+
+                <div>
+                    <div class="hc-event-title">
+                        {{ e.event_type }}
+                        {% if e.title %}
+                            <span style="color:#df6aa0; font-size:13px; margin-left:8px;">
+                                {{ e.title }}
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <div class="hc-event-subtitle">
+                        {% if e.description %}
+                            {{ e.description[:120] }}{% if e.description|length > 120 %}...{% endif %}
+                        {% elif e.diagnosis %}
+                            {{ e.diagnosis[:120] }}{% if e.diagnosis|length > 120 %}...{% endif %}
+                        {% elif e.treatment %}
+                            {{ e.treatment[:120] }}{% if e.treatment|length > 120 %}...{% endif %}
+                        {% else %}
+                            Sin detalle cargado.
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="hc-event-actions">
+                    <a href="/patients/{{ patient.id }}/events/{{ e.id }}" class="hc-small-btn">
+                        👁 Ver
+                    </a>
+
+                    <a href="/patients/{{ patient.id }}/events/{{ e.id }}/edit" class="hc-small-btn">
+                        ✏️ Editar
+                    </a>
+
+                    <form method="post"
+                          action="/patients/{{ patient.id }}/events/{{ e.id }}/delete"
+                          style="display:inline;"
+                          onsubmit="return confirm('¿Eliminar este evento de la historia clínica? Esta acción no se puede deshacer.');">
+                        <button type="submit" class="hc-delete-btn">
+                            🗑
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+
         </div>
-    {% endfor %}
-</div>
-{% endif %}
 
+        {% endfor %}
 
-    
+        {% if events|length > 10 %}
+            <div style="text-align:center; margin-top:16px;">
+                <a href="/patients/{{ patient.id }}/history" class="hc-history-btn">
+                    📂 Ver eventos anteriores
+                </a>
+            </div>
+        {% endif %}
 
-
-<!--
-<div class="panel">
-<div class="panel" style="background:#fff7ed; border:1px solid #fed7aa;">
-    <h3>📌 Próxima visita / Recordatorio</h3>
-
-    <form method="post" action="/patients/{{ patient.id }}/events">
-
-        <input type="hidden" name="event_type" value="Recordatorio">
-
-        <label><b>Motivo</b></label>
-        <select name="title">
-            <option>Control</option>
-            <option>Extracción de puntos</option>
-            <option>Curación</option>
-            <option>Laboratorio</option>
-            <option>Revisión postquirúrgica</option>
-            <option>Otro</option>
-        </select>
-
-        <br><br>
-
-        <label><b>Fecha próxima visita</b></label>
-        <input type="date" name="reminder_date" required>
-<div style="margin-top:8px;">
-    <b>Programar rápido:</b><br><br>
-
-    <button type="button" onclick="setReminderDays(3)">+3 días</button>
-    <button type="button" onclick="setReminderDays(7)">+7 días</button>
-    <button type="button" onclick="setReminderDays(10)">+10 días</button>
-    <button type="button" onclick="setReminderDays(15)">+15 días</button>
-    <button type="button" onclick="setReminderDays(21)">+21 días</button>
-    <button type="button" onclick="setReminderDays(30)">+30 días</button>
-</div>
-        <br><br>
-
-        <label><b>Nota</b></label>
-        <textarea name="description" placeholder="Ej: debe sacarse sangre para laboratorio"></textarea>
-
-        <br><br>
-
-        <button type="submit">💾 Guardar próxima visita</button>
-    </form>
-</div>    
---> 
-<div class="panel">
-  <h2>Línea de tiempo</h2>
-
-  <a href="/patients/{{ patient.id }}/history" class="btn">Ver historial completo</a>
-  <div class="timeline-compact" style="
-display:flex;
-flex-direction:column;
-gap:12px;
-margin-top:15px;
-">
-      {% for e in events[:10] %}
-<details class="timeline-row" style="
-background:white;
-border-radius:12px;
-padding:0;
-box-shadow:0 2px 8px rgba(0,0,0,0.06);
-overflow:hidden;
-">
-    <summary style="
-padding:14px;
-cursor:pointer;
-list-style:none;
-background:#fff;
-">
-
-    <span style="
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    width:34px;
-    height:34px;
-    border-radius:50%;
-    margin-right:10px;
-
-    {% if e.event_type == 'ECG' %}
-        background:#fce7f3; color:#be185d;
-    {% elif e.event_type == 'Ecocardiografía' %}
-        background:#fee2e2; color:#b91c1c;
-    {% elif e.event_type == 'Ecografía' %}
-        background:#e0f2fe; color:#0369a1;
-    {% elif e.event_type == 'Radiografía' %}
-        background:#ede9fe; color:#5b21b6;
-    {% elif e.event_type == 'Laboratorio' %}
-        background:#dcfce7; color:#166534;
-    {% elif e.event_type == 'Vacuna' %}
-        background:#dbeafe; color:#1d4ed8;
-    {% elif e.event_type == 'Desparasitación' %}
-        background:#fef3c7; color:#92400e;
-    {% elif e.event_type == 'Cirugía' %}
-        background:#fee2e2; color:#991b1b;
-    {% elif e.event_type == 'Anestesia' %}
-        background:#f3e8ff; color:#6b21a8;
-    {% elif e.event_type == 'Internación' %}
-        background:#ccfbf1; color:#0f766e;
-    {% elif e.event_type == 'Consulta clínica' %}
-        background:#f1f5f9; color:#334155;
     {% else %}
-        background:#fce7f3; color:#be185d;
+        <p class="hc-muted">No hay eventos cargados en la historia clínica.</p>
     {% endif %}
-">
-    {% if e.event_type == 'Radiografía' %}📷
-    {% elif e.event_type == 'ECG' %}💗
-    {% elif e.event_type == 'Ecocardiografía' %}🫀
-    {% elif e.event_type == 'Ecografía' %}🖥️
-    {% elif e.event_type == 'Laboratorio' %}🧪
-    {% elif e.event_type == 'Informe' %}📄
-    {% elif e.event_type == 'Vacuna' %}💉
-    {% elif e.event_type == 'Desparasitación' %}🪱
-    {% elif e.event_type == 'Cirugía' %}🔪
-    {% elif e.event_type == 'Anestesia' %}💤
-    {% elif e.event_type == 'Internación' %}🏥
-    {% elif e.event_type == 'Consulta clínica' %}🩺
-    {% else %}📌
-    {% endif %}
-</span>
-
-    <b>{{ e.event_type }}</b>
-
-    <small style="color:#666; margin-left:8px;">
-        {{ (e.event_date - timedelta(hours=3)).strftime('%d/%m/%Y %H:%M') }}
-    </small>
-
-    {% if e.title %}
-    <br>
-    <span style="font-weight:normal; color:#666;">
-        {{ e.title }}
-    </span>
-{% elif e.description %}
-    <br>
-    <span style="font-weight:normal; color:#666;">
-        {{ e.description[:80] }}{% if e.description|length > 80 %}...{% endif %}
-    </span>
-{% else %}
-    <br>
-    <span style="font-weight:normal; color:#999;">
-        Sin detalle cargado
-    </span>
-{% endif %}
-
-</summary>
-
-    <div class="timeline-detail" style="
-    background:white;
-    padding:16px;
-    margin-top:10px;
-    border-radius:12px;
-    border-left:4px solid #d85c9f;
-    box-shadow:0 2px 8px rgba(0,0,0,0.06);
-    ">
-
-    {% if e.description %}
-        <p><b>📝 Motivo / descripción:</b><br>{{ e.description }}</p>
-    {% endif %}
-
-    {% if e.anamnesis %}
-        <p><b>📋 Anamnesis:</b><br>{{ e.anamnesis }}</p>
-    {% endif %}
-
-    {% if e.physical_exam %}
-        <p><b>🩺 Examen físico:</b><br>{{ e.physical_exam }}</p>
-    {% endif %}
-
-    {% if e.diagnosis %}
-<div class="hc-card">
-    <h4>🔎 Diagnóstico</h4>
-    <p>{{ e.diagnosis }}</p>
-</div>
-{% endif %}
-
-{% if e.treatment %}
-<div class="hc-card">
-    <h4>💊 Tratamiento / indicaciones</h4>
-    <p>{{ e.treatment }}</p>
-</div>
-{% endif %}
-
-    {% if e.weight or e.temperature or e.heart_rate or e.respiratory_rate or e.mucous_membranes or e.crt or e.hydration %}
-        <div class="hc-card">
-            <div style="
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
-gap:10px;
-">
-
-{% if e.weight %}
-<div class="hc-card"><b>Peso</b><br>{{ e.weight }} kg</div>
-{% endif %}
-
-{% if e.temperature %}
-<div class="hc-card"><b>Temperatura</b><br>{{ e.temperature }} °C</div>
-{% endif %}
-
-{% if e.heart_rate %}
-<div class="hc-card"><b>FC</b><br>{{ e.heart_rate }}</div>
-{% endif %}
-
-{% if e.respiratory_rate %}
-<div class="hc-card"><b>FR</b><br>{{ e.respiratory_rate }}</div>
-{% endif %}
-
-{% if e.mucous_membranes %}
-<div class="hc-card"><b>Mucosas</b><br>{{ e.mucous_membranes }}</div>
-{% endif %}
-
-{% if e.crt %}
-<div class="hc-card"><b>TLLC</b><br>{{ e.crt }}</div>
-{% endif %}
-
-{% if e.hydration %}
-<div class="hc-card"><b>Hidratación</b><br>{{ e.hydration }}</div>
-{% endif %}
 
 </div>
-    {% endif %}
-{% if e.ecg_hr or e.ecg_pr or e.ecg_qrs or e.ecg_qt or e.ecg_axis %}
 
-<div class="hc-card">
+iv class="hc-card">
 
 <h4>💗 Electrocardiograma</h4>
 
