@@ -2,125 +2,640 @@
 
 {% block content %}
 
-<h2>Recordatorios pendientes</h2>
+<style>
+    .pend-page {
+        padding:24px 28px;
+    }
 
-{% if eventos %}
+    .pend-hero {
+        background:white;
+        border:1px solid #f3c6d8;
+        border-radius:22px;
+        padding:22px;
+        box-shadow:0 8px 26px rgba(0,0,0,0.05);
+        margin-bottom:18px;
+        display:flex;
+        justify-content:space-between;
+        gap:18px;
+        align-items:flex-start;
+        flex-wrap:wrap;
+    }
+
+    .pend-hero h1 {
+        margin:0 0 6px 0;
+        font-size:32px;
+    }
+
+    .pend-hero p {
+        margin:0;
+        color:#6b7280;
+    }
+
+    .pend-hero-badge {
+        background:#fff0f7;
+        color:#d85b9a;
+        border:1px solid #f3c6d8;
+        border-radius:999px;
+        padding:10px 14px;
+        font-weight:bold;
+    }
+
+    .pend-summary {
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+        gap:12px;
+        margin-bottom:18px;
+    }
+
+    .pend-stat {
+        background:white;
+        border:1px solid #f3c6d8;
+        border-radius:18px;
+        padding:16px;
+        box-shadow:0 6px 20px rgba(0,0,0,0.04);
+        display:flex;
+        gap:12px;
+        align-items:center;
+    }
+
+    .pend-stat-icon {
+        width:44px;
+        height:44px;
+        border-radius:14px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-size:22px;
+    }
+
+    .pend-stat b {
+        display:block;
+        font-size:26px;
+        line-height:1;
+    }
+
+    .pend-stat span {
+        color:#6b7280;
+        font-size:13px;
+    }
+
+    .pend-layout {
+        display:grid;
+        grid-template-columns:minmax(0,1fr) 330px;
+        gap:20px;
+        align-items:start;
+    }
+
+    .pend-main,
+    .pend-side {
+        background:white;
+        border:1px solid #f3c6d8;
+        border-radius:22px;
+        padding:20px;
+        box-shadow:0 8px 26px rgba(0,0,0,0.04);
+    }
+
+    .pend-tools {
+        display:flex;
+        gap:10px;
+        align-items:center;
+        flex-wrap:wrap;
+        margin-bottom:18px;
+    }
+
+    .pend-search {
+        flex:1;
+        min-width:240px;
+        border:1px solid #ead7e1;
+        border-radius:14px;
+        padding:12px 14px;
+        font-size:15px;
+    }
+
+    .filter-chip {
+        border:1px solid #f3c6d8;
+        background:white;
+        color:#d85b9a;
+        border-radius:999px;
+        padding:9px 12px;
+        font-weight:bold;
+        font-size:13px;
+        cursor:pointer;
+    }
+
+    .filter-chip.active {
+        background:#d85b9a;
+        color:white;
+        border-color:#d85b9a;
+    }
+
+    .pend-group {
+        margin-top:18px;
+    }
+
+    .pend-group-title {
+        display:flex;
+        align-items:center;
+        gap:10px;
+        color:#374151;
+        margin:0 0 10px 0;
+        font-size:16px;
+    }
+
+    .pend-group-line {
+        flex:1;
+        height:1px;
+        background:#f1d6e2;
+    }
+
+    .pending-card {
+        background:#fff;
+        border:1px solid #f1d6e2;
+        border-left:6px solid #d85b9a;
+        border-radius:18px;
+        padding:14px;
+        margin-bottom:10px;
+        box-shadow:0 4px 16px rgba(0,0,0,0.04);
+        transition:.15s;
+    }
+
+    .pending-card:hover {
+        transform:translateY(-2px);
+        box-shadow:0 8px 22px rgba(0,0,0,0.07);
+    }
+
+    .pending-card.vencido {
+        border-left-color:#dc2626;
+        background:#fff7f7;
+    }
+
+    .pending-card.hoy {
+        border-left-color:#f59e0b;
+        background:#fffaf0;
+    }
+
+    .pending-card.proximo {
+        border-left-color:#16a34a;
+        background:#f8fff8;
+    }
+
+    .pend-card-top {
+        display:flex;
+        justify-content:space-between;
+        align-items:flex-start;
+        gap:12px;
+    }
+
+    .pend-patient {
+        font-size:18px;
+        font-weight:bold;
+        color:#1f2937;
+        text-decoration:none;
+    }
+
+    .pend-owner {
+        color:#6b7280;
+        font-size:13px;
+        margin-top:3px;
+    }
+
+    .pend-chip {
+        border-radius:999px;
+        padding:5px 10px;
+        font-size:12px;
+        font-weight:bold;
+        background:white;
+        border:1px solid #ead7e1;
+        white-space:nowrap;
+    }
+
+    .pend-chip.vencido {
+        background:#fee2e2;
+        color:#991b1b;
+        border-color:#fecaca;
+    }
+
+    .pend-chip.hoy {
+        background:#fef3c7;
+        color:#92400e;
+        border-color:#fde68a;
+    }
+
+    .pend-chip.proximo {
+        background:#dcfce7;
+        color:#166534;
+        border-color:#bbf7d0;
+    }
+
+    .pend-meta {
+        display:flex;
+        gap:8px;
+        flex-wrap:wrap;
+        margin-top:10px;
+        color:#4b5563;
+        font-size:13px;
+    }
+
+    .pend-type {
+        background:#fff0f7;
+        color:#d85b9a;
+        border-radius:999px;
+        padding:5px 9px;
+        font-weight:bold;
+    }
+
+    .pend-note {
+        margin-top:10px;
+        background:white;
+        border:1px solid #f3edf1;
+        border-radius:12px;
+        padding:10px;
+        color:#374151;
+        font-size:14px;
+    }
+
+    .pend-actions {
+        display:flex;
+        gap:8px;
+        flex-wrap:wrap;
+        margin-top:12px;
+    }
+
+    .pend-btn,
+    .pend-actions button {
+        border:1px solid #f3c6d8;
+        background:white;
+        color:#374151;
+        border-radius:10px;
+        padding:8px 10px;
+        text-decoration:none;
+        font-size:13px;
+        font-weight:bold;
+        cursor:pointer;
+    }
+
+    .pend-btn.primary {
+        color:#d85b9a;
+    }
+
+    .pend-btn.whatsapp {
+        background:#ecfdf5;
+        color:#166534;
+        border-color:#bbf7d0;
+    }
+
+    .pend-actions button.done {
+        background:#f0fdf4;
+        color:#166534;
+        border-color:#bbf7d0;
+    }
+
+    .pend-side {
+        position:sticky;
+        top:20px;
+    }
+
+    .pend-side h3 {
+        margin:0 0 12px 0;
+    }
+
+    .side-box {
+        border:1px solid #f3c6d8;
+        border-radius:16px;
+        padding:14px;
+        margin-bottom:12px;
+        background:#fff8fb;
+    }
+
+    .side-box b {
+        display:block;
+        margin-bottom:5px;
+    }
+
+    .side-list-item {
+        display:block;
+        text-decoration:none;
+        color:inherit;
+        border-bottom:1px solid #f3edf1;
+        padding:9px 0;
+        font-size:14px;
+    }
+
+    .side-list-item:last-child {
+        border-bottom:none;
+    }
+
+    .empty-state {
+        text-align:center;
+        padding:50px 20px;
+        color:#6b7280;
+    }
+
+    @media (max-width:1000px) {
+        .pend-layout {
+            grid-template-columns:1fr;
+        }
+
+        .pend-side {
+            position:static;
+        }
+    }
+</style>
+
 {% set vencidos = eventos | selectattr("reminder_date", "lt", today) | list | length %}
 {% set hoy = eventos | selectattr("reminder_date", "equalto", today) | list | length %}
 {% set proximos = eventos | selectattr("reminder_date", "gt", today) | list | length %}
 
-<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:16px 0 20px 0;">
-  <div style="background:white;padding:14px;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
-    <b>Total</b><br>{{ eventos|length }}
-  </div>
-  <div style="background:#fff5f5;padding:14px;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
-    <b>Vencidos</b><br>{{ vencidos }}
-  </div>
-  <div style="background:#fff8e6;padding:14px;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
-    <b>Hoy</b><br>{{ hoy }}
-  </div>
-  <div style="background:#f4f8ff;padding:14px;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
-    <b>Próximos</b><br>{{ proximos }}
-  </div>
-</div>
-<input type="text"
-       id="pendingSearch"
-       placeholder="Buscar por paciente, tipo, título o descripción..."
-       onkeyup="filterPendingCards()"
-       style="width:100%;padding:12px 14px;margin:0 0 18px 0;border:1px solid #ddd;border-radius:12px;font-size:15px;">
-<div style="display:grid;gap:14px;margin-top:20px;">
+<div class="pend-page">
 
-{% for e in eventos %}
-
-{% if e.reminder_date < today %}
-  {% set estado = "Vencido" %}
-  {% set color = "#dc3545" %}
-  {% set fondo = "#fff5f5" %}
-{% elif e.reminder_date == today %}
-  {% set estado = "Hoy" %}
-  {% set color = "#e09b00" %}
-  {% set fondo = "#fff8e6" %}
-{% else %}
-  {% set estado = "Próximo" %}
-  {% set color = "#2f80ed" %}
-  {% set fondo = "#f4f8ff" %}
-{% endif %}
-
-<div class="pending-card" style="background:{{ fondo }};border-left:6px solid {{ color }};padding:16px;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
-
-  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
-    <div>
-      <strong style="font-size:18px;">{{ e.patient.name }}</strong>
-      <span style="color:#666;"> — {{ e.event_type }}</span>
+    <div class="pend-hero">
+        <div>
+            <h1>🔔 Pendientes</h1>
+            <p>Organizá tu trabajo de hoy y de los próximos días.</p>
+        </div>
+        <div class="pend-hero-badge">
+            {{ eventos|length }} recordatorios activos
+        </div>
     </div>
 
-    <span style="background:{{ color }};color:white;padding:6px 12px;border-radius:20px;font-size:13px;">
-      {{ estado }}
-    </span>
-  </div>
+    <div class="pend-summary">
+        <div class="pend-stat">
+            <div class="pend-stat-icon" style="background:#fff0f7;">📋</div>
+            <div><b>{{ eventos|length }}</b><span>Total</span></div>
+        </div>
 
-  <p style="margin:10px 0 4px 0;">
-    <b>Fecha:</b> {{ e.reminder_date.strftime('%d/%m/%Y') }}
-  </p>
+        <div class="pend-stat">
+            <div class="pend-stat-icon" style="background:#fee2e2;">🔴</div>
+            <div><b>{{ vencidos }}</b><span>Vencidos</span></div>
+        </div>
 
-  {% if e.title %}
-  <p style="margin:4px 0;"><b>Título:</b> {{ e.title }}</p>
-  {% endif %}
-  {% if e.description %}
-<p style="margin:4px 0;color:#374151;background:#fff;padding:8px;border-radius:8px;">
-    <b>📝 Nota:</b> {{ e.description }}
-</p>
-  {% endif %}
-  {% if e.description %}
-  <p style="margin:4px 0;"><b>Descripción:</b> {{ e.description }}</p>
-  {% endif %}
+        <div class="pend-stat">
+            <div class="pend-stat-icon" style="background:#fef3c7;">🟡</div>
+            <div><b>{{ hoy }}</b><span>Para hoy</span></div>
+        </div>
 
-  <div style="margin-top:12px;">
+        <div class="pend-stat">
+            <div class="pend-stat-icon" style="background:#dcfce7;">🟢</div>
+            <div><b>{{ proximos }}</b><span>Próximos</span></div>
+        </div>
+    </div>
 
-    <a href="/patients/{{ e.patient.id }}"
-       style="background:#df5b9a;color:white;text-decoration:none;padding:8px 14px;border-radius:10px;display:inline-block;">
-       Ver ficha
-    </a>
+    <div class="pend-layout">
 
-    <form method="post"
-          action="/events/{{ e.id }}/done"
-          style="display:inline-block;margin-left:8px;">
+        <div class="pend-main">
 
-        <button type="submit"
-                onclick="return confirm('¿Marcar este recordatorio como realizado?')"
-                style="background:#28a745;color:white;border:none;padding:8px 14px;border-radius:10px;cursor:pointer;">
-            Realizado
-        </button>
+            <div class="pend-tools">
+                <input
+                    type="text"
+                    id="pendingSearch"
+                    class="pend-search"
+                    placeholder="Buscar por paciente, propietario, tipo, título o descripción..."
+                    onkeyup="filterPendingCards()"
+                >
 
-    </form>
-<a href="/events/{{ e.id }}/whatsapp"
-   target="_blank"
-   style="background:#25D366;color:white;text-decoration:none;padding:8px 14px;border-radius:10px;display:inline-block;margin-left:8px;">
-   WhatsApp
-</a>
+                <button type="button" class="filter-chip active" onclick="setPendingFilter('todos', this)">Todos</button>
+                <button type="button" class="filter-chip" onclick="setPendingFilter('hoy', this)">Hoy</button>
+                <button type="button" class="filter-chip" onclick="setPendingFilter('vencido', this)">Vencidos</button>
+                <button type="button" class="filter-chip" onclick="setPendingFilter('proximo', this)">Próximos</button>
+                <button type="button" class="filter-chip" onclick="setPendingFilter('vacuna', this)">Vacunas</button>
+            </div>
+
+            {% if eventos %}
+
+            <div class="pend-group" data-group="vencidos">
+                <h3 class="pend-group-title">🔴 Vencidos <span class="pend-group-line"></span></h3>
+
+                {% for e in eventos %}
+                    {% if e.reminder_date < today %}
+                        {% set estado = "Vencido" %}
+                        {% set estado_class = "vencido" %}
+                        {% include "pending_card_inner.html" ignore missing %}
+                        <div class="pending-card vencido" data-status="vencido" data-type="{{ e.event_type|lower }}" data-text="{{ e.patient.name if e.patient else '' }} {{ e.patient.owner.name if e.patient and e.patient.owner else '' }} {{ e.event_type }} {{ e.title or '' }} {{ e.description or '' }}">
+                            <div class="pend-card-top">
+                                <div>
+                                    <a href="/patients/{{ e.patient.id }}" class="pend-patient">
+                                        {% if e.event_type == 'Vacuna' %}💉{% elif e.event_type == 'Desparasitación' %}🪱{% elif e.event_type == 'Laboratorio' %}🧪{% elif e.event_type == 'ECG' %}💗{% elif e.event_type == 'Radiografía' %}📷{% else %}🐾{% endif %}
+                                        {{ e.patient.name if e.patient else 'Paciente no asignado' }}
+                                    </a>
+                                    {% if e.patient and e.patient.owner %}
+                                        <div class="pend-owner">👤 {{ e.patient.owner.name }}</div>
+                                    {% endif %}
+                                </div>
+                                <span class="pend-chip vencido">🔴 Vencido</span>
+                            </div>
+
+                            <div class="pend-meta">
+                                <span>📅 {{ e.reminder_date.strftime('%d/%m/%Y') }}</span>
+                                <span class="pend-type">{{ e.event_type }}</span>
+                                {% if e.title %}<span>📌 {{ e.title }}</span>{% endif %}
+                            </div>
+
+                            {% if e.description %}
+                                <div class="pend-note">📝 {{ e.description }}</div>
+                            {% endif %}
+
+                            <div class="pend-actions">
+                                <a href="/patients/{{ e.patient.id }}" class="pend-btn primary">👁 Ver ficha</a>
+                                <a href="/events/{{ e.id }}/whatsapp" target="_blank" class="pend-btn whatsapp">📲 WhatsApp</a>
+                                <form method="post" action="/events/{{ e.id }}/done" style="display:inline;">
+                                    <button type="submit" class="done" onclick="return confirm('¿Marcar este recordatorio como realizado?')">✅ Realizado</button>
+                                </form>
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            <div class="pend-group" data-group="hoy">
+                <h3 class="pend-group-title">🟡 Hoy <span class="pend-group-line"></span></h3>
+
+                {% for e in eventos %}
+                    {% if e.reminder_date == today %}
+                        <div class="pending-card hoy" data-status="hoy" data-type="{{ e.event_type|lower }}" data-text="{{ e.patient.name if e.patient else '' }} {{ e.patient.owner.name if e.patient and e.patient.owner else '' }} {{ e.event_type }} {{ e.title or '' }} {{ e.description or '' }}">
+                            <div class="pend-card-top">
+                                <div>
+                                    <a href="/patients/{{ e.patient.id }}" class="pend-patient">
+                                        {% if e.event_type == 'Vacuna' %}💉{% elif e.event_type == 'Desparasitación' %}🪱{% elif e.event_type == 'Laboratorio' %}🧪{% elif e.event_type == 'ECG' %}💗{% elif e.event_type == 'Radiografía' %}📷{% else %}🐾{% endif %}
+                                        {{ e.patient.name if e.patient else 'Paciente no asignado' }}
+                                    </a>
+                                    {% if e.patient and e.patient.owner %}
+                                        <div class="pend-owner">👤 {{ e.patient.owner.name }}</div>
+                                    {% endif %}
+                                </div>
+                                <span class="pend-chip hoy">🟡 Hoy</span>
+                            </div>
+
+                            <div class="pend-meta">
+                                <span>📅 {{ e.reminder_date.strftime('%d/%m/%Y') }}</span>
+                                <span class="pend-type">{{ e.event_type }}</span>
+                                {% if e.title %}<span>📌 {{ e.title }}</span>{% endif %}
+                            </div>
+
+                            {% if e.description %}
+                                <div class="pend-note">📝 {{ e.description }}</div>
+                            {% endif %}
+
+                            <div class="pend-actions">
+                                <a href="/patients/{{ e.patient.id }}" class="pend-btn primary">👁 Ver ficha</a>
+                                <a href="/events/{{ e.id }}/whatsapp" target="_blank" class="pend-btn whatsapp">📲 WhatsApp</a>
+                                <form method="post" action="/events/{{ e.id }}/done" style="display:inline;">
+                                    <button type="submit" class="done" onclick="return confirm('¿Marcar este recordatorio como realizado?')">✅ Realizado</button>
+                                </form>
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            <div class="pend-group" data-group="proximos">
+                <h3 class="pend-group-title">🟢 Próximos <span class="pend-group-line"></span></h3>
+
+                {% for e in eventos %}
+                    {% if e.reminder_date > today %}
+                        <div class="pending-card proximo" data-status="proximo" data-type="{{ e.event_type|lower }}" data-text="{{ e.patient.name if e.patient else '' }} {{ e.patient.owner.name if e.patient and e.patient.owner else '' }} {{ e.event_type }} {{ e.title or '' }} {{ e.description or '' }}">
+                            <div class="pend-card-top">
+                                <div>
+                                    <a href="/patients/{{ e.patient.id }}" class="pend-patient">
+                                        {% if e.event_type == 'Vacuna' %}💉{% elif e.event_type == 'Desparasitación' %}🪱{% elif e.event_type == 'Laboratorio' %}🧪{% elif e.event_type == 'ECG' %}💗{% elif e.event_type == 'Radiografía' %}📷{% else %}🐾{% endif %}
+                                        {{ e.patient.name if e.patient else 'Paciente no asignado' }}
+                                    </a>
+                                    {% if e.patient and e.patient.owner %}
+                                        <div class="pend-owner">👤 {{ e.patient.owner.name }}</div>
+                                    {% endif %}
+                                </div>
+                                <span class="pend-chip proximo">🟢 Próximo</span>
+                            </div>
+
+                            <div class="pend-meta">
+                                <span>📅 {{ e.reminder_date.strftime('%d/%m/%Y') }}</span>
+                                <span class="pend-type">{{ e.event_type }}</span>
+                                {% if e.title %}<span>📌 {{ e.title }}</span>{% endif %}
+                            </div>
+
+                            {% if e.description %}
+                                <div class="pend-note">📝 {{ e.description }}</div>
+                            {% endif %}
+
+                            <div class="pend-actions">
+                                <a href="/patients/{{ e.patient.id }}" class="pend-btn primary">👁 Ver ficha</a>
+                                <a href="/events/{{ e.id }}/whatsapp" target="_blank" class="pend-btn whatsapp">📲 WhatsApp</a>
+                                <form method="post" action="/events/{{ e.id }}/done" style="display:inline;">
+                                    <button type="submit" class="done" onclick="return confirm('¿Marcar este recordatorio como realizado?')">✅ Realizado</button>
+                                </form>
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            {% else %}
+                <div class="empty-state">
+                    <h2>🎉 No hay recordatorios pendientes</h2>
+                    <p>Todo al día por ahora.</p>
+                </div>
+            {% endif %}
+
+        </div>
+
+        <aside class="pend-side">
+            <h3>📊 Resumen</h3>
+
+            <div class="side-box">
+                <b>Estado general</b>
+                <span>{{ eventos|length }} pendientes activos</span><br>
+                <span>{{ vencidos }} vencidos · {{ hoy }} para hoy</span>
+            </div>
+
+            <div class="side-box">
+                <b>Próximo pendiente</b>
+                {% set ns = namespace(next_event=None) %}
+                {% for e in eventos %}
+                    {% if not ns.next_event and e.reminder_date >= today %}
+                        {% set ns.next_event = e %}
+                    {% endif %}
+                {% endfor %}
+
+                {% if ns.next_event %}
+                    <a href="/patients/{{ ns.next_event.patient.id }}" class="side-list-item">
+                        <b>{{ ns.next_event.patient.name }}</b>
+                        {{ ns.next_event.event_type }}<br>
+                        <small>{{ ns.next_event.reminder_date.strftime('%d/%m/%Y') }}</small>
+                    </a>
+                {% else %}
+                    <span>No hay próximos pendientes.</span>
+                {% endif %}
+            </div>
+
+            <div class="side-box">
+                <b>Accesos rápidos</b>
+                <a href="/agenda" class="side-list-item">📅 Ir a Agenda</a>
+                <a href="/search" class="side-list-item">🔎 Buscar historia clínica</a>
+                <a href="/patients/new" class="side-list-item">🐾 Nuevo paciente</a>
+            </div>
+
+            <div class="side-box">
+                <b>Prioridad</b>
+                <span style="color:#991b1b;">🔴 Atender vencidos primero</span><br>
+                <span style="color:#92400e;">🟡 Revisar los de hoy</span><br>
+                <span style="color:#166534;">🟢 Programados próximos</span>
+            </div>
+        </aside>
+
+    </div>
+
 </div>
 
-</div>
-
-{% endfor %}
-
-</div>
-
-{% else %}
-
-<p>No hay recordatorios pendientes.</p>
-
-{% endif %}
 <script>
-function filterPendingCards() {
-  const input = document.getElementById("pendingSearch");
-  const filter = input.value.toLowerCase();
-  const cards = document.querySelectorAll(".pending-card");
+let currentPendingFilter = 'todos';
 
-  cards.forEach(card => {
-    const text = card.innerText.toLowerCase();
-    card.style.display = text.includes(filter) ? "block" : "none";
-  });
+function setPendingFilter(filter, button) {
+    currentPendingFilter = filter;
+
+    document.querySelectorAll('.filter-chip').forEach(chip => {
+        chip.classList.remove('active');
+    });
+
+    if (button) {
+        button.classList.add('active');
+    }
+
+    filterPendingCards();
+}
+
+function filterPendingCards() {
+    const input = document.getElementById("pendingSearch");
+    const search = input ? input.value.toLowerCase() : "";
+    const cards = document.querySelectorAll(".pending-card");
+
+    cards.forEach(card => {
+        const text = (card.dataset.text || card.innerText || "").toLowerCase();
+        const status = card.dataset.status || "";
+        const type = card.dataset.type || "";
+
+        let matchesFilter = true;
+
+        if (currentPendingFilter === 'hoy') {
+            matchesFilter = status === 'hoy';
+        } else if (currentPendingFilter === 'vencido') {
+            matchesFilter = status === 'vencido';
+        } else if (currentPendingFilter === 'proximo') {
+            matchesFilter = status === 'proximo';
+        } else if (currentPendingFilter === 'vacuna') {
+            matchesFilter = type.includes('vacuna');
+        }
+
+        const matchesSearch = text.includes(search);
+
+        card.style.display = (matchesFilter && matchesSearch) ? "block" : "none";
+    });
+
+    document.querySelectorAll('.pend-group').forEach(group => {
+        const visibleCards = Array.from(group.querySelectorAll('.pending-card'))
+            .filter(card => card.style.display !== 'none');
+
+        group.style.display = visibleCards.length > 0 ? "block" : "none";
+    });
 }
 </script>
+
 {% endblock %}
