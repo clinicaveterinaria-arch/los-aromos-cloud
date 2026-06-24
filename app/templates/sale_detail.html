@@ -32,8 +32,7 @@
             <div>
                 <strong>Estado:</strong><br>
 
-{% set paid_total = payments | sum(attribute='amount') %}
-{% set balance_due = (sale.total or 0) - (paid_total or 0) %}
+{% set balance_due = real_balance_due %}
 
 {% if sale.status == 'cancelled' %}
 
@@ -41,7 +40,7 @@
         Cancelada
     </span>
 
-{% elif balance_due <= 0 %}
+{% elif real_balance_due <= 0 %}
 
     <span style="color:#198754;font-weight:bold;">
         Pagada
@@ -78,7 +77,7 @@
 </div>
 
 
-{% if sale.status != 'cancelled' and balance_due > 0 %}
+{% if sale.status != 'cancelled' and real_balance_due > 0 %}
 <div class="card mb-4">
     <div class="card-header">
         Agregar producto o servicio
@@ -232,10 +231,10 @@
 
 <h5>
     Saldo pendiente:
-    $ {{ "%.2f"|format(balance_due if balance_due > 0 else 0) }}
+    {{ "%.2f"|format(real_balance_due if real_balance_due > 0 else 0) }}
 </h5>
 
-{% if balance_due > 0 and sale.status != 'cancelled' %}
+{% if real_balance_due > 0 and sale.status != 'cancelled' %}
 <hr>
 
 <h5>Registrar pago</h5>
@@ -260,7 +259,7 @@
                step="0.01"
                name="amount"
                class="form-control"
-               value="{{ '%.2f'|format(balance_due) }}">
+               value="{{ "%.2f"|format(real_balance_due) }}"
     </div>
 
     <button type="submit" class="btn">
