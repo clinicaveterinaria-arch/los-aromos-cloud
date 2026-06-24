@@ -2,78 +2,113 @@
 {% block content %}
 
 <style>
-    .hc-header {
-        display:flex;
-        justify-content:space-between;
-        align-items:center;
-        gap:16px;
+    .hc-page {
+        padding:24px 28px;
+    }
+
+    .hc-top-card {
+        background:white;
+        border:1px solid #f3c6d8;
+        border-radius:18px;
+        padding:22px;
+        box-shadow:0 6px 22px rgba(0,0,0,0.05);
         margin-bottom:18px;
     }
 
-    .hc-actions {
+    .hc-header-v3 {
+        display:grid;
+        grid-template-columns:1fr auto;
+        gap:20px;
+        align-items:start;
+    }
+
+    .hc-title-row h1 {
+        margin:0 0 10px 0;
+        font-size:32px;
+    }
+
+    .hc-badges {
         display:flex;
         gap:10px;
         flex-wrap:wrap;
+        margin-bottom:12px;
     }
 
-    .hc-grid {
+    .hc-badge {
+        border:1px solid #f3c6d8;
+        border-radius:8px;
+        padding:8px 12px;
+        background:#fff;
+        font-size:15px;
+    }
+
+    .hc-owner-line {
+        display:flex;
+        gap:22px;
+        flex-wrap:wrap;
+        color:#4b5563;
+        font-size:16px;
+    }
+
+    .hc-actions {
         display:grid;
-        grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
-        gap:16px;
-        margin-bottom:18px;
+        grid-template-columns:repeat(2, minmax(150px, 1fr));
+        gap:10px;
+        min-width:420px;
     }
 
-    .hc-card {
+    .hc-actions .btn {
+        text-align:center;
+        background:#df6aa0;
+        border-radius:10px;
+        padding:13px 14px;
+    }
+
+    .hc-actions .btn.secondary {
         background:white;
+        color:#df6aa0;
+        border:1px solid #f3c6d8;
+    }
+
+    .hc-divider {
+        border:none;
+        border-top:1px solid #f1d6e2;
+        margin:18px 0;
+    }
+
+    .hc-summary-cards {
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+        gap:14px;
+    }
+
+    .hc-summary-card {
         border:1px solid #f3c6d8;
         border-radius:14px;
         padding:16px;
-        box-shadow:0 6px 18px rgba(0,0,0,0.04);
+        background:#fff;
+        min-height:110px;
     }
 
-    .hc-card h3 {
-        margin-top:0;
+    .hc-summary-card h4 {
+        margin:0 0 12px 0;
+        font-size:16px;
     }
 
-    .hc-info-grid {
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
-    gap:12px;
-}
-
-.hc-info-grid > div {
-    background:#fafafa;
-    border:1px solid #ececec;
-    border-radius:10px;
-    padding:10px;
-}
-    .hc-stat-grid {
-        display:grid;
-        grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
-        gap:12px;
-        margin-bottom:18px;
+    .hc-summary-card p {
+        margin:5px 0;
     }
 
-    .hc-stat {
-        background:#f7f7f7;
-        border-radius:12px;
-        padding:14px;
-    }
+    .hc-card-blue { background:#f8fbff; border-color:#bfdbfe; }
+    .hc-card-green { background:#f8fff8; border-color:#bbf7d0; }
+    .hc-card-orange { background:#fffaf2; border-color:#fed7aa; }
+    .hc-card-pink { background:#fff8fb; border-color:#fbcfe8; }
 
-    .hc-stat b {
-        display:block;
-        margin-bottom:6px;
-    }
-
-    .hc-stat span {
-        font-size:24px;
-    }
-
-    details.hc-section {
+    .hc-section {
         background:white;
         border:1px solid #f3c6d8;
         border-radius:14px;
-        margin:14px 0;
+        margin:14px 28px;
         padding:0;
         overflow:hidden;
         box-shadow:0 6px 18px rgba(0,0,0,0.04);
@@ -91,79 +126,176 @@
         padding:16px;
     }
 
+    .hc-grid {
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+        gap:16px;
+        margin-bottom:18px;
+    }
+
+    .hc-card {
+        background:white;
+        border:1px solid #f3c6d8;
+        border-radius:14px;
+        padding:16px;
+        box-shadow:0 6px 18px rgba(0,0,0,0.04);
+    }
+
+    .hc-info-grid {
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+        gap:12px;
+    }
+
+    .hc-info-grid > div {
+        background:#fafafa;
+        border:1px solid #ececec;
+        border-radius:10px;
+        padding:10px;
+    }
+
     .hc-muted {
         color:#777;
     }
+
+    @media (max-width:900px) {
+        .hc-header-v3 {
+            grid-template-columns:1fr;
+        }
+
+        .hc-actions {
+            min-width:0;
+            grid-template-columns:1fr;
+        }
+    }
 </style>
 
-<div class="hc-header">
-    <div>
-    <h1 style="margin-bottom:4px;">🐾 {{ patient.name }}</h1>
+{% set ns = namespace(vacuna=None, desparasitacion=None, ecg=None, rx=None, eco=None, lab=None) %}
 
-    <div class="hc-muted">
-        👤 {{ patient.owner_name or "-" }}
-        &nbsp;&nbsp;|&nbsp;&nbsp;
-        🚻 {{ patient.sex or "-" }}
-        &nbsp;&nbsp;|&nbsp;&nbsp;
-        🎂 {{ patient.age or "-" }}
-        {% if patient.weight %}
-        &nbsp;&nbsp;|&nbsp;&nbsp;
-        ⚖️ {{ patient.weight }} kg
-        {% endif %}
-    </div>
-</div>
-    <div class="hc-actions">
-        <a href="/patients/{{ patient.id }}/print" target="_blank" class="btn">🖨️ Imprimir / Guardar PDF</a>
-        <a href="/patients/{{ patient.id }}/anesthesia" class="btn">💉 Anestesia</a>
-        <a href="/patients/{{ patient.id }}/cart" class="btn">🛒 Carrito de venta</a>
-        <a href="/patients/{{ patient.id }}/edit" class="btn">✏️ Editar paciente / propietario</a>
-    </div>
-</div>
+{% for e in events %}
+    {% if not ns.vacuna and (e.vaccine_name or e.next_vaccine_date or e.event_type == 'Vacuna') %}
+        {% set ns.vacuna = e %}
+    {% endif %}
 
-<div class="hc-grid">
+    {% if not ns.desparasitacion and (e.dewormer_product or e.next_deworming_date or e.event_type == 'Desparasitación') %}
+        {% set ns.desparasitacion = e %}
+    {% endif %}
 
-    <div class="hc-card">
-        <h3>🐾 Datos del paciente</h3>
+    {% if not ns.ecg and e.event_type == 'ECG' %}
+        {% set ns.ecg = e %}
+    {% endif %}
 
-        <div class="hc-info-grid">
-    <div><b>Especie</b><br>{{ patient.species or '-' }}</div>
-    <div><b>Raza</b><br>{{ patient.breed or '-' }}</div>
-    <div><b>Sexo</b><br>{{ patient.sex or '-' }}</div>
+    {% if not ns.rx and e.event_type == 'Radiografía' %}
+        {% set ns.rx = e %}
+    {% endif %}
 
-    <div>
-        <b>Edad</b><br>
-        {% if patient.birth_date %}
-            {{ ((today - patient.birth_date).days // 365) }} años
-        {% else %}
-            -
-        {% endif %}
-    </div>
+    {% if not ns.eco and e.event_type == 'Ecografía' %}
+        {% set ns.eco = e %}
+    {% endif %}
 
-    <div>
-        <b>Peso actual</b><br>
-        <form method="post" action="/patients/{{ patient.id }}/weight" style="display:flex; gap:6px; align-items:center;">
-            <input name="weight" value="{{ patient.weight or '' }}" style="width:80px;">
-            kg
-            <button type="submit" class="btn">Guardar</button>
-        </form>
-    </div>
-</div>
-    </div>
+    {% if not ns.lab and e.event_type == 'Laboratorio' %}
+        {% set ns.lab = e %}
+    {% endif %}
+{% endfor %}
 
-    <div class="hc-card">
-        <h3>👤 Datos del propietario</h3>
+<div class="hc-page">
 
-        {% if patient.owner %}
-        <div class="hc-info-grid">
-            <div><b>Nombre:</b><br>{{ patient.owner.name }}</div>
-            <div><b>Teléfono:</b><br>{{ patient.owner.phone or '-' }}</div>
-            <div><b>WhatsApp:</b><br>{{ patient.owner.whatsapp or '-' }}</div>
-            <div><b>Email:</b><br>{{ patient.owner.email or '-' }}</div>
-            <div><b>Dirección:</b><br>{{ patient.owner.address or '-' }}</div>
+    <div class="hc-top-card">
+
+        <div class="hc-header-v3">
+
+            <div class="hc-title-row">
+                <h1>🐾 {{ patient.name }}</h1>
+
+                <div class="hc-badges">
+                    <span class="hc-badge">🐱 {{ patient.species or '-' }}</span>
+                    <span class="hc-badge">⚧ {{ patient.sex or '-' }}</span>
+
+                    <span class="hc-badge">
+                        🎂
+                        {% if patient.birth_date %}
+                            {{ ((today - patient.birth_date).days // 365) }} años
+                        {% else %}
+                            {{ patient.age or '-' }}
+                        {% endif %}
+                    </span>
+
+                    <span class="hc-badge">⚖️ {{ patient.weight or '-' }} kg</span>
+                </div>
+
+                <div class="hc-owner-line">
+                    <span>👤 Propietario: {% if patient.owner %}{{ patient.owner.name }}{% else %}-{% endif %}</span>
+                    <span>📱 {% if patient.owner %}{{ patient.owner.whatsapp or patient.owner.phone or '-' }}{% else %}-{% endif %}</span>
+                </div>
+            </div>
+
+            <div class="hc-actions">
+                <a href="/patients/{{ patient.id }}/events/new" class="btn">➕ Nuevo evento</a>
+                <a href="/patients/{{ patient.id }}/cardiology" class="btn secondary">💗 Cardio</a>
+                <a href="/patients/{{ patient.id }}/anesthesia" class="btn secondary">💉 Anestesia</a>
+                <a href="/patients/{{ patient.id }}/cart" class="btn secondary">🛒 Venta</a>
+                <a href="/patients/{{ patient.id }}/print" target="_blank" class="btn secondary">🖨️ Imprimir / PDF</a>
+                <a href="/patients/{{ patient.id }}/edit" class="btn secondary">✏️ Editar paciente</a>
+            </div>
+
         </div>
-        {% else %}
-            <p>No hay propietario asociado.</p>
-        {% endif %}
+
+        <hr class="hc-divider">
+
+        <div class="hc-summary-cards">
+
+            <div class="hc-summary-card hc-card-blue">
+                <h4>💉 Próxima vacuna</h4>
+                {% if ns.vacuna and ns.vacuna.next_vaccine_date %}
+                    <p><b>{{ ns.vacuna.vaccine_expiration or ns.vacuna.vaccine_name or ns.vacuna.title or 'Vacuna' }}</b></p>
+                    <p>{{ ns.vacuna.next_vaccine_date }}</p>
+                {% else %}
+                    <p>Sin próxima vacuna registrada.</p>
+                {% endif %}
+            </div>
+
+            <div class="hc-summary-card hc-card-green">
+                <h4>🪱 Próxima desparasitación</h4>
+                {% if ns.desparasitacion and ns.desparasitacion.next_deworming_date %}
+                    <p><b>{{ ns.desparasitacion.dewormer_dose or ns.desparasitacion.dewormer_product or ns.desparasitacion.title or 'Desparasitación' }}</b></p>
+                    <p>{{ ns.desparasitacion.next_deworming_date }}</p>
+                {% else %}
+                    <p>Sin próxima desparasitación registrada.</p>
+                {% endif %}
+            </div>
+
+            <div class="hc-summary-card hc-card-orange">
+                <h4>📅 Próxima visita</h4>
+                {% if next_visit %}
+                    <p><b>{{ next_visit.title or next_visit.event_type }}</b></p>
+                    <p>{{ next_visit.reminder_date.strftime('%d/%m/%Y') if next_visit.reminder_date else '-' }}</p>
+                {% else %}
+                    <p>Sin próxima visita registrada.</p>
+                {% endif %}
+            </div>
+
+            <div class="hc-summary-card hc-card-pink">
+                <h4>💗 Último ECG</h4>
+                {% if last_ecg %}
+                    <p>{{ last_ecg.event_date.strftime('%d/%m/%Y') }}</p>
+                    <p><b>{{ last_ecg.ecg_rhythm or 'Registrado' }}</b></p>
+                {% else %}
+                    <p>No hay ECG registrados.</p>
+                {% endif %}
+            </div>
+
+            <div class="hc-summary-card hc-card-pink">
+                <h4>🫀 Última ecocardiografía</h4>
+                {% if last_eco %}
+                    <p>{{ last_eco.event_date.strftime('%d/%m/%Y') }}</p>
+                    <p><b>{{ last_eco.eco_acvim or 'Registrada' }}</b></p>
+                {% else %}
+                    <p>No hay ecocardiografías registradas.</p>
+                {% endif %}
+            </div>
+
+        </div>
+
     </div>
 
 </div>
