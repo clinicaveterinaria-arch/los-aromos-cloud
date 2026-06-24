@@ -412,6 +412,189 @@
             position:static;
         }
     }
+
+    .slot-row {
+        position:relative;
+    }
+
+    .slot-body {
+        position:relative;
+    }
+
+    .appointment-card.dragging {
+        opacity:.55;
+        transform:scale(.98);
+    }
+
+    .appointment-card.moved-flash {
+        animation: movedFlash .7s ease;
+    }
+
+    @keyframes movedFlash {
+        0% { box-shadow:0 0 0 0 rgba(216,91,154,.45); }
+        60% { box-shadow:0 0 0 12px rgba(216,91,154,0); }
+        100% { box-shadow:0 4px 14px rgba(0,0,0,0.04); }
+    }
+
+    .appointment-card.service-consulta,
+    .appointment-card.service-control {
+        background:#f8fafc;
+        border-color:#cbd5e1;
+    }
+
+    .appointment-card.service-vacuna {
+        background:#eff6ff;
+        border-color:#bfdbfe;
+    }
+
+    .appointment-card.service-desparasitacion {
+        background:#fff7ed;
+        border-color:#fed7aa;
+    }
+
+    .appointment-card.service-cirugia {
+        background:#fff1f2;
+        border-color:#fecdd3;
+    }
+
+    .appointment-card.service-ecg {
+        background:#fff0f7;
+        border-color:#f9a8d4;
+    }
+
+    .appointment-card.service-ecografia {
+        background:#ecfdf5;
+        border-color:#bbf7d0;
+    }
+
+    .appointment-card.service-radiografia {
+        background:#f5f3ff;
+        border-color:#ddd6fe;
+    }
+
+    .appointment-card.service-internacion {
+        background:#f0fdfa;
+        border-color:#99f6e4;
+    }
+
+    .appointment-card.service-otro {
+        background:#faf5ff;
+        border-color:#e9d5ff;
+    }
+
+    .now-line {
+        position:absolute;
+        left:0;
+        right:0;
+        height:2px;
+        background:#ef4444;
+        z-index:20;
+        pointer-events:none;
+    }
+
+    .now-line::before {
+        content:'Ahora';
+        position:absolute;
+        left:8px;
+        top:-11px;
+        background:#ef4444;
+        color:white;
+        border-radius:999px;
+        padding:2px 7px;
+        font-size:11px;
+        font-weight:bold;
+    }
+
+    .agenda-modal-backdrop {
+        position:fixed;
+        inset:0;
+        background:rgba(15,23,42,.35);
+        z-index:9998;
+        display:none;
+        align-items:center;
+        justify-content:center;
+        padding:20px;
+    }
+
+    .agenda-modal-backdrop.show {
+        display:flex;
+    }
+
+    .agenda-modal {
+        background:white;
+        border:1px solid #f3c6d8;
+        border-radius:22px;
+        box-shadow:0 22px 60px rgba(15,23,42,.28);
+        width:min(520px, 96vw);
+        padding:22px;
+        animation:modalIn .16s ease;
+    }
+
+    @keyframes modalIn {
+        from { opacity:0; transform:translateY(8px) scale(.98); }
+        to { opacity:1; transform:translateY(0) scale(1); }
+    }
+
+    .agenda-modal-head {
+        display:flex;
+        justify-content:space-between;
+        gap:12px;
+        align-items:flex-start;
+        margin-bottom:12px;
+    }
+
+    .agenda-modal-head h2 {
+        margin:0;
+    }
+
+    .modal-close {
+        border:none;
+        background:#f8fafc;
+        color:#475569;
+        border-radius:999px;
+        width:34px;
+        height:34px;
+        cursor:pointer;
+        font-weight:bold;
+    }
+
+    .modal-pill {
+        display:inline-block;
+        border-radius:999px;
+        background:#fff0f7;
+        color:#be185d;
+        padding:5px 10px;
+        font-size:12px;
+        font-weight:bold;
+        margin:4px 6px 4px 0;
+    }
+
+    .modal-info-grid {
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+        gap:10px;
+        margin:14px 0;
+    }
+
+    .modal-info-card {
+        border:1px solid #f1d6e2;
+        border-radius:14px;
+        padding:12px;
+        background:#fff8fb;
+    }
+
+    .modal-info-card b {
+        display:block;
+        margin-bottom:4px;
+    }
+
+    .modal-actions {
+        display:flex;
+        gap:10px;
+        flex-wrap:wrap;
+        margin-top:16px;
+    }
+
 </style>
 
 {% set pendientes = appointments|selectattr('status', 'equalto', 'Pendiente')|list|length %}
@@ -499,9 +682,18 @@
                                 {% if a.start_time == slot %}
 
                                     <div
-                                        class="appointment-card {{ (a.status|default('Pendiente'))|lower }}"
+                                        class="appointment-card {{ (a.status|default('Pendiente'))|lower }} {% if a.service == 'ECG' %}service-ecg{% elif a.service == 'Ecografía' %}service-ecografia{% elif a.service == 'Radiografía' %}service-radiografia{% elif a.service == 'Vacuna' %}service-vacuna{% elif a.service == 'Cirugía' %}service-cirugia{% elif a.service == 'Desparasitación' %}service-desparasitacion{% elif a.service == 'Control' %}service-control{% elif a.service == 'Consulta' %}service-consulta{% elif a.service == 'Internación' %}service-internacion{% else %}service-otro{% endif %}"
                                         draggable="true"
                                         data-appointment-id="{{ a.id }}"
+                                        data-service="{{ a.service or '' }}"
+                                        data-title="{{ a.title or '' }}"
+                                        data-status="{{ a.status|default('Pendiente') }}"
+                                        data-start="{{ a.start_time or '' }}"
+                                        data-end="{{ a.end_time or '' }}"
+                                        data-notes="{{ a.notes or '' }}"
+                                        data-edit-url="/agenda/{{ a.id }}/edit"
+                                        data-patient-name="{% if a.patient %}{{ a.patient.name }}{% elif a.owner %}{{ a.owner.name }}{% elif a.title %}{{ a.title }}{% else %}Turno sin paciente{% endif %}"
+                                        data-owner-name="{% if a.patient and a.patient.owner %}{{ a.patient.owner.name }}{% elif a.owner %}{{ a.owner.name }}{% else %}{% endif %}"
                                     >
                                         <form id="move-form-{{ a.id }}" method="post" action="/agenda/{{ a.id }}/edit" style="display:none;">
                                             <input type="hidden" name="service" value="{{ a.service or '' }}">
@@ -729,6 +921,43 @@
 
 </div>
 
+<div class="agenda-modal-backdrop" id="appointmentModal">
+    <div class="agenda-modal">
+        <div class="agenda-modal-head">
+            <div>
+                <h2 id="modalPatient">Turno</h2>
+                <div>
+                    <span class="modal-pill" id="modalService">Servicio</span>
+                    <span class="modal-pill" id="modalStatus">Estado</span>
+                </div>
+            </div>
+            <button type="button" class="modal-close" id="modalClose">×</button>
+        </div>
+
+        <div class="modal-info-grid">
+            <div class="modal-info-card">
+                <b>👤 Propietario</b>
+                <span id="modalOwner">-</span>
+            </div>
+            <div class="modal-info-card">
+                <b>🕓 Horario</b>
+                <span id="modalTime">-</span>
+            </div>
+        </div>
+
+        <div class="modal-info-card">
+            <b>📝 Detalle / notas</b>
+            <div id="modalNotes">Sin detalle cargado.</div>
+        </div>
+
+        <div class="modal-actions">
+            <a href="#" id="modalEdit" class="agenda-btn primary">✏️ Editar</a>
+            <a href="#" id="modalWhatsapp" target="_blank" class="agenda-btn" style="display:none; background:#ecfdf5; color:#166534; border-color:#bbf7d0;">📲 WhatsApp</a>
+            <button type="button" id="modalClose2" class="agenda-btn">Cerrar</button>
+        </div>
+    </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
@@ -774,12 +1003,63 @@ document.addEventListener('DOMContentLoaded', function () {
 
     let draggedAppointmentId = null;
 
+    function minutesFromTime(value) {
+        if (!value || value.indexOf(':') === -1) return null;
+        const parts = value.split(':');
+        return (parseInt(parts[0], 10) * 60) + parseInt(parts[1], 10);
+    }
+
+    function applyDurationHeights() {
+        document.querySelectorAll('.appointment-card').forEach(card => {
+            const start = minutesFromTime(card.dataset.start);
+            const end = minutesFromTime(card.dataset.end);
+
+            if (start === null || end === null || end <= start) return;
+
+            const blocks = Math.max(1, Math.round((end - start) / 30));
+            const height = Math.max(72, (blocks * 72) - 10);
+            card.style.minHeight = height + 'px';
+        });
+    }
+
+    function drawNowLine() {
+        const todayIso = new Date().toISOString().slice(0, 10);
+        const selectedIso = '{{ selected_day.strftime('%Y-%m-%d') }}';
+        if (todayIso !== selectedIso) return;
+
+        const now = new Date();
+        const minutes = now.getHours() * 60 + now.getMinutes();
+        const slotMinutes = Math.floor(minutes / 30) * 30;
+        const slotHour = String(Math.floor(slotMinutes / 60)).padStart(2, '0');
+        const slotMinute = String(slotMinutes % 60).padStart(2, '0');
+        const slot = slotHour + ':' + slotMinute;
+
+        const row = document.querySelector('.agenda-drop-slot[data-start="' + slot + '"]');
+        if (!row) return;
+
+        const body = row.querySelector('.slot-body');
+        if (!body) return;
+
+        const line = document.createElement('div');
+        line.className = 'now-line';
+        line.style.top = (((minutes - slotMinutes) / 30) * 72) + 'px';
+        body.appendChild(line);
+    }
+
     document.querySelectorAll('.appointment-card[draggable="true"]').forEach(card => {
         card.addEventListener('dragstart', function (event) {
             draggedAppointmentId = this.dataset.appointmentId;
+            this.classList.add('dragging');
             event.dataTransfer.setData('text/plain', draggedAppointmentId);
         });
+
+        card.addEventListener('dragend', function () {
+            this.classList.remove('dragging');
+        });
     });
+
+    applyDurationHeights();
+    drawNowLine();
 
     function allowDropzone(el) {
         el.addEventListener('dragover', function (event) {
@@ -817,12 +1097,79 @@ document.addEventListener('DOMContentLoaded', function () {
                 endInput.value = this.dataset.end;
             }
 
+            const draggedCard = document.querySelector('.appointment-card[data-appointment-id="' + appointmentId + '"]');
+            if (draggedCard) {
+                draggedCard.classList.add('moved-flash');
+            }
+
             form.submit();
         });
     }
 
     document.querySelectorAll('.agenda-drop-slot').forEach(allowDropzone);
     document.querySelectorAll('.agenda-drop-date').forEach(allowDropzone);
+
+    const modal = document.getElementById('appointmentModal');
+    const modalClose = document.getElementById('modalClose');
+    const modalClose2 = document.getElementById('modalClose2');
+    const modalPatient = document.getElementById('modalPatient');
+    const modalService = document.getElementById('modalService');
+    const modalStatus = document.getElementById('modalStatus');
+    const modalOwner = document.getElementById('modalOwner');
+    const modalTime = document.getElementById('modalTime');
+    const modalNotes = document.getElementById('modalNotes');
+    const modalEdit = document.getElementById('modalEdit');
+    const modalWhatsapp = document.getElementById('modalWhatsapp');
+
+    function closeModal() {
+        if (modal) modal.classList.remove('show');
+    }
+
+    function openModalFromCard(card) {
+        if (!modal || !card) return;
+
+        modalPatient.textContent = card.dataset.patientName || 'Turno';
+        modalService.textContent = card.dataset.service || 'Servicio';
+        modalStatus.textContent = card.dataset.status || 'Pendiente';
+        modalOwner.textContent = card.dataset.ownerName || '-';
+        modalTime.textContent = (card.dataset.start || '-') + (card.dataset.end ? ' — ' + card.dataset.end : '');
+
+        const title = card.dataset.title || '';
+        const notes = card.dataset.notes || '';
+        modalNotes.textContent = title && notes && title !== notes ? (title + ' · ' + notes) : (notes || title || 'Sin detalle cargado.');
+
+        modalEdit.href = card.dataset.editUrl || '#';
+
+        const whatsappLink = card.querySelector('.mini-btn.whatsapp');
+        if (whatsappLink) {
+            modalWhatsapp.href = whatsappLink.href;
+            modalWhatsapp.style.display = 'inline-block';
+        } else {
+            modalWhatsapp.style.display = 'none';
+        }
+
+        modal.classList.add('show');
+    }
+
+    document.querySelectorAll('.appointment-card').forEach(card => {
+        card.addEventListener('click', function (event) {
+            if (event.target.closest('a, button, form, input, select, textarea')) return;
+            openModalFromCard(this);
+        });
+    });
+
+    if (modalClose) modalClose.addEventListener('click', closeModal);
+    if (modalClose2) modalClose2.addEventListener('click', closeModal);
+    if (modal) {
+        modal.addEventListener('click', function (event) {
+            if (event.target === modal) closeModal();
+        });
+    }
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') closeModal();
+    });
+
 });
 </script>
 {% endblock %}
