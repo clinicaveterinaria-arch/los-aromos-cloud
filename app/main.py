@@ -460,8 +460,18 @@ def agenda(
         .order_by(Appointment.start_time)
         .all()
     )
+    month_start = selected_day.replace(day=1)
+    month_end = next_month
+
+    month_appointments = (
+        db.query(Appointment)
+        .filter(Appointment.appointment_date >= month_start)
+        .filter(Appointment.appointment_date < month_end)
+        .all()
+    )
+
     appointments_count_by_day = {}
-    for appointment in appointments:
+    for appointment in month_appointments:
         day_key = appointment.appointment_date.day
         appointments_count_by_day[day_key] = appointments_count_by_day.get(day_key, 0) + 1
     owners = db.query(Owner).order_by(Owner.name).limit(300).all()
