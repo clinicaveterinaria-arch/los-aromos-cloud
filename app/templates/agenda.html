@@ -27,7 +27,9 @@
     <div style="display:grid; grid-template-columns:repeat(7,1fr); gap:6px;">
         {% for week in month_days %}
             {% for day in week %}
-                <a href="/agenda?date={{ day }}"
+                <a
+                    href="/agenda?date={{ day }}"
+                    title="{% if appointments_tooltip_by_day.get(day.day) %}{{ appointments_tooltip_by_day.get(day.day)|join('&#10;') }}{% endif %}"
                    style="
                         display:block;
                         padding:10px;
