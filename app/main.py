@@ -2242,7 +2242,10 @@ def sale_add_payment(
 
     total_paid = sum(p.amount or 0 for p in payments) + payment_amount
     balance_due = (sale.total or 0) - total_paid
-
+    if balance_due > 0 and sale.status != 'cancelled':
+        sale.status = 'pending'
+    elif balance_due <= 0 and sale.status != 'cancelled':
+        sale.status = 'paid'
     if balance_due <= 0:
         sale.status = 'paid'
     else:
