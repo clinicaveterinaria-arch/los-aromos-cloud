@@ -2016,6 +2016,43 @@ def sales_create(
         url='/sales',
         status_code=303
     )
+@app.post('/sales/{sale_id}/convert')
+def sales_convert(
+    sale_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    sale = db.get(Sale, sale_id)
+
+    if not sale:
+        raise HTTPException(status_code=404, detail='Venta no encontrada')
+
+    if sale.status != 'quote':
+        return RedirectResponse(
+            url=f'/sales/{sale_id}',
+            status_code=303
+        )
+
+    items = (
+        db.query(SaleItem)
+        .filter(SaleItem.sale_id == sale.id)
+        .all()
+    )
+
+    for item in items:
+        product = db.get(Product, item.product_id)
+
+        if product:
+            product.stock = (product.stock or 0) - (item.quantity or 0)
+
+    sale.status = 'pending'
+
+    db.commit()
+
+    return RedirectResponse(
+        url=f'/sales/{sale_id}',
+        status_code=303
+    )
 @app.post('/sales/{sale_id}/cancel')
 def sales_cancel(
     sale_id: int,
