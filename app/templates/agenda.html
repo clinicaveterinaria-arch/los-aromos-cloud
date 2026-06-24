@@ -4,11 +4,54 @@
 <h1>📅 Agenda</h1>
 
 <div class="panel">
-    <form method="get" action="/agenda">
-        <label><b>Fecha:</b></label>
-        <input type="date" name="date" value="{{ selected_day }}">
-        <button type="submit">Ver día</button>
-    </form>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <a href="/agenda?date={{ prev_month }}" class="btn btn-secondary">← Mes anterior</a>
+
+        <h2 style="margin:0;">
+            {{ selected_day.strftime('%m/%Y') }}
+        </h2>
+
+        <a href="/agenda?date={{ next_month }}" class="btn btn-secondary">Mes siguiente →</a>
+    </div>
+
+    <div style="display:grid; grid-template-columns:repeat(7,1fr); gap:6px; text-align:center; font-weight:bold; margin-bottom:6px;">
+        <div>Lun</div>
+        <div>Mar</div>
+        <div>Mié</div>
+        <div>Jue</div>
+        <div>Vie</div>
+        <div>Sáb</div>
+        <div>Dom</div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:repeat(7,1fr); gap:6px;">
+        {% for week in month_days %}
+            {% for day in week %}
+                <a href="/agenda?date={{ day }}"
+                   style="
+                        display:block;
+                        padding:10px;
+                        border-radius:10px;
+                        text-align:center;
+                        text-decoration:none;
+                        border:1px solid #f3cfe0;
+                        color:#1f2d3d;
+                        {% if day.month != selected_day.month %}
+                            opacity:0.35;
+                            background:#f5f5f5;
+                        {% elif day == selected_day %}
+                            background:#d85b9a;
+                            color:white;
+                            font-weight:bold;
+                        {% else %}
+                            background:white;
+                        {% endif %}
+                   ">
+                    {{ day.day }}
+                </a>
+            {% endfor %}
+        {% endfor %}
+    </div>
 </div>
 <div class="panel" style="margin-bottom:20px;">
     <b>📊 Resumen del día</b><br><br>
