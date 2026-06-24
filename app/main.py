@@ -1900,6 +1900,7 @@ def sales_create(
     pay_credito: str = Form('0'),
     pay_transferencia: str = Form('0'),
     pay_cuenta_corriente: str = Form('0'),
+    save_as_quote: str = Form(''),
     db: Session = Depends(get_db),
     user: User = Depends(require_user)
 ):
@@ -1910,7 +1911,7 @@ def sales_create(
             return 0
 
     sale = Sale(
-        status='paid',
+        status='quote' if save_as_quote else 'paid',
         total=0,
         payment_method='Mixto',
         patient_id=int(patient_id) if patient_id else None,
@@ -1954,7 +1955,8 @@ def sales_create(
         db.add(item)
 
         current_stock = product.stock or 0
-        product.stock = current_stock - qty
+        if not save_as_quote:
+            product.stock = current_stock - qty
 
     sale.total = total
     sale.cost_total = cost_total
@@ -1981,26 +1983,29 @@ def sales_create(
         for method, amount in payments_to_create
     )
     
-    if total > 0 and sum_payments <= 0 and not has_account_debt:
+    if total > 0 and sum_payments <= 0 and not has_account_debt and not save_as_quote:
         payments_to_create = [
             ('Efectivo', total)
         ]
-    for method, amount in payments_to_create:
-        if amount <= 0:
-            continue
+    if not save_as_quote:
+        for method, amount in payments_to_create:
+            if amount <= 0:
+                continue
+    
+            payment = SalePayment(
+                sale_id=sale.id,
+                method=method,
+                amount=amount
+            )
+    
+            db.add(payment)
+    
+            if method != 'Cuenta corriente':
+                total_paid += amount
 
-        payment = SalePayment(
-            sale_id=sale.id,
-            method=method,
-            amount=amount
-        )
-
-        db.add(payment)
-
-        if method != 'Cuenta corriente':
-            total_paid += amount
-
-    if total_paid >= total:
+    if save_as_quote:
+        sale.status = 'quote'
+    elif total_paid >= total:
         sale.status = 'paid'
     else:
         sale.status = 'pending'
