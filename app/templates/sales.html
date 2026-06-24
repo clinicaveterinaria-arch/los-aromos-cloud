@@ -2,499 +2,868 @@
 
 {% block content %}
 
-<div style="background:#f3cfe1;; color:#8a3f67;; padding:14px 20px; border-radius:14px; margin-bottom:18px; box-shadow:0 3px 10px rgba(0,0,0,0.12);">
-    <h2 style="margin:0; font-size:28px; font-weight:bold;">🛒 Ventas</h2>
-    <div style="font-size:14px; opacity:0.95; margin-top:4px;">Nueva venta, cobros y control diario</div>
-</div>
-<div class="card mb-4">
-    <div class="card-header">
-        Nueva venta
-    </div>
-    
+<style>
+    .sales-page {
+        padding:24px 28px;
+    }
 
-       
-    <div class="card-body">
-        <form method="post" action="/sales">
-<div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
+    .sales-hero {
+        background:white;
+        border:1px solid #f3c6d8;
+        border-radius:22px;
+        padding:22px;
+        box-shadow:0 8px 26px rgba(0,0,0,0.05);
+        margin-bottom:18px;
+        display:flex;
+        justify-content:space-between;
+        gap:18px;
+        align-items:flex-start;
+        flex-wrap:wrap;
+    }
 
-    <div>
-        <label>Paciente</label>
-        <select name="patient_id" class="form-control" onchange="autoSelectOwner(this.value)">
-            <option value="">Seleccionar paciente</option>
-            {% for patient in patients %}
-            <option value="{{ patient.id }}">
-                {{ patient.name }}
-            </option>
-            {% endfor %}
-        </select>
-    </div>
+    .sales-hero h1 {
+        margin:0 0 6px 0;
+        font-size:32px;
+    }
 
-    <div>
-        <label>Propietario</label>
-        <select name="owner_id" class="form-control">
-            <option value="">Seleccionar propietario</option>
-            {% for owner in owners %}
-            <option value="{{ owner.id }}">
-                {{ owner.name }}
-            </option>
-            {% endfor %}
-        </select>
-    </div>
+    .sales-hero p {
+        margin:0;
+        color:#6b7280;
+    }
 
-</div>
-<div class="sale-card" style="border:2px solid #e6b5cb; border-radius:16px; padding:20px; margin-top:12px; background:#fffafc; box-shadow:0 3px 12px rgba(0,0,0,0.05);">
-    <div style="background:#f3cfe1; color:#8a3f67; padding:12px 16px; border-radius:10px; font-size:22px; font-weight:bold; margin-bottom:18px;">
-    📋 Comanda de venta
-</div>
+    .sales-date-badge {
+        background:#fff0f7;
+        color:#d85b9a;
+        border:1px solid #f3c6d8;
+        border-radius:999px;
+        padding:10px 14px;
+        font-weight:bold;
+        display:inline-block;
+        margin-left:8px;
+    }
 
-    <div id="items-container">
+    .sales-stat-grid {
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+        gap:12px;
+        margin-bottom:18px;
+    }
 
-        <div class="sale-item" style="display:grid; grid-template-columns: 4fr 1fr 1.5fr 1.5fr 45px; gap:10px; align-items:end; margin-bottom:10px; padding:12px; border:1px solid #f3d6e5; border-radius:12px; background:#fff7fb;">
+    .sales-stat {
+        background:white;
+        border:1px solid #f3c6d8;
+        border-radius:18px;
+        padding:16px;
+        box-shadow:0 6px 20px rgba(0,0,0,0.04);
+        display:flex;
+        gap:12px;
+        align-items:center;
+    }
 
-            <div>
-                <label>Producto / Servicio</label>
-                <select name="product_id" class="form-control product-select" onchange="updatePrice(this)">
-                    <option value="">Seleccionar producto</option>
-                    {% for product in products %}
-                    <option
-                        value="{{ product.id }}"
-                        data-price="{{ product.sale_price or 0 }}"
-                        data-cost="{{ product.cost_price or 0 }}">
-                        {{ product.name }} - Stock: {{ product.stock or 0 }}
-                    </option>
-                    {% endfor %}
-                </select>
-            </div>
+    .sales-stat-icon {
+        width:46px;
+        height:46px;
+        border-radius:15px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-size:22px;
+    }
 
-            <div>
-                <label>Cant.</label>
-                <input type="number" step="0.01" name="quantity" class="form-control quantity" value="1" oninput="calculateTotal()">
-            </div>
+    .sales-stat b {
+        display:block;
+        font-size:24px;
+        line-height:1.1;
+    }
 
-            <div>
-                <label>Precio</label>
-                <input type="number" step="0.01" name="unit_price" class="form-control unit-price" value="0" oninput="calculateTotal()">
-            </div>
+    .sales-stat span {
+        color:#6b7280;
+        font-size:13px;
+    }
 
-            <div>
-                <label>Subtotal</label>
-                <input type="text" class="form-control subtotal" value="0" readonly>
-            </div>
+    .sales-layout {
+        display:grid;
+        grid-template-columns:minmax(0,1fr) 360px;
+        gap:20px;
+        align-items:start;
+    }
 
-            <div>
-                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeItem(this)">X</button>
-            </div>
+    .sales-main,
+    .sales-side,
+    .sales-panel {
+        background:white;
+        border:1px solid #f3c6d8;
+        border-radius:22px;
+        padding:20px;
+        box-shadow:0 8px 26px rgba(0,0,0,0.04);
+    }
 
-        </div>
+    .sales-panel {
+        margin-top:18px;
+    }
 
-    </div>
+    .sales-side {
+        position:sticky;
+        top:20px;
+    }
 
-    <button type="button" onclick="addItem()" style="background:#d85b9a; color:white; border:0; border-radius:8px; padding:8px 14px; font-weight:bold; margin-top:8px;">
-        + Agregar producto / servicio
-    </button>
+    .section-title {
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap:10px;
+        margin-bottom:14px;
+    }
 
-<div style="margin-top:14px; padding:12px 16px; border-radius:12px; background:#fdf0f7; border:1px solid #f3cfe0;">
-    <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
-        <strong>Subtotal</strong>
-        <strong id="subtotal-display">$ 0.00</strong>
-    </div>
+    .section-title h2,
+    .section-title h3 {
+        margin:0;
+    }
 
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+    .client-grid {
+        display:grid;
+        grid-template-columns:1fr 1fr;
+        gap:12px;
+        margin-bottom:18px;
+    }
+
+    .field label {
+        display:block;
+        font-weight:bold;
+        margin-bottom:6px;
+        color:#374151;
+    }
+
+    .field input,
+    .field select,
+    .field textarea {
+        width:100%;
+    }
+
+    .command-box {
+        border:1px solid #f3c6d8;
+        border-radius:18px;
+        padding:16px;
+        background:#fffafd;
+    }
+
+    .sale-item {
+        display:grid;
+        grid-template-columns:minmax(240px,1fr) 90px 130px 130px 44px;
+        gap:10px;
+        align-items:end;
+        padding:12px;
+        border:1px solid #f1d6e2;
+        border-radius:16px;
+        background:white;
+        margin-bottom:10px;
+    }
+
+    .remove-btn {
+        background:#fff1f2;
+        color:#991b1b;
+        border:1px solid #fecdd3;
+        border-radius:12px;
+        height:42px;
+        font-weight:bold;
+        cursor:pointer;
+    }
+
+    .add-product-btn {
+        background:#d85b9a;
+        color:white;
+        border:none;
+        border-radius:12px;
+        padding:10px 14px;
+        font-weight:bold;
+        cursor:pointer;
+        margin-top:4px;
+    }
+
+    .notes-box {
+        margin-top:14px;
+    }
+
+    .side-block {
+        border:1px solid #f3c6d8;
+        border-radius:18px;
+        padding:16px;
+        background:#fff8fb;
+        margin-bottom:14px;
+    }
+
+    .side-line {
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap:10px;
+        margin:9px 0;
+        color:#374151;
+    }
+
+    .side-line.total {
+        border-top:1px solid #f3c6d8;
+        padding-top:12px;
+        margin-top:12px;
+        font-size:20px;
+        font-weight:bold;
+        color:#111827;
+    }
+
+    .discount-row {
+        display:grid;
+        grid-template-columns:1fr 78px 78px;
+        gap:8px;
+        align-items:center;
+        margin:8px 0;
+    }
+
+    .discount-row input {
+        padding:8px;
+    }
+
+    .payment-grid {
+        display:grid;
+        grid-template-columns:1fr 1fr;
+        gap:10px;
+        margin-top:10px;
+    }
+
+    .pay-card {
+        border:1px solid #f3c6d8;
+        border-radius:14px;
+        padding:12px;
+        background:white;
+        text-align:center;
+        cursor:pointer;
+        font-weight:bold;
+        color:#374151;
+        transition:.15s;
+    }
+
+    .pay-card:hover {
+        transform:translateY(-2px);
+        box-shadow:0 6px 16px rgba(216,91,154,0.14);
+    }
+
+    .pay-card small {
+        display:block;
+        color:#6b7280;
+        margin-top:4px;
+    }
+
+    .payment-inputs {
+        margin-top:12px;
+        display:grid;
+        gap:8px;
+    }
+
+    .payment-mini {
+        display:grid;
+        grid-template-columns:120px 1fr;
+        gap:8px;
+        align-items:center;
+    }
+
+    .payment-mini label {
+        font-weight:bold;
+        font-size:13px;
+    }
+
+    .save-actions {
+        display:grid;
+        gap:10px;
+        margin-top:14px;
+    }
+
+    .save-sale-btn {
+        width:100%;
+        background:#d85b9a;
+        color:white;
+        border:none;
+        border-radius:14px;
+        padding:14px;
+        font-weight:bold;
+        cursor:pointer;
+    }
+
+    .quote-btn {
+        width:100%;
+        background:#eff6ff;
+        color:#1d4ed8;
+        border:1px solid #bfdbfe;
+        border-radius:14px;
+        padding:12px;
+        font-weight:bold;
+        cursor:pointer;
+    }
+
+    .payment-status {
+        border-radius:14px;
+        padding:12px;
+        background:#fff7ed;
+        border:1px solid #fed7aa;
+        margin-top:12px;
+        font-size:13px;
+    }
+
+    .payment-status.paid {
+        background:#ecfdf5;
+        border-color:#bbf7d0;
+        color:#166534;
+    }
+
+    .debt-card,
+    .sale-row-card,
+    .top-product-row {
+        background:white;
+        border:1px solid #f1d6e2;
+        border-radius:16px;
+        padding:13px;
+        margin-bottom:10px;
+        display:grid;
+        grid-template-columns:1fr auto;
+        gap:10px;
+        align-items:center;
+        box-shadow:0 3px 12px rgba(0,0,0,0.03);
+    }
+
+    .sale-row-card:hover,
+    .debt-card:hover {
+        box-shadow:0 6px 18px rgba(0,0,0,0.06);
+    }
+
+    .sale-name {
+        font-weight:bold;
+        font-size:16px;
+    }
+
+    .sale-meta {
+        color:#6b7280;
+        font-size:13px;
+        margin-top:4px;
+    }
+
+    .status-pill {
+        border-radius:999px;
+        padding:5px 9px;
+        font-size:12px;
+        font-weight:bold;
+        display:inline-block;
+        margin-top:6px;
+    }
+
+    .status-paid {
+        background:#dcfce7;
+        color:#166534;
+    }
+
+    .status-quote {
+        background:#f3f4f6;
+        color:#4b5563;
+    }
+
+    .status-cancelled {
+        background:#fee2e2;
+        color:#991b1b;
+    }
+
+    .status-pending {
+        background:#fff0f7;
+        color:#d85b9a;
+    }
+
+    .sale-actions {
+        display:flex;
+        gap:7px;
+        flex-wrap:wrap;
+        justify-content:flex-end;
+    }
+
+    .mini-btn,
+    .mini-action button {
+        border-radius:10px;
+        padding:7px 10px;
+        font-size:12px;
+        font-weight:bold;
+        border:1px solid #f3c6d8;
+        background:white;
+        color:#374151;
+        text-decoration:none;
+        cursor:pointer;
+        display:inline-block;
+    }
+
+    .mini-btn.primary {
+        color:#d85b9a;
+    }
+
+    .mini-action {
+        display:inline;
+        margin:0;
+    }
+
+    .mini-action button.cancel {
+        background:#fff1f2;
+        color:#991b1b;
+        border-color:#fecdd3;
+    }
+
+    .sales-filter {
+        display:flex;
+        gap:10px;
+        align-items:end;
+        flex-wrap:wrap;
+        margin-bottom:14px;
+    }
+
+    .sales-filter input {
+        min-width:180px;
+    }
+
+    .top-product-row {
+        grid-template-columns:32px 1fr auto;
+    }
+
+    .rank {
+        width:26px;
+        height:26px;
+        border-radius:999px;
+        background:#fff0f7;
+        color:#d85b9a;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-weight:bold;
+        font-size:13px;
+    }
+
+    @media (max-width:1100px) {
+        .sales-layout {
+            grid-template-columns:1fr;
+        }
+
+        .sales-side {
+            position:static;
+        }
+    }
+
+    @media (max-width:800px) {
+        .client-grid,
+        .sale-item {
+            grid-template-columns:1fr;
+        }
+
+        .payment-mini {
+            grid-template-columns:1fr;
+        }
+    }
+</style>
+
+<div class="sales-page">
+
+    <div class="sales-hero">
         <div>
-            <strong>Descuento</strong>
-    
-            <input type="number"
-                   id="discount-percent"
-                   class="form-control"
-                   value="0"
-                   min="0"
-                   max="100"
-                   oninput="clearDiscountAmount(); calculateTotal()"
-                   style="width:90px; display:inline-block; margin-left:8px;">
-            <span>%</span>
-    
-            <input type="number"
-                   id="discount-fixed"
-                   class="form-control"
-                   value="0"
-                   min="0"
-                   oninput="clearDiscountPercent(); calculateTotal()"
-                   style="width:110px; display:inline-block; margin-left:10px;">
-            <span>$</span>
+            <h1>🛒 Ventas</h1>
+            <p>Vendé, cobrá y controlá tu facturación desde un solo lugar.</p>
         </div>
-    
-        <strong id="discount-amount-display">- $ 0.00</strong>
-    </div>
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+
         <div>
-            <strong>Recargo crédito</strong>
-            <input type="number"
-                   id="credit-surcharge-percent"
-                   class="form-control"
-                   value="26"
-                   min="0"
-                   max="100"
-                   style="width:90px; display:inline-block; margin-left:8px;">
-            <span>%</span>
+            <span class="sales-date-badge">📅 {{ selected_date.strftime('%d/%m/%Y') if selected_date else '' }}</span>
+            <span class="sales-date-badge">{{ month_sales_count or 0 }} ventas este mes</span>
         </div>
-    
-        <strong id="credit-surcharge-display">+ $ 0.00</strong>
     </div>
-    <div style="display:flex; justify-content:space-between; border-top:1px solid #f3cfe0; padding-top:8px;">
-        <strong>Total final</strong>
-        <strong id="total-comanda-display" style="font-size:20px;">$ 0.00</strong>
-    </div>
-    <div style="display:flex; justify-content:space-between; margin-top:6px; color:#555;">
-        <span>Costo total</span>
-        <span id="cost-total-display">$ 0.00</span>
-    </div>
-    
-    <div style="display:flex; justify-content:space-between; margin-top:4px; color:#555;">
-        <span>Ganancia</span>
-        <span id="profit-amount-display">$ 0.00</span>
-    </div>
-    
-    <div style="display:flex; justify-content:space-between; margin-top:4px; color:#555;">
-        <span>Margen</span>
-        <span id="margin-percent-display">0.00%</span>
-    </div>
-</div>
-            <input type="hidden" name="discount_percent" id="discount-percent-hidden" value="0">
-            <input type="hidden" name="discount_amount" id="discount-amount-hidden" value="0">
-            <input type="hidden" name="credit_surcharge_percent" id="credit-surcharge-percent-hidden" value="0">
-            <input type="hidden" name="credit_surcharge_amount" id="credit-surcharge-amount-hidden" value="0">
-            <div class="mb-3">
-                <label>Notas</label>
-                <textarea name="notes" class="form-control" rows="2"></textarea>
+
+    <div class="sales-stat-grid">
+        <div class="sales-stat">
+            <div class="sales-stat-icon" style="background:#fff0f7;">💰</div>
+            <div>
+                <b>$ {{ "%.2f"|format(today_sales_total or 0) }}</b>
+                <span>Facturación hoy</span>
             </div>
-            <div class="mb-3">
-<div style="margin-top:15px; margin-bottom:12px;">
-    <label><strong>Cobro rápido</strong></label>
-
-    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
-        <button type="button" onclick="quickPay('efectivo')" style="background:#e8a9c3; color:#333; border:1px solid #d9b6c7; border-radius:8px; padding:7px 14px; font-size:13px; font-weight:600;">💵 Efectivo</button>
-        <button type="button" onclick="quickPay('debito')" style="background:#e8a9c3; color:#333; border:1px solid #d9b6c7; border-radius:8px; padding:7px 14px; font-size:13px; font-weight:600;">💳 Débito</button>
-        <button type="button" onclick="quickPay('credito')" style="background:#e8a9c3; color:#333; border:1px solid #d9b6c7; border-radius:8px; padding:7px 14px; font-size:13px; font-weight:600;">💳 Crédito</button>
-        <button type="button" onclick="quickPay('transferencia')" style="background:#e8a9c3; color:#333; border:1px solid #d9b6c7; border-radius:8px; padding:7px 14px; font-size:13px; font-weight:600;">🏦 Transferencia</button>
-        <button type="button" onclick="quickPay('cuenta')" style="background:#e8a9c3; color:#333; border:1px solid #d9b6c7; border-radius:8px; padding:7px 14px; font-size:13px; font-weight:600;">📒 Cuenta corriente</button>
-    </div>
-</div>
-
-<label><strong>Medios de pago</strong></label>
-
-<div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:10px; margin-top:8px;">
-    <div>
-        <label>Efectivo</label>
-        <input type="number" step="0.01" name="pay_efectivo" class="form-control payment-input" value="0" oninput="oninput="calculateTotal()"
-    </div>
-
-    <div>
-        <label>Débito</label>
-        <input type="number" step="0.01" name="pay_debito" class="form-control payment-input" value="0" oninput="calculateTotal()"
-    </div>
-
-    <div>
-        <label>Crédito</label>
-        <input type="number" step="0.01" name="pay_credito" class="form-control payment-input" value="0" oninput="calculateTotal()"
-    </div>
-
-    <div>
-        <label>Transferencia</label>
-        <input type="number" step="0.01" name="pay_transferencia" class="form-control payment-input" value="0" oninput="calculateTotal()"
-    </div>
-
-    <div>
-        <label>Cuenta corriente</label>
-        <input type="number" step="0.01" name="pay_cuenta_corriente" class="form-control payment-input" value="0" oninput="calculateTotal()"
-    </div>
-</div>
-
-<div style="margin-top:14px; display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
-    <h4 style="margin:0;">Total: $ <span id="total-sale">0.00</span></h4>
-
-<div style="display:flex; gap:8px;">
-
-    <button type="submit"
-            id="save-sale-button"
-            class="btn btn-success"
-            style="height:34px; padding:4px 14px; font-size:12px; background:#d85b9a; border:0;">
-        Guardar venta
-    </button>
-
-    <button type="submit"
-            name="save_as_quote"
-            value="1"
-            class="btn"
-            style="height:34px; min-width:110px; padding:4px 14px; font-size:12px; background:#d9f0ff; border:1px solid #9fd3f5; color:#2c5d7c;"
-        <span style="color:#333;">Presupuesto</span>
-    </button>
-
-</div>
-</div>
-
-<div id="payment-status-box" style="margin-top:30px; padding:10px 14px; border-radius:10px; background:#fff4d6; border:1px solid #f0c36d; max-width:420px;">
-    <strong id="payment-status-title">🟠 Saldo pendiente</strong><br>
-    <div style="margin-top:6px; font-size:13px;">
-        Total pagos: $ <span id="total-payments">0.00</span><br>
-        Saldo: $ <span id="payment-balance">0.00</span>
-    </div>
-</div>
-
-        </form>
-<div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px;">
-
-    <div class="card" style="padding:8px 12px; min-width:110px;">
-        <div style="font-size:16px; font-weight:bold;">
-            $ {{ "%.2f"|format(today_sales_total or 0) }}
         </div>
-        <div style="font-size:12px;">Ventas hoy</div>
-    </div>
 
-    <div class="card" style="padding:8px 12px; min-width:110px;">
-        <div style="font-size:16px; font-weight:bold;">
-            $ {{ "%.2f"|format(month_sales_total or 0) }}
+        <div class="sales-stat">
+            <div class="sales-stat-icon" style="background:#eff6ff;">📅</div>
+            <div>
+                <b>$ {{ "%.2f"|format(month_sales_total or 0) }}</b>
+                <span>Facturación del mes</span>
+            </div>
         </div>
-        <div style="font-size:12px;">Ventas del mes</div>
-    </div>
 
-    <div class="card" style="padding:8px 12px; min-width:110px;">
-        <div style="font-size:16px; font-weight:bold;">
-            {{ products_sold_today or 0 }}
+        <div class="sales-stat">
+            <div class="sales-stat-icon" style="background:#dcfce7;">📈</div>
+            <div>
+                <b>$ {{ "%.2f"|format(month_profit_total or 0) }}</b>
+                <span>Ganancia del mes</span>
+            </div>
         </div>
-        <div style="font-size:12px;">Productos hoy</div>
-    </div>
 
-    <div class="card" style="padding:8px 12px; min-width:110px;">
-        <div style="font-size:16px; font-weight:bold;">
-            $ {{ "%.2f"|format(month_profit or 0) }}
+        <div class="sales-stat">
+            <div class="sales-stat-icon" style="background:#f3e8ff;">🏷️</div>
+            <div>
+                <b>$ {{ "%.2f"|format(ticket_average or 0) }}</b>
+                <span>Ticket promedio</span>
+            </div>
         </div>
-        <div style="font-size:12px;">Ganancia mes</div>
-    </div>
 
-    <div class="card" style="padding:8px 12px; min-width:110px;">
-        <div style="font-size:16px; font-weight:bold;">
-            {{ month_sales_count or 0 }}
-        </div>
-        <div style="font-size:12px;">Ventas mes</div>
-    </div>
-
-    <div class="card" style="padding:8px 12px; min-width:110px;">
-        <div style="font-size:16px; font-weight:bold;">
-            $ {{ "%.2f"|format(avg_ticket or 0) }}
-        </div>
-        <div style="font-size:12px;">Ticket prom.</div>
-    </div>
-
-    <div class="card" style="padding:8px 12px; min-width:110px;">
-        <div style="font-size:16px; font-weight:bold;">
-            🏆 {{ top_product_name or '-' }}
-        </div>
-        <div style="font-size:12px;">
-            {{ top_product_qty or 0 }} vendidos
+        <div class="sales-stat">
+            <div class="sales-stat-icon" style="background:#fef3c7;">📦</div>
+            <div>
+                <b>{{ "%.0f"|format(today_products_count or 0) }}</b>
+                <span>Productos vendidos hoy</span>
+            </div>
         </div>
     </div>
 
-</div>
-<div class="card mb-4" style="background:#fffafc; border:1px solid #f3cfe0;">
-    <div class="card-header" onclick="toggleTop10()" style="cursor:pointer; font-weight:bold;">
-        🏆 Top 10 productos vendidos del mes ▼
-    </div>
+    <form method="post" action="/sales" id="sales-form">
 
-    <div id="top10-products" class="card-body" style="display:none;">
-        {% if top_products_sold %}
-            <table class="table table-sm">
-                <thead>
-                    <tr>
-                        <th>Producto</th>
-                        <th>Cantidad</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for product_name, qty in top_products_sold %}
-                    <tr>
-                        <td>{{ product_name }}</td>
-                        <td>{{ qty }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        {% else %}
-            <p>No hay ventas registradas este mes.</p>
+        <div class="sales-layout">
+
+            <div class="sales-main">
+
+                <div class="sales-panel" style="margin-top:0;">
+                    <div class="section-title">
+                        <h2>👤 Cliente</h2>
+                        <a href="/patients/new" class="mini-btn primary">➕ Nuevo paciente</a>
+                    </div>
+
+                    <div class="client-grid">
+                        <div class="field">
+                            <label>Paciente</label>
+                            <select name="patient_id" onchange="autoSelectOwner(this.value)">
+                                <option value="">Seleccionar paciente</option>
+                                {% for patient in patients %}
+                                    <option value="{{ patient.id }}">{{ patient.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="field">
+                            <label>Propietario</label>
+                            <select name="owner_id">
+                                <option value="">Seleccionar propietario</option>
+                                {% for owner in owners %}
+                                    <option value="{{ owner.id }}">{{ owner.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sales-panel">
+                    <div class="section-title">
+                        <h2>🧾 Comanda de venta</h2>
+                        <span style="color:#6b7280; font-size:13px;">Producto, cantidad y precio</span>
+                    </div>
+
+                    <div class="command-box">
+                        <div id="items-container">
+
+                            <div class="sale-item">
+                                <div class="field">
+                                    <label>Producto / Servicio</label>
+                                    <select name="product_id" class="product-select" onchange="updatePrice(this)">
+                                        <option value="">Seleccionar producto</option>
+                                        {% for product in products %}
+                                            <option
+                                                value="{{ product.id }}"
+                                                data-price="{{ product.sale_price or 0 }}"
+                                                data-cost="{{ product.cost_price or 0 }}">
+                                                {{ product.name }} - Stock: {{ product.stock or 0 }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <div class="field">
+                                    <label>Cant.</label>
+                                    <input type="number" step="0.01" name="quantity" class="quantity" value="1" oninput="calculateTotal()">
+                                </div>
+
+                                <div class="field">
+                                    <label>Precio</label>
+                                    <input type="number" step="0.01" name="unit_price" class="unit-price" value="0" oninput="calculateTotal()">
+                                </div>
+
+                                <div class="field">
+                                    <label>Subtotal</label>
+                                    <input type="text" class="subtotal" value="0.00" readonly>
+                                </div>
+
+                                <button type="button" class="remove-btn" onclick="removeItem(this)">×</button>
+                            </div>
+
+                        </div>
+
+                        <button type="button" onclick="addItem()" class="add-product-btn">
+                            ➕ Agregar producto / servicio
+                        </button>
+                    </div>
+
+                    <div class="notes-box field">
+                        <label>Notas</label>
+                        <textarea name="notes" rows="3" placeholder="Observaciones de la venta, presupuesto o indicaciones..."></textarea>
+                    </div>
+                </div>
+
+                <div class="sales-panel">
+                    <div class="section-title">
+                        <h2>🧾 Últimas ventas</h2>
+                    </div>
+
+                    <form method="get" action="/sales" class="sales-filter">
+                        <div class="field">
+                            <label>Fecha</label>
+                            <input type="date" name="sale_date" value="{{ selected_date }}">
+                        </div>
+
+                        <button type="submit" class="mini-btn primary">Buscar</button>
+                        <a href="/sales" class="mini-btn">Hoy</a>
+                    </form>
+
+                    {% if sales %}
+                        {% for sale in sales %}
+                            {% set paid_total = sale.total_paid or 0 %}
+                            {% set balance_due = sale.balance_due or 0 %}
+
+                            <div class="sale-row-card">
+                                <div>
+                                    <div class="sale-name">
+                                        {% if sale.patient_name %}
+                                            🐾 {{ sale.patient_name }}
+                                        {% elif sale.owner_name %}
+                                            👤 {{ sale.owner_name }}
+                                        {% else %}
+                                            Venta sin paciente
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="sale-meta">
+                                        {{ sale.date.strftime("%d/%m/%Y %H:%M") }}
+                                        {% if sale.owner_name %} · {{ sale.owner_name }}{% endif %}
+                                        · {{ sale.items_count }} producto{% if sale.items_count != 1 %}s{% endif %}
+                                    </div>
+
+                                    <div class="sale-meta">
+                                        💳 {{ sale.payment_method or "-" }} · <b>$ {{ "%.2f"|format(sale.total or 0) }}</b>
+                                    </div>
+
+                                    {% if sale.status == 'quote' %}
+                                        <span class="status-pill status-quote">Presupuesto</span>
+                                    {% elif sale.status == 'cancelled' %}
+                                        <span class="status-pill status-cancelled">Cancelada</span>
+                                    {% elif balance_due <= 0 %}
+                                        <span class="status-pill status-paid">Pagada</span>
+                                    {% elif paid_total > 0 %}
+                                        <span class="status-pill status-pending">Parcial · saldo $ {{ "%.2f"|format(balance_due or 0) }}</span>
+                                    {% else %}
+                                        <span class="status-pill status-pending">Cuenta corriente</span>
+                                    {% endif %}
+
+                                    {% if sale.items_detail %}
+                                        <div class="sale-meta" style="margin-top:8px;">
+                                            {% for item in sale.items_detail[:3] %}
+                                                {{ item.product_name }} x {{ item.quantity }}{% if not loop.last %} · {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="sale-actions">
+                                    <a href="/sales/{{ sale.id }}" class="mini-btn primary">👁 Ver</a>
+
+                                    {% if sale.status != 'cancelled' %}
+                                        <form method="post" action="/sales/{{ sale.id }}/cancel" class="mini-action" onsubmit="return confirm('¿Cancelar esta venta y devolver stock?');">
+                                            <button type="submit" class="cancel">Cancelar</button>
+                                        </form>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p style="color:#6b7280;">No hay ventas registradas para esta fecha.</p>
+                    {% endif %}
+                </div>
+
+            </div>
+
+            <aside class="sales-side">
+
+                <div class="side-block">
+                    <h3 style="margin-top:0;">📌 Resumen de venta</h3>
+
+                    <div class="side-line">
+                        <span>Subtotal</span>
+                        <b id="subtotal-display">$ 0.00</b>
+                    </div>
+
+                    <div class="discount-row">
+                        <strong>Descuento</strong>
+                        <input type="number" id="discount-percent" value="0" min="0" max="100" oninput="clearDiscountAmount(); calculateTotal()">
+                        <input type="number" id="discount-fixed" value="0" min="0" oninput="clearDiscountPercent(); calculateTotal()">
+                    </div>
+
+                    <div class="side-line">
+                        <span>% / $</span>
+                        <b id="discount-amount-display">- $ 0.00</b>
+                    </div>
+
+                    <div class="discount-row">
+                        <strong>Recargo crédito</strong>
+                        <input type="number" id="credit-surcharge-percent" value="26" min="0" max="100">
+                        <span>%</span>
+                    </div>
+
+                    <div class="side-line">
+                        <span>Recargo</span>
+                        <b id="credit-surcharge-display">+ $ 0.00</b>
+                    </div>
+
+                    <div class="side-line total">
+                        <span>TOTAL</span>
+                        <span id="total-comanda-display">$ 0.00</span>
+                    </div>
+
+                    <div class="side-line">
+                        <span>Costo total</span>
+                        <span id="cost-total-display">$ 0.00</span>
+                    </div>
+
+                    <div class="side-line">
+                        <span>Ganancia</span>
+                        <span id="profit-amount-display">$ 0.00</span>
+                    </div>
+
+                    <div class="side-line">
+                        <span>Margen</span>
+                        <span id="margin-percent-display">0.00%</span>
+                    </div>
+
+                    <input type="hidden" name="discount_percent" id="discount-percent-hidden" value="0">
+                    <input type="hidden" name="discount_amount" id="discount-amount-hidden" value="0">
+                    <input type="hidden" name="credit_surcharge_percent" id="credit-surcharge-percent-hidden" value="0">
+                    <input type="hidden" name="credit_surcharge_amount" id="credit-surcharge-amount-hidden" value="0">
+                    <input type="hidden" id="total-sale" value="0">
+                </div>
+
+                <div class="side-block">
+                    <h3 style="margin-top:0;">💳 Cobro rápido</h3>
+
+                    <div class="payment-grid">
+                        <button type="button" class="pay-card" onclick="quickPay('efectivo')">💵<small>Efectivo</small></button>
+                        <button type="button" class="pay-card" onclick="quickPay('debito')">💳<small>Débito</small></button>
+                        <button type="button" class="pay-card" onclick="quickPay('credito')">💳<small>Crédito</small></button>
+                        <button type="button" class="pay-card" onclick="quickPay('transferencia')">🏦<small>Transferencia</small></button>
+                        <button type="button" class="pay-card" onclick="quickPay('cuenta')" style="grid-column:1/-1;">📒<small>Cuenta corriente</small></button>
+                    </div>
+
+                    <div class="payment-inputs">
+                        <div class="payment-mini">
+                            <label>Efectivo</label>
+                            <input type="number" step="0.01" name="pay_efectivo" class="payment-input" value="0" oninput="calculateTotal()">
+                        </div>
+
+                        <div class="payment-mini">
+                            <label>Débito</label>
+                            <input type="number" step="0.01" name="pay_debito" class="payment-input" value="0" oninput="calculateTotal()">
+                        </div>
+
+                        <div class="payment-mini">
+                            <label>Crédito</label>
+                            <input type="number" step="0.01" name="pay_credito" class="payment-input" value="0" oninput="calculateTotal()">
+                        </div>
+
+                        <div class="payment-mini">
+                            <label>Transferencia</label>
+                            <input type="number" step="0.01" name="pay_transferencia" class="payment-input" value="0" oninput="calculateTotal()">
+                        </div>
+
+                        <div class="payment-mini">
+                            <label>Cuenta corriente</label>
+                            <input type="number" step="0.01" name="pay_cuenta_corriente" class="payment-input" value="0" oninput="calculateTotal()">
+                        </div>
+                    </div>
+
+                    <div id="payment-status-box" class="payment-status">
+                        <strong id="payment-status-title">🟠 Saldo pendiente</strong><br>
+                        Total pagos: $ <span id="total-payments">0.00</span><br>
+                        Saldo: $ <span id="payment-balance">0.00</span>
+                    </div>
+
+                    <div class="save-actions">
+                        <button type="submit" id="save-sale-button" class="save-sale-btn">
+                            💾 Guardar venta
+                        </button>
+
+                        <button type="submit" name="save_as_quote" value="1" class="quote-btn">
+                            📄 Guardar presupuesto
+                        </button>
+                    </div>
+                </div>
+
+                <div class="side-block">
+                    <h3 style="margin-top:0;">🏆 Producto estrella</h3>
+                    <b>{{ top_product_name or '-' }}</b>
+                    <div style="color:#6b7280; font-size:13px; margin-top:4px;">
+                        {{ top_product_qty or 0 }} vendidos este mes
+                    </div>
+                </div>
+
+            </aside>
+
+        </div>
+
+    </form>
+
+    {% set debt_sales = [] %}
+    {% for sale in sales %}
+        {% if sale.balance_due and sale.balance_due > 0 %}
+            {% set _ = debt_sales.append(sale) %}
         {% endif %}
-    </div>
-</div>
-
-    </div>
-</div>
-</div>
-{% set debt_sales = [] %}
-
-{% for sale in sales %}
-    {% if sale.balance_due and sale.balance_due > 0 %}
-        {% set _ = debt_sales.append(sale) %}
-    {% endif %}
-{% endfor %}
-
-{% if debt_sales %}
-<div class="card" style="margin-bottom:15px; border:2px solid #f3d4e3;">
-    <div class="card-header">
-        💳 Cuenta corriente pendiente
-    </div>
-
-    <div class="card-body">
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Paciente</th>
-                    <th>Propietario</th>
-                    <th>Total</th>
-                    <th>Pagado</th>
-                    <th>Saldo</th>
-                    <th></th>
-                </tr>
-            </thead>
-
-            <tbody>
-                {% for sale in debt_sales %}
-                <tr>
-                    <td>{{ sale.patient_name }}</td>
-                    <td>{{ sale.owner_name }}</td>
-                    <td>${{ '%.2f'|format(sale.total or 0) }}</td>
-                    <td>${{ '%.2f'|format(sale.total_paid or 0) }}</td>
-                    <td style="color:#d85b9a;font-weight:bold;">
-                        ${{ '%.2f'|format(sale.balance_due or 0) }}
-                    </td>
-                    <td>
-                        <a href="/sales/{{ sale.id }}" class="btn btn-secondary">
-                            Ver
-                        </a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-
-        </table>
-    </div>
-</div>
-{% endif %}
-<div class="card" style="background:#FFF5FA; width:100%; max-width:none;">
-    <div class="card-header">
-        Últimas ventas
-    </div>
-<div class="card-body" style="padding-bottom:0;">
-    <form method="get"
-          action="/sales"
-          style="display:flex; gap:10px; align-items:end; margin-bottom:15px;">
-
-        <div>
-            <label>Fecha</label>
-            <input type="date"
-                   name="sale_date"
-                   class="form-control"
-                   value="{{ selected_date }}">
-        </div>
-
-        <button type="submit" class="btn">
-            Buscar
-        </button>
-
-        <a href="/sales" class="btn btn-secondary">
-            Hoy
-        </a>
-
-    </form>
-</div>
-
-<div class="card-body">
-    <div class="card-body">
-        {% if sales %}
-        <table class="table table-sm" style="width:100%;">
-            <thead>
-                <tr>
-                    <th>Fecha</th>
-                    <th>Paciente</th>
-                    <th>Propietario</th>
-                    <th>Productos</th>
-                    <th>Total</th>
-                    <th>Medio de pago</th>
-                    <th>Notas</th>
-                    <th>Estado</th>
-                    <th>Acción</th>
-                    <th>Detalle</th>
-                </tr>
-            </thead>
-
-            <tbody>
-                {% for sale in sales %}
-                <tr>
-                    <td>{{ sale.date.strftime("%d/%m/%Y %H:%M") }}</td>
-                    <td>{{ sale.patient_name or "-" }}</td>
-                    <td>{{ sale.owner_name or "-" }}</td>
-                    <td>{{ sale.items_count }}</td>
-                    <td>$ {{ "%.2f"|format(sale.total or 0) }}</td>
-                    <td>{{ sale.payment_method or "-" }}</td>
-                    <td>{{ sale.notes or "" }}</td>
-                    <td>
-<td>
-    {% set paid_total = sale.total_paid or 0 %}
-    {% set balance_due = sale.balance_due or 0 %}
-
-    {% if sale.status == 'quote' %}
-        <span style="color:#6c757d;font-weight:bold;">Presupuesto</span>
-    
-    {% elif sale.status == 'cancelled' %}
-        <span style="color:#999;font-weight:bold;">Cancelada</span>
-    
-    {% elif balance_due <= 0 %}
-        <span style="color:#198754;font-weight:bold;">Pagada</span>
-    
-    {% elif paid_total > 0 %}
-        <span style="color:#d68c00;font-weight:bold;">Parcial</span>
-    
-    {% else %}
-        <span style="color:#d85b9a;font-weight:bold;">Cuenta corriente</span>
-    {% endif %}
-</td>
-
-<td>
-    {% if sale.status != 'cancelled' %}
-    <form method="post" action="/sales/{{ sale.id }}/cancel"
-          onsubmit="return confirm('¿Cancelar esta venta y devolver stock?');">
-        <button type="submit"
-                style="background:#ddd;border:0;border-radius:6px;padding:4px 8px;">
-            Cancelar
-        </button>
-    </form>
-    <a href="/sales/{{ sale.id }}"
-       style="display:inline-block;
-              margin-top:4px;
-              background:#6c757d;
-              color:white;
-              text-decoration:none;
-              border-radius:6px;
-              padding:4px 8px;">
-        Ver
-    </a>
-    {% else %}
-    <span style="color:#999;">-</span>
-    {% endif %}
-</td>
-<td>
-    {% for item in sale.items_detail %}
-        <div>
-            {{ item.product_name }} x {{ item.quantity }}
-        </div>
     {% endfor %}
-</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+
+    {% if debt_sales %}
+        <div class="sales-panel">
+            <div class="section-title">
+                <h2>💳 Cuenta corriente pendiente</h2>
+            </div>
+
+            {% for sale in debt_sales %}
+                <div class="debt-card">
+                    <div>
+                        <div class="sale-name">
+                            {{ sale.patient_name or 'Sin paciente' }}
+                        </div>
+                        <div class="sale-meta">
+                            {{ sale.owner_name or '-' }} · Total ${{ "%.2f"|format(sale.total or 0) }} · Pagado ${{ "%.2f"|format(sale.total_paid or 0) }}
+                        </div>
+                        <span class="status-pill status-pending">Saldo ${{ "%.2f"|format(sale.balance_due or 0) }}</span>
+                    </div>
+                    <a href="/sales/{{ sale.id }}" class="mini-btn primary">Ver</a>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="sales-panel">
+        <div class="section-title">
+            <h2>🏆 Top 10 productos del mes</h2>
+        </div>
+
+        {% if top_products_sold %}
+            {% for product_name, qty in top_products_sold %}
+                <div class="top-product-row">
+                    <div class="rank">{{ loop.index }}</div>
+                    <div>{{ product_name }}</div>
+                    <b>{{ qty }}</b>
+                </div>
+            {% endfor %}
         {% else %}
-        <p>No hay ventas registradas.</p>
+            <p style="color:#6b7280;">No hay ventas registradas este mes.</p>
         {% endif %}
-   
-</div>
+    </div>
+
 </div>
 
 <script>
@@ -522,6 +891,7 @@ function removeItem(button) {
     button.closest(".sale-item").remove();
     calculateTotal();
 }
+
 function updatePrice(select) {
     const row = select.closest(".sale-item");
     const selected = select.options[select.selectedIndex];
@@ -530,6 +900,7 @@ function updatePrice(select) {
     row.querySelector(".unit-price").value = price;
     calculateTotal();
 }
+
 function clearDiscountAmount() {
     const discountFixed = document.getElementById("discount-fixed");
     if (discountFixed) {
@@ -543,6 +914,11 @@ function clearDiscountPercent() {
         discountPercent.value = 0;
     }
 }
+
+function getTotalValue() {
+    return parseFloat(document.getElementById("total-sale").value) || 0;
+}
+
 function calculateTotal() {
     let subtotalGeneral = 0;
 
@@ -578,18 +954,23 @@ function calculateTotal() {
         const productSelect = row.querySelector(".product-select");
         const selectedOption = productSelect ? productSelect.options[productSelect.selectedIndex] : null;
         const productCost = selectedOption ? (parseFloat(selectedOption.getAttribute("data-cost")) || 0) : 0;
-    
+
         costTotal += qty * productCost;
     });
-    
+
     const profitAmount = total - costTotal;
     const marginPercent = total > 0 ? (profitAmount / total) * 100 : 0;
+
     document.getElementById("discount-percent-hidden").value = discountPercent.toFixed(2);
     document.getElementById("discount-amount-hidden").value = discountAmount.toFixed(2);
+
     document.getElementById("credit-surcharge-percent-hidden").value = "0.00";
     document.getElementById("credit-surcharge-amount-hidden").value = "0.00";
 
-    document.getElementById("credit-surcharge-percent").value = 0;
+    const creditSurchargeInput = document.getElementById("credit-surcharge-percent");
+    if (creditSurchargeInput) {
+        creditSurchargeInput.value = 0;
+    }
 
     const surchargeDisplay = document.getElementById("credit-surcharge-display");
     if (surchargeDisplay) surchargeDisplay.innerText = "+ $ 0.00";
@@ -600,22 +981,25 @@ function calculateTotal() {
     const discountAmountDisplay = document.getElementById("discount-amount-display");
     if (discountAmountDisplay) discountAmountDisplay.innerText = "- $ " + discountAmount.toFixed(2);
 
-    document.getElementById("total-sale").innerText = total.toFixed(2);
+    document.getElementById("total-sale").value = total.toFixed(2);
 
     const totalComanda = document.getElementById("total-comanda-display");
     if (totalComanda) totalComanda.innerText = "$ " + total.toFixed(2);
+
     const costTotalDisplay = document.getElementById("cost-total-display");
     if (costTotalDisplay) costTotalDisplay.innerText = "$ " + costTotal.toFixed(2);
-    
+
     const profitAmountDisplay = document.getElementById("profit-amount-display");
     if (profitAmountDisplay) profitAmountDisplay.innerText = "$ " + profitAmount.toFixed(2);
-    
+
     const marginPercentDisplay = document.getElementById("margin-percent-display");
     if (marginPercentDisplay) marginPercentDisplay.innerText = marginPercent.toFixed(2) + "%";
+
     calculatePayments();
 }
+
 function calculatePayments() {
-    const total = parseFloat(document.getElementById("total-sale").innerText) || 0;
+    const total = getTotalValue();
 
     const efectivo = parseFloat(document.querySelector('[name="pay_efectivo"]').value) || 0;
     const debito = parseFloat(document.querySelector('[name="pay_debito"]').value) || 0;
@@ -627,11 +1011,25 @@ function calculatePayments() {
     const saldo = total - totalPagado;
 
     const paidDisplay = document.getElementById("total-payments");
-    if (paidDisplay) paidDisplay.innerText = "$ " + totalPagado.toFixed(2);
+    if (paidDisplay) paidDisplay.innerText = totalPagado.toFixed(2);
 
     const balanceDisplay = document.getElementById("payment-balance");
-    if (balanceDisplay) balanceDisplay.innerText = "$ " + saldo.toFixed(2);
+    if (balanceDisplay) balanceDisplay.innerText = saldo.toFixed(2);
+
+    const statusBox = document.getElementById("payment-status-box");
+    const statusTitle = document.getElementById("payment-status-title");
+
+    if (statusBox && statusTitle) {
+        if (Math.abs(saldo) < 0.01 && total > 0) {
+            statusBox.classList.add("paid");
+            statusTitle.innerText = "🟢 Pagado completo";
+        } else {
+            statusBox.classList.remove("paid");
+            statusTitle.innerText = "🟠 Saldo pendiente";
+        }
+    }
 }
+
 function quickPay(method) {
     let subtotalGeneral = 0;
 
@@ -642,7 +1040,11 @@ function quickPay(method) {
     });
 
     const discountPercent = parseFloat(document.getElementById("discount-percent")?.value) || 0;
-    const discountAmount = subtotalGeneral * (discountPercent / 100);
+    const discountFixed = parseFloat(document.getElementById("discount-fixed")?.value) || 0;
+
+    let discountAmount = discountFixed > 0 ? discountFixed : subtotalGeneral * (discountPercent / 100);
+    if (discountAmount > subtotalGeneral) discountAmount = subtotalGeneral;
+
     let totalFinal = subtotalGeneral - discountAmount;
 
     let surchargePercent = 0;
@@ -660,7 +1062,7 @@ function quickPay(method) {
     document.getElementById("credit-surcharge-percent-hidden").value = surchargePercent.toFixed(2);
     document.getElementById("credit-surcharge-amount-hidden").value = surchargeAmount.toFixed(2);
 
-    document.getElementById("total-sale").innerText = totalFinal.toFixed(2);
+    document.getElementById("total-sale").value = totalFinal.toFixed(2);
     document.getElementById("total-comanda-display").innerText = "$ " + totalFinal.toFixed(2);
 
     const efectivo = document.querySelector('[name="pay_efectivo"]');
@@ -669,45 +1071,35 @@ function quickPay(method) {
     const transferencia = document.querySelector('[name="pay_transferencia"]');
     const cuenta = document.querySelector('[name="pay_cuenta_corriente"]');
 
-    const totalPagadoActual =
-        (parseFloat((efectivo.value || "0").replace(",", ".")) || 0) +
-        (parseFloat((debito.value || "0").replace(",", ".")) || 0) +
-        (parseFloat((credito.value || "0").replace(",", ".")) || 0) +
-        (parseFloat((transferencia.value || "0").replace(",", ".")) || 0) +
-        (parseFloat((cuenta.value || "0").replace(",", ".")) || 0);
-    
-    const saldoPendiente = Math.max(totalFinal - totalPagadoActual, 0);
-    
-    
-    
-    if (method === "efectivo") efectivo.value = Math.max(totalFinal - debito.value - credito.value - transferencia.value - cuenta.value, 0).toFixed(2);
-    if (method === "debito") debito.value = Math.max(totalFinal - efectivo.value - credito.value - transferencia.value - cuenta.value, 0).toFixed(2);
-    if (method === "credito") credito.value = Math.max(totalFinal - efectivo.value - debito.value - transferencia.value - cuenta.value, 0).toFixed(2);
-    if (method === "transferencia") transferencia.value = Math.max(totalFinal - efectivo.value - debito.value - credito.value - cuenta.value, 0).toFixed(2);
-    if (method === "cuenta") cuenta.value = Math.max(totalFinal - efectivo.value - debito.value - credito.value - transferencia.value, 0).toFixed(2);
+    const efectivoValue = parseFloat(efectivo.value || "0") || 0;
+    const debitoValue = parseFloat(debito.value || "0") || 0;
+    const creditoValue = parseFloat(credito.value || "0") || 0;
+    const transferenciaValue = parseFloat(transferencia.value || "0") || 0;
+    const cuentaValue = parseFloat(cuenta.value || "0") || 0;
+
+    if (method === "efectivo") efectivo.value = Math.max(totalFinal - debitoValue - creditoValue - transferenciaValue - cuentaValue, 0).toFixed(2);
+    if (method === "debito") debito.value = Math.max(totalFinal - efectivoValue - creditoValue - transferenciaValue - cuentaValue, 0).toFixed(2);
+    if (method === "credito") credito.value = Math.max(totalFinal - efectivoValue - debitoValue - transferenciaValue - cuentaValue, 0).toFixed(2);
+    if (method === "transferencia") transferencia.value = Math.max(totalFinal - efectivoValue - debitoValue - creditoValue - cuentaValue, 0).toFixed(2);
+    if (method === "cuenta") cuenta.value = Math.max(totalFinal - efectivoValue - debitoValue - creditoValue - transferenciaValue, 0).toFixed(2);
 
     calculatePayments();
 }
+
 const patientOwnerMap = {{ patient_owner_map | tojson }};
 
 function autoSelectOwner(patientId) {
     const ownerId = patientOwnerMap[patientId];
-
     const ownerSelect = document.querySelector('select[name="owner_id"]');
 
     if (ownerSelect && ownerId !== undefined) {
         ownerSelect.value = ownerId;
     }
 }
-function toggleTop10() {
-    const box = document.getElementById("top10-products");
 
-    if (box.style.display === "none") {
-        box.style.display = "block";
-    } else {
-        box.style.display = "none";
-    }
-}
+document.addEventListener("DOMContentLoaded", function () {
+    calculateTotal();
+});
 </script>
 
 {% endblock %}
