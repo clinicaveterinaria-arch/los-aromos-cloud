@@ -168,6 +168,9 @@
             grid-template-columns:1fr;
         }
     }
+.hc-legacy {
+    display:none;
+}
 </style>
 
 {% set ns = namespace(vacuna=None, desparasitacion=None, ecg=None, rx=None, eco=None, lab=None) %}
@@ -493,7 +496,7 @@
 </form>
 </div>
 </details>
-<details class="hc-section" open>
+<details class="hc-section hc-legacy">
     <summary>📋 Resumen clínico</summary>
 
     <div class="hc-section-body">
@@ -627,7 +630,7 @@
 </div>
     </div>
 </details>    
-<details class="hc-section" open>
+<details class="hc-section hc-legacy">
     <summary>💗 Resumen cardiológico</summary>
 
     <div class="hc-section-body">
@@ -676,7 +679,7 @@
 </div>
     </div>
 </details>
-<details class="hc-section">
+<details class="hc-section hc-legacy">
     <summary>💉 Historial de vacunación</summary>
 
     <div class="hc-section-body">
@@ -698,7 +701,7 @@
     </div>
 </details>
 
-<details class="hc-section">
+<details class="hc-section hc-legacy">
     <summary>🪱 Historial de desparasitación</summary>
 
     <div class="hc-section-body">
@@ -721,7 +724,7 @@
 </details>
 {% if upcoming_events %}
 
-<details class="hc-section">
+<details class="hc-section hc-legacy">
     <summary>📌 Próximos eventos programados</summary>
 
     <div class="hc-section-body">
