@@ -438,7 +438,21 @@ def agenda(
 
     start_dt = datetime.combine(selected_day, datetime.min.time())
     end_dt = start_dt + timedelta(days=1)
+    import calendar
 
+    cal = calendar.Calendar(firstweekday=0)
+    
+    month_days = cal.monthdatescalendar(
+        selected_day.year,
+        selected_day.month
+    )
+    
+    prev_month = (selected_day.replace(day=1) - timedelta(days=1)).replace(day=1)
+    
+    if selected_day.month == 12:
+        next_month = selected_day.replace(year=selected_day.year + 1, month=1, day=1)
+    else:
+        next_month = selected_day.replace(month=selected_day.month + 1, day=1)
     appointments = (
         db.query(Appointment)
         .filter(Appointment.appointment_date >= start_dt)
@@ -457,7 +471,10 @@ def agenda(
             'selected_day': selected_day,
             'appointments': appointments,
             'owners': owners,
-            'patients': patients
+            'patients': patients,
+            'month_days': month_days,
+            'prev_month': prev_month,
+            'next_month': next_month
         }
     )
 
