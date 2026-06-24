@@ -460,7 +460,10 @@ def agenda(
         .order_by(Appointment.start_time)
         .all()
     )
-
+        appointments_count_by_day = {}
+        for appointment in appointments:
+            day_key = appointment.appointment_date.day
+            appointments_count_by_day[day_key] = appointments_count_by_day.get(day_key, 0) + 1
     owners = db.query(Owner).order_by(Owner.name).limit(300).all()
     patients = db.query(Patient).order_by(Patient.name).limit(300).all()
 
@@ -474,7 +477,8 @@ def agenda(
             'patients': patients,
             'month_days': month_days,
             'prev_month': prev_month,
-            'next_month': next_month
+            'next_month': next_month,
+            'appointments_count_by_day': appointments_count_by_day
         }
     )
 
