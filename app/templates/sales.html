@@ -212,11 +212,24 @@
 <div style="margin-top:14px; display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
     <h4 style="margin:0;">Total: $ <span id="total-sale">0.00</span></h4>
 
-    <button type="submit" id="save-sale-button" class="btn btn-success"
-    style="height:34px; padding:4px 14px; font-size:12px; background:#d85b9a; border:0;">
+<div style="display:flex; gap:8px;">
 
+    <button type="submit"
+            id="save-sale-button"
+            class="btn btn-success"
+            style="height:34px; padding:4px 14px; font-size:12px; background:#d85b9a; border:0;">
         Guardar venta
     </button>
+
+    <button type="submit"
+            name="save_as_quote"
+            value="1"
+            class="btn"
+            style="height:34px; padding:4px 14px; font-size:12px; background:#e8e8e8; border:1px solid #ccc;">
+        Presupuesto
+    </button>
+
+</div>
 </div>
 
 <div id="payment-status-box" style="margin-top:30px; padding:10px 14px; border-radius:10px; background:#fff4d6; border:1px solid #f0c36d; max-width:420px;">
