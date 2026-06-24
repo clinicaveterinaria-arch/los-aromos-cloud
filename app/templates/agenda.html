@@ -361,7 +361,7 @@
                 {% for o in owners %}
                     <option
                         value="{{ o.id }}"
-                        data-whatsapp="{{ o.phone if o.phone else '' }}"
+                        data-whatsapp="{{ o.whatsapp or o.phone or '' }}"
                     >
                         {{ o.name }}
                     </option>
