@@ -25,8 +25,22 @@
 </form>
 {% endif %}
 {% if owner and owner.whatsapp %}
+{% set wp_text %}
+Hola {{ owner.name }}.
+
+Te enviamos el presupuesto de {{ patient.name if patient else 'tu mascota' }}:
+
+{% for item in items %}
+• {{ item.product_name }} x {{ item.quantity }} - ${{ "%.2f"|format(item.subtotal or 0) }}
+{% endfor %}
+
+Total: ${{ "%.2f"|format(sale.total or 0) }}
+
+Clínica Veterinaria Los Aromos.
+{% endset %}
+
 <a target="_blank"
-   href="https://wa.me/{{ owner.whatsapp }}"
+   href="https://wa.me/{{ owner.whatsapp }}?text={{ wp_text|urlencode }}"
    class="btn"
    style="background:#25D366; color:white; border:0;">
    📲 WhatsApp
