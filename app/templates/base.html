@@ -5,25 +5,195 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Los Aromos Cloud</title>
   <link rel="stylesheet" href="/static/style.css">
+
+  <style>
+    .sidebar{
+      width:280px;
+      background:linear-gradient(180deg,#26313d,#3d4550);
+      box-shadow:8px 0 24px rgba(0,0,0,.12);
+    }
+
+    .brand{
+      background:linear-gradient(135deg,#df6aa0,#d85b9a);
+      padding:22px 18px;
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+
+    .brand img{
+      width:68px;
+      height:68px;
+      border-radius:50%;
+      background:white;
+      object-fit:cover;
+      border:3px solid rgba(255,255,255,.8);
+    }
+
+    .brand b{
+      font-size:20px;
+      color:white;
+    }
+
+    .brand span{
+      font-size:13px;
+      color:white;
+      letter-spacing:1px;
+    }
+
+    .sidebar nav{
+      padding:18px 16px;
+    }
+
+    .sidebar nav a{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      color:white;
+      text-decoration:none;
+      padding:13px 14px;
+      border-radius:16px;
+      margin:6px 0;
+      font-size:16px;
+      transition:.18s;
+    }
+
+    .sidebar nav a:hover{
+      background:rgba(255,255,255,.08);
+      transform:translateX(3px);
+    }
+
+    .sidebar nav a.active{
+      background:linear-gradient(135deg,#df6aa0,#d85b9a);
+      box-shadow:0 8px 18px rgba(216,91,154,.35);
+      font-weight:bold;
+    }
+
+    .nav-left{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+
+    .nav-icon{
+      width:38px;
+      height:38px;
+      border-radius:14px;
+      background:rgba(255,255,255,.08);
+      color:#f3a9c8;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:20px;
+    }
+
+    .nav-arrow{
+      opacity:.55;
+      font-size:20px;
+    }
+
+    .pending-badge{
+      background:#df6aa0;
+      color:white;
+      border-radius:999px;
+      padding:3px 9px;
+      font-size:13px;
+      font-weight:bold;
+      margin-left:6px;
+    }
+
+    .content{
+      margin-left:280px;
+    }
+
+    .sidebar-whatsapp{
+      margin:18px 16px;
+      padding:14px;
+      border-radius:18px;
+      background:rgba(255,255,255,.08);
+      color:white;
+      display:flex;
+      align-items:center;
+      gap:12px;
+      text-decoration:none;
+      border:1px solid rgba(255,255,255,.08);
+    }
+
+    .sidebar-whatsapp:hover{
+      background:rgba(223,106,160,.25);
+    }
+
+    .sidebar-whatsapp .nav-icon{
+      background:rgba(223,106,160,.25);
+    }
+  </style>
 </head>
+
 <body>
   <aside class="sidebar">
-    <div class="brand"><img src="/static/logo.jpg"><div><b>LOS AROMOS</b><span>Clínica Veterinaria</span></div></div>
+    <div class="brand">
+      <img src="/static/logo.jpg">
+      <div>
+        <b>LOS AROMOS</b>
+        <span>Clínica Veterinaria</span>
+      </div>
+    </div>
+
+    {% set pc = get_pending_count() %}
+
     <nav>
-        <a href="/">Inicio</a>
-        <a href="/search">Historia clínica</a>
-        <a href="/owners">Propietarios</a>
-        <a href="/patients/new">Nuevo paciente</a>
-        <a href="/migration">Migración MyVete</a>
-        <a href="/agenda">Agenda</a>
-        <a href="/products">Productos</a>
-        <a href="/sales">Ventas</a>
-        <a href="/pendientes">
-            Pendientes{% set pc = get_pending_count() %}{% if pc > 0 %} ({{ pc }}){% endif %}
-        </a>
-        <a href="/logout">Salir</a>
+      <a href="/" class="{% if request.url.path == '/' %}active{% endif %}">
+        <span class="nav-left"><span class="nav-icon">🏠</span>Inicio</span><span class="nav-arrow">›</span>
+      </a>
+
+      <a href="/search" class="{% if request.url.path.startswith('/search') %}active{% endif %}">
+        <span class="nav-left"><span class="nav-icon">🩺</span>Historia clínica</span><span class="nav-arrow">›</span>
+      </a>
+
+      <a href="/owners" class="{% if request.url.path.startswith('/owners') %}active{% endif %}">
+        <span class="nav-left"><span class="nav-icon">👥</span>Propietarios</span><span class="nav-arrow">›</span>
+      </a>
+
+      <a href="/patients/new" class="{% if request.url.path.startswith('/patients/new') %}active{% endif %}">
+        <span class="nav-left"><span class="nav-icon">🐾</span>Nuevo paciente</span><span class="nav-arrow">›</span>
+      </a>
+
+      <a href="/migration" class="{% if request.url.path.startswith('/migration') %}active{% endif %}">
+        <span class="nav-left"><span class="nav-icon">☁️</span>Migración MyVete</span><span class="nav-arrow">›</span>
+      </a>
+
+      <a href="/agenda" class="{% if request.url.path.startswith('/agenda') %}active{% endif %}">
+        <span class="nav-left"><span class="nav-icon">📅</span>Agenda</span><span class="nav-arrow">›</span>
+      </a>
+
+      <a href="/products" class="{% if request.url.path.startswith('/products') %}active{% endif %}">
+        <span class="nav-left"><span class="nav-icon">📦</span>Productos</span><span class="nav-arrow">›</span>
+      </a>
+
+      <a href="/sales" class="{% if request.url.path.startswith('/sales') %}active{% endif %}">
+        <span class="nav-left"><span class="nav-icon">🛒</span>Ventas</span><span class="nav-arrow">›</span>
+      </a>
+
+      <a href="/pendientes" class="{% if request.url.path.startswith('/pendientes') %}active{% endif %}">
+        <span class="nav-left">
+          <span class="nav-icon">🔔</span>
+          Pendientes{% if pc > 0 %}<span class="pending-badge">{{ pc }}</span>{% endif %}
+        </span>
+        <span class="nav-arrow">›</span>
+      </a>
+
+      <a href="/logout">
+        <span class="nav-left"><span class="nav-icon">🚪</span>Salir</span><span class="nav-arrow">›</span>
+      </a>
     </nav>
+
+    <a class="sidebar-whatsapp" href="https://wa.me/543454946786" target="_blank">
+      <span class="nav-icon">📲</span>
+      <span><b>WhatsApp</b><br><small>Enviar mensaje</small></span>
+    </a>
   </aside>
+
   <main class="content">
     <header class="topbar"><span>Los Aromos Cloud</span></header>
     {% block content %}{% endblock %}
