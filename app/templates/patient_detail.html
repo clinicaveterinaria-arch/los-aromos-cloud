@@ -366,7 +366,7 @@
             </div>
 
             <div class="hc-actions">
-                <a href="#nuevo-evento" class="btn">➕ Nuevo evento</a>
+                <a href="/patients/{{ patient.id }}/events/new" class="btn">➕ Nuevo evento</a>
                 <a href="/patients/{{ patient.id }}/cardiology" class="btn secondary">💗 Cardio</a>
                 <a href="/patients/{{ patient.id }}/anesthesia" class="btn secondary">💉 Anestesia</a>
                 <a href="/patients/{{ patient.id }}/cart" class="btn secondary">🛒 Venta</a>
@@ -438,7 +438,7 @@
 
 
 
-<details class="hc-section" id="nuevo-evento">
+<details class="hc-section">
 <summary>🩺 Nuevo evento clínico</summary>
 
 <div class="hc-section-body">
@@ -953,7 +953,76 @@
 
 {% for a in anesthesia_history %}
     <div style="margin-bottom:10px;">
-  <div class="hc-timeline-panel">
+        {% set ns = namespace(procedure='Sin procedimiento') %}
+        {% for line in a.description.split('\n') %}
+            {% if line.startswith('Procedimiento:') %}
+                {% set ns.procedure = line.replace('Procedimiento:', '').strip() %}
+        {% endif %}
+    {% endfor %}
+
+    <strong>{{ a.event_date.strftime('%d/%m/%Y %H:%M') }}</strong>
+    - {{ ns.procedure }}
+<a href="/patients/{{ patient.id }}/anesthesia/print?event_id={{ a.id }}" target="_blank" class="btn">
+    Ver
+</a>
+
+<a href="/patients/{{ patient.id }}/anesthesia/print?event_id={{ a.id }}" target="_blank" class="btn">
+    Imprimir
+</a>
+        </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+
+    
+
+
+<!--
+<div class="panel">
+<div class="panel" style="background:#fff7ed; border:1px solid #fed7aa;">
+    <h3>📌 Próxima visita / Recordatorio</h3>
+
+    <form method="post" action="/patients/{{ patient.id }}/events">
+
+        <input type="hidden" name="event_type" value="Recordatorio">
+
+        <label><b>Motivo</b></label>
+        <select name="title">
+            <option>Control</option>
+            <option>Extracción de puntos</option>
+            <option>Curación</option>
+            <option>Laboratorio</option>
+            <option>Revisión postquirúrgica</option>
+            <option>Otro</option>
+        </select>
+
+        <br><br>
+
+        <label><b>Fecha próxima visita</b></label>
+        <input type="date" name="reminder_date" required>
+<div style="margin-top:8px;">
+    <b>Programar rápido:</b><br><br>
+
+    <button type="button" onclick="setReminderDays(3)">+3 días</button>
+    <button type="button" onclick="setReminderDays(7)">+7 días</button>
+    <button type="button" onclick="setReminderDays(10)">+10 días</button>
+    <button type="button" onclick="setReminderDays(15)">+15 días</button>
+    <button type="button" onclick="setReminderDays(21)">+21 días</button>
+    <button type="button" onclick="setReminderDays(30)">+30 días</button>
+</div>
+        <br><br>
+
+        <label><b>Nota</b></label>
+        <textarea name="description" placeholder="Ej: debe sacarse sangre para laboratorio"></textarea>
+
+        <br><br>
+
+        <button type="submit">💾 Guardar próxima visita</button>
+    </form>
+</div>    
+--> 
+<div class="hc-timeline-panel">
 
     <div class="hc-timeline-head">
         <h2>📋 Historia clínica</h2>
@@ -1082,7 +1151,6 @@
     {% endif %}
 
 </div>
-        
 <script>
 function setEventType(type) {
     const selector = document.getElementById('event_type');
