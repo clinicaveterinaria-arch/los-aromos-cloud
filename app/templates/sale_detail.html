@@ -1,7 +1,14 @@
 {% extends "base.html" %}
 
 {% block content %}
-
+{% set ns = namespace(real_paid=0) %}
+{% for payment in payments %}
+    {% set pm = (payment.method or '')|trim|lower %}
+    {% if not ('cuenta' in pm and 'corriente' in pm) %}
+        {% set ns.real_paid = ns.real_paid + (payment.amount or 0) %}
+    {% endif %}
+{% endfor %}
+{% set real_balance_due = (sale.total or 0) - ns.real_paid %}
 <h2 style="margin-bottom:20px;">Detalle de venta</h2>
 <div style="margin-bottom:16px;">
     <button onclick="window.print()" class="btn btn-primary" style="background:#d85b9a; border:0;">
