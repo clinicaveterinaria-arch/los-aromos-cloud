@@ -359,7 +359,12 @@
             <select name="owner_id" id="owner_id">
                 <option value="">Sin cliente asignado</option>
                 {% for o in owners %}
-                    <option value="{{ o.id }}">{{ o.name }}</option>
+                    <option
+                        value="{{ o.id }}"
+                        data-whatsapp="{{ o.phone if o.phone else '' }}"
+                    >
+                        {{ o.name }}
+                    </option>
                 {% endfor %}
             </select>
 
@@ -386,7 +391,11 @@
             <br><br>
 
 <label><b>WhatsApp de contacto</b></label>
-<input name="contact_whatsapp" placeholder="Ej: 3496652050">
+<input
+    id="contact_whatsapp"
+    name="contact_whatsapp"
+    placeholder="Ej: 3496652050"
+>
 
 <br><br>
 
@@ -416,6 +425,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const ownerSelect = document.getElementById('owner_id');
     const patientSelect = document.getElementById('patient_id');
+    const whatsappInput = document.getElementById('contact_whatsapp');
 
     if (!ownerSelect || !patientSelect) return;
 
@@ -424,6 +434,13 @@ document.addEventListener('DOMContentLoaded', function () {
     function filterPatients() {
 
         const ownerId = ownerSelect.value;
+        const selectedOwner =
+            ownerSelect.options[ownerSelect.selectedIndex];
+        
+        if (whatsappInput && selectedOwner) {
+            whatsappInput.value =
+                selectedOwner.dataset.whatsapp || '';
+        }
 
         patientSelect.innerHTML = '';
 
