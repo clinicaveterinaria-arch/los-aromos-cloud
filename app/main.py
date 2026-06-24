@@ -471,9 +471,27 @@ def agenda(
     )
 
     appointments_count_by_day = {}
+    appointments_tooltip_by_day = {}
     for appointment in month_appointments:
         day_key = appointment.appointment_date.day
-        appointments_count_by_day[day_key] = appointments_count_by_day.get(day_key, 0) + 1
+
+        appointments_count_by_day[day_key] = (
+            appointments_count_by_day.get(day_key, 0) + 1
+        )
+
+        patient_name = (
+            appointment.patient.name
+            if appointment.patient
+            else "Sin paciente"
+        )
+
+        title = appointment.title or ""
+
+        text = f"• {patient_name}"
+        if title:
+            text += f" - {title}"
+
+        appointments_tooltip_by_day.setdefault(day_key, []).append(text)
     owners = db.query(Owner).order_by(Owner.name).limit(300).all()
     patients = db.query(Patient).order_by(Patient.name).limit(300).all()
 
@@ -488,7 +506,8 @@ def agenda(
             'month_days': month_days,
             'prev_month': prev_month,
             'next_month': next_month,
-            'appointments_count_by_day': appointments_count_by_day
+            'appointments_count_by_day': appointments_count_by_day,
+            'appointments_tooltip_by_day': appointments_tooltip_by_day,
         }
     )
 
