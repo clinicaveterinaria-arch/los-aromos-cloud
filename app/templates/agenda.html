@@ -356,7 +356,7 @@
             <br><br>
 
             <label><b>Cliente</b></label>
-            <select name="owner_id">
+            <select name="owner_id" id="owner_id">
                 <option value="">Sin cliente asignado</option>
                 {% for o in owners %}
                     <option value="{{ o.id }}">{{ o.name }}</option>
@@ -366,10 +366,15 @@
             <br><br>
 
             <label><b>Paciente</b></label>
-            <select name="patient_id">
+            <select name="patient_id" id="patient_id">
                 <option value="">Sin paciente asignado</option>
                 {% for p in patients %}
-                    <option value="{{ p.id }}">{{ p.name }}{% if p.owner %} - {{ p.owner.name }}{% endif %}</option>
+                    <option
+                        value="{{ p.id }}"
+                        data-owner="{{ p.owner_id if p.owner_id else '' }}"
+                    >
+                        {{ p.name }}{% if p.owner %} - {{ p.owner.name }}{% endif %}
+                    </option>
                 {% endfor %}
             </select>
 
@@ -406,5 +411,47 @@
     </div>
 
 </div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
 
+    const ownerSelect = document.getElementById('owner_id');
+    const patientSelect = document.getElementById('patient_id');
+
+    if (!ownerSelect || !patientSelect) return;
+
+    const allOptions = Array.from(patientSelect.querySelectorAll('option'));
+
+    function filterPatients() {
+
+        const ownerId = ownerSelect.value;
+
+        patientSelect.innerHTML = '';
+
+        const visiblePatients = [];
+
+        allOptions.forEach(option => {
+
+            if (option.value === '') {
+                patientSelect.appendChild(option.cloneNode(true));
+                return;
+            }
+
+            if (option.dataset.owner === ownerId) {
+                visiblePatients.push(option.cloneNode(true));
+            }
+        });
+
+        visiblePatients.forEach(option => {
+            patientSelect.appendChild(option);
+        });
+
+        if (visiblePatients.length === 1) {
+            patientSelect.value = visiblePatients[0].value;
+        }
+    }
+
+    ownerSelect.addEventListener('change', filterPatients);
+
+});
+</script>
 {% endblock %}
