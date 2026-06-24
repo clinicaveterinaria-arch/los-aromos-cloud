@@ -15,23 +15,23 @@
 </div>
 
 <div class="grid stats">
-    <div class="panel"><b>{{ stats.owners }}</b><span>Propietarios</span></div>
-    <div class="panel"><b>{{ stats.patients }}</b><span>Pacientes</span></div>
-    <div class="panel"><b>{{ stats.events }}</b><span>Eventos clínicos</span></div>
+
     <a class="panel" href="/pendientes" style="display:block;text-decoration:none;color:inherit;">
         <b>{{ stats.pending }}</b><span>Recordatorios</span>
     </a>
+
     <a class="panel" href="/pendientes" style="display:block;text-decoration:none;color:inherit;{% if stats.today > 0 %}background:#fff8dc;border:2px solid #f7c948;{% endif %}">
         <b>{{ stats.today }}</b><span>Hoy</span>
     </a>
+
     <a class="panel" href="/pendientes" style="display:block;text-decoration:none;color:inherit;{% if stats.overdue > 0 %}background:#ffe5e5;border:2px solid #dc3545;{% endif %}">
         <b>{{ stats.overdue }}</b><span>Vencidos</span>
     </a>
+
     <a class="panel" href="/pendientes" style="display:block;text-decoration:none;color:inherit;">
         <b>{{ stats.vaccines }}</b><span>💉 Vacunas</span>
     </a>
-    <div class="panel"><b>{{ stats.rx }}</b><span>📷 RX</span></div>
-    <div class="panel"><b>{{ stats.ecg }}</b><span>💗 ECG</span></div>
+
 </div>
 
 <div class="panel wide">
