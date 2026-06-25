@@ -1,51 +1,167 @@
 {% extends 'base.html' %}
 {% block content %}
 
-<h1>✏️ Editar propietario</h1>
+<style>
+    .edit-owner-page {
+        padding:24px 28px;
+    }
 
-<div class="panel">
+    .edit-hero {
+        background:white;
+        border:1px solid #f3c6d8;
+        border-radius:22px;
+        padding:22px;
+        box-shadow:0 8px 26px rgba(0,0,0,0.05);
+        margin-bottom:18px;
+        display:flex;
+        justify-content:space-between;
+        align-items:flex-start;
+        gap:18px;
+        flex-wrap:wrap;
+    }
 
-<form method="post">
+    .edit-hero h1 {
+        margin:0 0 6px 0;
+        font-size:32px;
+        color:#1f2937;
+    }
 
-<label><b>Nombre</b></label>
-<input name="name" value="{{ owner.name }}" required>
+    .edit-hero p {
+        margin:0;
+        color:#6b7280;
+    }
 
-<br><br>
+    .edit-card {
+        background:white;
+        border:1px solid #f3c6d8;
+        border-radius:22px;
+        padding:22px;
+        box-shadow:0 8px 26px rgba(0,0,0,0.04);
+    }
 
-<label><b>Teléfono</b></label>
-<input name="phone" value="{{ owner.phone or '' }}">
+    .edit-form-grid {
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+        gap:14px;
+    }
 
-<br><br>
+    .field-box label {
+        display:block;
+        font-weight:bold;
+        color:#374151;
+        font-size:13px;
+        margin-bottom:6px;
+    }
 
-<label><b>WhatsApp</b></label>
-<input name="whatsapp" value="{{ owner.whatsapp or '' }}">
+    .field-box input,
+    .field-box textarea {
+        width:100%;
+        border:1px solid #ead7e1;
+        border-radius:13px;
+        padding:12px 13px;
+        font-size:14px;
+        background:white;
+    }
 
-<br><br>
+    .field-box textarea {
+        min-height:120px;
+        resize:vertical;
+    }
 
-<label><b>Email</b></label>
-<input name="email" value="{{ owner.email or '' }}">
+    .field-full {
+        grid-column:1 / -1;
+    }
 
-<br><br>
+    .form-actions {
+        display:flex;
+        gap:10px;
+        flex-wrap:wrap;
+        margin-top:18px;
+    }
 
-<label><b>Dirección</b></label>
-<input name="address" value="{{ owner.address or '' }}">
+    .pink-btn {
+        background:#d85b9a;
+        color:white;
+        border:none;
+        border-radius:13px;
+        padding:12px 18px;
+        font-weight:bold;
+        cursor:pointer;
+        text-decoration:none;
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        gap:7px;
+    }
 
-<br><br>
+    .soft-btn {
+        background:white;
+        color:#d85b9a;
+        border:1px solid #f3c6d8;
+        border-radius:13px;
+        padding:12px 18px;
+        font-weight:bold;
+        cursor:pointer;
+        text-decoration:none;
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        gap:7px;
+    }
+</style>
 
-<label><b>Notas</b></label>
-<textarea name="notes">{{ owner.notes or '' }}</textarea>
+<div class="edit-owner-page">
 
-<br><br>
+    <div class="edit-hero">
+        <div>
+            <h1>✏️ Editar propietario</h1>
+            <p>Actualizá los datos de contacto de {{ owner.name }}.</p>
+        </div>
+        <a href="/patients/new?owner_id={{ owner.id }}" class="pink-btn">➕ Agregar paciente</a>
+    </div>
 
-<button type="submit" class="btn">
-💾 Guardar cambios
-</button>
+    <div class="edit-card">
+        <form method="post">
 
-<a href="/owners" class="btn">
-↩️ Cancelar
-</a>
+            <div class="edit-form-grid">
+                <div class="field-box">
+                    <label>Nombre</label>
+                    <input name="name" value="{{ owner.name }}" required>
+                </div>
 
-</form>
+                <div class="field-box">
+                    <label>Teléfono</label>
+                    <input name="phone" value="{{ owner.phone or '' }}">
+                </div>
+
+                <div class="field-box">
+                    <label>WhatsApp</label>
+                    <input name="whatsapp" value="{{ owner.whatsapp or '' }}">
+                </div>
+
+                <div class="field-box">
+                    <label>Email</label>
+                    <input name="email" value="{{ owner.email or '' }}">
+                </div>
+
+                <div class="field-box">
+                    <label>Dirección</label>
+                    <input name="address" value="{{ owner.address or '' }}">
+                </div>
+
+                <div class="field-box field-full">
+                    <label>Notas</label>
+                    <textarea name="notes">{{ owner.notes or '' }}</textarea>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="pink-btn">💾 Guardar cambios</button>
+                <a href="/owners" class="soft-btn">↩️ Cancelar</a>
+            </div>
+
+        </form>
+    </div>
 
 </div>
 
