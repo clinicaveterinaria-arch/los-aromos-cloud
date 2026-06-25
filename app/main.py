@@ -2413,9 +2413,9 @@ async def migration_agenda_pendientes(
             '%d/%m/%y'
         ]:
             try:
-    return datetime.strptime(value, fmt).date()
-except Exception:
-    pass
+                return datetime.strptime(value, fmt).date()
+            except Exception:
+                pass
 
 return None
 
