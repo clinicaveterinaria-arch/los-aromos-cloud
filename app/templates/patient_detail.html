@@ -443,190 +443,203 @@
 
 <div class="hc-section-body">
 
-  <form method="post"
-      action="/patients/{{ patient.id }}/events"
-      enctype="multipart/form-data"
-      class="form-grid">
+    <form method="post"
+          action="/patients/{{ patient.id }}/events"
+          enctype="multipart/form-data"
+          class="form-grid">
 
-    <div style="grid-column:1 / -1; padding:12px; background:#f7f7f7; border-radius:10px;">
-    <h4>🩺 Consulta clínica</h4>
-    <h4>📅 Fecha de la consulta / evento</h4>
-    <input
-        type="date"
-        name="event_date"
-        value="{{ today.strftime('%Y-%m-%d') }}"
-    >
-</div>
-    <h4>📏 Parámetros clínicos</h4>
+        <div style="grid-column:1 / -1; padding:12px; background:#f7f7f7; border-radius:10px;">
+            <h4>🩺 Consulta clínica</h4>
+            <h4>📅 Fecha de la consulta / evento</h4>
+            <input
+                type="date"
+                name="event_date"
+                value="{{ today.strftime('%Y-%m-%d') }}"
+            >
+        </div>
 
-    <input name="weight" placeholder="Peso kg">
-    <input name="temperature" placeholder="Temperatura °C">
-    <input name="heart_rate" placeholder="FC">
-    <input name="respiratory_rate" placeholder="FR">
-    <input name="mucous_membranes" placeholder="Mucosas">
-    <input name="crt" placeholder="TLLC">
-    <input name="hydration" placeholder="Hidratación">
+        <h4 style="grid-column:1 / -1;">📏 Parámetros clínicos</h4>
 
-    <select name="event_type" id="event_type">
-        {% for t in event_types %}
-            <option>{{ t }}</option>
-        {% endfor %}
-    </select>
+        <input name="weight" placeholder="Peso kg" value="{{ patient.weight or '' }}">
+        <input name="temperature" placeholder="Temperatura °C">
+        <input name="heart_rate" placeholder="FC">
+        <input name="respiratory_rate" placeholder="FR">
+        <input name="mucous_membranes" placeholder="Mucosas">
+        <input name="crt" placeholder="TLLC">
+        <input name="hydration" placeholder="Hidratación">
 
-    <input name="title" placeholder="Título / motivo">
+        <select name="event_type" id="event_type">
+            {% for t in event_types %}
+                <option>{{ t }}</option>
+            {% endfor %}
+        </select>
 
-    <textarea name="description" placeholder="Motivo / descripción"></textarea>
-    <textarea name="anamnesis" placeholder="Anamnesis"></textarea>
-    <textarea name="physical_exam" placeholder="Examen físico"></textarea>
-    <textarea name="diagnosis" placeholder="Diagnóstico / conclusión"></textarea>
-    <textarea name="treatment" placeholder="Tratamiento / indicaciones"></textarea>
-<div id="ecg-box" style="display:none; grid-column:1 / -1; padding:12px; background:#fff0f5; border-radius:10px;">
+        <input name="title" placeholder="Título / motivo">
 
-    <h4>❤️ ECG</h4>
+        <textarea name="description" placeholder="Motivo / descripción"></textarea>
+        <textarea name="anamnesis" placeholder="Anamnesis"></textarea>
+        <textarea name="physical_exam" placeholder="Examen físico"></textarea>
+        <textarea name="diagnosis" placeholder="Diagnóstico / conclusión"></textarea>
+        <textarea name="treatment" placeholder="Tratamiento / indicaciones"></textarea>
 
-    <input name="ecg_hr" placeholder="FC">
-    <input name="ecg_rhythm" placeholder="Ritmo">
+        <div id="vaccine-box"
+             style="display:none; grid-column:1 / -1; padding:12px; background:#f7f7f7; border-radius:10px;">
+            <h4>💉 Datos de vacunación</h4>
 
-    <input name="ecg_p" placeholder="Onda P">
-    <input name="ecg_pr" placeholder="Intervalo PR">
+            <input name="vaccine_name" list="vaccines_list" placeholder="Vacuna aplicada">
 
-    <input name="ecg_qrs" placeholder="QRS">
-    <input name="ecg_st" placeholder="Segmento ST">
+            <datalist id="vaccines_list">
+                <option value="Triple Felina">
+                <option value="Antirrábica">
+                <option value="Leucemia Felina">
+                <option value="Puppy DP">
+                <option value="DHPPI">
+                <option value="Séxtuple">
+                <option value="Traqueobronquitis">
+                <option value="Leptospirosis">
+            </datalist>
 
-    <input name="ecg_t" placeholder="Onda T">
-    <input name="ecg_qt" placeholder="Intervalo QT">
+            <input name="vaccine_lot" placeholder="Lote">
 
-    <input name="ecg_axis" placeholder="Eje eléctrico">
+            <input name="vaccine_expiration"
+                   list="vaccines_list"
+                   placeholder="Próxima vacuna / refuerzo">
 
-    <textarea
-        name="ecg_interpretation"
-        placeholder="Interpretación electrocardiográfica">
-    </textarea>
+            <input type="date"
+                   name="next_vaccine_date"
+                   id="next_vaccine_date">
 
-</div>
-</div>
-<div id="eco-box" style="display:none; grid-column:1 / -1; padding:12px; background:#fff0f5; border-radius:10px;">
+            <div style="margin:10px 0; grid-column:1 / -1;">
+                <b>Próxima vacuna rápida:</b><br><br>
+                <button type="button" onclick="setNextVaccineDays(21)">+21 días</button>
+                <button type="button" onclick="setNextVaccineDays(30)">+30 días</button>
+                <button type="button" onclick="setNextVaccineMonths(6)">+6 meses</button>
+                <button type="button" onclick="setNextVaccineDays(365)">+1 año</button>
+            </div>
+        </div>
 
-    <h4>🫀 Ecocardiografía</h4>
+        <div id="deworming-box"
+             style="display:none; grid-column:1 / -1; padding:12px; background:#f7f7f7; border-radius:10px;">
+            <h4>🪱 Desparasitación</h4>
 
-    <input name="eco_aiao" placeholder="AI/Ao">
+            <input name="dewormer_product"
+                   list="dewormers_list"
+                   placeholder="Producto / marca comercial">
 
-    <input name="eco_fs" placeholder="Fracción de acortamiento (%)">
+            <datalist id="dewormers_list">
+                <option value="Total Full CG">
+                <option value="Total Full suspensión">
+                <option value="Aprax suspensión">
+                <option value="Levamisol">
+                <option value="Trivermex suspensión">
+                <option value="Meltra Spot On">
+                <option value="Feline Full Spot">
+                <option value="Feline Endo Spot">
+                <option value="Total Full LC">
+                <option value="Aprax">
+                <option value="Endofour">
+                <option value="Trivermex">
+                <option value="Meltra Gold">
+                <option value="Apto">
+                <option value="Moxidex Plus">
+            </datalist>
 
-    <input name="eco_acvim" placeholder="Clasificación ACVIM">
+            <input name="dewormer_drug" placeholder="Principio activo">
 
-    <textarea
-        name="eco_diagnosis"
-        placeholder="Diagnóstico ecocardiográfico"></textarea>
+            <input name="dewormer_dose"
+                   placeholder="Dosis / indicación">
 
-    <textarea
-        name="eco_treatment"
-        placeholder="Tratamiento cardiológico"></textarea>
+            <input type="date"
+                   name="next_deworming_date"
+                   id="next_deworming_date">
 
-</div>    
+            <div style="margin-top:10px; grid-column:1 / -1;">
+                <b>Próxima desparasitación rápida:</b><br><br>
+                <button type="button" onclick="setNextDewormingDays(21)">+21 días</button>
+                <button type="button" onclick="setNextDewormingDays(30)">+30 días</button>
+                <button type="button" onclick="setNextDewormingMonths(3)">+3 meses</button>
+                <button type="button" onclick="setNextDewormingMonths(6)">+6 meses</button>
+            </div>
+        </div>
 
+        <div id="ecg-box"
+             style="display:none; grid-column:1 / -1; padding:12px; background:#fff0f5; border-radius:10px;">
+            <h4>❤️ ECG</h4>
 
+            <input name="ecg_hr" placeholder="FC">
+            <input name="ecg_rhythm" placeholder="Ritmo">
+            <input name="ecg_p" placeholder="Onda P">
+            <input name="ecg_pr" placeholder="Intervalo PR">
+            <input name="ecg_qrs" placeholder="QRS">
+            <input name="ecg_st" placeholder="Segmento ST">
+            <input name="ecg_t" placeholder="Onda T">
+            <input name="ecg_qt" placeholder="Intervalo QT">
+            <input name="ecg_axis" placeholder="Eje eléctrico">
 
+            <textarea name="ecg_interpretation"
+                      placeholder="Interpretación electrocardiográfica"></textarea>
+        </div>
 
-<div id="vaccine-box" class="vaccine-box" style="display:none; grid-column:1 / -1;">
-    <h4>💉 Datos de vacunación</h4>
-<input name="vaccine_name" list="vaccines_list" placeholder="Vacuna aplicada">
-<div style="grid-column:1 / -1; padding:12px; background:#f7f7f7; border-radius:10px;">
-    
-<datalist id="vaccines_list">
-    <option value="Triple Felina">
-    <option value="Antirrábica">
-    <option value="Leucemia Felina">
+        <div id="eco-box"
+             style="display:none; grid-column:1 / -1; padding:12px; background:#fff0f5; border-radius:10px;">
+            <h4>🫀 Ecocardiografía</h4>
 
-    <option value="Puppy DP">
-    <option value="DHPPI">
-    <option value="Séxtuple">
-    <option value="Antirrábica">
-    <option value="Traqueobronquitis">
-    <option value="Leptospirosis">
-</datalist>
-<input name="vaccine_lot" placeholder="Lote">
+            <input name="eco_aiao" placeholder="AI/Ao">
+            <input name="eco_fs" placeholder="Fracción de acortamiento (%)">
+            <input name="eco_acvim" placeholder="Clasificación ACVIM">
 
-<input name="vaccine_expiration"
-       list="vaccines_list"
-       placeholder="Próxima vacuna">
+            <textarea name="eco_diagnosis"
+                      placeholder="Diagnóstico ecocardiográfico"></textarea>
 
-<input type="date"
-       name="next_vaccine_date"
-       id="next_vaccine_date">
+            <textarea name="eco_treatment"
+                      placeholder="Tratamiento cardiológico"></textarea>
+        </div>
 
-    <div style="margin:10px 0;">
-        <b>Próxima vacuna rápida:</b><br><br>
-        <button type="button" onclick="setNextVaccineDays(21)">+21 días</button>
-        <button type="button" onclick="setNextVaccineDays(30)">+30 días</button>
-        <button type="button" onclick="setNextVaccineMonths(6)">+6 meses</button>
-        <button type="button" onclick="setNextVaccineDays(365)">+1 año</button>
-    </div>
-</div>
-<div id="deworming-box" style="display:none; grid-column:1 / -1; padding:12px; background:#f7f7f7; border-radius:10px;">
-    <h4>🪱 Desparasitación</h4>
+        <div id="reminder-box"
+             style="grid-column:1 / -1; padding:12px; background:#fff7ed; border-radius:10px;">
+            <h4>📌 Próxima visita / recordatorio</h4>
 
-    <input name="dewormer_product" list="dewormers_list" placeholder="Producto / marca comercial">
+            <input type="date" name="reminder_date">
 
-<datalist id="dewormers_list">
-    <option value="Total Full CG">
-    <option value="Total Full suspensión">
-    <option value="Aprax suspensión">
-    <option value="Levamisol">
-    <option value="Trivermex suspensión">
-    <option value="Meltra Spot On">
-    <option value="Feline Full Spot">
-    <option value="Feline Endo Spot">
-    <option value="Total Full LC">
-    <option value="Aprax">
-    <option value="Endofour">
-    <option value="Trivermex">
-    <option value="Meltra Gold">
-    <option value="Apto">
-    <option value="Moxidex Plus">
-</datalist>
-<input name="dewormer_drug" placeholder="Principio activo">
+            <div style="margin-top:10px;">
+                <b>Programar rápido:</b><br><br>
+                <button type="button" onclick="setReminderDays(3)">+3 días</button>
+                <button type="button" onclick="setReminderDays(7)">+7 días</button>
+                <button type="button" onclick="setReminderDays(10)">+10 días</button>
+                <button type="button" onclick="setReminderDays(15)">+15 días</button>
+                <button type="button" onclick="setReminderDays(21)">+21 días</button>
+                <button type="button" onclick="setReminderDays(30)">+30 días</button>
+            </div>
+        </div>
 
-<input name="dewormer_dose"
-       list="dewormers_list"
-       placeholder="Próxima desparasitación">
-    <input type="date" name="next_deworming_date">
+        <div style="grid-column:1 / -1; padding:12px; background:#f7f7f7; border-radius:10px;">
+            <h4>🧪 Métodos complementarios</h4>
+            <label><b>Adjuntar PDF / imagen / estudio</b></label><br>
+            <input type="file" name="attachments" multiple>
+        </div>
 
-    <div style="margin-top:10px;">
-        <b>Próxima desparasitación rápida:</b><br><br>
-        <button type="button" onclick="setNextDewormingDays(21)">+21 días</button>
-        <button type="button" onclick="setNextDewormingDays(30)">+30 días</button>
-        <button type="button" onclick="setNextDewormingMonths(3)">+3 meses</button>
-        <button type="button" onclick="setNextDewormingMonths(6)">+6 meses</button>
-    </div>
+        <button
+            type="submit"
+            class="btn"
+            style="
+                width:100%;
+                font-size:18px;
+                padding:16px;
+                background:#22c55e;
+                color:white;
+                border:none;
+                border-radius:10px;
+                font-weight:bold;
+                cursor:pointer;
+                grid-column:1 / -1;
+                margin-top:10px;
+            "
+        >
+            💾 Guardar evento clínico
+        </button>
 
-    <div style="margin-top:10px; grid-column:1 / -1; padding:12px; background:#f7f7f7; border-radius:10px;">
-    <h4>🧪 Métodos complementarios</h4>
-    <label><b>Adjuntar PDF / imagen / estudio</b></label><br>
-    <input type="file" name="attachments" multiple>
-</div>
+    </form>
 
-<button
-    type="submit"
-    class="btn"
-    style="
-        width:100%;
-        font-size:18px;
-        padding:16px;
-        background:#22c55e;
-        color:white;
-        border:none;
-        border-radius:10px;
-        font-weight:bold;
-        cursor:pointer;
-        grid-column:1 / -1;
-        margin-top:10px;
-    "
->
-    💾 Guardar evento clínico
-</button>
-</div>
-</form>
 </div>
 </details>
 <details class="hc-section hc-legacy">
@@ -1216,10 +1229,10 @@ document.addEventListener('DOMContentLoaded', function() {
     function actualizarCampos() {
         const tipo = selector.value;
 
-        if (ecgBox) ecgBox.style.display = tipo === 'ECG' ? 'block' : 'none';
-        if (ecoBox) ecoBox.style.display = tipo === 'Ecocardiografía' ? 'block' : 'none';
-        if (vaccineBox) vaccineBox.style.display = tipo === 'Vacuna' ? 'block' : 'none';
-        if (dewormingBox) dewormingBox.style.display = tipo === 'Desparasitación' ? 'block' : 'none';
+        if (ecgBox) ecgBox.style.display = tipo === 'ECG' ? 'grid' : 'none';
+        if (ecoBox) ecoBox.style.display = tipo === 'Ecocardiografía' ? 'grid' : 'none';
+        if (vaccineBox) vaccineBox.style.display = tipo === 'Vacuna' ? 'grid' : 'none';
+        if (dewormingBox) dewormingBox.style.display = tipo === 'Desparasitación' ? 'grid' : 'none';
     }
 
     selector.addEventListener('change', actualizarCampos);
