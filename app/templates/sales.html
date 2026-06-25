@@ -612,15 +612,19 @@
                         <h2>🧾 Últimas ventas</h2>
                     </div>
 
-                    <form method="get" action="/sales" class="sales-filter">
+                    <div class="sales-filter">
                         <div class="field">
                             <label>Fecha</label>
-                            <input type="date" name="sale_date" value="{{ selected_date }}">
+                            <input type="date" id="sale_date_filter" value="{{ selected_date }}">
                         </div>
-
-                        <button type="submit" class="mini-btn primary">Buscar</button>
+                    
+                        <button type="button" class="mini-btn primary"
+                                onclick="window.location.href='/sales?sale_date=' + document.getElementById('sale_date_filter').value">
+                            Buscar
+                        </button>
+                    
                         <a href="/sales" class="mini-btn">Hoy</a>
-                    </form>
+                    </div>
 
                     {% if sales %}
                         {% for sale in sales %}
