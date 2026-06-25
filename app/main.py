@@ -2425,77 +2425,78 @@ filename = (file.filename or "").lower()
 rows = []
 
 if filename.endswith(".xlsx"):
-wb = load_workbook(BytesIO(content), data_only=True)
-ws = wb.active
+    wb = load_workbook(BytesIO(content), data_only=True)
+    ws = wb.active
 
-headers = [clean_text(c.value) for c in ws[1]]
-
-for row in ws.iter_rows(min_row=2, values_only=True):
-rows.append(dict(zip(headers, row)))
-
+    headers = [clean_text(c.value) for c in ws[1]]
+    
+    for row in ws.iter_rows(min_row=2, values_only=True):
+    rows.append(dict(zip(headers, row)))
+    
 else:
-text_content = content.decode("utf-8-sig", errors="replace")
+    text_content = content.decode("utf-8-sig", errors="replace")
 
-sample = text_content[:1000]
-delimiter = ";" if sample.count(";") >= sample.count(",") else ","
+    sample = text_content[:1000]
+    delimiter = ";" if sample.count(";") >= sample.count(",") else ","
+    
+    reader = csv.DictReader(
+    io.StringIO(text_content),
+    delimiter=delimiter
+    )
 
-reader = csv.DictReader(
-io.StringIO(text_content),
-delimiter=delimiter
-)
+    rows = list(reader)
 
-rows = list(reader)
+    imported = 0
+    skipped = 0
+    created_owners = 0
+    created_patients = 0
 
-imported = 0
-skipped = 0
-created_owners = 0
-created_patients = 0
+    for row in rows:
 
-for row in rows:
+        owner_name = pick(row, [
+            "Propietario / Cliente",
+            "Propietario",
+            "Cliente",
+            "Dueño",
+            "Responsable"
+        ])
 
-owner_name = pick(row, [
-"Propietario / Cliente",
-"Propietario",
-"Cliente",
-"Dueño",
-"Responsable"
-])
+        patient_name = pick(row, [
+            "Paciente / Mascota",
+            "Paciente",
+            "Mascota",
+            "Animal"
+        ])
 
-patient_name = pick(row, [
-"Paciente / Mascota",
-"Paciente",
-"Mascota",
-"Animal"
-])
+        phone = pick(row, [
+            "Teléfono / WhatsApp",
+            "Teléfono",
+            "Telefono",
+            "WhatsApp",
+            "Whatsapp",
+            "Celular"
+        ])
 
-phone = pick(row, [
-"Teléfono / WhatsApp",
-"Teléfono",
-"Telefono",
-"WhatsApp",
-"Whatsapp",
-"Celular"
-])
+        reminder_date = parse_date(
+            pick(row, [
+                "Fecha",
+                "Fecha pendiente"
+            ])
+        )
 
-reminder_date = parse_date(
-pick(row, [
-    "Fecha",
-    "Fecha pendiente"
-])
-)
+        service = pick(row, [
+            "Motivo / Servicio",
+            "Motivo",
+            "Servicio",
+            "Detalle"
+        ])
 
-service = pick(row, [
-"Motivo / Servicio",
-"Motivo",
-"Servicio",
-"Detalle"
-])
+        notes = pick(row, [
+            "Notas",
+            "Observaciones",
+            "Comentario"
+        ])
 
-notes = pick(row, [
-"Notas",
-"Observaciones",
-"Comentario"
-])
         if not reminder_date:
             skipped += 1
             continue
