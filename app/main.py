@@ -3009,10 +3009,7 @@ def event_whatsapp(
     if not number.startswith("54"):
         number = "549" + number
 
-    if (
-        event.event_type == "Vacuna"
-        or "vacun" in (event.title or "").lower()
-    ):
+    if event.event_type == "Vacuna" or "vacun" in (event.title or "").lower():
         vacuna = event.title if event.title else "correspondiente"
     
         message = (
@@ -3021,13 +3018,7 @@ def event_whatsapp(
             f"¡Los esperamos!"
         )
     
-        elif (
-            event.event_type == "Desparasitación"
-            or "despar" in (event.title or "").lower()
-            or "antiparas" in (event.title or "").lower()
-            or "aprax" in (event.title or "").lower()
-            or "pipeta" in (event.title or "").lower()
-        ):
+    elif event.event_type == "Desparasitación" or "despar" in (event.title or "").lower() or "antiparas" in (event.title or "").lower() or "aprax" in (event.title or "").lower() or "pipeta" in (event.title or "").lower():
             message = (
                 f"Buenos días *{owner.name}*.\n\n"
                 f"Te recordamos que *{patient.name}* debe desparasitarse hoy.\n\n"
