@@ -2,218 +2,243 @@
 
 {% block content %}
 
-<h1>📦 Productos y Stock</h1>
+<style>
+    .products-page { padding:24px 28px; }
+    .prod-hero {
+        background:white; border:1px solid #f3c6d8; border-radius:22px;
+        padding:22px; box-shadow:0 8px 26px rgba(0,0,0,0.05);
+        margin-bottom:18px; display:flex; justify-content:space-between;
+        gap:18px; align-items:flex-start; flex-wrap:wrap;
+    }
+    .prod-hero h1 { margin:0 0 6px 0; font-size:32px; color:#1f2937; }
+    .prod-hero p { margin:0; color:#6b7280; }
+    .prod-badge {
+        background:#fff0f7; color:#d85b9a; border:1px solid #f3c6d8;
+        border-radius:999px; padding:10px 14px; font-weight:bold;
+    }
+    .stats-grid {
+        display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+        gap:12px; margin-bottom:18px;
+    }
+    .stat-card {
+        background:white; border:1px solid #f3c6d8; border-radius:18px;
+        padding:16px; box-shadow:0 6px 20px rgba(0,0,0,0.04);
+        display:flex; gap:12px; align-items:center;
+    }
+    .stat-icon {
+        width:44px; height:44px; border-radius:14px; display:flex;
+        align-items:center; justify-content:center; font-size:22px; background:#fff0f7;
+    }
+    .stat-card b { display:block; font-size:22px; color:#d85b9a; line-height:1; }
+    .stat-card span { color:#6b7280; font-size:13px; }
+    .prod-card {
+        background:white; border:1px solid #f3c6d8; border-radius:22px;
+        padding:20px; box-shadow:0 8px 26px rgba(0,0,0,0.04);
+        margin-bottom:18px;
+    }
+    .tools-row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .tools-row input, .tools-row select {
+        border:1px solid #ead7e1; border-radius:14px; padding:12px 14px;
+        font-size:14px; background:white;
+    }
+    .tools-row input { flex:1; min-width:250px; }
+    .tools-row select { min-width:230px; }
+    .pink-btn, .soft-btn, .mini-btn {
+        border-radius:13px; padding:12px 15px; font-weight:bold; text-decoration:none;
+        border:1px solid #f3c6d8; cursor:pointer; display:inline-flex;
+        align-items:center; justify-content:center; gap:7px; white-space:nowrap;
+    }
+    .pink-btn { background:#d85b9a; color:white; border-color:#d85b9a; }
+    .soft-btn { background:#fff0f7; color:#d85b9a; }
+    .mini-btn { background:white; color:#d85b9a; padding:8px 10px; font-size:13px; }
+    .green-btn { background:#ecfdf5; color:#166534; border-color:#bbf7d0; }
+    .import-box {
+        background:#fff8fb; border:1px dashed #f3c6d8; border-radius:18px;
+        padding:16px; margin-top:14px;
+    }
+    .layout {
+        display:grid; grid-template-columns:minmax(0,1fr) 360px; gap:20px; align-items:start;
+    }
+    .new-product-panel { position:sticky; top:20px; }
+    .new-product-panel h2, .prod-list-head h2 { margin:0; color:#1f2937; }
+    .prod-list-head {
+        display:flex; justify-content:space-between; gap:12px; align-items:center;
+        margin-bottom:14px; flex-wrap:wrap;
+    }
+    .product-list { display:grid; gap:10px; }
+    .product-card {
+        border:1px solid #f1d6e2; border-radius:18px; padding:15px;
+        background:white; display:grid; grid-template-columns:1fr auto; gap:14px;
+        align-items:center; transition:.15s;
+    }
+    .product-card:hover { transform:translateY(-2px); box-shadow:0 8px 22px rgba(216,91,154,0.12); }
+    .product-main { display:flex; gap:13px; align-items:flex-start; }
+    .product-icon {
+        width:50px; height:50px; border-radius:16px; background:#fff0f7; color:#d85b9a;
+        border:1px solid #f3c6d8; display:flex; align-items:center; justify-content:center;
+        font-size:23px; flex:0 0 auto;
+    }
+    .product-name { font-weight:bold; color:#1f2937; font-size:17px; }
+    .product-meta { color:#6b7280; font-size:13px; margin-top:4px; }
+    .price-row { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+    .price-pill {
+        background:#f8fafc; border:1px solid #e5e7eb; border-radius:999px;
+        padding:6px 9px; font-size:12px; color:#374151;
+    }
+    .status-pill {
+        border-radius:999px; padding:6px 10px; font-weight:bold; font-size:12px;
+        border:1px solid #e5e7eb; display:inline-flex; align-items:center; gap:5px;
+    }
+    .status-ok { background:#dcfce7; color:#166534; border-color:#bbf7d0; }
+    .status-warn { background:#fef3c7; color:#92400e; border-color:#fde68a; }
+    .status-bad { background:#fee2e2; color:#991b1b; border-color:#fecaca; }
+    .product-actions { display:flex; gap:7px; flex-wrap:wrap; justify-content:flex-end; align-items:center; }
+    .adjust-form { display:inline; margin:0; }
+    .adjust-btn {
+        width:34px; height:34px; padding:0; border-radius:10px; border:1px solid #f3c6d8;
+        background:#fff0f7; color:#d85b9a; cursor:pointer; font-weight:bold;
+    }
+    .form-grid { display:grid; grid-template-columns:1fr; gap:10px; margin-top:14px; }
+    .form-grid input, .form-grid textarea {
+        width:100%; border:1px solid #ead7e1; border-radius:13px; padding:11px 12px; font-size:14px;
+    }
+    .form-grid textarea { min-height:90px; resize:vertical; }
+    .form-grid label { font-size:13px; font-weight:bold; color:#374151; margin-top:3px; }
+    .empty-state { text-align:center; padding:45px 20px; color:#6b7280; }
+    @media (max-width:1100px) {
+        .layout { grid-template-columns:1fr; }
+        .new-product-panel { position:static; }
+    }
+    @media (max-width:760px) {
+        .product-card { grid-template-columns:1fr; }
+        .product-actions { justify-content:flex-start; }
+    }
+</style>
 
-<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px;">
-    <div class="card">
-        <h3>{{ total_products }}</h3>
-        <small>Productos</small>
+<div class="products-page">
+
+    <div class="prod-hero">
+        <div>
+            <h1>📦 Productos y Stock</h1>
+            <p>Administrá productos, costos, márgenes, vencimientos y reposición.</p>
+        </div>
+        <div class="prod-badge">{{ total_products }} productos activos</div>
     </div>
 
-    <div class="card">
-        <h3>${{ "%.0f"|format(total_sale) }}</h3>
-        <small>Valor venta stock</small>
+    <div class="stats-grid">
+        <div class="stat-card"><div class="stat-icon">📦</div><div><b>{{ total_products }}</b><span>Productos</span></div></div>
+        <div class="stat-card"><div class="stat-icon">💰</div><div><b>${{ "%.0f"|format(total_sale) }}</b><span>Valor venta stock</span></div></div>
+        <div class="stat-card"><div class="stat-icon">🏷️</div><div><b>${{ "%.0f"|format(total_cost) }}</b><span>Valor costo stock</span></div></div>
+        <div class="stat-card"><div class="stat-icon">📈</div><div><b>{{ "%.1f"|format(avg_margin) }}%</b><span>Margen promedio</span></div></div>
+        <div class="stat-card"><div class="stat-icon">⚠️</div><div><b>{{ low_stock }}</b><span>A reponer</span></div></div>
     </div>
 
-    <div class="card">
-        <h3>${{ "%.0f"|format(total_cost) }}</h3>
-        <small>Valor costo stock</small>
-    </div>
-
-    <div class="card">
-        <h3>{{ "%.1f"|format(avg_margin) }}%</h3>
-        <small>Margen promedio</small>
-    </div>
-
-    <div class="card">
-        <h3>{{ low_stock }}</h3>
-        <small>A reponer</small>
-    </div>
-</div>
-
-<div class="card" style="margin-bottom:20px;">
-    <form method="get" action="/products">
-        <div style="display:grid;grid-template-columns:2fr 1fr auto;gap:10px;">
-            <input
-                name="q"
-                value="{{ q }}"
-                placeholder="Buscar producto, código, proveedor..."
-            >
-
+    <div class="prod-card">
+        <form method="get" action="/products" class="tools-row">
+            <input name="q" value="{{ q }}" placeholder="🔎 Buscar producto, código, proveedor, laboratorio...">
             <select name="rubro">
                 <option value="">Todos los rubros</option>
-
                 {% for r in rubros %}
-                    <option value="{{ r }}" {% if rubro==r %}selected{% endif %}>
-                        {{ r }}
-                    </option>
+                    <option value="{{ r }}" {% if rubro==r %}selected{% endif %}>{{ r }}</option>
                 {% endfor %}
             </select>
-
-            <button type="submit">
-                Buscar
-            </button>
-        </div>
-    </form>
-</div>
-<div class="card" style="margin-bottom:20px;">
-    <h3>📥 Importar Excel MyVete</h3>
-
-    <form method="post"
-          action="/products/import"
-          enctype="multipart/form-data">
-
-        <input type="file"
-               name="file"
-               accept=".xlsx,.xls">
-
-        <button type="submit">
-            Importar Excel
-        </button>
-
-    </form>
-</div>
-<div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;">
-
-    <div class="card">
-
-        <table style="width:100%;">
-            <thead>
-                <tr>
-                    <th>Producto</th>
-                    <th>Rubro</th>
-                    <th>Stock</th>
-                    <th>Costo</th>
-                    <th>Venta</th>
-                    <th>Margen</th>
-                    <th>Estado</th>
-                </tr>
-            </thead>
-
-            <tbody>
-
-            {% for p in products %}
-
-                <tr>
-                    <td>{{ p.name }}</td>
-                    <td>{{ p.rubro }}</td>
-                    <td>{{ p.stock or '' }}</td>
-                    <td>${{ p.cost_price or '' }}</td>
-                    <td>${{ p.sale_price or '' }}</td>
-                    <td>{{ "%.1f"|format(p.margin_percent or 0) }}%</td>
-                    <td>
-                    {% if p.stock is not none and p.stock < 0 %}
-                    🔴 Stock negativo
-                    
-                    {% elif p.expiration_date and (p.expiration_date - today).days <= 60 %}
-                    🟡 Vence pronto
-                    {% else %}
-                    🟢 OK
-                    {% endif %}
-                    </td>
-                    <td>
-                        <a href="/products/{{ p.id }}/edit">✏️ Editar</a>
-                    
-                        <form method="post"
-                              action="/products/{{ p.id }}/adjust"
-                              style="display:inline;">
-                            <input type="hidden" name="qty" value="-1">
-                                <button
-                                type="submit"
-                                style="
-                                    width:24px;
-                                    height:24px;
-                                    padding:0;
-                                    background:#e5e7eb;
-                                    border:1px solid #d1d5db;
-                                    border-radius:4px;
-                                    cursor:pointer;
-                                    margin-left:2px;
-                                "
-                            >
-                            ➖
-                            </button>
-                        </form>
-                    
-                        <form method="post"
-                              action="/products/{{ p.id }}/adjust"
-                              style="display:inline;">
-                            <input type="hidden" name="qty" value="1">
-                            <button
-                                type="submit"
-                                style="
-                                    width:24px;
-                                    height:24px;
-                                    padding:0;
-                                    background:#e5e7eb;
-                                    border:1px solid #d1d5db;
-                                    border-radius:4px;
-                                    cursor:pointer;
-                                    margin-left:2px;
-                                "
-                            >
-                            ➕
-                            </button>
-                        </form>
-                    </td>
-                </tr>
-
-            {% endfor %}
-
-            </tbody>
-
-        </table>
-
-    </div>
-
-    <div class="card">
-
-        <h3>➕ Nuevo producto</h3>
-
-        <form method="post" action="/products">
-
-            <input name="name" placeholder="Nombre">
-
-            <input name="rubro" placeholder="Rubro">
-
-            <input name="tipo" placeholder="Tipo">
-
-            <input name="code" placeholder="Código">
-
-            <input name="barcode" placeholder="Código de barras">
-
-            <input name="cost_price" placeholder="Precio costo">
-
-            <input name="sale_price" placeholder="Precio venta">
-
-            <input name="stock" placeholder="Stock">
-
-            <input name="min_stock" placeholder="Stock mínimo">
-
-            <label>Vencimiento</label>
-            <input type="date" name="expiration_date">
-
-            <input name="provider" placeholder="Proveedor">
-
-            <input name="manufacturer" placeholder="Laboratorio / elaborador">
-
-            <textarea
-                name="notes"
-                rows="4"
-                placeholder="Observaciones"
-            ></textarea>
-
-            <button
-                type="submit"
-                style="width:100%;background:green;color:white;padding:10px;border:none;border-radius:8px;"
-            >
-                Guardar producto
-            </button>
-
+            <button type="submit" class="pink-btn">Buscar</button>
         </form>
 
+        <div class="import-box">
+            <h3 style="margin:0 0 10px 0; color:#d85b9a;">📥 Importar Excel MyVete</h3>
+            <form method="post" action="/products/import" enctype="multipart/form-data" class="tools-row">
+                <input type="file" name="file" accept=".xlsx,.xls" style="flex:1;">
+                <button type="submit" class="soft-btn">Importar Excel</button>
+            </form>
+        </div>
     </div>
 
+    <div class="layout">
+        <div class="prod-card">
+            <div class="prod-list-head">
+                <h2>📋 Listado de productos</h2>
+                <span class="prod-badge">Mostrando {{ products|length }}</span>
+            </div>
+
+            {% if products %}
+                <div class="product-list">
+                    {% for p in products %}
+                        <div class="product-card">
+                            <div class="product-main">
+                                <div class="product-icon">💊</div>
+                                <div>
+                                    <div class="product-name">{{ p.name }}</div>
+                                    <div class="product-meta">
+                                        {{ p.rubro or 'Sin rubro' }}{% if p.tipo %} · {{ p.tipo }}{% endif %}
+                                        {% if p.code %} · Código: {{ p.code }}{% endif %}
+                                    </div>
+
+                                    <div class="price-row">
+                                        <span class="price-pill">Stock: <b>{{ p.stock if p.stock is not none else '-' }}</b></span>
+                                        <span class="price-pill">Costo: <b>${{ p.cost_price or 0 }}</b></span>
+                                        <span class="price-pill">Venta: <b>${{ p.sale_price or 0 }}</b></span>
+                                        <span class="price-pill">Margen: <b>{{ "%.1f"|format(p.margin_percent or 0) }}%</b></span>
+                                        {% if p.expiration_date %}<span class="price-pill">Vence: {{ p.expiration_date.strftime('%d/%m/%Y') }}</span>{% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="product-actions">
+                                {% if p.stock is not none and p.stock < 0 %}
+                                    <span class="status-pill status-bad">🔴 Stock negativo</span>
+                                {% elif p.expiration_date and (p.expiration_date - today).days <= 60 %}
+                                    <span class="status-pill status-warn">🟡 Vence pronto</span>
+                                {% elif p.stock is not none and p.min_stock is not none and p.stock <= p.min_stock %}
+                                    <span class="status-pill status-warn">🟡 Reponer</span>
+                                {% else %}
+                                    <span class="status-pill status-ok">🟢 OK</span>
+                                {% endif %}
+
+                                <a href="/products/{{ p.id }}/edit" class="mini-btn">✏️ Editar</a>
+
+                                <form method="post" action="/products/{{ p.id }}/adjust" class="adjust-form">
+                                    <input type="hidden" name="qty" value="-1">
+                                    <button type="submit" class="adjust-btn">−</button>
+                                </form>
+
+                                <form method="post" action="/products/{{ p.id }}/adjust" class="adjust-form">
+                                    <input type="hidden" name="qty" value="1">
+                                    <button type="submit" class="adjust-btn">＋</button>
+                                </form>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <h2>🔎 No hay productos para mostrar</h2>
+                    <p>Probá con otro filtro o cargá un producto nuevo.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="prod-card new-product-panel">
+            <h2>➕ Nuevo producto</h2>
+            <form method="post" action="/products" class="form-grid">
+                <input name="name" placeholder="Nombre" required>
+                <input name="rubro" placeholder="Rubro">
+                <input name="tipo" placeholder="Tipo">
+                <input name="code" placeholder="Código">
+                <input name="barcode" placeholder="Código de barras">
+                <input name="cost_price" placeholder="Precio costo">
+                <input name="sale_price" placeholder="Precio venta">
+                <input name="stock" placeholder="Stock">
+                <input name="min_stock" placeholder="Stock mínimo">
+                <label>Vencimiento</label>
+                <input type="date" name="expiration_date">
+                <input name="provider" placeholder="Proveedor">
+                <input name="manufacturer" placeholder="Laboratorio / elaborador">
+                <textarea name="notes" rows="4" placeholder="Observaciones"></textarea>
+                <button type="submit" class="pink-btn" style="width:100%;">💾 Guardar producto</button>
+            </form>
+        </div>
+    </div>
 </div>
 
 {% endblock %}
