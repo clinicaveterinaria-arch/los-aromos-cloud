@@ -1,233 +1,141 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Detalle de evento</title>
+{% extends 'base.html' %}
+{% block content %}
 
-    <style>
-    @media print {
-        button {
-            display: none;
-        }
+<style>
+    .event-page { padding:24px 28px; }
+    .event-toolbar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px; }
+    .event-btn {
+        border:1px solid #f3c6d8; background:white; color:#d85b9a; border-radius:13px;
+        padding:10px 14px; font-weight:bold; text-decoration:none; cursor:pointer; display:inline-flex; gap:7px; align-items:center;
     }
-    </style>
+    .event-btn.primary { background:#d85b9a; color:white; border-color:#d85b9a; }
+    .event-hero {
+        background:white; border:1px solid #f3c6d8; border-radius:24px;
+        padding:24px; box-shadow:0 10px 30px rgba(0,0,0,.05); margin-bottom:18px;
+        display:flex; justify-content:space-between; gap:18px; flex-wrap:wrap; align-items:flex-start;
+    }
+    .event-hero h1 { margin:0 0 6px 0; font-size:32px; color:#1f2937; }
+    .event-hero p { margin:6px 0; color:#4b5563; }
+    .event-pill { background:#fff0f7; color:#d85b9a; border:1px solid #f3c6d8; border-radius:999px; padding:8px 12px; font-weight:bold; }
+    .event-card { background:white; border:1px solid #f3c6d8; border-radius:22px; padding:20px; box-shadow:0 8px 26px rgba(0,0,0,.04); margin-bottom:18px; }
+    .event-card h2 { margin:0 0 14px 0; color:#1f2937; }
+    .info-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; }
+    .info-box { border:1px solid #f3edf1; border-radius:14px; padding:13px; background:#fff8fb; }
+    .info-box b { color:#1f2937; display:block; margin-bottom:5px; }
+    .text-block { border-left:4px solid #d85b9a; padding:10px 14px; background:#fff8fb; border-radius:12px; margin-bottom:12px; white-space:pre-wrap; }
+    .modern-table { width:100%; border-collapse:collapse; overflow:hidden; border-radius:14px; }
+    .modern-table th { background:#fff0f7; color:#d85b9a; text-align:left; padding:10px; border-bottom:1px solid #f3c6d8; }
+    .modern-table td { padding:10px; border-bottom:1px solid #f3edf1; }
+    .modern-table tr:last-child td { border-bottom:none; }
+    @media print {
+        .sidebar, .topbar, .event-toolbar { display:none !important; }
+        .content { margin-left:0 !important; }
+        .event-page { padding:0; }
+        .event-card, .event-hero { box-shadow:none; }
+    }
+</style>
 
-</head>
-<body>
-<div style="margin:15px 0;">
-    <button onclick="window.print()" style="padding:10px 16px; border-radius:8px; border:none; background:#6c757d; color:white; cursor:pointer;">
-        🖨️ Imprimir / Guardar PDF
-    </button>
-</div>
-<h1>{{ event.event_type }}</h1>
+<div class="event-page">
 
-<p><b>Fecha:</b> {{ event.event_date.strftime('%d/%m/%Y %H:%M') }}</p>
+    <div class="event-toolbar">
+        <a href="/patients/{{ patient.id }}" class="event-btn">← Volver a historia clínica</a>
+        <button onclick="window.print()" class="event-btn primary">🖨️ Imprimir / Guardar PDF</button>
+    </div>
 
-<p><b>Título:</b> {{ event.title }}</p>
+    <div class="event-hero">
+        <div>
+            <h1>{{ event.event_type }}</h1>
+            <p><b>Paciente:</b> {{ patient.name }}</p>
+            <p><b>Fecha:</b> {{ event.event_date.strftime('%d/%m/%Y %H:%M') }}</p>
+        </div>
+        <span class="event-pill">{{ event.title or event.event_type }}</span>
+    </div>
 
-<p><b>Descripción:</b> {{ event.description }}</p>
+    <div class="event-card">
+        <h2>📋 Detalle clínico</h2>
+        <div class="info-grid">
+            <div class="info-box"><b>Título</b>{{ event.title or '-' }}</div>
+            <div class="info-box"><b>Tipo</b>{{ event.event_type }}</div>
+            <div class="info-box"><b>Creado por</b>{{ event.created_by or '-' }}</div>
+        </div>
+        {% if event.description %}<h3>Descripción</h3><div class="text-block">{{ event.description }}</div>{% endif %}
+        {% if event.anamnesis %}<h3>Anamnesis</h3><div class="text-block">{{ event.anamnesis }}</div>{% endif %}
+        {% if event.physical_exam %}<h3>Examen físico</h3><div class="text-block">{{ event.physical_exam }}</div>{% endif %}
+        {% if event.diagnosis %}<h3>Diagnóstico</h3><div class="text-block">{{ event.diagnosis }}</div>{% endif %}
+        {% if event.treatment %}<h3>Tratamiento</h3><div class="text-block">{{ event.treatment }}</div>{% endif %}
+    </div>
 
-<p><b>Anamnesis:</b> {{ event.anamnesis }}</p>
+    {% if event.event_type == 'ECG' %}
+    <div class="event-card">
+        <h2>💗 Electrocardiograma</h2>
+        <table class="modern-table">
+            <tr><th>Parámetro</th><th>Valor</th><th>Valor normal</th></tr>
+            <tr><td>FC</td><td>{{ event.ecg_hr }} lpm</td><td>60–160 lpm</td></tr>
+            <tr><td>Ritmo</td><td>{{ event.ecg_rhythm }}</td><td>Sinusal / según contexto</td></tr>
+            <tr><td>Onda P</td><td>{{ event.ecg_p }}</td><td>&lt; 0.04 seg / &lt; 0.4 mV</td></tr>
+            <tr><td>Intervalo PR</td><td>{{ event.ecg_pr }}</td><td>0.06–0.13 seg</td></tr>
+            <tr><td>QRS</td><td>{{ event.ecg_qrs }}</td><td>&lt; 0.06 seg / hasta 3.0 mV</td></tr>
+            <tr><td>Segmento ST</td><td>{{ event.ecg_st }}</td><td>Isoeléctrico o mínima variación</td></tr>
+            <tr><td>Onda T</td><td>{{ event.ecg_t }}</td><td>≤ 25% de R</td></tr>
+            <tr><td>Intervalo QT</td><td>{{ event.ecg_qt }}</td><td>Variable según FC</td></tr>
+            <tr><td>Eje eléctrico</td><td>{{ event.ecg_axis }}°</td><td>+40° a +100°</td></tr>
+        </table>
+        {% if event.ecg_interpretation %}<h3>Interpretación</h3><div class="text-block">{{ event.ecg_interpretation }}</div>{% endif %}
+    </div>
 
-<p><b>Examen físico:</b> {{ event.physical_exam }}</p>
+    {% if previous_ecg %}
+    <div class="event-card">
+        <h2>📈 Comparación con ECG previo</h2>
+        <table class="modern-table">
+            <tr><th>Parámetro</th><th>ECG actual</th><th>ECG previo</th></tr>
+            <tr><td>Fecha</td><td>{{ event.event_date.strftime('%d/%m/%Y') }}</td><td>{{ previous_ecg.event_date.strftime('%d/%m/%Y') }}</td></tr>
+            <tr><td>FC</td><td>{{ event.ecg_hr }} lpm</td><td>{{ previous_ecg.ecg_hr }} lpm</td></tr>
+            <tr><td>Ritmo</td><td>{{ event.ecg_rhythm }}</td><td>{{ previous_ecg.ecg_rhythm }}</td></tr>
+            <tr><td>QRS</td><td>{{ event.ecg_qrs }}</td><td>{{ previous_ecg.ecg_qrs }}</td></tr>
+            <tr><td>QT</td><td>{{ event.ecg_qt }}</td><td>{{ previous_ecg.ecg_qt }}</td></tr>
+            <tr><td>Eje eléctrico</td><td>{{ event.ecg_axis }}°</td><td>{{ previous_ecg.ecg_axis }}°</td></tr>
+        </table>
+    </div>
+    {% endif %}
+    {% endif %}
 
-<p><b>Diagnóstico:</b> {{ event.diagnosis }}</p>
+    {% if event.event_type == 'Ecocardiografía' %}
+    <div class="event-card">
+        <h2>🫀 Ecocardiografía</h2>
+        <div class="info-grid">
+            <div class="info-box"><b>AI/Ao</b>{{ event.eco_aiao or '-' }}</div>
+            <div class="info-box"><b>Fracción de acortamiento</b>{{ event.eco_fs or '-' }}%</div>
+            <div class="info-box"><b>Clasificación ACVIM</b>{{ event.eco_acvim or '-' }}</div>
+        </div>
+        {% if event.eco_diagnosis %}<h3>Diagnóstico ecocardiográfico</h3><div class="text-block">{{ event.eco_diagnosis }}</div>{% endif %}
+        {% if event.eco_treatment %}<h3>Tratamiento cardiológico</h3><div class="text-block">{{ event.eco_treatment }}</div>{% endif %}
+    </div>
+    {% endif %}
 
-<p><b>Tratamiento:</b> {{ event.treatment }}</p>
-{% if event.event_type == 'ECG' %}
-<hr>
+    {% if event.event_type == 'Vacuna' %}
+    <div class="event-card">
+        <h2>💉 Vacunación</h2>
+        <div class="info-grid">
+            <div class="info-box"><b>Vacuna</b>{{ event.vaccine_name or '-' }}</div>
+            <div class="info-box"><b>Lote</b>{{ event.vaccine_lot or '-' }}</div>
+            <div class="info-box"><b>Refuerzo</b>{{ event.vaccine_expiration or '-' }}</div>
+            <div class="info-box"><b>Próxima vacuna</b>{{ event.next_vaccine_date or '-' }}</div>
+        </div>
+    </div>
+    {% endif %}
 
-<div style="background:#f8f9fa; border:1px solid #dee2e6; border-radius:10px; padding:15px; margin:10px 0;">
-
-    <h3 style="margin-top:0;">💗 Electrocardiograma</h3>
-
-    <table style="width:auto;">
-        <tr>
-            <td style="padding-right:20px;"><strong>FC:</strong></td>
-            <td>{{ event.ecg_hr }} lpm</td>
-        </tr>
-        <tr>
-            <td><strong>Ritmo:</strong></td>
-            <td>{{ event.ecg_rhythm }}</td>
-        </tr>
-        <tr>
-            <td><strong>Onda P:</strong></td>
-            <td>{{ event.ecg_p }}</td>
-        </tr>
-        <tr>
-            <td><strong>Intervalo PR:</strong></td>
-            <td>{{ event.ecg_pr }}</td>
-        </tr>
-        <tr>
-            <td><strong>QRS:</strong></td>
-            <td>{{ event.ecg_qrs }}</td>
-        </tr>
-        <tr>
-            <td><strong>Segmento ST:</strong></td>
-            <td>{{ event.ecg_st }}</td>
-        </tr>
-        <tr>
-            <td><strong>Onda T:</strong></td>
-            <td>{{ event.ecg_t }}</td>
-        </tr>
-        <tr>
-            <td><strong>Intervalo QT:</strong></td>
-            <td>{{ event.ecg_qt }}</td>
-        </tr>
-        <tr>
-            <td><strong>Eje eléctrico:</strong></td>
-            <td>{{ event.ecg_axis }}°</td>
-        </tr>
-    </table>
-<hr>
-
-<h4>📊 Tabla comparativa ECG</h4>
-
-<table style="width:auto; border-collapse:collapse; margin-top:8px;">
-    <tr>
-        <th style="border:1px solid #ccc; padding:6px;">Parámetro</th>
-        <th style="border:1px solid #ccc; padding:6px;">Valor</th>
-        <th style="border:1px solid #ccc; padding:6px;">Valor normal</th>
-    </tr>
-    <tr>
-        <td style="border:1px solid #ccc; padding:6px;"><strong>FC</strong></td>
-        <td style="border:1px solid #ccc; padding:6px;">{{ event.ecg_hr }} lpm</td>
-        <td style="border:1px solid #ccc; padding:6px;">60–160 lpm</td>
-    </tr>
-    <tr>
-        <td style="border:1px solid #ccc; padding:6px;"><strong>Onda P</strong></td>
-        <td style="border:1px solid #ccc; padding:6px;">{{ event.ecg_p }}</td>
-        <td style="border:1px solid #ccc; padding:6px;">&lt; 0.04 seg / &lt; 0.4 mV</td>
-    </tr>
-    <tr>
-        <td style="border:1px solid #ccc; padding:6px;"><strong>Intervalo PR</strong></td>
-        <td style="border:1px solid #ccc; padding:6px;">{{ event.ecg_pr }}</td>
-        <td style="border:1px solid #ccc; padding:6px;">0.06–0.13 seg</td>
-    </tr>
-    <tr>
-        <td style="border:1px solid #ccc; padding:6px;"><strong>QRS</strong></td>
-        <td style="border:1px solid #ccc; padding:6px;">{{ event.ecg_qrs }}</td>
-        <td style="border:1px solid #ccc; padding:6px;">&lt; 0.06 seg / hasta 3.0 mV</td>
-    </tr>
-    <tr>
-        <td style="border:1px solid #ccc; padding:6px;"><strong>Segmento ST</strong></td>
-        <td style="border:1px solid #ccc; padding:6px;">{{ event.ecg_st }}</td>
-        <td style="border:1px solid #ccc; padding:6px;">Isoeléctrico o mínima variación</td>
-    </tr>
-    <tr>
-        <td style="border:1px solid #ccc; padding:6px;"><strong>Onda T</strong></td>
-        <td style="border:1px solid #ccc; padding:6px;">{{ event.ecg_t }}</td>
-        <td style="border:1px solid #ccc; padding:6px;">≤ 25% de R</td>
-    </tr>
-    <tr>
-        <td style="border:1px solid #ccc; padding:6px;"><strong>Intervalo QT</strong></td>
-        <td style="border:1px solid #ccc; padding:6px;">{{ event.ecg_qt }}</td>
-        <td style="border:1px solid #ccc; padding:6px;">Variable según FC</td>
-    </tr>
-    <tr>
-        <td style="border:1px solid #ccc; padding:6px;"><strong>Eje eléctrico</strong></td>
-        <td style="border:1px solid #ccc; padding:6px;">{{ event.ecg_axis }}°</td>
-        <td style="border:1px solid #ccc; padding:6px;">+40° a +100°</td>
-    </tr>
-</table>
-{% if previous_ecg %}
-<hr>
-
-<h4>📈 Comparación con ECG previo</h4>
-
-<table style="width:auto; border-collapse:collapse; margin-top:8px;">
-    <tr>
-        <th style="border:1px solid #ccc; padding:6px;">Parámetro</th>
-        <th style="border:1px solid #ccc; padding:6px;">ECG actual</th>
-        <th style="border:1px solid #ccc; padding:6px;">ECG previo</th>
-    </tr>
-    <tr>
-        <td style="border:1px solid #ccc; padding:6px;"><strong>Fecha</strong></td>
-        <td style="border:1px solid #ccc; padding:6px;">{{ event.event_date.strftime('%d/%m/%Y') }}</td>
-        <td style="border:1px solid #ccc; padding:6px;">{{ previous_ecg.event_date.strftime('%d/%m/%Y') }}</td>
-    </tr>
-    <tr>
-        <td style="border:1px solid #ccc; padding:6px;"><strong>FC</strong></td>
-        <td style="border:1px solid #ccc; padding:6px;">{{ event.ecg_hr }} lpm</td>
-        <td style="border:1px solid #ccc; padding:6px;">{{ previous_ecg.ecg_hr }} lpm</td>
-    </tr>
-    <tr>
-        <td style="border:1px solid #ccc; padding:6px;"><strong>Ritmo</strong></td>
-        <td style="border:1px solid #ccc; padding:6px;">{{ event.ecg_rhythm }}</td>
-        <td style="border:1px solid #ccc; padding:6px;">{{ previous_ecg.ecg_rhythm }}</td>
-    </tr>
-    <tr>
-        <td style="border:1px solid #ccc; padding:6px;"><strong>QRS</strong></td>
-        <td style="border:1px solid #ccc; padding:6px;">{{ event.ecg_qrs }}</td>
-        <td style="border:1px solid #ccc; padding:6px;">{{ previous_ecg.ecg_qrs }}</td>
-    </tr>
-    <tr>
-        <td style="border:1px solid #ccc; padding:6px;"><strong>QT</strong></td>
-        <td style="border:1px solid #ccc; padding:6px;">{{ event.ecg_qt }}</td>
-        <td style="border:1px solid #ccc; padding:6px;">{{ previous_ecg.ecg_qt }}</td>
-    </tr>
-    <tr>
-        <td style="border:1px solid #ccc; padding:6px;"><strong>Eje eléctrico</strong></td>
-        <td style="border:1px solid #ccc; padding:6px;">{{ event.ecg_axis }}°</td>
-        <td style="border:1px solid #ccc; padding:6px;">{{ previous_ecg.ecg_axis }}°</td>
-    </tr>
-</table>
-{% endif %}
-    {% if event.ecg_interpretation %}
-    <hr>
-    <strong>Interpretación:</strong><br>
-    {{ event.ecg_interpretation }}
+    {% if event.event_type == 'Desparasitación' %}
+    <div class="event-card">
+        <h2>🪱 Desparasitación</h2>
+        <div class="info-grid">
+            <div class="info-box"><b>Producto</b>{{ event.dewormer_product or '-' }}</div>
+            <div class="info-box"><b>Droga</b>{{ event.dewormer_drug or '-' }}</div>
+            <div class="info-box"><b>Dosis</b>{{ event.dewormer_dose or '-' }}</div>
+            <div class="info-box"><b>Próxima</b>{{ event.next_deworming_date or '-' }}</div>
+        </div>
+    </div>
     {% endif %}
 
 </div>
-{% endif %}
-{% if event.event_type == 'Ecocardiografía' %}
-<hr>
 
-<div style="background:#fff0f5; border:1px solid #f3c6d8; border-radius:10px; padding:15px; margin:10px 0;">
-
-    <h3>🫀 Ecocardiografía</h3>
-
-    <table style="width:auto; border-spacing:8px;">
-        <tr>
-            <td><strong>AI/Ao:</strong></td>
-            <td>{{ event.eco_aiao }}</td>
-        </tr>
-        <tr>
-            <td><strong>Fracción de acortamiento:</strong></td>
-            <td>{{ event.eco_fs }}%</td>
-        </tr>
-        <tr>
-            <td><strong>Clasificación ACVIM:</strong></td>
-            <td>{{ event.eco_acvim }}</td>
-        </tr>
-    </table>
-
-    {% if event.eco_diagnosis %}
-    <hr>
-    <strong>Diagnóstico ecocardiográfico:</strong><br>
-    {{ event.eco_diagnosis }}
-    {% endif %}
-
-    {% if event.eco_treatment %}
-    <hr>
-    <strong>Tratamiento cardiológico:</strong><br>
-    {{ event.eco_treatment }}
-    {% endif %}
-
-</div>
-{% endif %}
-{% if event.event_type == 'Vacuna' %}
-<hr>
-<h3>💉 Vacunación</h3>
-
-<p><b>Vacuna:</b> {{ event.vaccine_name }}</p>
-<p><b>Lote:</b> {{ event.vaccine_lot }}</p>
-<p><b>Próxima vacuna:</b> {{ event.vaccine_expiration }}</p>
-<p><b>Próxima vacuna:</b> {{ event.next_vaccine_date }}</p>
-{% endif %}
-
-<br>
-<a href="/patients/{{ patient.id }}">⬅ Volver a la historia clínica</a>
-
-</body>
-</html>
+{% endblock %}
