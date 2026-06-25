@@ -2392,12 +2392,26 @@ async def migration_agenda_pendientes(
         return ''
 
     def parse_date(value):
+        if value is None:
+            return None
+    
+        if hasattr(value, 'date'):
+            return value.date()
+    
         value = clean_text(value)
-        for fmt in ['%d/%m/%Y', '%Y-%m-%d', '%d-%m-%Y', '%d/%m/%y']:
+    
+        for fmt in [
+            '%d/%m/%Y',
+            '%Y-%m-%d',
+            '%Y-%m-%d %H:%M:%S',
+            '%d-%m-%Y',
+            '%d/%m/%y'
+        ]:
             try:
                 return datetime.strptime(value, fmt).date()
             except Exception:
                 pass
+    
         return None
 
     content = await file.read()
@@ -2425,13 +2439,56 @@ async def migration_agenda_pendientes(
     created_patients = 0
 
     for row in rows:
-        owner_name = pick(row, ['Propietario', 'Cliente', 'Dueño', 'Responsable', 'Nombre propietario'])
-        patient_name = pick(row, ['Paciente', 'Mascota', 'Animal', 'Nombre paciente'])
-        phone = pick(row, ['Teléfono', 'Telefono', 'Celular', 'WhatsApp', 'Whatsapp'])
-        date_value = pick(row, ['Fecha', 'Día', 'Dia', 'Fecha turno', 'Fecha agenda'])
-        time_value = pick(row, ['Hora', 'Horario', 'Turno', 'Hora inicio'])
-        service = pick(row, ['Servicio', 'Motivo', 'Tipo', 'Prestación', 'Prestacion'])
-        notes = pick(row, ['Notas', 'Nota', 'Observaciones', 'Comentario', 'Detalle'])
+    owner_name = pick(row, [
+        'Propietario / Cliente',
+        'Propietario',
+        'Cliente',
+        'Dueño',
+        'Responsable',
+        'Nombre propietario'
+    ])
+    
+    patient_name = pick(row, [
+        'Paciente / Mascota',
+        'Paciente',
+        'Mascota',
+        'Animal',
+        'Nombre paciente'
+    ])
+    
+    phone = pick(row, [
+        'Teléfono / WhatsApp',
+        'Teléfono',
+        'Telefono',
+        'Celular',
+        'WhatsApp',
+        'Whatsapp'
+    ])
+    
+    date_value = pick(row, [
+        'Fecha',
+        'Fecha pendiente',
+        'Fecha agenda',
+        'Fecha turno'
+    ])
+    
+    time_value = pick(row, [
+        'Hora',
+        'Horario'
+    ])
+    
+    service = pick(row, [
+        'Motivo / Servicio',
+        'Motivo',
+        'Servicio',
+        'Detalle'
+    ])
+    
+    notes = pick(row, [
+        'Notas',
+        'Observaciones',
+        'Comentario'
+    ])
 
         reminder_date = parse_date(date_value)
 
@@ -2477,7 +2534,20 @@ async def migration_agenda_pendientes(
             db.flush()
             created_patients += 1
 
-        title = service or 'Pendiente importado MyVete'
+        service_text = (service or notes or '').lower()
+
+        if 'vacuna' in service_text or 'vacun' in service_text:
+            event_type = 'Vacuna'
+            title = service or 'Vacuna pendiente'
+        elif 'despar' in service_text:
+            event_type = 'Desparasitación'
+            title = service or 'Desparasitación pendiente'
+        elif 'control' in service_text:
+            event_type = 'Control'
+            title = service or 'Control pendiente'
+        else:
+            event_type = 'Consulta clínica'
+            title = service or 'Pendiente importado MyVete'
 
         existing = (
             db.query(ClinicalEvent)
@@ -2504,7 +2574,7 @@ async def migration_agenda_pendientes(
         event = ClinicalEvent(
             patient_id=patient.id,
             event_date=datetime.combine(reminder_date, datetime.min.time()),
-            event_type='Pendiente',
+            event_type=event_type,
             title=title,
             description=description,
             reminder_date=reminder_date,
