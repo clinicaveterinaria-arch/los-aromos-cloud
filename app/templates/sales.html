@@ -534,7 +534,7 @@
                             <select name="patient_id" onchange="autoSelectOwner(this.value)">
                                 <option value="">Seleccionar paciente</option>
                                 {% for patient in patients %}
-                                    <option value="{{ patient.id }}">{{ patient.name }}</option>
+                                    <option value="{{ patient.id }}" data-owner="{{ patient.owner_id or '' }}">{{ patient.name }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -1092,37 +1092,59 @@ function quickPay(method) {
 
 const patientOwnerMap = {{ patient_owner_map | tojson }};
 
+function filterPatientsByOwner(ownerId, keepPatientId = "") {
+    const patientSelect = document.querySelector('select[name="patient_id"]');
+
+    if (!patientSelect) {
+        return;
+    }
+
+    let matches = [];
+
+    for (const option of patientSelect.options) {
+        if (option.value === "") {
+            option.hidden = false;
+            continue;
+        }
+
+        const optionOwner = patientOwnerMap[option.value];
+        const isMatch = !ownerId || optionOwner == ownerId;
+
+        option.hidden = !isMatch;
+
+        if (isMatch) {
+            matches.push(option.value);
+        }
+    }
+
+    if (keepPatientId && matches.includes(String(keepPatientId))) {
+        patientSelect.value = keepPatientId;
+        return;
+    }
+
+    if (ownerId && matches.length === 1) {
+        patientSelect.value = matches[0];
+    } else {
+        patientSelect.value = "";
+    }
+}
+
 function autoSelectOwner(patientId) {
     const ownerId = patientOwnerMap[patientId];
     const ownerSelect = document.querySelector('select[name="owner_id"]');
 
     if (ownerSelect && ownerId !== undefined) {
         ownerSelect.value = ownerId;
+        filterPatientsByOwner(ownerId, patientId);
     }
 }
+
 function autoSelectPatient(ownerId) {
-    const patientSelect = document.querySelector('select[name="patient_id"]');
-
-    if (!patientSelect || !ownerId) {
-        return;
-    }
-
-    let firstMatch = "";
-
-    for (const option of patientSelect.options) {
-        if (patientOwnerMap[option.value] == ownerId) {
-            firstMatch = option.value;
-            break;
-        }
-    }
-
-    if (firstMatch) {
-        patientSelect.value = firstMatch;
-    } else {
-        patientSelect.value = "";
-    }
+    filterPatientsByOwner(ownerId);
 }
+
 document.addEventListener("DOMContentLoaded", function () {
+    filterPatientsByOwner(document.querySelector('select[name="owner_id"]')?.value || "");
     calculateTotal();
 });
 </script>
