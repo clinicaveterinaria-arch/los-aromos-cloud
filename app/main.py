@@ -2354,7 +2354,182 @@ def sale_add_payment(
     )
 @app.get('/migration', response_class=HTMLResponse)
 def migration(request: Request, user: User = Depends(require_user)):
-    return templates.TemplateResponse('migration.html', {'request': request})
+    return templates.TemplateResponse(
+        'migration.html',
+        {
+            'request': request,
+            'result': None
+        }
+    )
+
+
+@app.post('/migration/agenda-pendientes', response_class=HTMLResponse)
+async def migration_agenda_pendientes(
+    request: Request,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    import csv
+    import io
+
+    def clean_text(value):
+        if value is None:
+            return ''
+        value = str(value).strip()
+        try:
+            value = value.encode('latin1').decode('utf-8')
+        except Exception:
+            pass
+        return value
+
+    def pick(row, names):
+        normalized = {clean_text(k).lower(): clean_text(v) for k, v in row.items()}
+        for name in names:
+            key = name.lower()
+            if key in normalized:
+                return normalized[key]
+        return ''
+
+    def parse_date(value):
+        value = clean_text(value)
+        for fmt in ['%d/%m/%Y', '%Y-%m-%d', '%d-%m-%Y', '%d/%m/%y']:
+            try:
+                return datetime.strptime(value, fmt).date()
+            except Exception:
+                pass
+        return None
+
+    content = await file.read()
+    filename = (file.filename or '').lower()
+
+    rows = []
+
+    if filename.endswith('.xlsx'):
+        wb = load_workbook(BytesIO(content), data_only=True)
+        ws = wb.active
+        headers = [clean_text(c.value) for c in ws[1]]
+
+        for row in ws.iter_rows(min_row=2, values_only=True):
+            rows.append(dict(zip(headers, row)))
+    else:
+        text_content = content.decode('utf-8-sig', errors='replace')
+        sample = text_content[:1000]
+        delimiter = ';' if sample.count(';') > sample.count(',') else ','
+        reader = csv.DictReader(io.StringIO(text_content), delimiter=delimiter)
+        rows = list(reader)
+
+    imported = 0
+    skipped = 0
+    created_owners = 0
+    created_patients = 0
+
+    for row in rows:
+        owner_name = pick(row, ['Propietario', 'Cliente', 'Dueño', 'Responsable', 'Nombre propietario'])
+        patient_name = pick(row, ['Paciente', 'Mascota', 'Animal', 'Nombre paciente'])
+        phone = pick(row, ['Teléfono', 'Telefono', 'Celular', 'WhatsApp', 'Whatsapp'])
+        date_value = pick(row, ['Fecha', 'Día', 'Dia', 'Fecha turno', 'Fecha agenda'])
+        time_value = pick(row, ['Hora', 'Horario', 'Turno', 'Hora inicio'])
+        service = pick(row, ['Servicio', 'Motivo', 'Tipo', 'Prestación', 'Prestacion'])
+        notes = pick(row, ['Notas', 'Nota', 'Observaciones', 'Comentario', 'Detalle'])
+
+        reminder_date = parse_date(date_value)
+
+        if not reminder_date:
+            skipped += 1
+            continue
+
+        if not owner_name:
+            owner_name = 'Sin propietario'
+
+        if not patient_name:
+            patient_name = 'Sin paciente'
+
+        owner = (
+            db.query(Owner)
+            .filter(Owner.name.ilike(owner_name))
+            .first()
+        )
+
+        if not owner:
+            owner = Owner(
+                name=owner_name,
+                phone=phone,
+                whatsapp=phone
+            )
+            db.add(owner)
+            db.flush()
+            created_owners += 1
+
+        patient = (
+            db.query(Patient)
+            .filter(Patient.name.ilike(patient_name))
+            .filter(Patient.owner_id == owner.id)
+            .first()
+        )
+
+        if not patient:
+            patient = Patient(
+                name=patient_name,
+                owner_id=owner.id
+            )
+            db.add(patient)
+            db.flush()
+            created_patients += 1
+
+        title = service or 'Pendiente importado MyVete'
+
+        existing = (
+            db.query(ClinicalEvent)
+            .filter(ClinicalEvent.patient_id == patient.id)
+            .filter(ClinicalEvent.reminder_date == reminder_date)
+            .filter(ClinicalEvent.title == title)
+            .first()
+        )
+
+        if existing:
+            skipped += 1
+            continue
+
+        description = (
+            f'Importado desde agenda MyVete\n'
+            f'Fecha: {reminder_date.strftime("%d/%m/%Y")}\n'
+            f'Hora: {time_value}\n'
+            f'Propietario: {owner.name}\n'
+            f'Paciente: {patient.name}\n'
+            f'Motivo/servicio: {service}\n'
+            f'Notas: {notes}'
+        )
+
+        event = ClinicalEvent(
+            patient_id=patient.id,
+            event_date=datetime.combine(reminder_date, datetime.min.time()),
+            event_type='Pendiente',
+            title=title,
+            description=description,
+            reminder_date=reminder_date,
+            created_by=user.username
+        )
+
+        db.add(event)
+        imported += 1
+
+    db.commit()
+
+    result = {
+        'imported': imported,
+        'skipped': skipped,
+        'created_owners': created_owners,
+        'created_patients': created_patients
+    }
+
+    return templates.TemplateResponse(
+        'migration.html',
+        {
+            'request': request,
+            'result': result
+        }
+    )
 @app.post('/attachment/{attachment_id}/delete')
 def delete_attachment(
     attachment_id: int,
