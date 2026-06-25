@@ -528,7 +528,7 @@
 
 
 
-<div class="vaccine-box" style="grid-column:1 / -1;">
+<div id="vaccine-box" class="vaccine-box" style="display:none; grid-column:1 / -1;">
     <h4>💉 Datos de vacunación</h4>
 <input name="vaccine_name" list="vaccines_list" placeholder="Vacuna aplicada">
 <div style="grid-column:1 / -1; padding:12px; background:#f7f7f7; border-radius:10px;">
@@ -563,7 +563,7 @@
         <button type="button" onclick="setNextVaccineDays(365)">+1 año</button>
     </div>
 </div>
-<div style="grid-column:1 / -1; padding:12px; background:#f7f7f7; border-radius:10px;">
+<div id="deworming-box" style="display:none; grid-column:1 / -1; padding:12px; background:#f7f7f7; border-radius:10px;">
     <h4>🪱 Desparasitación</h4>
 
     <input name="dewormer_product" list="dewormers_list" placeholder="Producto / marca comercial">
@@ -1207,15 +1207,20 @@ function setReminderDays(days) {
 
 document.addEventListener('DOMContentLoaded', function() {
 
-   const selector = document.getElementById('event_type');
-const ecgBox = document.getElementById('ecg-box');
-const ecoBox = document.getElementById('eco-box');
+    const selector = document.getElementById('event_type');
+    const ecgBox = document.getElementById('ecg-box');
+    const ecoBox = document.getElementById('eco-box');
+    const vaccineBox = document.getElementById('vaccine-box');
+    const dewormingBox = document.getElementById('deworming-box');
 
-function actualizarCampos() {
-    ecgBox.style.display = selector.value === 'ECG' ? 'block' : 'none';
-    ecoBox.style.display = selector.value === 'Ecocardiografía' ? 'block' : 'none';
-}
-    
+    function actualizarCampos() {
+        const tipo = selector.value;
+
+        if (ecgBox) ecgBox.style.display = tipo === 'ECG' ? 'block' : 'none';
+        if (ecoBox) ecoBox.style.display = tipo === 'Ecocardiografía' ? 'block' : 'none';
+        if (vaccineBox) vaccineBox.style.display = tipo === 'Vacuna' ? 'block' : 'none';
+        if (dewormingBox) dewormingBox.style.display = tipo === 'Desparasitación' ? 'block' : 'none';
+    }
 
     selector.addEventListener('change', actualizarCampos);
     actualizarCampos();
