@@ -394,6 +394,7 @@ def patient_create(
     species: str = Form(""),
     breed: str = Form(""),
     sex: str = Form(""),
+    birth_date: str = Form(""),
     weight: str = Form(""),
     alerts: str = Form(""),
     notes: str = Form(""),
@@ -418,12 +419,20 @@ def patient_create(
 
     w = float(weight.replace(',', '.')) if weight.strip() else None
 
+    bd = None
+    if birth_date and birth_date.strip():
+        try:
+            bd = datetime.strptime(birth_date.strip(), '%Y-%m-%d').date()
+        except ValueError:
+            bd = None
+
     p = Patient(
         name=name,
         owner_id=owner_id,
         species=species,
         breed=breed,
         sex=sex,
+        birth_date=bd,
         weight=w,
         alerts=alerts,
         notes=notes
