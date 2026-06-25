@@ -697,7 +697,7 @@ def waitlist_page(
             'selected_status': status,
             'q': q,
             'today': today,
-            'now': argentina_now()
+            'now': argentina_now().replace(tzinfo=None)
         }
     )
 
