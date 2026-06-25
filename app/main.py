@@ -597,8 +597,6 @@ def agenda_edit(
             'patients': patients
         }
     )
-
-
 @app.post('/agenda/{appointment_id}/edit')
 def agenda_update(
     appointment_id: int,
@@ -1282,17 +1280,45 @@ def event_create(
 
     rd = None
 
-    if reminder_date and reminder_date.strip():
-        try:
-            rd = datetime.strptime(reminder_date.strip(), '%Y-%m-%d').date()
-        except ValueError:
-            rd = None
+    if event_type == 'Vacuna':
+        if next_vaccine_date and next_vaccine_date.strip():
+            try:
+                rd = datetime.strptime(next_vaccine_date.strip(), '%Y-%m-%d').date()
+            except ValueError:
+                rd = None
 
-    if rd is None and next_vaccine_date and next_vaccine_date.strip():
-        try:
-            rd = datetime.strptime(next_vaccine_date.strip(), "%Y-%m-%d").date()
-        except ValueError:
-            rd = None
+        dewormer_product = ''
+        dewormer_drug = ''
+        dewormer_dose = ''
+        next_deworming_date = ''
+
+    elif event_type == 'Desparasitación':
+        if next_deworming_date and next_deworming_date.strip():
+            try:
+                rd = datetime.strptime(next_deworming_date.strip(), '%Y-%m-%d').date()
+            except ValueError:
+                rd = None
+
+        vaccine_name = ''
+        vaccine_lot = ''
+        vaccine_expiration = ''
+        next_vaccine_date = ''
+
+    else:
+        vaccine_name = ''
+        vaccine_lot = ''
+        vaccine_expiration = ''
+        next_vaccine_date = ''
+        dewormer_product = ''
+        dewormer_drug = ''
+        dewormer_dose = ''
+        next_deworming_date = ''
+
+        if reminder_date and reminder_date.strip():
+            try:
+                rd = datetime.strptime(reminder_date.strip(), '%Y-%m-%d').date()
+            except ValueError:
+                rd = None
     
     event_created_at = datetime.now()
     event_date = event_date or ""
@@ -2913,7 +2939,6 @@ def pendientes(request: Request, db: Session = Depends(get_db), user: User = Dep
     'pending_count': len(eventos)
 }
     )
-
 @app.get('/patients/{patient_id}/quick-pendiente')
 def quick_pendiente(
     patient_id: int,
@@ -3521,3 +3546,4 @@ Velocidad: {fluid_rate} ml/kg/h
 @app.get('/health')
 def health():
     return {'status': 'ok', 'app': 'Los Aromos Cloud'}
+    
