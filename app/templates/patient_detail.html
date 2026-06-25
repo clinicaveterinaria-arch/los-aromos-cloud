@@ -2,1244 +2,408 @@
 {% block content %}
 
 <style>
-    .hc-page {
-        padding:24px 28px;
+    .hc-page { padding:24px 28px; }
+
+    .hc-toolbar {
+        display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+        margin-bottom:16px;
     }
 
-    .hc-top-card {
-        background:white;
-        border:1px solid #f3c6d8;
-        border-radius:18px;
-        padding:22px;
-        box-shadow:0 6px 22px rgba(0,0,0,0.05);
-        margin-bottom:18px;
+    .hc-toolbar a,
+    .hc-toolbar button {
+        border:1px solid #f3c6d8; background:white; color:#d85b9a;
+        border-radius:13px; padding:10px 14px; font-weight:bold;
+        text-decoration:none; cursor:pointer; display:inline-flex; gap:7px; align-items:center;
     }
 
-    .hc-header-v3 {
-        display:grid;
-        grid-template-columns:1fr auto;
-        gap:20px;
-        align-items:start;
+    .hc-toolbar a.primary { background:#d85b9a; color:white; border-color:#d85b9a; }
+
+    .hc-hero {
+        background:white; border:1px solid #f3c6d8; border-radius:24px;
+        box-shadow:0 10px 30px rgba(0,0,0,.05); overflow:hidden; margin-bottom:20px;
     }
 
-    .hc-title-row h1 {
-        margin:0 0 10px 0;
-        font-size:32px;
+    .hc-hero-top {
+        padding:22px; display:grid; grid-template-columns:1.2fr 1fr 1fr;
+        gap:22px; align-items:start; background:linear-gradient(135deg,#fff8fb,#ffffff);
     }
 
-    .hc-badges {
-        display:flex;
-        gap:10px;
-        flex-wrap:wrap;
-        margin-bottom:12px;
+    .patient-profile { display:flex; gap:18px; align-items:center; }
+    .patient-avatar {
+        width:112px; height:112px; border-radius:50%; background:#fff0f7;
+        border:3px solid #f3c6d8; color:#d85b9a; display:flex;
+        align-items:center; justify-content:center; font-size:42px; font-weight:bold;
+        flex:0 0 auto; text-transform:uppercase;
     }
 
-    .hc-badge {
-        border:1px solid #f3c6d8;
-        border-radius:8px;
-        padding:8px 12px;
-        background:#fff;
-        font-size:15px;
-    }
+    .patient-name-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+    .patient-name-row h1 { margin:0; font-size:36px; color:#1f2937; letter-spacing:.02em; }
+    .sex-pill { background:#fff0f7; color:#d85b9a; border:1px solid #f3c6d8; padding:5px 9px; border-radius:999px; font-weight:bold; }
 
-    .hc-owner-line {
-        display:flex;
-        gap:22px;
-        flex-wrap:wrap;
-        color:#4b5563;
-        font-size:16px;
-    }
+    .mini-pills { display:flex; gap:8px; flex-wrap:wrap; margin:10px 0; }
+    .mini-pill { background:#f8fafc; color:#374151; border:1px solid #e5e7eb; border-radius:10px; padding:7px 10px; font-size:13px; }
 
-    .hc-actions {
-        display:grid;
-        grid-template-columns:repeat(2, minmax(150px, 1fr));
-        gap:10px;
-        min-width:420px;
-    }
+    .patient-data p,
+    .owner-data p { margin:9px 0; color:#374151; }
+    .owner-data h3,
+    .alerts-card h3 { margin:0 0 12px 0; color:#1f2937; }
 
-    .hc-actions .btn {
-        text-align:center;
-        background:#df6aa0;
-        border-radius:10px;
-        padding:13px 14px;
-    }
+    .owner-badge { background:#fff0f7; color:#d85b9a; border-radius:999px; padding:5px 9px; font-size:12px; font-weight:bold; }
 
-    .hc-actions .btn.secondary {
-        background:white;
-        color:#df6aa0;
-        border:1px solid #f3c6d8;
+    .alerts-card {
+        background:#fff1f2; border:1px solid #fecdd3; border-radius:18px;
+        padding:16px; min-height:120px;
     }
+    .alerts-card.empty { background:#f8fafc; border-color:#e5e7eb; }
+    .alerts-card p { margin:6px 0; color:#374151; line-height:1.45; }
 
-    .hc-divider {
-        border:none;
-        border-top:1px solid #f1d6e2;
-        margin:18px 0;
+    .hc-summary-strip {
+        border-top:1px solid #f3edf1; padding:16px 22px; display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:12px; background:white;
     }
+    .summary-tile { border:1px solid #f1d6e2; border-radius:16px; padding:14px; display:flex; gap:12px; align-items:center; }
+    .summary-icon { width:44px; height:44px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:22px; flex:0 0 auto; }
+    .summary-tile b { display:block; color:#1f2937; }
+    .summary-tile span { color:#6b7280; font-size:13px; }
 
-    .hc-summary-cards {
-        display:grid;
-        grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-        gap:14px;
-    }
-
-    .hc-summary-card {
-        border:1px solid #f3c6d8;
-        border-radius:14px;
-        padding:16px;
-        background:#fff;
-        min-height:110px;
-    }
-
-    .hc-summary-card h4 {
-        margin:0 0 12px 0;
-        font-size:16px;
-    }
-
-    .hc-summary-card p {
-        margin:5px 0;
-    }
-
-    .hc-card-blue { background:#f8fbff; border-color:#bfdbfe; }
-    .hc-card-green { background:#f8fff8; border-color:#bbf7d0; }
-    .hc-card-orange { background:#fffaf2; border-color:#fed7aa; }
-    .hc-card-pink { background:#fff8fb; border-color:#fbcfe8; }
-
-    .hc-section {
-        background:white;
-        border:1px solid #f3c6d8;
-        border-radius:14px;
-        margin:14px 28px;
-        padding:0;
-        overflow:hidden;
-        box-shadow:0 6px 18px rgba(0,0,0,0.04);
-    }
-
-    details.hc-section summary {
-        cursor:pointer;
-        padding:16px;
-        font-weight:bold;
-        font-size:20px;
-        background:#fff0f5;
-    }
-
-    .hc-section-body {
-        padding:16px;
-    }
-
-    .hc-grid {
-        display:grid;
-        grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
-        gap:16px;
-        margin-bottom:18px;
-    }
+    .hc-main-grid { display:grid; grid-template-columns:minmax(0,1.05fr) minmax(360px,.95fr); gap:20px; align-items:start; }
 
     .hc-card {
-        background:white;
-        border:1px solid #f3c6d8;
-        border-radius:14px;
-        padding:16px;
-        box-shadow:0 6px 18px rgba(0,0,0,0.04);
+        background:white; border:1px solid #f3c6d8; border-radius:22px;
+        padding:20px; box-shadow:0 8px 26px rgba(0,0,0,.04); margin-bottom:18px;
     }
+    .hc-card-head { display:flex; justify-content:space-between; gap:12px; align-items:center; margin-bottom:12px; }
+    .hc-card-head h2 { margin:0; color:#1f2937; }
 
-    .hc-info-grid {
-        display:grid;
-        grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
-        gap:12px;
+    .module-row {
+        display:grid; grid-template-columns:56px 1fr auto; gap:14px; align-items:center;
+        padding:14px 0; border-bottom:1px solid #f3edf1;
     }
+    .module-row:last-child { border-bottom:none; }
+    .module-icon { width:50px; height:50px; border-radius:14px; background:#fff0f7; color:#d85b9a; display:flex; align-items:center; justify-content:center; font-size:23px; }
+    .module-row h3 { margin:0 0 4px 0; color:#1f2937; font-size:16px; }
+    .module-row p { margin:0; color:#6b7280; font-size:13px; }
+    .module-count { background:#fff0f7; color:#d85b9a; border:1px solid #f3c6d8; border-radius:999px; padding:7px 10px; font-weight:bold; font-size:12px; white-space:nowrap; }
 
-    .hc-info-grid > div {
-        background:#fafafa;
-        border:1px solid #ececec;
-        border-radius:10px;
-        padding:10px;
+    details.hc-form-section {
+        background:white; border:1px solid #f3c6d8; border-radius:22px;
+        box-shadow:0 8px 26px rgba(0,0,0,.04); margin-bottom:18px; overflow:hidden;
     }
-
-    .hc-muted {
-        color:#777;
+    details.hc-form-section summary {
+        cursor:pointer; padding:18px 20px; font-weight:bold; font-size:20px;
+        color:#1f2937; background:#fff8fb; list-style:none;
     }
+    details.hc-form-section summary::-webkit-details-marker { display:none; }
+    .hc-section-body { padding:20px; }
 
-    @media (max-width:900px) {
-        .hc-header-v3 {
-            grid-template-columns:1fr;
-        }
-
-        .hc-actions {
-            min-width:0;
-            grid-template-columns:1fr;
-        }
+    .form-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:12px; }
+    .form-grid input, .form-grid select, .form-grid textarea {
+        width:100%; border:1px solid #ead7e1; border-radius:13px; padding:11px 12px; font-size:14px; background:white;
     }
+    .form-grid textarea { min-height:86px; resize:vertical; }
+    .form-full { grid-column:1 / -1; }
+    .soft-box { grid-column:1 / -1; background:#fff8fb; border:1px solid #f3c6d8; border-radius:16px; padding:14px; }
+    .soft-box h4 { margin:0 0 10px 0; color:#1f2937; }
+    .quick-buttons { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+    .quick-buttons button { border:1px solid #f3c6d8; background:white; color:#d85b9a; border-radius:10px; padding:8px 10px; font-weight:bold; cursor:pointer; }
 
-.hc-timeline-panel {
-    background:white;
-    border:1px solid #f3c6d8;
-    border-radius:18px;
-    margin:24px 28px;
-    padding:24px;
-    box-shadow:0 6px 18px rgba(0,0,0,0.04);
-}
+    .save-event-btn { grid-column:1 / -1; background:#22c55e; color:white; border:none; border-radius:14px; padding:15px; font-size:17px; font-weight:bold; cursor:pointer; }
 
-.hc-timeline-head {
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    gap:12px;
-    margin-bottom:20px;
-}
+    .timeline { position:relative; padding-left:18px; }
+    .timeline:before { content:''; position:absolute; left:10px; top:8px; bottom:8px; width:2px; background:#f3c6d8; }
+    .timeline-item { display:grid; grid-template-columns:92px 42px 1fr auto; gap:12px; align-items:start; position:relative; padding:10px 0; }
+    .timeline-date { color:#6b7280; font-size:13px; padding-top:8px; }
+    .timeline-dot { width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:#fff0f7; color:#d85b9a; border:1px solid #f3c6d8; z-index:1; }
+    .timeline-content h3 { margin:0 0 5px 0; font-size:16px; color:#1f2937; }
+    .timeline-content p { margin:0; color:#4b5563; font-size:14px; line-height:1.35; }
+    .timeline-actions { display:flex; gap:7px; flex-wrap:wrap; justify-content:flex-end; }
+    .small-btn { border:1px solid #f3c6d8; background:white; color:#d85b9a; border-radius:10px; padding:7px 9px; font-weight:bold; font-size:12px; text-decoration:none; cursor:pointer; }
+    .delete-btn { background:#fff1f2; color:#991b1b; border-color:#fecdd3; }
 
-.hc-timeline-head h2 {
-    margin:0;
-}
+    .notes-box { background:#fff8fb; border:1px solid #f3c6d8; border-radius:20px; padding:16px; color:#4b5563; }
 
-.hc-history-btn {
-    background:white;
-    color:#df6aa0;
-    border:1px solid #f3c6d8;
-    padding:10px 14px;
-    border-radius:10px;
-    text-decoration:none;
-    font-weight:bold;
-}
-
-.hc-event-card {
-    display:grid;
-    grid-template-columns:120px 1fr;
-    gap:18px;
-    margin-bottom:14px;
-}
-
-.hc-event-date {
-    text-align:right;
-    color:#df6aa0;
-    font-weight:bold;
-    font-size:14px;
-    padding-top:12px;
-}
-
-.hc-event-time {
-    color:#6b7280;
-    font-weight:normal;
-    margin-top:4px;
-}
-
-.hc-event-body {
-    background:white;
-    border:1px solid #f1d6e2;
-    border-radius:14px;
-    padding:16px;
-    box-shadow:0 3px 12px rgba(0,0,0,0.04);
-    display:grid;
-    grid-template-columns:auto 1fr auto;
-    gap:14px;
-    align-items:center;
-}
-
-.hc-event-icon {
-    width:48px;
-    height:48px;
-    border-radius:50%;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:22px;
-}
-
-.hc-event-title {
-    font-weight:bold;
-    font-size:16px;
-}
-
-.hc-event-subtitle {
-    color:#4b5563;
-    margin-top:5px;
-    font-size:14px;
-}
-
-.hc-event-actions {
-    display:flex;
-    gap:8px;
-    flex-wrap:wrap;
-    justify-content:flex-end;
-}
-
-.hc-small-btn {
-    background:white;
-    color:#df6aa0;
-    border:1px solid #f3c6d8;
-    border-radius:9px;
-    padding:8px 10px;
-    text-decoration:none;
-    font-size:13px;
-    font-weight:bold;
-}
-
-.hc-delete-btn {
-    background:#fff1f2;
-    color:#991b1b;
-    border:1px solid #fecdd3;
-    border-radius:9px;
-    padding:8px 10px;
-    cursor:pointer;
-    font-size:13px;
-    font-weight:bold;
-}
-
-@media (max-width:800px) {
-    .hc-event-card {
-        grid-template-columns:1fr;
+    @media (max-width:1100px) { .hc-hero-top, .hc-main-grid { grid-template-columns:1fr; } }
+    @media (max-width:720px) {
+        .timeline-item { grid-template-columns:1fr; }
+        .timeline:before { display:none; }
+        .timeline-actions { justify-content:flex-start; }
+        .hc-toolbar a { width:100%; justify-content:center; }
     }
-
-    .hc-event-date {
-        text-align:left;
-    }
-
-    .hc-event-body {
-        grid-template-columns:1fr;
-    }
-
-    .hc-event-actions {
-        justify-content:flex-start;
-    }
-}
-
-.hc-legacy {
-    display:none;
-}
 </style>
 
-{% set ns = namespace(vacuna=None, desparasitacion=None, ecg=None, rx=None, eco=None, lab=None) %}
-
+{% set ns = namespace(vacuna=None, desparasitacion=None, ecg=None, rx=None, eco=None, lab=None, consulta_count=0, vacuna_count=0, desp_count=0, cardio_count=0, adj_count=0) %}
 {% for e in events %}
-    {% if not ns.vacuna and (e.vaccine_name or e.next_vaccine_date or e.event_type == 'Vacuna') %}
-        {% set ns.vacuna = e %}
-    {% endif %}
-
-    {% if not ns.desparasitacion and (e.dewormer_product or e.next_deworming_date or e.event_type == 'Desparasitación') %}
-        {% set ns.desparasitacion = e %}
-    {% endif %}
-
-    {% if not ns.ecg and e.event_type == 'ECG' %}
-        {% set ns.ecg = e %}
-    {% endif %}
-
-    {% if not ns.rx and e.event_type == 'Radiografía' %}
-        {% set ns.rx = e %}
-    {% endif %}
-
-    {% if not ns.eco and e.event_type == 'Ecografía' %}
-        {% set ns.eco = e %}
-    {% endif %}
-
-    {% if not ns.lab and e.event_type == 'Laboratorio' %}
-        {% set ns.lab = e %}
-    {% endif %}
+    {% if e.event_type == 'Consulta clínica' %}{% set ns.consulta_count = ns.consulta_count + 1 %}{% endif %}
+    {% if e.event_type == 'Vacuna' or e.vaccine_name %}{% set ns.vacuna_count = ns.vacuna_count + 1 %}{% endif %}
+    {% if e.event_type == 'Desparasitación' or e.dewormer_product %}{% set ns.desp_count = ns.desp_count + 1 %}{% endif %}
+    {% if e.event_type in ['ECG','Ecocardiografía'] %}{% set ns.cardio_count = ns.cardio_count + 1 %}{% endif %}
+    {% if e.attachments %}{% set ns.adj_count = ns.adj_count + (e.attachments|length) %}{% endif %}
+    {% if not ns.vacuna and (e.vaccine_name or e.next_vaccine_date or e.event_type == 'Vacuna') %}{% set ns.vacuna = e %}{% endif %}
+    {% if not ns.desparasitacion and (e.dewormer_product or e.next_deworming_date or e.event_type == 'Desparasitación') %}{% set ns.desparasitacion = e %}{% endif %}
+    {% if not ns.ecg and e.event_type == 'ECG' %}{% set ns.ecg = e %}{% endif %}
+    {% if not ns.rx and e.event_type == 'Radiografía' %}{% set ns.rx = e %}{% endif %}
+    {% if not ns.eco and e.event_type in ['Ecografía','Ecocardiografía'] %}{% set ns.eco = e %}{% endif %}
+    {% if not ns.lab and e.event_type == 'Laboratorio' %}{% set ns.lab = e %}{% endif %}
 {% endfor %}
 
 <div class="hc-page">
 
-    <div class="hc-top-card">
-
-        <div class="hc-header-v3">
-
-            <div class="hc-title-row">
-                <h1>🐾 {{ patient.name }}</h1>
-
-                <div class="hc-badges">
-                    <span class="hc-badge">🐱 {{ patient.species or '-' }}</span>
-                    <span class="hc-badge">⚧ {{ patient.sex or '-' }}</span>
-
-                    <span class="hc-badge">
-                        🎂
-                        {% if patient.birth_date %}
-                            {{ ((today - patient.birth_date).days // 365) }} años
-                        {% else %}
-                            {{ patient.age or '-' }}
-                        {% endif %}
-                    </span>
-
-                    <span class="hc-badge">⚖️ {{ patient.weight or '-' }} kg</span>
-                </div>
-
-                <div class="hc-owner-line">
-                    <span>👤 Propietario: {% if patient.owner %}{{ patient.owner.name }}{% else %}-{% endif %}</span>
-                    <span>📱 {% if patient.owner %}{{ patient.owner.whatsapp or patient.owner.phone or '-' }}{% else %}-{% endif %}</span>
-                </div>
-            </div>
-
-            <div class="hc-actions">
-                <a href="#nuevo-evento" class="btn">➕ Nuevo evento</a>
-                <a href="/patients/{{ patient.id }}/cardiology" class="btn secondary">💗 Cardio</a>
-                <a href="/patients/{{ patient.id }}/anesthesia" class="btn secondary">💉 Anestesia</a>
-                <a href="/patients/{{ patient.id }}/cart" class="btn secondary">🛒 Venta</a>
-                <a href="/patients/{{ patient.id }}/print" target="_blank" class="btn secondary">🖨️ Imprimir / PDF</a>
-                <a href="/patients/{{ patient.id }}/edit" class="btn secondary">✏️ Editar paciente</a>
-            </div>
-
-        </div>
-
-        <hr class="hc-divider">
-
-        <div class="hc-summary-cards">
-
-            <div class="hc-summary-card hc-card-blue">
-                <h4>💉 Próxima vacuna</h4>
-                {% if ns.vacuna and ns.vacuna.next_vaccine_date %}
-                    <p><b>{{ ns.vacuna.vaccine_expiration or ns.vacuna.vaccine_name or ns.vacuna.title or 'Vacuna' }}</b></p>
-                    <p>{{ ns.vacuna.next_vaccine_date }}</p>
-                {% else %}
-                    <p>Sin próxima vacuna registrada.</p>
-                {% endif %}
-            </div>
-
-            <div class="hc-summary-card hc-card-green">
-                <h4>🪱 Próxima desparasitación</h4>
-                {% if ns.desparasitacion and ns.desparasitacion.next_deworming_date %}
-                    <p><b>{{ ns.desparasitacion.dewormer_dose or ns.desparasitacion.dewormer_product or ns.desparasitacion.title or 'Desparasitación' }}</b></p>
-                    <p>{{ ns.desparasitacion.next_deworming_date }}</p>
-                {% else %}
-                    <p>Sin próxima desparasitación registrada.</p>
-                {% endif %}
-            </div>
-
-            <div class="hc-summary-card hc-card-orange">
-                <h4>📅 Próxima visita</h4>
-                {% if next_visit %}
-                    <p><b>{{ next_visit.title or next_visit.event_type }}</b></p>
-                    <p>{{ next_visit.reminder_date.strftime('%d/%m/%Y') if next_visit.reminder_date else '-' }}</p>
-                {% else %}
-                    <p>Sin próxima visita registrada.</p>
-                {% endif %}
-            </div>
-
-            <div class="hc-summary-card hc-card-pink">
-                <h4>💗 Último ECG</h4>
-                {% if last_ecg %}
-                    <p>{{ last_ecg.event_date.strftime('%d/%m/%Y') }}</p>
-                    <p><b>{{ last_ecg.ecg_rhythm or 'Registrado' }}</b></p>
-                {% else %}
-                    <p>No hay ECG registrados.</p>
-                {% endif %}
-            </div>
-
-            <div class="hc-summary-card hc-card-pink">
-                <h4>🫀 Última ecocardiografía</h4>
-                {% if last_eco %}
-                    <p>{{ last_eco.event_date.strftime('%d/%m/%Y') }}</p>
-                    <p><b>{{ last_eco.eco_acvim or 'Registrada' }}</b></p>
-                {% else %}
-                    <p>No hay ecocardiografías registradas.</p>
-                {% endif %}
-            </div>
-
-        </div>
-
+    <div class="hc-toolbar">
+        <a href="/search">← Volver a resultados</a>
+        <a href="#nuevo-evento" class="primary" onclick="document.getElementById('nuevo-evento').open = true;">➕ Nueva consulta</a>
+        <a href="#nuevo-evento" onclick="setEventType('Vacuna'); document.getElementById('nuevo-evento').open = true;">💉 Vacuna</a>
+        <a href="#nuevo-evento" onclick="setEventType('Desparasitación'); document.getElementById('nuevo-evento').open = true;">🪱 Desparasitación</a>
+        <a href="/agenda">📅 Agendar</a>
+        <a href="/patients/{{ patient.id }}/cart">💰 Venta / Cobro</a>
+        <a href="/patients/{{ patient.id }}/print" target="_blank">🖨️ Imprimir</a>
+        <a href="/patients/{{ patient.id }}/cardiology">💗 Cardio</a>
+        <a href="/patients/{{ patient.id }}/anesthesia">💤 Anestesia</a>
+        <a href="/patients/{{ patient.id }}/edit">✏️ Editar</a>
     </div>
 
-</div>
-
-
-
-<details class="hc-section" id="nuevo-evento">
-<summary>🩺 Nuevo evento clínico</summary>
-
-<div class="hc-section-body">
-
-    <form method="post"
-          action="/patients/{{ patient.id }}/events"
-          enctype="multipart/form-data"
-          class="form-grid">
-
-        <div style="grid-column:1 / -1; padding:12px; background:#f7f7f7; border-radius:10px;">
-            <h4>🩺 Consulta clínica</h4>
-            <h4>📅 Fecha de la consulta / evento</h4>
-            <input
-                type="date"
-                name="event_date"
-                value="{{ today.strftime('%Y-%m-%d') }}"
-            >
-        </div>
-
-        <h4 style="grid-column:1 / -1;">📏 Parámetros clínicos</h4>
-
-        <input name="weight" placeholder="Peso kg" value="{{ patient.weight or '' }}">
-        <input name="temperature" placeholder="Temperatura °C">
-        <input name="heart_rate" placeholder="FC">
-        <input name="respiratory_rate" placeholder="FR">
-        <input name="mucous_membranes" placeholder="Mucosas">
-        <input name="crt" placeholder="TLLC">
-        <input name="hydration" placeholder="Hidratación">
-
-        <select name="event_type" id="event_type">
-            {% for t in event_types %}
-                <option>{{ t }}</option>
-            {% endfor %}
-        </select>
-
-        <input name="title" placeholder="Título / motivo">
-
-        <textarea name="description" placeholder="Motivo / descripción"></textarea>
-        <textarea name="anamnesis" placeholder="Anamnesis"></textarea>
-        <textarea name="physical_exam" placeholder="Examen físico"></textarea>
-        <textarea name="diagnosis" placeholder="Diagnóstico / conclusión"></textarea>
-        <textarea name="treatment" placeholder="Tratamiento / indicaciones"></textarea>
-
-        <div id="vaccine-box"
-             style="display:none; grid-column:1 / -1; padding:12px; background:#f7f7f7; border-radius:10px;">
-            <h4>💉 Datos de vacunación</h4>
-
-            <input name="vaccine_name" list="vaccines_list" placeholder="Vacuna aplicada">
-
-            <datalist id="vaccines_list">
-                <option value="Triple Felina">
-                <option value="Antirrábica">
-                <option value="Leucemia Felina">
-                <option value="Puppy DP">
-                <option value="DHPPI">
-                <option value="Séxtuple">
-                <option value="Traqueobronquitis">
-                <option value="Leptospirosis">
-            </datalist>
-
-            <input name="vaccine_lot" placeholder="Lote">
-
-            <input name="vaccine_expiration"
-                   list="vaccines_list"
-                   placeholder="Próxima vacuna / refuerzo">
-
-            <input type="date"
-                   name="next_vaccine_date"
-                   id="next_vaccine_date">
-
-            <div style="margin:10px 0; grid-column:1 / -1;">
-                <b>Próxima vacuna rápida:</b><br><br>
-                <button type="button" onclick="setNextVaccineDays(21)">+21 días</button>
-                <button type="button" onclick="setNextVaccineDays(30)">+30 días</button>
-                <button type="button" onclick="setNextVaccineMonths(6)">+6 meses</button>
-                <button type="button" onclick="setNextVaccineDays(365)">+1 año</button>
-            </div>
-        </div>
-
-        <div id="deworming-box"
-             style="display:none; grid-column:1 / -1; padding:12px; background:#f7f7f7; border-radius:10px;">
-            <h4>🪱 Desparasitación</h4>
-
-            <input name="dewormer_product"
-                   list="dewormers_list"
-                   placeholder="Producto / marca comercial">
-
-            <datalist id="dewormers_list">
-                <option value="Total Full CG">
-                <option value="Total Full suspensión">
-                <option value="Aprax suspensión">
-                <option value="Levamisol">
-                <option value="Trivermex suspensión">
-                <option value="Meltra Spot On">
-                <option value="Feline Full Spot">
-                <option value="Feline Endo Spot">
-                <option value="Total Full LC">
-                <option value="Aprax">
-                <option value="Endofour">
-                <option value="Trivermex">
-                <option value="Meltra Gold">
-                <option value="Apto">
-                <option value="Moxidex Plus">
-            </datalist>
-
-            <input name="dewormer_drug" placeholder="Principio activo">
-
-            <input name="dewormer_dose"
-                   placeholder="Dosis / indicación">
-
-            <input type="date"
-                   name="next_deworming_date"
-                   id="next_deworming_date">
-
-            <div style="margin-top:10px; grid-column:1 / -1;">
-                <b>Próxima desparasitación rápida:</b><br><br>
-                <button type="button" onclick="setNextDewormingDays(21)">+21 días</button>
-                <button type="button" onclick="setNextDewormingDays(30)">+30 días</button>
-                <button type="button" onclick="setNextDewormingMonths(3)">+3 meses</button>
-                <button type="button" onclick="setNextDewormingMonths(6)">+6 meses</button>
-            </div>
-        </div>
-
-        <div id="ecg-box"
-             style="display:none; grid-column:1 / -1; padding:12px; background:#fff0f5; border-radius:10px;">
-            <h4>❤️ ECG</h4>
-
-            <input name="ecg_hr" placeholder="FC">
-            <input name="ecg_rhythm" placeholder="Ritmo">
-            <input name="ecg_p" placeholder="Onda P">
-            <input name="ecg_pr" placeholder="Intervalo PR">
-            <input name="ecg_qrs" placeholder="QRS">
-            <input name="ecg_st" placeholder="Segmento ST">
-            <input name="ecg_t" placeholder="Onda T">
-            <input name="ecg_qt" placeholder="Intervalo QT">
-            <input name="ecg_axis" placeholder="Eje eléctrico">
-
-            <textarea name="ecg_interpretation"
-                      placeholder="Interpretación electrocardiográfica"></textarea>
-        </div>
-
-        <div id="eco-box"
-             style="display:none; grid-column:1 / -1; padding:12px; background:#fff0f5; border-radius:10px;">
-            <h4>🫀 Ecocardiografía</h4>
-
-            <input name="eco_aiao" placeholder="AI/Ao">
-            <input name="eco_fs" placeholder="Fracción de acortamiento (%)">
-            <input name="eco_acvim" placeholder="Clasificación ACVIM">
-
-            <textarea name="eco_diagnosis"
-                      placeholder="Diagnóstico ecocardiográfico"></textarea>
-
-            <textarea name="eco_treatment"
-                      placeholder="Tratamiento cardiológico"></textarea>
-        </div>
-
-        <div id="reminder-box"
-             style="grid-column:1 / -1; padding:12px; background:#fff7ed; border-radius:10px;">
-            <h4>📌 Próxima visita / recordatorio</h4>
-
-            <input type="date" name="reminder_date">
-
-            <div style="margin-top:10px;">
-                <b>Programar rápido:</b><br><br>
-                <button type="button" onclick="setReminderDays(3)">+3 días</button>
-                <button type="button" onclick="setReminderDays(7)">+7 días</button>
-                <button type="button" onclick="setReminderDays(10)">+10 días</button>
-                <button type="button" onclick="setReminderDays(15)">+15 días</button>
-                <button type="button" onclick="setReminderDays(21)">+21 días</button>
-                <button type="button" onclick="setReminderDays(30)">+30 días</button>
-            </div>
-        </div>
-
-        <div style="grid-column:1 / -1; padding:12px; background:#f7f7f7; border-radius:10px;">
-            <h4>🧪 Métodos complementarios</h4>
-            <label><b>Adjuntar PDF / imagen / estudio</b></label><br>
-            <input type="file" name="attachments" multiple>
-        </div>
-
-        <button
-            type="submit"
-            class="btn"
-            style="
-                width:100%;
-                font-size:18px;
-                padding:16px;
-                background:#22c55e;
-                color:white;
-                border:none;
-                border-radius:10px;
-                font-weight:bold;
-                cursor:pointer;
-                grid-column:1 / -1;
-                margin-top:10px;
-            "
-        >
-            💾 Guardar evento clínico
-        </button>
-
-    </form>
-
-</div>
-</details>
-<details class="hc-section hc-legacy">
-    <summary>📋 Resumen clínico</summary>
-
-    <div class="hc-section-body">
-
-    {% set ns = namespace(vacuna=None, desparasitacion=None, ecg=None, rx=None, eco=None, lab=None) %}
-
-    {% for e in events %}
-        {% if not ns.vacuna and (e.vaccine_name or e.next_vaccine_date or e.event_type == 'Vacuna') %}
-            {% set ns.vacuna = e %}
-        {% endif %}
-
-        {% if not ns.desparasitacion and (e.dewormer_product or e.next_deworming_date or e.event_type == 'Desparasitación') %}
-            {% set ns.desparasitacion = e %}
-        {% endif %}
-
-        {% if not ns.ecg and e.event_type == 'ECG' %}
-            {% set ns.ecg = e %}
-        {% endif %}
-
-        {% if not ns.rx and e.event_type == 'Radiografía' %}
-            {% set ns.rx = e %}
-        {% endif %}
-
-        {% if not ns.eco and e.event_type == 'Ecografía' %}
-            {% set ns.eco = e %}
-        {% endif %}
-
-        {% if not ns.lab and e.event_type == 'Laboratorio' %}
-            {% set ns.lab = e %}
-        {% endif %}
-    {% endfor %}
-<div class="panel" style="background:#fff7ed; border:2px solid #fdba74; margin-bottom:16px;">
-    <h3>📌 Panel resumen clínico</h3>
-
-    <div class="hc-grid">
-
-        <div class="hc-card">
-            <h4>💉 Próxima vacuna</h4>
-            {% if ns.vacuna and ns.vacuna.next_vaccine_date %}
-                <p><b>{{ ns.vacuna.vaccine_expiration or ns.vacuna.vaccine_name or ns.vacuna.title or 'Vacuna' }}</b></p>
-                <p>🗓️ {{ ns.vacuna.next_vaccine_date }}</p>
-            {% else %}
-                <p>Sin próxima vacuna registrada.</p>
-            {% endif %}
-        </div>
-
-        <div class="hc-card">
-            <h4>🪱 Próxima desparasitación</h4>
-            {% if ns.desparasitacion and ns.desparasitacion.next_deworming_date %}
-                <p><b>{{ ns.desparasitacion.dewormer_dose or ns.desparasitacion.dewormer_product or ns.desparasitacion.title or 'Desparasitación' }}</b></p>
-                <p>🗓️ {{ ns.desparasitacion.next_deworming_date }}</p>
-            {% else %}
-                <p>Sin próxima desparasitación registrada.</p>
-            {% endif %}
-        </div>
-
-        <div class="hc-card">
-            <h4>📅 Próximos eventos</h4>
-            {% if upcoming_events %}
-                {% for e in upcoming_events[:3] %}
-                    <p>
-                        <b>{{ e.event_type }}</b>
-                        {% if e.title %} - {{ e.title }}{% endif %}<br>
-                        🗓️ {{ e.reminder_date.strftime('%d/%m/%Y') }}
-                    </p>
-                {% endfor %}
-            {% else %}
-                <p>Sin próximos eventos registrados.</p>
-            {% endif %}
-        </div>
-
-        <div class="hc-card">
-            <h4>💉 Última vacuna</h4>
-            {% if ns.vacuna %}
-                <p><b>{{ ns.vacuna.vaccine_name or ns.vacuna.title or ns.vacuna.event_type }}</b></p>
-                <p>{{ ns.vacuna.event_date.strftime('%d/%m/%Y') }}</p>
-            {% else %}
-                <p>Sin vacuna registrada.</p>
-            {% endif %}
-        </div>
-
-        <div class="hc-card">
-            <h4>🪱 Última desparasitación</h4>
-            {% if ns.desparasitacion %}
-                <p><b>{{ ns.desparasitacion.dewormer_product or ns.desparasitacion.title or ns.desparasitacion.event_type }}</b></p>
-                <p>{{ ns.desparasitacion.event_date.strftime('%d/%m/%Y') }}</p>
-            {% else %}
-                <p>Sin desparasitación registrada.</p>
-            {% endif %}
-        </div>
-
-        <div class="hc-card">
-            <h4>💗 Último ECG</h4>
-            {% if ns.ecg %}
-                <p>{{ ns.ecg.event_date.strftime('%d/%m/%Y') }}</p>
-            {% else %}
-                <p>Sin ECG registrado.</p>
-            {% endif %}
-        </div>
-
-        <div class="hc-card">
-            <h4>☢️ Última RX</h4>
-            {% if ns.rx %}
-                <p>{{ ns.rx.event_date.strftime('%d/%m/%Y') }}</p>
-            {% else %}
-                <p>Sin RX registrada.</p>
-            {% endif %}
-        </div>
-
-        <div class="hc-card">
-            <h4>🖥️ Última ecografía</h4>
-            {% if ns.eco %}
-                <p>{{ ns.eco.event_date.strftime('%d/%m/%Y') }}</p>
-            {% else %}
-                <p>Sin ecografía registrada.</p>
-            {% endif %}
-        </div>
-
-        <div class="hc-card">
-            <h4>🧪 Último laboratorio</h4>
-            {% if ns.lab %}
-                <p>{{ ns.lab.event_date.strftime('%d/%m/%Y') }}</p>
-            {% else %}
-                <p>Sin laboratorio registrado.</p>
-            {% endif %}
-        </div>
-
-    </div>
-</div>
-    
-</div>
-    </div>
-</details>    
-<details class="hc-section hc-legacy">
-    <summary>💗 Resumen cardiológico</summary>
-
-    <div class="hc-section-body">
-
-    <div class="panel" style="background:#fff7ed; border:2px solid #fdba74; margin-bottom:16px;">
-        <h3>💗 Panel resumen cardiológico</h3>
-
-        <div class="hc-grid">
-
-            <div class="hc-card">
-                <h4>📈 Último ECG</h4>
-
-                {% if last_ecg %}
-                    <p><b>Fecha:</b> {{ last_ecg.event_date.strftime('%d/%m/%Y') }}</p>
-                    <p><b>FC:</b> {{ last_ecg.ecg_hr or '-' }} lpm</p>
-                    <p><b>Eje:</b> {{ last_ecg.ecg_axis or '-' }}°</p>
-                    <p><b>ECG registrados:</b> {{ ecg_count }}</p>
-
-                    <a href="/patients/{{ patient.id }}/events/{{ last_ecg.id }}" class="btn">Ver último ECG</a>
-                {% else %}
-                    <p>No hay ECG registrados.</p>
-                {% endif %}
-            </div>
-
-            <div class="hc-card">
-                <h4>🫀 Última Ecocardiografía</h4>
-
-                {% if last_eco %}
-                    <p><b>Fecha:</b> {{ last_eco.event_date.strftime('%d/%m/%Y') }}</p>
-                    <p><b>AI/Ao:</b> {{ last_eco.eco_aiao or '-' }}</p>
-                    <p><b>FS:</b> {{ last_eco.eco_fs or '-' }}%</p>
-                    <p><b>ACVIM:</b> {{ last_eco.eco_acvim or '-' }}</p>
-                    <p><b>Ecocardiografías registradas:</b> {{ eco_count }}</p>
-
-                    <a href="/patients/{{ patient.id }}/events/{{ last_eco.id }}" class="btn">Ver última Ecocardiografía</a>
-                {% else %}
-                    <p>No hay ecocardiografías registradas.</p>
-                {% endif %}
-            </div>
-
-        </div>
-
-        <br>
-
-        <a href="/patients/{{ patient.id }}/cardiology" class="btn">💗 Historial cardiológico</a>
-</div>
-    </div>
-</details>
-<details class="hc-section hc-legacy">
-    <summary>💉 Historial de vacunación</summary>
-
-    <div class="hc-section-body">
-
-    {% for e in events %}
-        {% if e.vaccine_name %}
-            <div style="border-bottom:1px solid #eee; padding:6px 0;">
-                <b>{{ e.vaccine_name }}</b>
-                <span style="float:right;">
-                    {{ e.event_date.strftime('%d/%m/%Y') }}
-                </span>
-            </div>
-        {% endif %}
-    {% endfor %}
-
-    {% if not ns.vacuna %}
-        <span style="color:#888;">Sin vacunas registradas</span>
-    {% endif %}
-    </div>
-</details>
-
-<details class="hc-section hc-legacy">
-    <summary>🪱 Historial de desparasitación</summary>
-
-    <div class="hc-section-body">
-
-    {% for e in events %}
-        {% if e.dewormer_product %}
-            <div style="border-bottom:1px solid #eee; padding:6px 0;">
-                <b>{{ e.dewormer_product }}</b>
-                <span style="float:right;">
-                    {{ e.event_date.strftime('%d/%m/%Y') }}
-                </span>
-            </div>
-        {% endif %}
-    {% endfor %}
-
-    {% if not ns.desparasitacion %}
-        <span style="color:#888;">Sin desparasitaciones registradas</span>
-    {% endif %}
-</div>
-</details>
-{% if upcoming_events %}
-
-<details class="hc-section hc-legacy">
-    <summary>📌 Próximos eventos programados</summary>
-
-    <div class="hc-section-body">
-
-{% for e in upcoming_events[:3] %}
-
-<div style="border-bottom:1px solid #eee; padding:8px 0;">
-
-    <a href="/patients/{{ patient.id }}/events/{{ e.id }}"
-       style="color:inherit; text-decoration:none;">
-
-        <b>{{ e.event_type }}</b>
-
-        {% if e.title %}
-            - {{ e.title }}
-        {% endif %}
-
-        {% if e.reminder_date %}
-            ({{ e.reminder_date.strftime('%d/%m/%Y') }})
-        {% endif %}
-        {% if e.description %}
-<br>
-<small style="color:#555;">
-📝 {{ e.description }}
-</small>
-{% endif %}
-{% if patient.owner and patient.owner.whatsapp %}
-<br>
-
-<a
-    class="btn"
-    target="_blank"
-    href="https://wa.me/54{{ patient.owner.whatsapp|replace(' ','') }}?text=Hola.%20Les%20recordamos%20que%20{{ patient.name }}%20tiene%20programado:%20{{ e.title or e.event_type }}%20el%20día%20{{ e.reminder_date.strftime('%d/%m/%Y') if e.reminder_date else '' }}."
->
-📲 WhatsApp
-</a>
-{% endif %}
-    </a>
-
-    <div style="margin-top:6px;">
-
-    <form method="post"
-          action="/events/{{ e.id }}/done"
-          style="display:inline;">
-        <button type="submit"
-                style="background:#28a745;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;">
-            ✓ Realizado
-        </button>
-    </form>
-
-    <form method="post"
-          action="/events/{{ e.id }}/delete"
-          style="display:inline;margin-left:6px;">
-        <button type="submit"
-                style="background:#dc3545;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;">
-            🗑 Eliminar
-        </button>
-    </form>
-
-</div>
-       
-
-</div>
-
-{% endfor %}
-
-    {% if upcoming_events|length > 3 %}
-        <small>Mostrando los primeros 3 eventos.</small>
-    {% endif %}
-    </div>
-</details>
-{% endif %}
-{% if last_anesthesia %}
-<details class="hc-section">
-    <summary>💤 Último protocolo anestésico</summary>
-
-    <div class="hc-section-body">
-
-    <p>
-        <strong>Fecha:</strong>
-        {{ last_anesthesia.event_date.strftime('%d/%m/%Y %H:%M') }}
-    </p>
-
-    <a href="/patients/{{ patient.id }}/anesthesia/print"
-        Ver / Imprimir protocolo anestésico
-    </a>
-    </div>
-</details>
-{% endif %}
-{% if anesthesia_history %}
-<div class="panel">
-    <h2>📋 Historial anestésico</h2>
-
-{% for a in anesthesia_history %}
-    <div style="margin-bottom:10px;">
-        {% set ns = namespace(procedure='Sin procedimiento') %}
-        {% for line in a.description.split('\n') %}
-            {% if line.startswith('Procedimiento:') %}
-                {% set ns.procedure = line.replace('Procedimiento:', '').strip() %}
-        {% endif %}
-    {% endfor %}
-
-    <strong>{{ a.event_date.strftime('%d/%m/%Y %H:%M') }}</strong>
-    - {{ ns.procedure }}
-<a href="/patients/{{ patient.id }}/anesthesia/print?event_id={{ a.id }}" target="_blank" class="btn">
-    Ver
-</a>
-
-<a href="/patients/{{ patient.id }}/anesthesia/print?event_id={{ a.id }}" target="_blank" class="btn">
-    Imprimir
-</a>
-        </div>
-    {% endfor %}
-</div>
-{% endif %}
-
-
-    
-
-
-<!--
-<div class="panel">
-<div class="panel" style="background:#fff7ed; border:1px solid #fed7aa;">
-    <h3>📌 Próxima visita / Recordatorio</h3>
-
-    <form method="post" action="/patients/{{ patient.id }}/events">
-
-        <input type="hidden" name="event_type" value="Recordatorio">
-
-        <label><b>Motivo</b></label>
-        <select name="title">
-            <option>Control</option>
-            <option>Extracción de puntos</option>
-            <option>Curación</option>
-            <option>Laboratorio</option>
-            <option>Revisión postquirúrgica</option>
-            <option>Otro</option>
-        </select>
-
-        <br><br>
-
-        <label><b>Fecha próxima visita</b></label>
-        <input type="date" name="reminder_date" required>
-<div style="margin-top:8px;">
-    <b>Programar rápido:</b><br><br>
-
-    <button type="button" onclick="setReminderDays(3)">+3 días</button>
-    <button type="button" onclick="setReminderDays(7)">+7 días</button>
-    <button type="button" onclick="setReminderDays(10)">+10 días</button>
-    <button type="button" onclick="setReminderDays(15)">+15 días</button>
-    <button type="button" onclick="setReminderDays(21)">+21 días</button>
-    <button type="button" onclick="setReminderDays(30)">+30 días</button>
-</div>
-        <br><br>
-
-        <label><b>Nota</b></label>
-        <textarea name="description" placeholder="Ej: debe sacarse sangre para laboratorio"></textarea>
-
-        <br><br>
-
-        <button type="submit">💾 Guardar próxima visita</button>
-    </form>
-</div>    
---> 
-<div class="hc-timeline-panel">
-
-    <div class="hc-timeline-head">
-        <h2>📋 Historia clínica</h2>
-        <a href="/patients/{{ patient.id }}/history" class="hc-history-btn">
-            Ver historial completo
-        </a>
-    </div>
-
-    {% if events %}
-        {% for e in events[:10] %}
-
-        <div class="hc-event-card">
-
-            <div class="hc-event-date">
-                {{ (e.event_date - timedelta(hours=3)).strftime('%d/%m/%Y') }}
-                <div class="hc-event-time">
-                    {{ (e.event_date - timedelta(hours=3)).strftime('%H:%M') }}
-                </div>
-            </div>
-
-            <div class="hc-event-body">
-
-                <div class="hc-event-icon"
-                    style="
-                        {% if e.event_type == 'ECG' %}
-                            background:#fce7f3; color:#be185d;
-                        {% elif e.event_type == 'Ecocardiografía' %}
-                            background:#fee2e2; color:#b91c1c;
-                        {% elif e.event_type == 'Ecografía' %}
-                            background:#e0f2fe; color:#0369a1;
-                        {% elif e.event_type == 'Radiografía' %}
-                            background:#ede9fe; color:#5b21b6;
-                        {% elif e.event_type == 'Laboratorio' %}
-                            background:#dcfce7; color:#166534;
-                        {% elif e.event_type == 'Vacuna' %}
-                            background:#dbeafe; color:#1d4ed8;
-                        {% elif e.event_type == 'Desparasitación' %}
-                            background:#fef3c7; color:#92400e;
-                        {% elif e.event_type == 'Cirugía' %}
-                            background:#fee2e2; color:#991b1b;
-                        {% elif e.event_type == 'Anestesia' %}
-                            background:#f3e8ff; color:#6b21a8;
-                        {% elif e.event_type == 'Internación' %}
-                            background:#ccfbf1; color:#0f766e;
-                        {% elif e.event_type == 'Consulta clínica' %}
-                            background:#f1f5f9; color:#334155;
-                        {% else %}
-                            background:#fce7f3; color:#be185d;
-                        {% endif %}
-                    "
-                >
-                    {% if e.event_type == 'Radiografía' %}📷
-                    {% elif e.event_type == 'ECG' %}💗
-                    {% elif e.event_type == 'Ecocardiografía' %}🫀
-                    {% elif e.event_type == 'Ecografía' %}🖥️
-                    {% elif e.event_type == 'Laboratorio' %}🧪
-                    {% elif e.event_type == 'Informe' %}📄
-                    {% elif e.event_type == 'Vacuna' %}💉
-                    {% elif e.event_type == 'Desparasitación' %}🪱
-                    {% elif e.event_type == 'Cirugía' %}🔪
-                    {% elif e.event_type == 'Anestesia' %}💤
-                    {% elif e.event_type == 'Internación' %}🏥
-                    {% elif e.event_type == 'Consulta clínica' %}🩺
-                    {% else %}📌
-                    {% endif %}
-                </div>
-
+    <div class="hc-hero">
+        <div class="hc-hero-top">
+            <div class="patient-profile">
+                <div class="patient-avatar">{{ patient.name[:1] if patient.name else '?' }}</div>
                 <div>
-                    <div class="hc-event-title">
-                        {{ e.event_type }}
-                        {% if e.title %}
-                            <span style="color:#df6aa0; font-size:13px; margin-left:8px;">
-                                {{ e.title }}
-                            </span>
-                        {% endif %}
+                    <div class="patient-name-row">
+                        <h1>{{ patient.name }}</h1>
+                        {% if patient.sex %}<span class="sex-pill">{{ patient.sex }}</span>{% endif %}
                     </div>
-
-                    <div class="hc-event-subtitle">
-                        {% if e.description %}
-                            {{ e.description[:120] }}{% if e.description|length > 120 %}...{% endif %}
-                        {% elif e.diagnosis %}
-                            {{ e.diagnosis[:120] }}{% if e.diagnosis|length > 120 %}...{% endif %}
-                        {% elif e.treatment %}
-                            {{ e.treatment[:120] }}{% if e.treatment|length > 120 %}...{% endif %}
-                        {% else %}
-                            Sin detalle cargado.
-                        {% endif %}
+                    <div class="mini-pills">
+                        <span class="mini-pill">{{ patient.species or 'Especie no cargada' }}</span>
+                        {% if patient.breed %}<span class="mini-pill">{{ patient.breed }}</span>{% endif %}
+                    </div>
+                    <div class="patient-data">
+                        <p>🎂 {% if patient.birth_date %}{{ patient.birth_date.strftime('%d/%m/%Y') }} · {{ ((today - patient.birth_date).days // 365) }} años{% else %}Sin fecha de nacimiento{% endif %}</p>
+                        <p>⚖️ {{ patient.weight or '-' }} kg</p>
                     </div>
                 </div>
-
-                <div class="hc-event-actions">
-                    <a href="/patients/{{ patient.id }}/events/{{ e.id }}" class="hc-small-btn">
-                        👁 Ver
-                    </a>
-
-                    <a href="/patients/{{ patient.id }}/events/{{ e.id }}/edit" class="hc-small-btn">
-                        ✏️ Editar
-                    </a>
-
-                    <form method="post"
-                          action="/patients/{{ patient.id }}/events/{{ e.id }}/delete"
-                          style="display:inline;"
-                          onsubmit="return confirm('¿Eliminar este evento de la historia clínica? Esta acción no se puede deshacer.');">
-                        <button type="submit" class="hc-delete-btn">
-                            🗑
-                        </button>
-                    </form>
-                </div>
-
             </div>
 
+            <div class="owner-data">
+                <h3>👤 {{ patient.owner.name if patient.owner else 'Sin propietario' }} <span class="owner-badge">Propietario</span></h3>
+                <p>📲 {% if patient.owner %}{{ patient.owner.whatsapp or patient.owner.phone or '-' }}{% else %}-{% endif %}</p>
+                <p>✉️ {% if patient.owner %}{{ patient.owner.email or '-' }}{% else %}-{% endif %}</p>
+                <p>📍 {% if patient.owner %}{{ patient.owner.address or '-' }}{% else %}-{% endif %}</p>
+            </div>
+
+            <div class="alerts-card {% if not patient.alerts %}empty{% endif %}">
+                <h3>🚨 Alertas clínicas</h3>
+                {% if patient.alerts %}
+                    <p>{{ patient.alerts }}</p>
+                {% else %}
+                    <p>Sin alertas clínicas registradas.</p>
+                {% endif %}
+            </div>
         </div>
 
-        {% endfor %}
+        <div class="hc-summary-strip">
+            <div class="summary-tile"><div class="summary-icon" style="background:#dcfce7;color:#166534;">🛡️</div><div><b>Vacunas</b><span>{% if ns.vacuna and ns.vacuna.next_vaccine_date %}Próxima: {{ ns.vacuna.next_vaccine_date }}{% else %}Sin próxima cargada{% endif %}</span></div></div>
+            <div class="summary-tile"><div class="summary-icon" style="background:#fff7ed;color:#c2410c;">🪱</div><div><b>Desparasitación</b><span>{% if ns.desparasitacion and ns.desparasitacion.next_deworming_date %}Próxima: {{ ns.desparasitacion.next_deworming_date }}{% else %}Sin próxima cargada{% endif %}</span></div></div>
+            <div class="summary-tile"><div class="summary-icon" style="background:#ede9fe;color:#6d28d9;">📅</div><div><b>Próximo turno</b><span>{% if next_visit %}{{ next_visit.reminder_date.strftime('%d/%m/%Y') if next_visit.reminder_date else '-' }}{% else %}Sin próximo turno{% endif %}</span></div></div>
+            <div class="summary-tile"><div class="summary-icon" style="background:#dbeafe;color:#1d4ed8;">📋</div><div><b>Última consulta</b><span>{% if events %}{{ events[0].event_date.strftime('%d/%m/%Y') }}{% else %}Sin consultas{% endif %}</span></div></div>
+            <div class="summary-tile"><div class="summary-icon" style="background:#fff0f7;color:#d85b9a;">💗</div><div><b>Cardio</b><span>{{ ecg_count }} ECG · {{ eco_count }} Eco</span></div></div>
+        </div>
+    </div>
 
-        {% if events|length > 10 %}
-            <div style="text-align:center; margin-top:16px;">
-                <a href="/patients/{{ patient.id }}/history" class="hc-history-btn">
-                    📂 Ver eventos anteriores
-                </a>
-            </div>
-        {% endif %}
+    <details class="hc-form-section" id="nuevo-evento">
+        <summary>🩺 Nuevo evento clínico</summary>
+        <div class="hc-section-body">
+            <form method="post" action="/patients/{{ patient.id }}/events" enctype="multipart/form-data" class="form-grid">
+                <div class="soft-box">
+                    <h4>📅 Fecha y tipo de evento</h4>
+                    <input type="date" name="event_date" value="{{ today.strftime('%Y-%m-%d') }}">
+                    <select name="event_type" id="event_type" style="margin-top:10px;">
+                        {% for t in event_types %}<option>{{ t }}</option>{% endfor %}
+                    </select>
+                </div>
 
-    {% else %}
-        <p class="hc-muted">No hay eventos cargados en la historia clínica.</p>
+                <input name="weight" placeholder="Peso kg" value="{{ patient.weight or '' }}">
+                <input name="temperature" placeholder="Temperatura °C">
+                <input name="heart_rate" placeholder="FC">
+                <input name="respiratory_rate" placeholder="FR">
+                <input name="mucous_membranes" placeholder="Mucosas">
+                <input name="crt" placeholder="TLLC">
+                <input name="hydration" placeholder="Hidratación">
+                <input name="title" placeholder="Título / motivo">
+
+                <textarea name="description" placeholder="Motivo / descripción"></textarea>
+                <textarea name="anamnesis" placeholder="Anamnesis"></textarea>
+                <textarea name="physical_exam" placeholder="Examen físico"></textarea>
+                <textarea name="diagnosis" placeholder="Diagnóstico / conclusión"></textarea>
+                <textarea name="treatment" placeholder="Tratamiento / indicaciones"></textarea>
+
+                <div id="vaccine-box" class="soft-box" style="display:none;">
+                    <h4>💉 Datos de vacunación</h4>
+                    <input name="vaccine_name" list="vaccines_list" placeholder="Vacuna aplicada">
+                    <datalist id="vaccines_list">
+                        <option value="Triple Felina"><option value="Antirrábica"><option value="Leucemia Felina"><option value="Puppy DP"><option value="DHPPI"><option value="Séxtuple"><option value="Traqueobronquitis"><option value="Leptospirosis">
+                    </datalist>
+                    <input name="vaccine_lot" placeholder="Lote" style="margin-top:10px;">
+                    <input name="vaccine_expiration" list="vaccines_list" placeholder="Próxima vacuna / refuerzo" style="margin-top:10px;">
+                    <input type="date" name="next_vaccine_date" id="next_vaccine_date" style="margin-top:10px;">
+                    <div class="quick-buttons"><button type="button" onclick="setNextVaccineDays(21)">+21 días</button><button type="button" onclick="setNextVaccineDays(30)">+30 días</button><button type="button" onclick="setNextVaccineMonths(6)">+6 meses</button><button type="button" onclick="setNextVaccineDays(365)">+1 año</button></div>
+                </div>
+
+                <div id="deworming-box" class="soft-box" style="display:none;">
+                    <h4>🪱 Desparasitación</h4>
+                    <input name="dewormer_product" list="dewormers_list" placeholder="Producto / marca comercial">
+                    <datalist id="dewormers_list">
+                        <option value="Total Full CG"><option value="Total Full suspensión"><option value="Aprax suspensión"><option value="Levamisol"><option value="Trivermex suspensión"><option value="Meltra Spot On"><option value="Feline Full Spot"><option value="Feline Endo Spot"><option value="Total Full LC"><option value="Aprax"><option value="Endofour"><option value="Trivermex"><option value="Meltra Gold"><option value="Apto"><option value="Moxidex Plus">
+                    </datalist>
+                    <input name="dewormer_drug" placeholder="Principio activo" style="margin-top:10px;">
+                    <input name="dewormer_dose" placeholder="Dosis / indicación" style="margin-top:10px;">
+                    <input type="date" name="next_deworming_date" id="next_deworming_date" style="margin-top:10px;">
+                    <div class="quick-buttons"><button type="button" onclick="setNextDewormingDays(21)">+21 días</button><button type="button" onclick="setNextDewormingDays(30)">+30 días</button><button type="button" onclick="setNextDewormingMonths(3)">+3 meses</button><button type="button" onclick="setNextDewormingMonths(6)">+6 meses</button></div>
+                </div>
+
+                <div id="ecg-box" class="soft-box" style="display:none;">
+                    <h4>❤️ ECG</h4>
+                    <input name="ecg_hr" placeholder="FC"><input name="ecg_rhythm" placeholder="Ritmo" style="margin-top:10px;"><input name="ecg_p" placeholder="Onda P" style="margin-top:10px;"><input name="ecg_pr" placeholder="Intervalo PR" style="margin-top:10px;"><input name="ecg_qrs" placeholder="QRS" style="margin-top:10px;"><input name="ecg_st" placeholder="Segmento ST" style="margin-top:10px;"><input name="ecg_t" placeholder="Onda T" style="margin-top:10px;"><input name="ecg_qt" placeholder="Intervalo QT" style="margin-top:10px;"><input name="ecg_axis" placeholder="Eje eléctrico" style="margin-top:10px;"><textarea name="ecg_interpretation" placeholder="Interpretación electrocardiográfica" style="margin-top:10px;"></textarea>
+                </div>
+
+                <div id="eco-box" class="soft-box" style="display:none;">
+                    <h4>🫀 Ecocardiografía</h4>
+                    <input name="eco_aiao" placeholder="AI/Ao"><input name="eco_fs" placeholder="Fracción de acortamiento (%)" style="margin-top:10px;"><input name="eco_acvim" placeholder="Clasificación ACVIM" style="margin-top:10px;"><textarea name="eco_diagnosis" placeholder="Diagnóstico ecocardiográfico" style="margin-top:10px;"></textarea><textarea name="eco_treatment" placeholder="Tratamiento cardiológico" style="margin-top:10px;"></textarea>
+                </div>
+
+                <div class="soft-box">
+                    <h4>📌 Próxima visita / recordatorio</h4>
+                    <input type="date" name="reminder_date">
+                    <div class="quick-buttons"><button type="button" onclick="setReminderDays(3)">+3 días</button><button type="button" onclick="setReminderDays(7)">+7 días</button><button type="button" onclick="setReminderDays(10)">+10 días</button><button type="button" onclick="setReminderDays(15)">+15 días</button><button type="button" onclick="setReminderDays(21)">+21 días</button><button type="button" onclick="setReminderDays(30)">+30 días</button></div>
+                </div>
+
+                <div class="soft-box">
+                    <h4>📎 Adjuntos / estudios</h4>
+                    <input type="file" name="attachments" multiple>
+                </div>
+
+                <button type="submit" class="save-event-btn">💾 Guardar evento clínico</button>
+            </form>
+        </div>
+    </details>
+
+    {% if last_anesthesia %}
+    <div class="hc-card">
+        <div class="hc-card-head"><h2>💤 Último protocolo anestésico</h2><a href="/patients/{{ patient.id }}/anesthesia/print" target="_blank" class="small-btn">Ver / imprimir</a></div>
+        <p><b>Fecha:</b> {{ last_anesthesia.event_date.strftime('%d/%m/%Y %H:%M') }}</p>
+    </div>
     {% endif %}
 
+    {% if anesthesia_history %}
+    <div class="hc-card">
+        <div class="hc-card-head"><h2>📋 Historial anestésico</h2></div>
+        {% for a in anesthesia_history %}
+            {% set ans = namespace(procedure='Sin procedimiento') %}
+            {% for line in a.description.split('\n') %}{% if line.startswith('Procedimiento:') %}{% set ans.procedure = line.replace('Procedimiento:', '').strip() %}{% endif %}{% endfor %}
+            <p><b>{{ a.event_date.strftime('%d/%m/%Y %H:%M') }}</b> - {{ ans.procedure }} <a href="/patients/{{ patient.id }}/anesthesia/print?event_id={{ a.id }}" target="_blank" class="small-btn">Ver</a></p>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="hc-main-grid">
+        <div>
+            <div class="hc-card">
+                <div class="hc-card-head"><h2>📚 Módulos clínicos</h2></div>
+                <div class="module-row"><div class="module-icon">🩺</div><div><h3>Consulta clínica</h3><p>Consultas, evolución y tratamientos.</p></div><div class="module-count">{{ ns.consulta_count }} consultas</div></div>
+                <div class="module-row"><div class="module-icon">💉</div><div><h3>Vacunas</h3><p>Historial de vacunación del paciente.</p></div><div class="module-count">{{ ns.vacuna_count }} registros</div></div>
+                <div class="module-row"><div class="module-icon">🪱</div><div><h3>Desparasitación</h3><p>Desparasitaciones internas y externas.</p></div><div class="module-count">{{ ns.desp_count }} registros</div></div>
+                <div class="module-row"><div class="module-icon">💗</div><div><h3>Cardiología</h3><p>Controles, ECG y ecocardiografías.</p></div><div class="module-count">{{ ns.cardio_count }} registros</div></div>
+                <div class="module-row"><div class="module-icon">📎</div><div><h3>Adjuntos y estudios</h3><p>Imágenes, análisis, PDF y documentos.</p></div><div class="module-count">{{ ns.adj_count }} archivos</div></div>
+                <div class="module-row"><div class="module-icon">🕓</div><div><h3>Línea de tiempo</h3><p>Resumen cronológico de toda la actividad.</p></div><div class="module-count">{{ events|length }} eventos</div></div>
+            </div>
+
+            <div class="notes-box">
+                <b>📝 Notas rápidas</b><br>
+                {{ patient.notes or 'Sin notas generales cargadas.' }}
+            </div>
+        </div>
+
+        <div class="hc-card">
+            <div class="hc-card-head">
+                <h2>📍 Línea de tiempo</h2>
+                <a href="/patients/{{ patient.id }}/history" class="small-btn">Ver todo</a>
+            </div>
+
+            {% if events %}
+            <div class="timeline">
+                {% for e in events[:10] %}
+                <div class="timeline-item">
+                    <div class="timeline-date">{{ (e.event_date - timedelta(hours=3)).strftime('%d/%m/%Y') }}</div>
+                    <div class="timeline-dot">
+                        {% if e.event_type == 'Radiografía' %}📷{% elif e.event_type == 'ECG' %}💗{% elif e.event_type == 'Ecocardiografía' %}🫀{% elif e.event_type == 'Ecografía' %}🖥️{% elif e.event_type == 'Laboratorio' %}🧪{% elif e.event_type == 'Vacuna' %}💉{% elif e.event_type == 'Desparasitación' %}🪱{% elif e.event_type == 'Cirugía' %}🔪{% elif e.event_type == 'Anestesia' %}💤{% elif e.event_type == 'Internación' %}🏥{% else %}🩺{% endif %}
+                    </div>
+                    <div class="timeline-content">
+                        <h3>{{ e.event_type }}{% if e.title %} <span style="color:#d85b9a; font-size:13px;">{{ e.title }}</span>{% endif %}</h3>
+                        <p>{% if e.description %}{{ e.description[:120] }}{% if e.description|length > 120 %}...{% endif %}{% elif e.diagnosis %}{{ e.diagnosis[:120] }}{% if e.diagnosis|length > 120 %}...{% endif %}{% elif e.treatment %}{{ e.treatment[:120] }}{% if e.treatment|length > 120 %}...{% endif %}{% else %}Sin detalle cargado.{% endif %}</p>
+                    </div>
+                    <div class="timeline-actions">
+                        <a href="/patients/{{ patient.id }}/events/{{ e.id }}" class="small-btn">Ver</a>
+                        <a href="/patients/{{ patient.id }}/events/{{ e.id }}/edit" class="small-btn">Editar</a>
+                        <form method="post" action="/patients/{{ patient.id }}/events/{{ e.id }}/delete" style="display:inline;" onsubmit="return confirm('¿Eliminar este evento?');"><button type="submit" class="small-btn delete-btn">🗑</button></form>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+                <p style="color:#6b7280;">No hay eventos cargados en la historia clínica.</p>
+            {% endif %}
+        </div>
+    </div>
 </div>
+
 <script>
 function setEventType(type) {
     const selector = document.getElementById('event_type');
+    if (!selector) return;
     selector.value = type;
     selector.dispatchEvent(new Event('change'));
 }
-
-
 function setNextDewormingDays(days) {
     const input = document.querySelector('input[name="next_deworming_date"]');
-    const date = new Date();
-
-    date.setDate(date.getDate() + days);
-
-    input.value = date.toISOString().split('T')[0];
+    const date = new Date(); date.setDate(date.getDate() + days);
+    if (input) input.value = date.toISOString().split('T')[0];
 }
-
 function setNextDewormingMonths(months) {
     const input = document.querySelector('input[name="next_deworming_date"]');
-    const date = new Date();
-
-    date.setMonth(date.getMonth() + months);
-
-    input.value = date.toISOString().split('T')[0];
+    const date = new Date(); date.setMonth(date.getMonth() + months);
+    if (input) input.value = date.toISOString().split('T')[0];
 }
 function setNextVaccineDays(days) {
-    const input = document.getElementById("next_vaccine_date");
-    const date = new Date();
-    date.setDate(date.getDate() + days);
-    input.value = date.toISOString().split('T')[0];
+    const input = document.getElementById('next_vaccine_date');
+    const date = new Date(); date.setDate(date.getDate() + days);
+    if (input) input.value = date.toISOString().split('T')[0];
 }
-
 function setNextVaccineMonths(months) {
-    const input = document.getElementById("next_vaccine_date");
-    const date = new Date();
-    date.setMonth(date.getMonth() + months);
-    input.value = date.toISOString().split('T')[0];
+    const input = document.getElementById('next_vaccine_date');
+    const date = new Date(); date.setMonth(date.getMonth() + months);
+    if (input) input.value = date.toISOString().split('T')[0];
 }
-</script>
-<script>
 function setReminderDays(days) {
     const campo = document.querySelector('input[name="reminder_date"]');
-
-    let fecha = new Date();
-    fecha.setDate(fecha.getDate() + days);
-
+    let fecha = new Date(); fecha.setDate(fecha.getDate() + days);
     const yyyy = fecha.getFullYear();
     const mm = String(fecha.getMonth() + 1).padStart(2, '0');
     const dd = String(fecha.getDate()).padStart(2, '0');
-
-    campo.value = `${yyyy}-${mm}-${dd}`;
+    if (campo) campo.value = `${yyyy}-${mm}-${dd}`;
 }
-
-
 document.addEventListener('DOMContentLoaded', function() {
-
     const selector = document.getElementById('event_type');
     const ecgBox = document.getElementById('ecg-box');
     const ecoBox = document.getElementById('eco-box');
     const vaccineBox = document.getElementById('vaccine-box');
     const dewormingBox = document.getElementById('deworming-box');
-
     function actualizarCampos() {
+        if (!selector) return;
         const tipo = selector.value;
-
-        if (ecgBox) ecgBox.style.display = tipo === 'ECG' ? 'grid' : 'none';
-        if (ecoBox) ecoBox.style.display = tipo === 'Ecocardiografía' ? 'grid' : 'none';
-        if (vaccineBox) vaccineBox.style.display = tipo === 'Vacuna' ? 'grid' : 'none';
-        if (dewormingBox) dewormingBox.style.display = tipo === 'Desparasitación' ? 'grid' : 'none';
+        if (ecgBox) ecgBox.style.display = tipo === 'ECG' ? 'block' : 'none';
+        if (ecoBox) ecoBox.style.display = tipo === 'Ecocardiografía' ? 'block' : 'none';
+        if (vaccineBox) vaccineBox.style.display = tipo === 'Vacuna' ? 'block' : 'none';
+        if (dewormingBox) dewormingBox.style.display = tipo === 'Desparasitación' ? 'block' : 'none';
     }
-
-    selector.addEventListener('change', actualizarCampos);
+    if (selector) selector.addEventListener('change', actualizarCampos);
     actualizarCampos();
-
 });
-
-
 </script>
 {% endblock %}
