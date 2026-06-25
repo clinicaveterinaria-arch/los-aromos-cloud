@@ -3009,7 +3009,10 @@ def event_whatsapp(
     if not number.startswith("54"):
         number = "549" + number
 
-    if event.event_type == "Vacuna":
+    if (
+        event.event_type == "Vacuna"
+        or "vacun" in (event.title or "").lower()
+    ):
         vacuna = event.title if event.title else "correspondiente"
     
         message = (
@@ -3018,17 +3021,22 @@ def event_whatsapp(
             f"¡Los esperamos!"
         )
     
-    elif event.event_type == "Desparasitación":
-        message = (
-            f"Buenos días *{owner.name}*.\n\n"
-            f"Te recordamos que *{patient.name}* debe desparasitarse hoy.\n\n"
-            f"Es solo un comprimido o una pipeta, por lo que pueden:\n"
-            f"• Traerlo a la clínica para realizar la desparasitación.\n"
-            f"• Comprar la medicación y administrarla en casa.\n"
-            f"• Solicitar envío a domicilio.\n\n"
-            f"¿Qué preferis?"
-        )
-    
+        elif (
+            event.event_type == "Desparasitación"
+            or "despar" in (event.title or "").lower()
+            or "antiparas" in (event.title or "").lower()
+            or "aprax" in (event.title or "").lower()
+            or "pipeta" in (event.title or "").lower()
+        ):
+            message = (
+                f"Buenos días *{owner.name}*.\n\n"
+                f"Te recordamos que *{patient.name}* debe desparasitarse hoy.\n\n"
+                f"Es solo un comprimido o una pipeta, por lo que pueden:\n"
+                f"• Traerlo a la clínica para realizar la desparasitación.\n"
+                f"• Comprar la medicación y administrarla en casa.\n"
+                f"• Solicitar envío a domicilio.\n\n"
+                f"¿Qué preferís?"
+            )
     else:
         message = (
             f"Hola *{owner.name}*.\n\n"
