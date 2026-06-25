@@ -1,21 +1,302 @@
-{% extends 'base.html' %}{% block content %}
-<h1>Nuevo paciente</h1>
-<div class="panel"><form method="post" action="/patients" class="form-grid">
-<input name="name" placeholder="Nombre del paciente" required>
-<select name="owner_id">
-    <option value="">➕ Crear propietario nuevo</option>
-    {% for o in owners %}
-    <option value="{{ o.id }}" {% if owner_id==o.id %}selected{% endif %}>
-        {{ o.name }} - {{ o.phone }}
-    </option>
-    {% endfor %}
-</select>
+{% extends 'base.html' %}
+{% block content %}
 
-<input name="owner_name" placeholder="Nombre del propietario">
-<input name="owner_phone" placeholder="Teléfono">
-<input name="owner_whatsapp" placeholder="WhatsApp">
-<input name="owner_address" placeholder="Dirección">
-<input name="owner_email" placeholder="Email">
-<input name="species" placeholder="Especie"><input name="breed" placeholder="Raza"><input name="sex" placeholder="Sexo"><input name="weight" placeholder="Peso kg"><textarea name="alerts" placeholder="Alertas clínicas"></textarea><textarea name="notes" placeholder="Observaciones"></textarea><button>Guardar paciente</button>
-</form></div>
+<style>
+    .patient-page { padding:24px 28px; }
+    .patient-hero {
+        background:white; border:1px solid #f3c6d8; border-radius:22px;
+        padding:22px; box-shadow:0 8px 26px rgba(0,0,0,0.05);
+        margin-bottom:18px;
+    }
+    .patient-hero h1 { margin:0 0 6px 0; font-size:32px; color:#1f2937; }
+    .patient-hero p { margin:0; color:#6b7280; }
+
+    .patient-card {
+        background:white; border:1px solid #f3c6d8; border-radius:22px;
+        padding:22px; box-shadow:0 8px 26px rgba(0,0,0,0.04);
+        margin-bottom:18px;
+    }
+
+    .patient-card h2 {
+        margin:0 0 16px 0; color:#1f2937;
+        display:flex; gap:10px; align-items:center;
+    }
+
+    .form-grid {
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+        gap:14px;
+    }
+
+    .field-box label {
+        display:block; font-weight:bold; color:#374151;
+        font-size:13px; margin-bottom:6px;
+    }
+
+    .field-box input,
+    .field-box select,
+    .field-box textarea {
+        width:100%; border:1px solid #ead7e1; border-radius:13px;
+        padding:12px 13px; font-size:14px; background:white;
+    }
+
+    .field-box textarea { min-height:96px; resize:vertical; }
+    .field-full { grid-column:1 / -1; }
+
+    .soft-panel {
+        background:#fff8fb; border:1px solid #f3c6d8;
+        border-radius:18px; padding:16px; margin-top:14px;
+    }
+
+    .pink-btn {
+        background:#d85b9a; color:white; border:none; border-radius:13px;
+        padding:13px 18px; font-weight:bold; cursor:pointer;
+        text-decoration:none; display:inline-flex; align-items:center;
+        justify-content:center; gap:7px;
+    }
+
+    .soft-btn {
+        background:white; color:#d85b9a; border:1px solid #f3c6d8;
+        border-radius:13px; padding:13px 18px; font-weight:bold;
+        text-decoration:none;
+    }
+
+    .age-box {
+        background:#fff0f7; color:#d85b9a; border:1px solid #f3c6d8;
+        border-radius:13px; padding:12px 13px; font-weight:bold;
+        min-height:45px; display:flex; align-items:center;
+    }
+
+    .alert-box textarea {
+        background:#fff7f7;
+        border-color:#fecaca;
+    }
+
+    .form-actions {
+        display:flex; gap:10px; flex-wrap:wrap; margin-top:18px;
+    }
+
+    .owner-new-box {
+        display:none;
+        margin-top:14px;
+    }
+
+    .hint-card {
+        background:#f8fafc;
+        border:1px solid #e5e7eb;
+        border-radius:18px;
+        padding:16px;
+        color:#4b5563;
+        font-size:14px;
+    }
+</style>
+
+<div class="patient-page">
+
+    <div class="patient-hero">
+        <h1>🐾 Nuevo paciente</h1>
+        <p>Cargá un paciente nuevo y asociá su propietario en pocos segundos.</p>
+    </div>
+
+    <form method="post" action="/patients">
+
+        <div class="patient-card">
+            <h2>👤 Propietario</h2>
+
+            <div class="form-grid">
+                <div class="field-box field-full">
+                    <label>Buscar propietario existente</label>
+                    <input id="ownerSearch" type="text" placeholder="🔎 Escribí nombre, teléfono o WhatsApp...">
+                </div>
+
+                <div class="field-box field-full">
+                    <label>Seleccionar propietario</label>
+                    <select name="owner_id" id="ownerSelect">
+                        <option value="">➕ Crear propietario nuevo</option>
+                        {% for o in owners %}
+                            <option value="{{ o.id }}" {% if owner_id==o.id %}selected{% endif %}>
+                                {{ o.name }}{% if o.phone %} - {{ o.phone }}{% endif %}{% if o.whatsapp %} - WhatsApp: {{ o.whatsapp }}{% endif %}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="soft-panel owner-new-box" id="newOwnerBox">
+                <h2>➕ Alta rápida de propietario</h2>
+
+                <div class="form-grid">
+                    <div class="field-box">
+                        <label>Nombre del propietario</label>
+                        <input name="owner_name" placeholder="Ej: Juan Pérez">
+                    </div>
+
+                    <div class="field-box">
+                        <label>Teléfono</label>
+                        <input name="owner_phone" placeholder="Ej: 3456250361">
+                    </div>
+
+                    <div class="field-box">
+                        <label>WhatsApp</label>
+                        <input name="owner_whatsapp" placeholder="Ej: 3456250361">
+                    </div>
+
+                    <div class="field-box">
+                        <label>Email</label>
+                        <input name="owner_email" placeholder="cliente@email.com">
+                    </div>
+
+                    <div class="field-box field-full">
+                        <label>Dirección</label>
+                        <input name="owner_address" placeholder="Dirección">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="patient-card">
+            <h2>🐶 Datos del paciente</h2>
+
+            <div class="form-grid">
+                <div class="field-box">
+                    <label>Nombre del paciente</label>
+                    <input name="name" placeholder="Ej: Luna" required>
+                </div>
+
+                <div class="field-box">
+                    <label>Especie</label>
+                    <input name="species" placeholder="Canino / Felino">
+                </div>
+
+                <div class="field-box">
+                    <label>Raza</label>
+                    <input name="breed" placeholder="Ej: Caniche">
+                </div>
+
+                <div class="field-box">
+                    <label>Sexo</label>
+                    <select name="sex">
+                        <option value="">Seleccionar</option>
+                        <option>Hembra</option>
+                        <option>Macho</option>
+                        <option>Hembra castrada</option>
+                        <option>Macho castrado</option>
+                    </select>
+                </div>
+
+                <div class="field-box">
+                    <label>Fecha de nacimiento</label>
+                    <input type="date" name="birth_date" id="birthDate">
+                </div>
+
+                <div class="field-box">
+                    <label>Edad automática</label>
+                    <div class="age-box" id="ageBox">Sin fecha cargada</div>
+                </div>
+
+                <div class="field-box">
+                    <label>Peso kg</label>
+                    <input name="weight" placeholder="Ej: 12,5">
+                </div>
+
+                <div class="field-box alert-box field-full">
+                    <label>🚨 Alertas clínicas</label>
+                    <textarea name="alerts" placeholder="Ej: alérgico, cardiópata, agresivo, convulsiones..."></textarea>
+                </div>
+
+                <div class="field-box field-full">
+                    <label>📝 Observaciones</label>
+                    <textarea name="notes" placeholder="Observaciones generales del paciente..."></textarea>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button class="pink-btn" type="submit">💾 Guardar paciente</button>
+                <a href="/search" class="soft-btn">↩️ Cancelar</a>
+            </div>
+        </div>
+
+    </form>
+
+    <div class="hint-card">
+        💡 Consejo: si el propietario ya existe, usá el buscador. Si no existe, dejá seleccionado “Crear propietario nuevo” y completá el alta rápida.
+    </div>
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const ownerSearch = document.getElementById('ownerSearch');
+    const ownerSelect = document.getElementById('ownerSelect');
+    const newOwnerBox = document.getElementById('newOwnerBox');
+    const birthDate = document.getElementById('birthDate');
+    const ageBox = document.getElementById('ageBox');
+
+    if (ownerSelect) {
+        const allOwnerOptions = Array.from(ownerSelect.querySelectorAll('option'));
+
+        function toggleNewOwnerBox() {
+            if (newOwnerBox) {
+                newOwnerBox.style.display = ownerSelect.value ? 'none' : 'block';
+            }
+        }
+
+        function filterOwners() {
+            const search = (ownerSearch.value || '').toLowerCase();
+
+            ownerSelect.innerHTML = '';
+
+            allOwnerOptions.forEach(option => {
+                const text = (option.textContent || '').toLowerCase();
+
+                if (option.value === '' || text.includes(search)) {
+                    ownerSelect.appendChild(option.cloneNode(true));
+                }
+            });
+
+            toggleNewOwnerBox();
+        }
+
+        ownerSearch.addEventListener('input', filterOwners);
+        ownerSelect.addEventListener('change', toggleNewOwnerBox);
+        toggleNewOwnerBox();
+    }
+
+    function calculateAge() {
+        if (!birthDate || !ageBox || !birthDate.value) {
+            if (ageBox) ageBox.textContent = 'Sin fecha cargada';
+            return;
+        }
+
+        const birth = new Date(birthDate.value);
+        const today = new Date();
+
+        let years = today.getFullYear() - birth.getFullYear();
+        let months = today.getMonth() - birth.getMonth();
+
+        if (today.getDate() < birth.getDate()) {
+            months--;
+        }
+
+        if (months < 0) {
+            years--;
+            months += 12;
+        }
+
+        if (years < 0) {
+            ageBox.textContent = 'Fecha inválida';
+        } else if (years === 0) {
+            ageBox.textContent = months + ' meses';
+        } else {
+            ageBox.textContent = years + ' años y ' + months + ' meses';
+        }
+    }
+
+    if (birthDate) {
+        birthDate.addEventListener('change', calculateAge);
+        calculateAge();
+    }
+});
+</script>
+
 {% endblock %}
