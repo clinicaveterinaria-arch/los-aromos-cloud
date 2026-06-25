@@ -1,0 +1,573 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<style>
+    .wait-page {
+        padding:24px 28px;
+    }
+
+    .wait-hero {
+        background:white;
+        border:1px solid #f3c6d8;
+        border-radius:22px;
+        padding:22px;
+        box-shadow:0 8px 26px rgba(0,0,0,0.05);
+        margin-bottom:18px;
+    }
+
+    .wait-top {
+        display:flex;
+        justify-content:space-between;
+        gap:18px;
+        align-items:flex-start;
+        flex-wrap:wrap;
+    }
+
+    .wait-title h1 {
+        margin:0 0 6px 0;
+        font-size:32px;
+    }
+
+    .wait-title p {
+        margin:0;
+        color:#6b7280;
+    }
+
+    .wait-actions {
+        display:flex;
+        gap:10px;
+        flex-wrap:wrap;
+        align-items:center;
+    }
+
+    .wait-btn {
+        border:1px solid #f3c6d8;
+        background:white;
+        color:#d85b9a;
+        border-radius:12px;
+        padding:10px 14px;
+        font-weight:bold;
+        text-decoration:none;
+        cursor:pointer;
+    }
+
+    .wait-btn.primary {
+        background:#d85b9a;
+        color:white;
+        border-color:#d85b9a;
+    }
+
+    .wait-btn.green {
+        background:#ecfdf5;
+        color:#166534;
+        border-color:#bbf7d0;
+    }
+
+    .wait-btn.orange {
+        background:#fff7ed;
+        color:#c2410c;
+        border-color:#fed7aa;
+    }
+
+    .wait-btn.gray {
+        color:#4b5563;
+    }
+
+    .wait-panel {
+        background:white;
+        border:1px solid #f3c6d8;
+        border-radius:22px;
+        padding:20px;
+        box-shadow:0 8px 26px rgba(0,0,0,0.04);
+        margin-bottom:18px;
+    }
+
+    .wait-form {
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+        gap:12px;
+        align-items:end;
+    }
+
+    .wait-form label {
+        display:block;
+        font-size:13px;
+        font-weight:bold;
+        margin-bottom:5px;
+        color:#374151;
+    }
+
+    .wait-form input,
+    .wait-form select {
+        width:100%;
+        border:1px solid #ead7e1;
+        border-radius:12px;
+        padding:10px 12px;
+        font-size:14px;
+    }
+
+    .wait-tabs {
+        display:flex;
+        gap:8px;
+        flex-wrap:wrap;
+        margin-bottom:14px;
+    }
+
+    .wait-tab {
+        border:1px solid #f3c6d8;
+        background:white;
+        color:#374151;
+        border-radius:14px;
+        padding:10px 14px;
+        text-decoration:none;
+        font-weight:bold;
+    }
+
+    .wait-tab.active {
+        background:#fff0f7;
+        color:#d85b9a;
+        border-color:#d85b9a;
+    }
+
+    .wait-tools {
+        display:flex;
+        justify-content:space-between;
+        gap:12px;
+        flex-wrap:wrap;
+        margin-bottom:14px;
+    }
+
+    .wait-search {
+        min-width:280px;
+        flex:1;
+        border:1px solid #ead7e1;
+        border-radius:14px;
+        padding:12px 14px;
+        font-size:15px;
+    }
+
+    .wait-table {
+        border:1px solid #f1d6e2;
+        border-radius:18px;
+        overflow:hidden;
+    }
+
+    .wait-row {
+        display:grid;
+        grid-template-columns:110px 1.3fr 1.2fr 1.2fr 110px 130px 240px;
+        gap:14px;
+        align-items:center;
+        padding:14px 18px;
+        border-bottom:1px solid #f3edf1;
+        background:white;
+    }
+
+    .wait-row.head {
+        background:#fff8fb;
+        font-weight:bold;
+        font-size:13px;
+        color:#374151;
+    }
+
+    .wait-row:last-child {
+        border-bottom:none;
+    }
+
+    .wait-time b {
+        display:block;
+        font-size:16px;
+    }
+
+    .wait-time span {
+        color:#6b7280;
+        font-size:12px;
+    }
+
+    .patient-block {
+        display:flex;
+        gap:12px;
+        align-items:center;
+    }
+
+    .avatar {
+        width:48px;
+        height:48px;
+        border-radius:50%;
+        background:#fff0f7;
+        color:#d85b9a;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-weight:bold;
+        border:1px solid #f3c6d8;
+        flex:0 0 auto;
+    }
+
+    .patient-name {
+        font-weight:bold;
+        color:#1f2937;
+        text-decoration:none;
+        font-size:16px;
+    }
+
+    .patient-meta,
+    .owner-meta {
+        color:#6b7280;
+        font-size:13px;
+        margin-top:3px;
+    }
+
+    .pill {
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        border-radius:999px;
+        padding:6px 10px;
+        font-size:12px;
+        font-weight:bold;
+        border:1px solid #e5e7eb;
+        background:white;
+        white-space:nowrap;
+    }
+
+    .priority-normal {
+        color:#c2410c;
+        background:#fff7ed;
+        border-color:#fed7aa;
+    }
+
+    .priority-urgente {
+        color:#dc2626;
+        background:#fff1f2;
+        border-color:#fecdd3;
+    }
+
+    .priority-emergencia {
+        color:white;
+        background:#dc2626;
+        border-color:#dc2626;
+    }
+
+    .status-esperando {
+        color:#166534;
+        background:#dcfce7;
+        border-color:#bbf7d0;
+    }
+
+    .status-consulta {
+        color:#c2410c;
+        background:#fff7ed;
+        border-color:#fed7aa;
+    }
+
+    .status-finalizado {
+        color:#4b5563;
+        background:#f3f4f6;
+        border-color:#d1d5db;
+    }
+
+    .row-actions {
+        display:flex;
+        gap:8px;
+        flex-wrap:wrap;
+    }
+
+    .row-actions form {
+        display:inline;
+        margin:0;
+    }
+
+    .row-actions button,
+    .row-actions a {
+        border:1px solid #f3c6d8;
+        background:white;
+        color:#d85b9a;
+        border-radius:10px;
+        padding:8px 10px;
+        font-weight:bold;
+        font-size:13px;
+        cursor:pointer;
+        text-decoration:none;
+    }
+
+    .legend {
+        display:flex;
+        gap:18px;
+        flex-wrap:wrap;
+        color:#4b5563;
+        font-size:13px;
+        margin-top:14px;
+    }
+
+    .dot {
+        width:11px;
+        height:11px;
+        border-radius:50%;
+        display:inline-block;
+        margin-right:6px;
+    }
+
+    .dot.green { background:#22c55e; }
+    .dot.orange { background:#f59e0b; }
+    .dot.gray { background:#9ca3af; }
+
+    .empty-state {
+        text-align:center;
+        color:#6b7280;
+        padding:45px 20px;
+    }
+
+    @media (max-width:1200px) {
+        .wait-row {
+            grid-template-columns:1fr;
+            gap:8px;
+        }
+
+        .wait-row.head {
+            display:none;
+        }
+    }
+</style>
+
+<div class="wait-page">
+
+    <div class="wait-hero">
+        <div class="wait-top">
+            <div class="wait-title">
+                <h1>👥 Lista de espera</h1>
+                <p>Recepción, espera y entrada directa a historia clínica.</p>
+            </div>
+
+            <div class="wait-actions">
+                <a href="/waitlist" class="wait-btn">🔄 Actualizar lista</a>
+                <a href="/agenda" class="wait-btn">📅 Agenda</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="wait-panel">
+        <form method="post" action="/waitlist" class="wait-form">
+            <div>
+                <label>Propietario</label>
+                <select name="owner_id" id="owner_id">
+                    <option value="">Sin propietario</option>
+                    {% for o in owners %}
+                        <option value="{{ o.id }}">{{ o.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label>Paciente</label>
+                <select name="patient_id" id="patient_id">
+                    <option value="">Sin paciente</option>
+                    {% for p in patients %}
+                        <option value="{{ p.id }}" data-owner="{{ p.owner_id if p.owner_id else '' }}">
+                            {{ p.name }}{% if p.owner %} - {{ p.owner.name }}{% endif %}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label>Motivo</label>
+                <input name="reason" placeholder="Ej: vómitos, vacuna, control..." required>
+            </div>
+
+            <div>
+                <label>Prioridad</label>
+                <select name="priority">
+                    <option>Normal</option>
+                    <option>Urgente</option>
+                    <option>Emergencia</option>
+                </select>
+            </div>
+
+            <div>
+                <label>Nota rápida</label>
+                <input name="notes" placeholder="Opcional">
+            </div>
+
+            <div>
+                <button type="submit" class="wait-btn primary" style="width:100%;">＋ Agregar paciente</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="wait-panel">
+
+        <div class="wait-tools">
+            <div class="wait-tabs">
+                <a href="/waitlist" class="wait-tab {% if not selected_status %}active{% endif %}">Todos ({{ stats.total }})</a>
+                <a href="/waitlist?status=Esperando" class="wait-tab {% if selected_status == 'Esperando' %}active{% endif %}">🟢 Esperando ({{ stats.waiting }})</a>
+                <a href="/waitlist?status=En consulta" class="wait-tab {% if selected_status == 'En consulta' %}active{% endif %}">🟠 En consulta ({{ stats.consulting }})</a>
+                <a href="/waitlist?status=Finalizado" class="wait-tab {% if selected_status == 'Finalizado' %}active{% endif %}">⚪ Finalizados ({{ stats.finished }})</a>
+            </div>
+
+            <form method="get" action="/waitlist" style="display:flex; gap:8px; flex:1;">
+                {% if selected_status %}
+                    <input type="hidden" name="status" value="{{ selected_status }}">
+                {% endif %}
+                <input class="wait-search" name="q" value="{{ q }}" placeholder="Buscar paciente, propietario o motivo...">
+                <button class="wait-btn" type="submit">🔎</button>
+            </form>
+        </div>
+
+        {% if entries %}
+            <div class="wait-table">
+                <div class="wait-row head">
+                    <div>Hora llegada</div>
+                    <div>Paciente</div>
+                    <div>Propietario</div>
+                    <div>Motivo</div>
+                    <div>Prioridad</div>
+                    <div>Estado</div>
+                    <div>Acciones</div>
+                </div>
+
+                {% for e in entries %}
+                    {% set wait_minutes = ((now - e.arrival_time).total_seconds() // 60)|int %}
+                    <div class="wait-row">
+                        <div class="wait-time">
+                            <b>{{ e.arrival_time.strftime('%H:%M') }}</b>
+                            <span>
+                                {% if wait_minutes < 60 %}
+                                    hace {{ wait_minutes }} min
+                                {% else %}
+                                    hace {{ wait_minutes // 60 }} h {{ wait_minutes % 60 }} min
+                                {% endif %}
+                            </span>
+                        </div>
+
+                        <div class="patient-block">
+                            <div class="avatar">
+                                {% if e.patient %}{{ e.patient.name[:1] }}{% else %}?{% endif %}
+                            </div>
+                            <div>
+                                {% if e.patient %}
+                                    <a href="/patients/{{ e.patient.id }}" class="patient-name">{{ e.patient.name }}</a>
+                                    <div class="patient-meta">
+                                        {{ e.patient.species or 'Paciente' }}
+                                        {% if e.patient.breed %} · {{ e.patient.breed }}{% endif %}
+                                    </div>
+                                {% else %}
+                                    <div class="patient-name">Sin paciente</div>
+                                    <div class="patient-meta">Carga manual</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div>
+                            <b>{{ e.owner.name if e.owner else 'Sin propietario' }}</b>
+                            <div class="owner-meta">
+                                {% if e.owner %}
+                                    {{ e.owner.whatsapp or e.owner.phone or '' }}
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div>
+                            {{ e.reason or '-' }}
+                            {% if e.notes %}
+                                <div class="owner-meta">📝 {{ e.notes }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            {% if e.priority == 'Emergencia' %}
+                                <span class="pill priority-emergencia">Emergencia</span>
+                            {% elif e.priority == 'Urgente' %}
+                                <span class="pill priority-urgente">Urgente</span>
+                            {% else %}
+                                <span class="pill priority-normal">Normal</span>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            {% if e.status == 'En consulta' %}
+                                <span class="pill status-consulta">En consulta</span>
+                            {% elif e.status == 'Finalizado' %}
+                                <span class="pill status-finalizado">Finalizado</span>
+                            {% else %}
+                                <span class="pill status-esperando">Esperando</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="row-actions">
+                            {% if e.patient_id and e.status != 'Finalizado' %}
+                                <form method="post" action="/waitlist/{{ e.id }}/enter">
+                                    <button type="submit">📁 Entrar a HC</button>
+                                </form>
+                            {% endif %}
+
+                            {% if e.status == 'Esperando' %}
+                                <form method="post" action="/waitlist/{{ e.id }}/status">
+                                    <input type="hidden" name="status" value="En consulta">
+                                    <button type="submit">🩺 En consulta</button>
+                                </form>
+                            {% endif %}
+
+                            {% if e.status != 'Finalizado' %}
+                                <form method="post" action="/waitlist/{{ e.id }}/status">
+                                    <input type="hidden" name="status" value="Finalizado">
+                                    <button type="submit">✅ Finalizar</button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="legend">
+                <span><span class="dot green"></span>Esperando: paciente en sala</span>
+                <span><span class="dot orange"></span>En consulta: siendo atendido</span>
+                <span><span class="dot gray"></span>Finalizado: consulta terminada</span>
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <h2>🎉 No hay pacientes en lista de espera</h2>
+                <p>Cuando recepción cargue uno, aparecerá acá.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const ownerSelect = document.getElementById('owner_id');
+    const patientSelect = document.getElementById('patient_id');
+
+    if (ownerSelect && patientSelect) {
+        const allOptions = Array.from(patientSelect.querySelectorAll('option'));
+
+        function filterPatients() {
+            const ownerId = ownerSelect.value;
+
+            patientSelect.innerHTML = '';
+            const visiblePatients = [];
+
+            allOptions.forEach(option => {
+                if (option.value === '') {
+                    patientSelect.appendChild(option.cloneNode(true));
+                    return;
+                }
+
+                if (!ownerId || option.dataset.owner === ownerId) {
+                    visiblePatients.push(option.cloneNode(true));
+                }
+            });
+
+            visiblePatients.forEach(option => patientSelect.appendChild(option));
+
+            if (visiblePatients.length === 1) {
+                patientSelect.value = visiblePatients[0].value;
+            }
+        }
+
+        ownerSelect.addEventListener('change', filterPatients);
+        filterPatients();
+    }
+});
+</script>
+
+{% endblock %}
