@@ -2431,7 +2431,7 @@ if filename.endswith(".xlsx"):
     headers = [clean_text(c.value) for c in ws[1]]
     
     for row in ws.iter_rows(min_row=2, values_only=True):
-    rows.append(dict(zip(headers, row)))
+        rows.append(dict(zip(headers, row)))
     
 else:
     text_content = content.decode("utf-8-sig", errors="replace")
