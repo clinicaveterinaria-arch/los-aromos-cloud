@@ -790,6 +790,12 @@
                                         {% endif %}
 
                                         <div class="appt-actions">
+                                            {% if a.status|default('Pendiente') != 'Realizado' and a.status|default('Pendiente') != 'Cancelado' %}
+                                                <form method="post" action="/agenda/{{ a.id }}/arrived" class="mini-form">
+                                                    <input type="hidden" name="date" value="{{ selected_day }}">
+                                                    <button type="submit">👥 Llegó</button>
+                                                </form>
+                                            {% endif %}
                                             {% if a.status|default('Pendiente') == 'Pendiente' %}
                                                 <form method="post" action="/agenda/{{ a.id }}/status" class="mini-form">
                                                     <input type="hidden" name="date" value="{{ selected_day }}">
