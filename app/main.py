@@ -2530,6 +2530,143 @@ async def migration_agenda_pendientes(
             'result': result
         }
     )
+@app.post('/migration/clientes-pacientes', response_class=HTMLResponse)
+async def migration_clientes_pacientes(
+    request: Request,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    import csv
+    import io
+
+    def clean_text(value):
+        if value is None:
+            return ''
+        value = str(value).strip()
+        try:
+            value = value.encode('latin1').decode('utf-8')
+        except Exception:
+            pass
+        return value
+
+    def pick(row, names):
+        normalized = {clean_text(k).lower(): clean_text(v) for k, v in row.items()}
+        for name in names:
+            if name.lower() in normalized:
+                return normalized[name.lower()]
+        return ''
+
+    content = await file.read()
+    filename = (file.filename or '').lower()
+
+    rows = []
+
+    if filename.endswith('.xlsx'):
+        wb = load_workbook(BytesIO(content), data_only=True)
+        ws = wb.active
+        headers = [clean_text(c.value) for c in ws[1]]
+
+        for row in ws.iter_rows(min_row=2, values_only=True):
+            rows.append(dict(zip(headers, row)))
+    else:
+        text_content = content.decode('utf-8-sig', errors='replace')
+        sample = text_content[:1000]
+        delimiter = ';' if sample.count(';') > sample.count(',') else ','
+        reader = csv.DictReader(io.StringIO(text_content), delimiter=delimiter)
+        rows = list(reader)
+
+    created_owners = 0
+    created_patients = 0
+    updated_owners = 0
+    skipped = 0
+
+    for row in rows:
+        owner_name = pick(row, ['Propietario', 'Cliente', 'Dueño', 'Responsable', 'Nombre propietario', 'Apellido y Nombre'])
+        phone = pick(row, ['Teléfono', 'Telefono', 'Celular', 'WhatsApp', 'Whatsapp'])
+        email = pick(row, ['Email', 'Mail', 'Correo'])
+        address = pick(row, ['Dirección', 'Direccion', 'Domicilio'])
+        patient_name = pick(row, ['Paciente', 'Mascota', 'Animal', 'Nombre paciente', 'Nombre mascota'])
+        species = pick(row, ['Especie'])
+        breed = pick(row, ['Raza'])
+        sex = pick(row, ['Sexo'])
+        color = pick(row, ['Color'])
+        notes = pick(row, ['Notas', 'Observaciones', 'Comentario'])
+
+        if not owner_name and not patient_name:
+            skipped += 1
+            continue
+
+        if not owner_name:
+            owner_name = 'Sin propietario'
+
+        owner = (
+            db.query(Owner)
+            .filter(Owner.name.ilike(owner_name))
+            .first()
+        )
+
+        if not owner:
+            owner = Owner(
+                name=owner_name,
+                phone=phone,
+                whatsapp=phone,
+                email=email,
+                address=address,
+                notes=notes
+            )
+            db.add(owner)
+            db.flush()
+            created_owners += 1
+        else:
+            if phone and not owner.phone:
+                owner.phone = phone
+            if phone and not owner.whatsapp:
+                owner.whatsapp = phone
+            if email and not owner.email:
+                owner.email = email
+            if address and not owner.address:
+                owner.address = address
+            updated_owners += 1
+
+        if patient_name:
+            patient = (
+                db.query(Patient)
+                .filter(Patient.name.ilike(patient_name))
+                .filter(Patient.owner_id == owner.id)
+                .first()
+            )
+
+            if not patient:
+                patient = Patient(
+                    name=patient_name,
+                    owner_id=owner.id,
+                    species=species,
+                    breed=breed,
+                    sex=sex,
+                    color=color,
+                    notes=notes
+                )
+                db.add(patient)
+                created_patients += 1
+
+    db.commit()
+
+    result = {
+        'type': 'clientes_pacientes',
+        'created_owners': created_owners,
+        'updated_owners': updated_owners,
+        'created_patients': created_patients,
+        'skipped': skipped
+    }
+
+    return templates.TemplateResponse(
+        'migration.html',
+        {
+            'request': request,
+            'result': result
+        }
+    )
 @app.post('/attachment/{attachment_id}/delete')
 def delete_attachment(
     attachment_id: int,
