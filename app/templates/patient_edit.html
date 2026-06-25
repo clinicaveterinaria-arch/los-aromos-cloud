@@ -1,74 +1,232 @@
 {% extends 'base.html' %}
 {% block content %}
 
-<h1>✏️ Editar paciente y propietario</h1>
+<style>
+    .patient-page { padding:24px 28px; }
+    .patient-hero {
+        background:white; border:1px solid #f3c6d8; border-radius:22px;
+        padding:22px; box-shadow:0 8px 26px rgba(0,0,0,0.05);
+        margin-bottom:18px; display:flex; justify-content:space-between;
+        gap:18px; flex-wrap:wrap; align-items:flex-start;
+    }
+    .patient-hero h1 { margin:0 0 6px 0; font-size:32px; color:#1f2937; }
+    .patient-hero p { margin:0; color:#6b7280; }
 
-<div class="panel">
+    .patient-card {
+        background:white; border:1px solid #f3c6d8; border-radius:22px;
+        padding:22px; box-shadow:0 8px 26px rgba(0,0,0,0.04);
+        margin-bottom:18px;
+    }
+
+    .patient-card h2 {
+        margin:0 0 16px 0; color:#1f2937;
+        display:flex; gap:10px; align-items:center;
+    }
+
+    .form-grid {
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+        gap:14px;
+    }
+
+    .field-box label {
+        display:block; font-weight:bold; color:#374151;
+        font-size:13px; margin-bottom:6px;
+    }
+
+    .field-box input,
+    .field-box select,
+    .field-box textarea {
+        width:100%; border:1px solid #ead7e1; border-radius:13px;
+        padding:12px 13px; font-size:14px; background:white;
+    }
+
+    .field-box textarea { min-height:110px; resize:vertical; }
+    .field-full { grid-column:1 / -1; }
+
+    .pink-btn {
+        background:#d85b9a; color:white; border:none; border-radius:13px;
+        padding:13px 18px; font-weight:bold; cursor:pointer;
+        text-decoration:none; display:inline-flex; align-items:center;
+        justify-content:center; gap:7px;
+    }
+
+    .soft-btn {
+        background:white; color:#d85b9a; border:1px solid #f3c6d8;
+        border-radius:13px; padding:13px 18px; font-weight:bold;
+        text-decoration:none;
+    }
+
+    .age-box {
+        background:#fff0f7; color:#d85b9a; border:1px solid #f3c6d8;
+        border-radius:13px; padding:12px 13px; font-weight:bold;
+        min-height:45px; display:flex; align-items:center;
+    }
+
+    .alert-box textarea {
+        background:#fff7f7;
+        border-color:#fecaca;
+    }
+
+    .form-actions {
+        display:flex; gap:10px; flex-wrap:wrap; margin-top:18px;
+    }
+</style>
+
+<div class="patient-page">
+
+    <div class="patient-hero">
+        <div>
+            <h1>✏️ Editar paciente</h1>
+            <p>Actualizá datos clínicos y del propietario de {{ patient.name }}.</p>
+        </div>
+        <a href="/patients/{{ patient.id }}" class="soft-btn">↩️ Volver a la ficha</a>
+    </div>
 
     <form method="post" action="/patients/{{ patient.id }}/edit">
 
-        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:20px;">
+        <div class="patient-card">
+            <h2>🐾 Datos del paciente</h2>
 
-            <div style="background:#fff0f5; border:1px solid #f3c6d8; border-radius:12px; padding:16px;">
-                <h3>🐾 Datos del paciente</h3>
+            <div class="form-grid">
+                <div class="field-box">
+                    <label>Nombre</label>
+                    <input name="name" value="{{ patient.name }}" required>
+                </div>
 
-                <label><b>Nombre</b></label>
-                <input name="name" value="{{ patient.name }}" required>
+                <div class="field-box">
+                    <label>Especie</label>
+                    <input name="species" value="{{ patient.species or '' }}">
+                </div>
 
-                <label><b>Especie</b></label>
-                <input name="species" value="{{ patient.species or '' }}">
+                <div class="field-box">
+                    <label>Raza</label>
+                    <input name="breed" value="{{ patient.breed or '' }}">
+                </div>
 
-                <label><b>Raza</b></label>
-                <input name="breed" value="{{ patient.breed or '' }}">
+                <div class="field-box">
+                    <label>Sexo</label>
+                    <select name="sex">
+                        <option value="">Seleccionar</option>
+                        <option {% if patient.sex == 'Hembra' %}selected{% endif %}>Hembra</option>
+                        <option {% if patient.sex == 'Macho' %}selected{% endif %}>Macho</option>
+                        <option {% if patient.sex == 'Hembra castrada' %}selected{% endif %}>Hembra castrada</option>
+                        <option {% if patient.sex == 'Macho castrado' %}selected{% endif %}>Macho castrado</option>
+                    </select>
+                </div>
 
-                <label><b>Sexo</b></label>
-                <input name="sex" value="{{ patient.sex or '' }}">
+                <div class="field-box">
+                    <label>Fecha de nacimiento</label>
+                    <input type="date"
+                           name="birth_date"
+                           id="birthDate"
+                           value="{{ patient.birth_date.strftime('%Y-%m-%d') if patient.birth_date else '' }}">
+                </div>
 
-                <label><b>Fecha de nacimiento</b></label>
-                <input type="date"
-                       name="birth_date"
-                       value="{{ patient.birth_date.strftime('%Y-%m-%d') if patient.birth_date else '' }}">
+                <div class="field-box">
+                    <label>Edad automática</label>
+                    <div class="age-box" id="ageBox">Calculando...</div>
+                </div>
 
-                <label><b>Peso</b></label>
-                <input name="weight" value="{{ patient.weight or '' }}">
+                <div class="field-box">
+                    <label>Peso kg</label>
+                    <input name="weight" value="{{ patient.weight or '' }}">
+                </div>
 
-                <label><b>Alertas</b></label>
-                <input name="alerts" value="{{ patient.alerts or '' }}">
+                <div class="field-box alert-box field-full">
+                    <label>🚨 Alertas clínicas</label>
+                    <textarea name="alerts">{{ patient.alerts or '' }}</textarea>
+                </div>
 
-                <label><b>Notas</b></label>
-                <textarea name="notes">{{ patient.notes or '' }}</textarea>
+                <div class="field-box field-full">
+                    <label>📝 Notas</label>
+                    <textarea name="notes">{{ patient.notes or '' }}</textarea>
+                </div>
             </div>
-
-            <div style="background:#f7f7f7; border:1px solid #ddd; border-radius:12px; padding:16px;">
-                <h3>👤 Datos del propietario</h3>
-
-                <input type="hidden" name="owner_id" value="{{ patient.owner.id }}">
-
-                <label><b>Nombre del propietario</b></label>
-                <input name="owner_name" value="{{ patient.owner.name if patient.owner else '' }}">
-
-                <label><b>Teléfono</b></label>
-                <input name="owner_phone" value="{{ patient.owner.phone if patient.owner else '' }}">
-
-                <label><b>WhatsApp</b></label>
-                <input name="owner_whatsapp" value="{{ patient.owner.whatsapp if patient.owner else '' }}">
-
-                <label><b>Email</b></label>
-                <input name="owner_email" value="{{ patient.owner.email if patient.owner else '' }}">
-
-                <label><b>Dirección</b></label>
-                <input name="owner_address" value="{{ patient.owner.address if patient.owner else '' }}">
-            </div>
-
         </div>
 
-        <br>
+        <div class="patient-card">
+            <h2>👤 Datos del propietario</h2>
 
-        <button type="submit" class="btn">💾 Guardar cambios</button>
-        <a href="/patients/{{ patient.id }}" class="btn">Cancelar</a>
+            <input type="hidden" name="owner_id" value="{{ patient.owner.id }}">
+
+            <div class="form-grid">
+                <div class="field-box">
+                    <label>Nombre del propietario</label>
+                    <input name="owner_name" value="{{ patient.owner.name if patient.owner else '' }}">
+                </div>
+
+                <div class="field-box">
+                    <label>Teléfono</label>
+                    <input name="owner_phone" value="{{ patient.owner.phone if patient.owner else '' }}">
+                </div>
+
+                <div class="field-box">
+                    <label>WhatsApp</label>
+                    <input name="owner_whatsapp" value="{{ patient.owner.whatsapp if patient.owner else '' }}">
+                </div>
+
+                <div class="field-box">
+                    <label>Email</label>
+                    <input name="owner_email" value="{{ patient.owner.email if patient.owner else '' }}">
+                </div>
+
+                <div class="field-box field-full">
+                    <label>Dirección</label>
+                    <input name="owner_address" value="{{ patient.owner.address if patient.owner else '' }}">
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="pink-btn">💾 Guardar cambios</button>
+                <a href="/patients/{{ patient.id }}" class="soft-btn">Cancelar</a>
+            </div>
+        </div>
 
     </form>
 
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const birthDate = document.getElementById('birthDate');
+    const ageBox = document.getElementById('ageBox');
+
+    function calculateAge() {
+        if (!birthDate || !ageBox || !birthDate.value) {
+            if (ageBox) ageBox.textContent = 'Sin fecha cargada';
+            return;
+        }
+
+        const birth = new Date(birthDate.value);
+        const today = new Date();
+
+        let years = today.getFullYear() - birth.getFullYear();
+        let months = today.getMonth() - birth.getMonth();
+
+        if (today.getDate() < birth.getDate()) {
+            months--;
+        }
+
+        if (months < 0) {
+            years--;
+            months += 12;
+        }
+
+        if (years < 0) {
+            ageBox.textContent = 'Fecha inválida';
+        } else if (years === 0) {
+            ageBox.textContent = months + ' meses';
+        } else {
+            ageBox.textContent = years + ' años y ' + months + ' meses';
+        }
+    }
+
+    if (birthDate) {
+        birthDate.addEventListener('change', calculateAge);
+        calculateAge();
+    }
+});
+</script>
 
 {% endblock %}
