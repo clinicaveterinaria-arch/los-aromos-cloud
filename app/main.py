@@ -18,7 +18,7 @@ SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 from .database import Base, engine, get_db
-from .models import User, Owner, Patient, ClinicalEvent, EventAttachment, Appointment, Product, Sale, SaleItem, SalePayment
+from .models import User, Owner, Patient, ClinicalEvent, EventAttachment, Appointment, Product, Sale, SaleItem, SalePayment, WaitingListEntry
 Base.metadata.create_all(bind=engine)
 try:
     with engine.begin() as conn:
@@ -51,7 +51,16 @@ def get_pending_count():
         return db.query(ClinicalEvent).filter(ClinicalEvent.reminder_date != None).count()
     finally:
         db.close()
+def get_waiting_count():
+    db = next(get_db())
+    try:
+        return db.query(WaitingListEntry).filter(
+            WaitingListEntry.status.in_(['Esperando', 'En consulta'])
+        ).count()
+    finally:
+        db.close()
 
+templates.env.globals['get_waiting_count'] = get_waiting_count
 templates.env.globals['get_pending_count'] = get_pending_count
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 
@@ -573,6 +582,178 @@ def agenda_update_status(
         return RedirectResponse(f'/agenda?date={date}', status_code=303)
 
     return RedirectResponse('/agenda', status_code=303)
+@app.post('/agenda/{appointment_id}/arrived')
+def agenda_patient_arrived(
+    appointment_id: int,
+    date: str = Form(''),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    appointment = db.get(Appointment, appointment_id)
+
+    if not appointment:
+        raise HTTPException(status_code=404, detail='Turno no encontrado')
+
+    existing = (
+        db.query(WaitingListEntry)
+        .filter(WaitingListEntry.appointment_id == appointment.id)
+        .filter(WaitingListEntry.status.in_(['Esperando', 'En consulta']))
+        .first()
+    )
+
+    if not existing:
+        entry = WaitingListEntry(
+            appointment_id=appointment.id,
+            owner_id=appointment.owner_id,
+            patient_id=appointment.patient_id,
+            reason=appointment.service or appointment.title or 'Turno agendado',
+            notes=appointment.notes or '',
+            priority='Normal',
+            status='Esperando',
+            created_by=user.username
+        )
+
+        db.add(entry)
+
+    appointment.status = 'Confirmado'
+    db.commit()
+
+    return RedirectResponse('/waitlist', status_code=303)
+
+
+@app.get('/waitlist', response_class=HTMLResponse)
+def waitlist_page(
+    request: Request,
+    status: str = '',
+    q: str = '',
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    today = datetime.now().date()
+    day_start = datetime.combine(today, datetime.min.time())
+    day_end = datetime.combine(today, datetime.max.time())
+
+    query = db.query(WaitingListEntry).filter(
+        WaitingListEntry.arrival_time >= day_start,
+        WaitingListEntry.arrival_time <= day_end
+    )
+
+    if status:
+        query = query.filter(WaitingListEntry.status == status)
+
+    entries = query.order_by(
+        WaitingListEntry.finished_at.asc().nullsfirst(),
+        WaitingListEntry.arrival_time.asc()
+    ).all()
+
+    if q:
+        q_lower = q.lower()
+        entries = [
+            e for e in entries
+            if (
+                (e.patient and q_lower in e.patient.name.lower()) or
+                (e.owner and q_lower in e.owner.name.lower()) or
+                q_lower in (e.reason or '').lower() or
+                q_lower in (e.notes or '').lower()
+            )
+        ]
+
+    owners = db.query(Owner).order_by(Owner.name).limit(500).all()
+    patients = db.query(Patient).order_by(Patient.name).limit(500).all()
+
+    stats = {
+        'total': len(entries),
+        'waiting': len([e for e in entries if e.status == 'Esperando']),
+        'consulting': len([e for e in entries if e.status == 'En consulta']),
+        'finished': len([e for e in entries if e.status == 'Finalizado']),
+    }
+
+    return templates.TemplateResponse(
+        'waitlist.html',
+        {
+            'request': request,
+            'entries': entries,
+            'owners': owners,
+            'patients': patients,
+            'stats': stats,
+            'selected_status': status,
+            'q': q,
+            'today': today,
+            'now': datetime.now()
+        }
+    )
+
+
+@app.post('/waitlist')
+def waitlist_create(
+    owner_id: str = Form(''),
+    patient_id: str = Form(''),
+    reason: str = Form(''),
+    priority: str = Form('Normal'),
+    notes: str = Form(''),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    entry = WaitingListEntry(
+        owner_id=int(owner_id) if owner_id else None,
+        patient_id=int(patient_id) if patient_id else None,
+        reason=reason or 'Consulta',
+        priority=priority or 'Normal',
+        notes=notes or '',
+        status='Esperando',
+        created_by=user.username
+    )
+
+    db.add(entry)
+    db.commit()
+
+    return RedirectResponse('/waitlist', status_code=303)
+
+
+@app.post('/waitlist/{entry_id}/enter')
+def waitlist_enter_hc(
+    entry_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    entry = db.get(WaitingListEntry, entry_id)
+
+    if not entry:
+        raise HTTPException(status_code=404, detail='Entrada no encontrada')
+
+    entry.status = 'En consulta'
+    entry.started_at = datetime.now()
+    db.commit()
+
+    if entry.patient_id:
+        return RedirectResponse(f'/patients/{entry.patient_id}', status_code=303)
+
+    return RedirectResponse('/waitlist', status_code=303)
+
+
+@app.post('/waitlist/{entry_id}/status')
+def waitlist_update_status(
+    entry_id: int,
+    status: str = Form(...),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    entry = db.get(WaitingListEntry, entry_id)
+
+    if not entry:
+        raise HTTPException(status_code=404, detail='Entrada no encontrada')
+
+    entry.status = status
+
+    if status == 'En consulta':
+        entry.started_at = datetime.now()
+
+    if status == 'Finalizado':
+        entry.finished_at = datetime.now()
+
+    db.commit()
+
+    return RedirectResponse('/waitlist', status_code=303)
 @app.get('/agenda/{appointment_id}/edit', response_class=HTMLResponse)
 def agenda_edit(
     request: Request,
@@ -1386,7 +1567,19 @@ def event_create(
             db.commit()
         except ValueError:
             pass
+    active_waiting_entries = (
+        db.query(WaitingListEntry)
+        .filter(WaitingListEntry.patient_id == patient.id)
+        .filter(WaitingListEntry.status.in_(['Esperando', 'En consulta']))
+        .all()
+    )
 
+    for waiting_entry in active_waiting_entries:
+        waiting_entry.status = 'Finalizado'
+        waiting_entry.finished_at = datetime.now()
+
+    if active_waiting_entries:
+        db.commit()
     for file in attachments:
         if not file.filename:
             continue
