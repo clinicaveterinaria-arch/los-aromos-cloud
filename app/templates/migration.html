@@ -1,49 +1,167 @@
 {% extends 'base.html' %}
 
 {% block content %}
+
 <h1>Migración MyVete</h1>
 
 <div class="panel">
     <h2>Agenda → Pendientes</h2>
 
     <p>
-        Importa un archivo CSV o Excel de agenda de MyVete y lo carga como
-        pendientes en Aromos Cloud.
+        Importa un archivo CSV o Excel de agenda de MyVete y lo carga
+        como pendientes en Aromos Cloud.
     </p>
 
-    <form action="/migration/agenda-pendientes" method="post" enctype="multipart/form-data">
-        <label>Archivo de agenda MyVete</label>
-        <input type="file" name="file" accept=".csv,.xlsx" required>
+    <form action="/migration/agenda-pendientes"
+          method="post"
+          enctype="multipart/form-data">
+
+        <label>Archivo de agenda</label>
+
+        <input
+            type="file"
+            name="file"
+            accept=".csv,.xlsx"
+            required>
 
         <br><br>
 
-        <button type="submit" class="btn primary">
-            📥 Importar agenda a pendientes
+        <button class="btn primary">
+            📅 Importar agenda
         </button>
+
     </form>
 </div>
 
-{% if result %}
-<div class="panel" style="background:#fff4f8;">
-    <h2>Resultado de importación</h2>
-
-    <p>✅ Pendientes importados: <strong>{{ result.imported }}</strong></p>
-    <p>👤 Propietarios creados: <strong>{{ result.created_owners }}</strong></p>
-    <p>🐾 Pacientes creados: <strong>{{ result.created_patients }}</strong></p>
-    <p>⚠️ Filas omitidas o duplicadas: <strong>{{ result.skipped }}</strong></p>
-
-    <a class="btn" href="/pendientes">Ver pendientes</a>
-</div>
-{% endif %}
 
 <div class="panel">
+
+    <h2>Clientes y pacientes</h2>
+
+    <p>
+        Importa propietarios y mascotas desde MyVete.
+    </p>
+
+    <form action="/migration/clientes-pacientes"
+          method="post"
+          enctype="multipart/form-data">
+
+        <label>Archivo de clientes</label>
+
+        <input
+            type="file"
+            name="file"
+            accept=".csv,.xlsx"
+            required>
+
+        <br><br>
+
+        <button class="btn primary">
+            👤🐾 Importar clientes y pacientes
+        </button>
+
+    </form>
+
+</div>
+<div class="panel">
+
+    <h2>Visitas históricas</h2>
+
+    <p>
+        Importa el Reporte de visitas de MyVete como eventos históricos dentro de la historia clínica.
+    </p>
+
+    <form action="/migration/visitas"
+          method="post"
+          enctype="multipart/form-data">
+
+        <label>Reporte de visitas MyVete</label>
+
+        <input
+            type="file"
+            name="file"
+            accept=".csv,.xlsx"
+            required>
+
+        <br><br>
+
+        <button class="btn primary">
+            🩺 Importar visitas históricas
+        </button>
+
+    </form>
+
+</div>
+
+{% if result %}
+
+<div class="panel" style="background:#fff4f8">
+
+    <h2>Resultado</h2>
+
+    {% if result.type == 'clientes_pacientes' %}
+
+        <p>👤 Propietarios creados:
+            <strong>{{ result.created_owners }}</strong></p>
+
+        <p>✏️ Propietarios actualizados:
+            <strong>{{ result.updated_owners }}</strong></p>
+
+        <p>🐾 Pacientes creados:
+            <strong>{{ result.created_patients }}</strong></p>
+
+        <p>⚠️ Filas omitidas:
+            <strong>{{ result.skipped }}</strong></p>
+
+    {% elif result.type == 'visitas' %}
+
+        <p>🩺 Visitas importadas:
+            <strong>{{ result.imported }}</strong></p>
+    
+        <p>👤 Propietarios creados:
+            <strong>{{ result.created_owners }}</strong></p>
+    
+        <p>🐾 Pacientes creados:
+            <strong>{{ result.created_patients }}</strong></p>
+    
+        <p>⚠️ Filas omitidas o duplicadas:
+            <strong>{{ result.skipped }}</strong></p>
+    
+    {% else %}
+
+        <p>✅ Pendientes importados:
+            <strong>{{ result.imported }}</strong></p>
+
+        <p>👤 Propietarios creados:
+            <strong>{{ result.created_owners }}</strong></p>
+
+        <p>🐾 Pacientes creados:
+            <strong>{{ result.created_patients }}</strong></p>
+
+        <p>⚠️ Filas omitidas:
+            <strong>{{ result.skipped }}</strong></p>
+
+    {% endif %}
+
+</div>
+
+{% endif %}
+
+
+<div class="panel">
+
     <h2>Próximas etapas</h2>
 
     <ul>
-        <li>Clientes y propietarios desde CSV/Excel.</li>
-        <li>Pacientes desde CSV/Excel.</li>
-        <li>Historias clínicas como eventos históricos.</li>
-        <li>Adjuntos de estudios e imágenes.</li>
+
+        <li>Historias clínicas.</li>
+
+        <li>Adjuntos.</li>
+
+        <li>Migración completa MyVete.</li>
+
     </ul>
+
 </div>
+
 {% endblock %}
