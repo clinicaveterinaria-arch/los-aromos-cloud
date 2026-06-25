@@ -1,31 +1,377 @@
-{% extends 'base.html' %}{% block content %}
-<h1>Historia clínica</h1>
+{% extends 'base.html' %}
+{% block content %}
 
-<form class="searchbar" method="get">
-    <input name="q" value="{{ q }}" placeholder="Buscar paciente, propietario o teléfono">
-    <button>Buscar</button>
-</form>
+<style>
+    .search-page { padding:24px 28px; }
 
-<div class="panel">
-    <h2>Resultados</h2>
+    .search-hero {
+        background:white;
+        border:1px solid #f3c6d8;
+        border-radius:22px;
+        padding:22px;
+        box-shadow:0 8px 26px rgba(0,0,0,0.05);
+        margin-bottom:18px;
+        display:flex;
+        gap:16px;
+        align-items:center;
+    }
 
-    {% for p in results %}
-        <a class="result" href="/patients/{{ p.id }}">
-            <b>{{ p.name }}</b> — {{ p.species }} {{ p.breed }}
+    .search-icon {
+        width:64px;
+        height:64px;
+        border-radius:20px;
+        background:#fff0f7;
+        color:#d85b9a;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-size:34px;
+        border:1px solid #f3c6d8;
+    }
 
-            {% if p.birth_date %}
-                — {{ ((today - p.birth_date).days // 365) }} años
-            {% endif %}
+    .search-hero h1 {
+        margin:0 0 6px 0;
+        font-size:32px;
+        color:#1f2937;
+    }
 
-            <br>
+    .search-hero p {
+        margin:0;
+        color:#6b7280;
+    }
 
-           <span>
-               Propietario: {{ p.owner.name if p.owner else "Sin propietario" }}
-               {% if p.owner and (p.owner.whatsapp or p.owner.phone) %}
-                   — WP: {{ p.owner.whatsapp or p.owner.phone }}
-               {% endif %}
-           </span>
-        </a>
-    {% endfor %}
+    .search-card {
+        background:white;
+        border:1px solid #f3c6d8;
+        border-radius:22px;
+        padding:22px;
+        box-shadow:0 8px 26px rgba(0,0,0,0.04);
+        margin-bottom:18px;
+    }
+
+    .searchbar-modern {
+        display:flex;
+        gap:12px;
+        align-items:center;
+    }
+
+    .searchbar-modern input {
+        flex:1;
+        border:1px solid #ead7e1;
+        border-radius:15px;
+        padding:15px 16px;
+        font-size:16px;
+        background:white;
+    }
+
+    .pink-btn {
+        background:#d85b9a;
+        color:white;
+        border:none;
+        border-radius:14px;
+        padding:15px 22px;
+        font-weight:bold;
+        cursor:pointer;
+        text-decoration:none;
+        display:inline-flex;
+        gap:8px;
+        align-items:center;
+        justify-content:center;
+    }
+
+    .search-chips {
+        display:flex;
+        gap:10px;
+        flex-wrap:wrap;
+        margin-top:16px;
+    }
+
+    .search-chip {
+        border:1px solid #f3c6d8;
+        background:#fff8fb;
+        color:#d85b9a;
+        border-radius:12px;
+        padding:9px 12px;
+        font-weight:bold;
+        font-size:13px;
+    }
+
+    .results-head {
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap:12px;
+        flex-wrap:wrap;
+        margin-bottom:14px;
+    }
+
+    .results-head h2 {
+        margin:0;
+        color:#1f2937;
+    }
+
+    .result-count {
+        background:#fff0f7;
+        color:#d85b9a;
+        border:1px solid #f3c6d8;
+        border-radius:999px;
+        padding:8px 12px;
+        font-size:13px;
+        font-weight:bold;
+    }
+
+    .results-list {
+        display:grid;
+        gap:12px;
+    }
+
+    .patient-result {
+        display:grid;
+        grid-template-columns:1fr auto;
+        gap:16px;
+        align-items:center;
+        border:1px solid #f1d6e2;
+        border-radius:18px;
+        padding:15px;
+        background:white;
+        text-decoration:none;
+        color:inherit;
+        transition:.15s;
+    }
+
+    .patient-result:hover {
+        transform:translateY(-2px);
+        box-shadow:0 8px 22px rgba(216,91,154,0.13);
+        border-color:#d85b9a;
+    }
+
+    .patient-main {
+        display:flex;
+        align-items:center;
+        gap:13px;
+    }
+
+    .patient-avatar {
+        width:52px;
+        height:52px;
+        border-radius:50%;
+        background:#fff0f7;
+        color:#d85b9a;
+        border:1px solid #f3c6d8;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-weight:bold;
+        font-size:20px;
+        flex:0 0 auto;
+        text-transform:uppercase;
+    }
+
+    .patient-name {
+        font-size:18px;
+        font-weight:bold;
+        color:#1f2937;
+    }
+
+    .patient-meta {
+        color:#6b7280;
+        font-size:13px;
+        margin-top:4px;
+    }
+
+    .owner-line {
+        margin-top:5px;
+        color:#374151;
+        font-size:14px;
+    }
+
+    .open-hc {
+        background:#fff0f7;
+        color:#d85b9a;
+        border:1px solid #f3c6d8;
+        border-radius:13px;
+        padding:10px 13px;
+        font-weight:bold;
+        white-space:nowrap;
+    }
+
+    .empty-search {
+        text-align:center;
+        border:2px dashed #f3c6d8;
+        border-radius:18px;
+        padding:45px 20px;
+        color:#6b7280;
+    }
+
+    .empty-search .big {
+        font-size:54px;
+        margin-bottom:10px;
+    }
+
+    .tips-card {
+        background:#fff8fb;
+        border:1px solid #f3c6d8;
+        border-radius:20px;
+        padding:18px;
+        color:#4b5563;
+        display:flex;
+        gap:16px;
+        align-items:center;
+        flex-wrap:wrap;
+    }
+
+    .tips-icon {
+        width:46px;
+        height:46px;
+        border-radius:50%;
+        background:#d85b9a;
+        color:white;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-weight:bold;
+        font-size:22px;
+        flex:0 0 auto;
+    }
+
+    .tips-grid {
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+        gap:12px;
+        flex:1;
+    }
+
+    .tip {
+        background:white;
+        border:1px solid #f3edf1;
+        border-radius:14px;
+        padding:12px;
+    }
+
+    .tip b {
+        display:block;
+        color:#1f2937;
+        margin-bottom:4px;
+    }
+
+    @media (max-width:800px) {
+        .searchbar-modern {
+            flex-direction:column;
+            align-items:stretch;
+        }
+
+        .patient-result {
+            grid-template-columns:1fr;
+        }
+
+        .open-hc {
+            text-align:center;
+        }
+    }
+</style>
+
+<div class="search-page">
+
+    <div class="search-hero">
+        <div class="search-icon">🩺</div>
+        <div>
+            <h1>Historia clínica</h1>
+            <p>Buscá pacientes, propietarios o teléfonos y accedé al historial clínico completo.</p>
+        </div>
+    </div>
+
+    <div class="search-card">
+        <form class="searchbar-modern" method="get">
+            <input name="q" value="{{ q }}" placeholder="🔎 Buscar paciente, propietario o teléfono...">
+            <button class="pink-btn" type="submit">🔎 Buscar</button>
+        </form>
+
+        <div class="search-chips">
+            <span class="search-chip">🐾 Por paciente</span>
+            <span class="search-chip">👥 Por propietario</span>
+            <span class="search-chip">📞 Por teléfono</span>
+            <span class="search-chip">📲 Por WhatsApp</span>
+        </div>
+    </div>
+
+    <div class="search-card">
+        <div class="results-head">
+            <h2>📋 Resultados</h2>
+            <span class="result-count">{{ results|length }} resultado{% if results|length != 1 %}s{% endif %}</span>
+        </div>
+
+        {% if q and results %}
+            <div class="results-list">
+                {% for p in results %}
+                    <a class="patient-result" href="/patients/{{ p.id }}">
+                        <div class="patient-main">
+                            <div class="patient-avatar">
+                                {{ p.name[:1] if p.name else '?' }}
+                            </div>
+
+                            <div>
+                                <div class="patient-name">{{ p.name }}</div>
+
+                                <div class="patient-meta">
+                                    {{ p.species or 'Paciente' }}
+                                    {% if p.breed %} · {{ p.breed }}{% endif %}
+                                    {% if p.birth_date %}
+                                        · {{ ((today - p.birth_date).days // 365) }} años
+                                    {% endif %}
+                                </div>
+
+                                <div class="owner-line">
+                                    👤 {{ p.owner.name if p.owner else "Sin propietario" }}
+
+                                    {% if p.owner and (p.owner.whatsapp or p.owner.phone) %}
+                                        · 📲 {{ p.owner.whatsapp or p.owner.phone }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="open-hc">📂 Abrir HC</div>
+                    </a>
+                {% endfor %}
+            </div>
+
+        {% elif q %}
+            <div class="empty-search">
+                <div class="big">🔎</div>
+                <h2>No encontré resultados</h2>
+                <p>Probá con otro nombre, propietario, teléfono o WhatsApp.</p>
+            </div>
+
+        {% else %}
+            <div class="empty-search">
+                <div class="big">📋</div>
+                <h2>Realizá una búsqueda</h2>
+                <p>Ingresá un nombre, propietario, teléfono o WhatsApp para abrir la historia clínica.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="tips-card">
+        <div class="tips-icon">i</div>
+
+        <div class="tips-grid">
+            <div class="tip">
+                <b>🐾 Por paciente</b>
+                Ej: Luna, Milo, Firulais.
+            </div>
+
+            <div class="tip">
+                <b>👥 Por propietario</b>
+                Ej: Juan Pérez, María González.
+            </div>
+
+            <div class="tip">
+                <b>📲 Por teléfono o WhatsApp</b>
+                Ej: 3456250361.
+            </div>
+        </div>
+    </div>
+
 </div>
+
 {% endblock %}
