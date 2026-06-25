@@ -2,107 +2,116 @@
 
 {% block content %}
 
-<h1>✏️ Editar producto</h1>
+<style>
+    .edit-product-page { padding:24px 28px; }
+    .edit-hero {
+        background:white; border:1px solid #f3c6d8; border-radius:22px;
+        padding:22px; box-shadow:0 8px 26px rgba(0,0,0,0.05);
+        margin-bottom:18px; display:flex; justify-content:space-between;
+        gap:18px; align-items:flex-start; flex-wrap:wrap;
+    }
+    .edit-hero h1 { margin:0 0 6px 0; font-size:32px; color:#1f2937; }
+    .edit-hero p { margin:0; color:#6b7280; }
+    .edit-card {
+        background:white; border:1px solid #f3c6d8; border-radius:22px;
+        padding:22px; box-shadow:0 8px 26px rgba(0,0,0,0.04);
+        margin-bottom:18px;
+    }
+    .edit-card h2 { margin:0 0 16px 0; color:#1f2937; }
+    .form-grid {
+        display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+        gap:14px;
+    }
+    .field-box label { display:block; font-weight:bold; color:#374151; font-size:13px; margin-bottom:6px; }
+    .field-box input, .field-box textarea {
+        width:100%; border:1px solid #ead7e1; border-radius:13px;
+        padding:12px 13px; font-size:14px; background:white;
+    }
+    .field-box textarea { min-height:110px; resize:vertical; }
+    .field-full { grid-column:1 / -1; }
+    .profit-box {
+        background:#fff0f7; color:#d85b9a; border:1px solid #f3c6d8;
+        border-radius:13px; padding:12px 13px; font-weight:bold;
+        min-height:45px; display:flex; align-items:center;
+    }
+    .actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:18px; }
+    .pink-btn, .soft-btn {
+        border-radius:13px; padding:13px 18px; font-weight:bold; text-decoration:none;
+        border:1px solid #f3c6d8; cursor:pointer; display:inline-flex;
+        align-items:center; justify-content:center; gap:7px;
+    }
+    .pink-btn { background:#d85b9a; color:white; border-color:#d85b9a; }
+    .soft-btn { background:white; color:#d85b9a; }
+</style>
 
-<div class="card">
+<div class="edit-product-page">
+    <div class="edit-hero">
+        <div>
+            <h1>✏️ Editar producto</h1>
+            <p>Actualizá precios, margen, stock y datos comerciales de {{ product.name }}.</p>
+        </div>
+        <a href="/products" class="soft-btn">↩️ Volver a productos</a>
+    </div>
 
-<form method="post">
+    <form method="post">
+        <div class="edit-card">
+            <h2>📦 Datos generales</h2>
+            <div class="form-grid">
+                <div class="field-box"><label>Nombre</label><input name="name" value="{{ product.name }}" placeholder="Nombre" required></div>
+                <div class="field-box"><label>Rubro</label><input name="rubro" value="{{ product.rubro or '' }}" placeholder="Rubro"></div>
+                <div class="field-box"><label>Tipo</label><input name="tipo" value="{{ product.tipo or '' }}" placeholder="Tipo"></div>
+                <div class="field-box"><label>Código</label><input name="code" value="{{ product.code or '' }}" placeholder="Código"></div>
+                <div class="field-box"><label>Código de barras</label><input name="barcode" value="{{ product.barcode or '' }}" placeholder="Código de barras"></div>
+            </div>
+        </div>
 
-<label><b>Nombre</b></label>
-<input name="name" value="{{ product.name }}" placeholder="Nombre">
+        <div class="edit-card">
+            <h2>💰 Precios y margen</h2>
+            <div class="form-grid">
+                <div class="field-box"><label>Precio costo</label><input id="cost_price" name="cost_price" value="{{ product.cost_price or '' }}" placeholder="Precio costo" oninput="recalculateSalePrice()"></div>
+                <div class="field-box"><label>Margen %</label><input id="margin_percent" name="margin_percent" value="{{ product.margin_percent or '' }}" placeholder="Margen %" oninput="recalculateSalePrice()"></div>
+                <div class="field-box"><label>Precio venta</label><input id="sale_price" name="sale_price" value="{{ product.sale_price or '' }}" placeholder="Precio venta"></div>
+                <div class="field-box"><label>Ganancia estimada</label><div id="profit_preview" class="profit-box">Ganancia por unidad: $0</div></div>
+            </div>
+        </div>
 
-<label><b>Rubro</b></label>
-<input name="rubro" value="{{ product.rubro or '' }}" placeholder="Rubro">
+        <div class="edit-card">
+            <h2>📊 Stock y proveedor</h2>
+            <div class="form-grid">
+                <div class="field-box"><label>Stock</label><input name="stock" value="{{ product.stock or '' }}" placeholder="Stock"></div>
+                <div class="field-box"><label>Stock mínimo</label><input name="min_stock" value="{{ product.min_stock or '' }}" placeholder="Stock mínimo"></div>
+                <div class="field-box"><label>Proveedor</label><input name="provider" value="{{ product.provider or '' }}" placeholder="Proveedor"></div>
+                <div class="field-box"><label>Elaborador / laboratorio</label><input name="manufacturer" value="{{ product.manufacturer or '' }}" placeholder="Elaborador"></div>
+                <div class="field-box field-full"><label>Observaciones</label><textarea name="notes" rows="4" placeholder="Observaciones">{{ product.notes or '' }}</textarea></div>
+            </div>
 
-<label><b>Tipo</b></label>
-<input name="tipo" value="{{ product.tipo or '' }}" placeholder="Tipo">
-
-<label><b>Código</b></label>
-<input name="code" value="{{ product.code or '' }}" placeholder="Código">
-
-<label><b>Código de barras</b></label>
-<input name="barcode" value="{{ product.barcode or '' }}" placeholder="Código de barras">
-
-    <label><b>Precio costo</b></label>
-    <input
-        id="cost_price"
-        name="cost_price"
-        value="{{ product.cost_price or '' }}"
-        placeholder="Precio costo"
-        oninput="recalculateSalePrice()"
-    >
-    
-    <label><b>Margen %</b></label>
-    <input
-        id="margin_percent"
-        name="margin_percent"
-        value="{{ product.margin_percent or '' }}"
-        placeholder="Margen %"
-        oninput="recalculateSalePrice()"
-    >
-    
-    <label><b>Precio venta</b></label>
-    <input
-        id="sale_price"
-        name="sale_price"
-        value="{{ product.sale_price or '' }}"
-        placeholder="Precio venta"
-    >
-    
-    <p id="profit_preview" style="font-weight:bold; margin-top:8px;">
-        Ganancia por unidad: $0
-    </p>
-
-    <label><b>Stock</b></label>
-    <input name="stock" value="{{ product.stock or '' }}" placeholder="Stock">
-    
-    <label><b>Stock mínimo</b></label>
-    <input name="min_stock" value="{{ product.min_stock or '' }}" placeholder="Stock mínimo">
-    
-    <label><b>Proveedor</b></label>
-    <input name="provider" value="{{ product.provider or '' }}" placeholder="Proveedor">
-    
-    <label><b>Elaborador</b></label>
-    <input name="manufacturer" value="{{ product.manufacturer or '' }}" placeholder="Elaborador">
-
-    <label><b>Observaciones</b></label>
-
-    <textarea
-        name="notes"
-        rows="4"
-        placeholder="Observaciones"
-    >{{ product.notes or '' }}</textarea>
-
-    <button
-        type="submit"
-        style="width:100%;background:green;color:white;padding:10px;border:none;border-radius:8px;"
-    >
-        Guardar cambios
-    </button>
-
-</form>
-
+            <div class="actions">
+                <button type="submit" class="pink-btn">💾 Guardar cambios</button>
+                <a href="/products" class="soft-btn">Cancelar</a>
+            </div>
+        </div>
+    </form>
 </div>
+
 <script>
 function parseNumber(value) {
     if (!value) return 0;
     return parseFloat(String(value).replace(",", ".")) || 0;
 }
-
 function recalculateSalePrice() {
     const cost = parseNumber(document.getElementById("cost_price").value);
     const margin = parseNumber(document.getElementById("margin_percent").value);
-
+    const saleInput = document.getElementById("sale_price");
+    const profitPreview = document.getElementById("profit_preview");
     const sale = cost + (cost * margin / 100);
     const profit = sale - cost;
-
     if (cost > 0 && margin >= 0) {
-        document.getElementById("sale_price").value = sale.toFixed(2);
-        document.getElementById("profit_preview").innerText =
-            "Ganancia por unidad: $" + profit.toFixed(2);
+        saleInput.value = sale.toFixed(2);
+        profitPreview.innerText = "Ganancia por unidad: $" + profit.toFixed(2);
+    } else {
+        profitPreview.innerText = "Ganancia por unidad: $0";
     }
 }
-
 document.addEventListener("DOMContentLoaded", recalculateSalePrice);
 </script>
 {% endblock %}
