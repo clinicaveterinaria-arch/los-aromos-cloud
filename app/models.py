@@ -1,10 +1,18 @@
 from datetime import datetime, date
+from zoneinfo import ZoneInfo
 from typing import Optional
 
 from sqlalchemy import String, Text, Date, DateTime, Float, ForeignKey, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .database import Base
+# =====================================
+# Zona horaria Argentina
+# =====================================
 
+ARG_TZ = ZoneInfo("America/Argentina/Buenos_Aires")
+
+def argentina_now():
+    return datetime.now(ARG_TZ)
 class User(Base):
     __tablename__ = 'users'
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -22,7 +30,7 @@ class Owner(Base):
     email: Mapped[str] = mapped_column(String(180), default='')
     address: Mapped[str] = mapped_column(String(255), default='')
     notes: Mapped[str] = mapped_column(Text, default='')
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=argentina_now)
     patients: Mapped[list['Patient']] = relationship(back_populates='owner')
 
 class Patient(Base):
@@ -47,7 +55,7 @@ class ClinicalEvent(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     patient_id: Mapped[int] = mapped_column(ForeignKey('patients.id'), index=True)
-    event_date: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
+    event_date: Mapped[datetime] = mapped_column(DateTime, default=argentina_now, index=True)
     event_type: Mapped[str] = mapped_column(String(80), default='Consulta')
     title: Mapped[str] = mapped_column(String(200), default='')
     description: Mapped[str] = mapped_column(Text, default='')
@@ -120,7 +128,7 @@ class Appointment(Base):
     reminder_24h: Mapped[bool] = mapped_column(Boolean, default=True)
     reminder_12h: Mapped[bool] = mapped_column(Boolean, default=False)
     contact_whatsapp: Mapped[str] = mapped_column(String(80), default='')
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=argentina_now)
     owner: Mapped[Optional['Owner']] = relationship()
     patient: Mapped[Optional['Patient']] = relationship()
 class WaitingListEntry(Base):
@@ -128,7 +136,7 @@ class WaitingListEntry(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
 
-    arrival_time: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
+    arrival_time: Mapped[datetime] = mapped_column(DateTime, default=argentina_now, index=True)
     status: Mapped[str] = mapped_column(String(40), default='Esperando', index=True)
     priority: Mapped[str] = mapped_column(String(40), default='Normal')
     reason: Mapped[str] = mapped_column(String(200), default='')
@@ -172,7 +180,7 @@ class Product(Base):
     active: Mapped[bool] = mapped_column(Boolean, default=True)
     notes: Mapped[str] = mapped_column(Text, default='')
 
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=argentina_now)
 class Sale(Base):
     __tablename__ = 'sales'
 
@@ -180,7 +188,7 @@ class Sale(Base):
 
     date: Mapped[datetime] = mapped_column(
         DateTime,
-        default=datetime.utcnow
+        default=argentina_now
     )
 
     status: Mapped[str] = mapped_column(
@@ -296,7 +304,7 @@ class SalePayment(Base):
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
-        default=datetime.utcnow
+        default=argentina_now
     )
 class EventAttachment(Base):
     __tablename__ = 'event_attachments'
