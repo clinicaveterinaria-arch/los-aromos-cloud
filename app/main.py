@@ -2659,7 +2659,174 @@ async def migration_clientes_pacientes(
         'created_patients': created_patients,
         'skipped': skipped
     }
+@app.post('/migration/visitas', response_class=HTMLResponse)
+async def migration_visitas(
+    request: Request,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    import csv
+    import io
 
+    def clean_text(value):
+        if value is None:
+            return ''
+        value = str(value).strip()
+        try:
+            value = value.encode('latin1').decode('utf-8')
+        except Exception:
+            pass
+        return value
+
+    def pick(row, names):
+        normalized = {clean_text(k).lower(): clean_text(v) for k, v in row.items()}
+        for name in names:
+            key = name.lower()
+            if key in normalized:
+                return normalized[key]
+        return ''
+
+    def parse_datetime(value):
+        value = clean_text(value)
+        for fmt in [
+            '%d/%m/%Y %H:%M',
+            '%d/%m/%Y',
+            '%Y-%m-%d %H:%M',
+            '%Y-%m-%d'
+        ]:
+            try:
+                return datetime.strptime(value, fmt)
+            except Exception:
+                pass
+        return None
+
+    content = await file.read()
+    filename = (file.filename or '').lower()
+
+    rows = []
+
+    if filename.endswith('.xlsx'):
+        wb = load_workbook(BytesIO(content), data_only=True)
+        ws = wb.active
+        headers = [clean_text(c.value) for c in ws[1]]
+
+        for row in ws.iter_rows(min_row=2, values_only=True):
+            rows.append(dict(zip(headers, row)))
+    else:
+        text_content = content.decode('utf-8-sig', errors='replace')
+        sample = text_content[:1000]
+        delimiter = ';' if sample.count(';') >= sample.count(',') else ','
+        reader = csv.DictReader(io.StringIO(text_content), delimiter=delimiter)
+        rows = list(reader)
+
+    imported = 0
+    skipped = 0
+    created_owners = 0
+    created_patients = 0
+
+    for row in rows:
+        fecha = pick(row, ['Fecha'])
+        owner_name = pick(row, ['Cliente', 'Propietario', 'Dueño'])
+        patient_name = pick(row, ['Paciente', 'Mascota', 'Animal'])
+        email = pick(row, ['Email', 'Mail'])
+        usuario = pick(row, ['Usuario'])
+
+        event_dt = parse_datetime(fecha)
+
+        if not event_dt:
+            skipped += 1
+            continue
+
+        if not owner_name:
+            owner_name = 'Sin propietario'
+
+        if not patient_name:
+            patient_name = 'Sin paciente'
+
+        owner = (
+            db.query(Owner)
+            .filter(Owner.name.ilike(owner_name))
+            .first()
+        )
+
+        if not owner:
+            owner = Owner(
+                name=owner_name,
+                email=email
+            )
+            db.add(owner)
+            db.flush()
+            created_owners += 1
+        else:
+            if email and not owner.email:
+                owner.email = email
+
+        patient = (
+            db.query(Patient)
+            .filter(Patient.name.ilike(patient_name))
+            .filter(Patient.owner_id == owner.id)
+            .first()
+        )
+
+        if not patient:
+            patient = Patient(
+                name=patient_name,
+                owner_id=owner.id
+            )
+            db.add(patient)
+            db.flush()
+            created_patients += 1
+
+        existing = (
+            db.query(ClinicalEvent)
+            .filter(ClinicalEvent.patient_id == patient.id)
+            .filter(ClinicalEvent.event_date == event_dt)
+            .filter(ClinicalEvent.title == 'Visita importada MyVete')
+            .first()
+        )
+
+        if existing:
+            skipped += 1
+            continue
+
+        description = (
+            'Importado desde Reporte de visitas MyVete\n'
+            f'Fecha original: {event_dt.strftime("%d/%m/%Y %H:%M")}\n'
+            f'Cliente: {owner.name}\n'
+            f'Paciente: {patient.name}\n'
+            f'Usuario original: {usuario}'
+        )
+
+        event = ClinicalEvent(
+            patient_id=patient.id,
+            event_date=event_dt,
+            event_type='Consulta clínica',
+            title='Visita importada MyVete',
+            description=description,
+            created_by=user.username
+        )
+
+        db.add(event)
+        imported += 1
+
+    db.commit()
+
+    result = {
+        'type': 'visitas',
+        'imported': imported,
+        'created_owners': created_owners,
+        'created_patients': created_patients,
+        'skipped': skipped
+    }
+
+    return templates.TemplateResponse(
+        'migration.html',
+        {
+            'request': request,
+            'result': result
+        }
+    )
     return templates.TemplateResponse(
         'migration.html',
         {
