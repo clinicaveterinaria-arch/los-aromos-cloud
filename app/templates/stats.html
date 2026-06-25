@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<style>
+    .stats-page { padding:24px 28px; }
+    .stats-hero { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; margin-bottom:18px; }
+    .stats-title h1 { margin:0 0 6px 0; font-size:32px; color:#1f2937; }
+    .stats-title p { margin:0; color:#6b7280; }
+    .stats-filters { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+    .stats-filter, .export-btn { border:1px solid #f3c6d8; background:white; color:#374151; border-radius:12px; padding:11px 14px; text-decoration:none; font-weight:bold; }
+    .stats-filter.active { background:#d85b9a; color:white; border-color:#d85b9a; }
+    .export-btn { color:#d85b9a; }
+
+    .kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:14px; margin-bottom:18px; }
+    .kpi-card { background:white; border:1px solid #f3c6d8; border-radius:20px; padding:18px; box-shadow:0 8px 26px rgba(0,0,0,.04); }
+    .kpi-icon { width:48px; height:48px; border-radius:50%; background:#fff0f7; color:#d85b9a; display:flex; align-items:center; justify-content:center; font-size:24px; margin-bottom:12px; }
+    .kpi-card small { color:#6b7280; font-weight:bold; }
+    .kpi-card h2 { margin:8px 0 5px 0; font-size:26px; color:#1f2937; }
+    .kpi-trend { color:#16a34a; font-size:13px; font-weight:bold; }
+
+    .alert-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:14px; margin-bottom:18px; }
+    .alert-card { background:white; border:1px solid #f3c6d8; border-radius:18px; padding:16px; box-shadow:0 6px 20px rgba(0,0,0,.04); }
+    .alert-card.orange { background:#fff7ed; border-color:#fed7aa; }
+    .alert-card.red { background:#fff1f2; border-color:#fecdd3; }
+    .alert-card.blue { background:#eff6ff; border-color:#bfdbfe; }
+    .alert-card b { display:block; margin-bottom:8px; color:#1f2937; }
+    .alert-card h2 { margin:0; font-size:28px; color:#1f2937; }
+    .alert-card a { color:#d85b9a; text-decoration:none; font-weight:bold; font-size:13px; }
+
+    .stats-layout { display:grid; grid-template-columns:1.4fr 1fr; gap:18px; margin-bottom:18px; }
+    .stats-card { background:white; border:1px solid #f3c6d8; border-radius:20px; padding:20px; box-shadow:0 8px 26px rgba(0,0,0,.04); }
+    .stats-card h2 { margin:0 0 16px 0; color:#1f2937; font-size:20px; display:flex; align-items:center; gap:8px; }
+
+    .bar-chart { display:flex; align-items:end; gap:8px; height:220px; border-bottom:1px solid #ead7e1; padding:10px 0 0 0; overflow-x:auto; }
+    .bar-item { min-width:32px; display:flex; flex-direction:column; align-items:center; gap:6px; height:100%; justify-content:flex-end; }
+    .bar { width:18px; border-radius:999px 999px 0 0; background:linear-gradient(180deg,#d85b9a,#f9a8d4); min-height:4px; }
+    .bar-label { font-size:10px; color:#6b7280; transform:rotate(-45deg); white-space:nowrap; height:28px; }
+
+    .payment-row, .list-row { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid #f3edf1; }
+    .payment-row:last-child, .list-row:last-child { border-bottom:none; }
+    .payment-name, .list-name { font-weight:bold; color:#1f2937; }
+    .payment-value, .list-value { color:#d85b9a; font-weight:bold; white-space:nowrap; }
+    .progress-line { height:8px; background:#f3edf1; border-radius:999px; overflow:hidden; margin-top:7px; }
+    .progress-fill { height:100%; background:#d85b9a; border-radius:999px; }
+
+    .four-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:18px; margin-bottom:18px; }
+    .event-row { display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid #f3edf1; }
+    .event-row:last-child { border-bottom:none; }
+    .event-icon { width:38px; height:38px; border-radius:14px; background:#fff0f7; color:#d85b9a; display:flex; align-items:center; justify-content:center; }
+    .event-row b { margin-left:auto; font-size:20px; }
+
+    .summary-panel { background:#fff8fb; border:1px solid #f3c6d8; border-radius:20px; padding:18px; display:flex; justify-content:space-between; gap:16px; align-items:center; flex-wrap:wrap; }
+    .summary-alerts { display:grid; gap:7px; color:#374151; }
+    .summary-alerts b { color:#1f2937; }
+
+    @media (max-width:1000px) { .stats-layout { grid-template-columns:1fr; } }
+</style>
+
+<div class="stats-page">
+
+    <div class="stats-hero">
+        <div class="stats-title">
+            <h1>📊 Estadísticas</h1>
+            <p>Resumen general de la actividad de la clínica.</p>
+        </div>
+
+        <div class="stats-filters">
+            <a class="stats-filter {% if period == 'today' %}active{% endif %}" href="/stats?period=today">Hoy</a>
+            <a class="stats-filter {% if period == 'week' %}active{% endif %}" href="/stats?period=week">Esta semana</a>
+            <a class="stats-filter {% if period == 'month' %}active{% endif %}" href="/stats?period=month">Este mes</a>
+            <a class="stats-filter {% if period == 'year' %}active{% endif %}" href="/stats?period=year">Año</a>
+            <a class="export-btn" href="#" onclick="window.print(); return false;">⬇ Exportar</a>
+        </div>
+    </div>
+
+    <div class="kpi-grid">
+        <div class="kpi-card"><div class="kpi-icon">$</div><small>Ventas del período</small><h2>$ {{ "{:,.0f}".format(sales_total).replace(',', '.') }}</h2><div class="kpi-trend">↗ período seleccionado</div></div>
+        <div class="kpi-card"><div class="kpi-icon">🛒</div><small>Cantidad de ventas</small><h2>{{ sales_count }}</h2><div class="kpi-trend">ventas registradas</div></div>
+        <div class="kpi-card"><div class="kpi-icon">📈</div><small>Ganancia estimada</small><h2>$ {{ "{:,.0f}".format(profit_total).replace(',', '.') }}</h2><div class="kpi-trend">según costos cargados</div></div>
+        <div class="kpi-card"><div class="kpi-icon">🧾</div><small>Ticket promedio</small><h2>$ {{ "{:,.0f}".format(ticket_average).replace(',', '.') }}</h2><div class="kpi-trend">promedio por venta</div></div>
+        <div class="kpi-card"><div class="kpi-icon">🐾</div><small>Pacientes atendidos</small><h2>{{ patients_seen }}</h2><div class="kpi-trend">con eventos clínicos</div></div>
+        <div class="kpi-card"><div class="kpi-icon">👥</div><small>Pacientes activos</small><h2>{{ new_patients_estimated }}</h2><div class="kpi-trend">en el período</div></div>
+    </div>
+
+    <div class="alert-grid">
+        <div class="alert-card orange"><b>📦 Stock crítico</b><h2>{{ critical_stock_count }}</h2><span>productos</span><br><br><a href="/products">Ver productos →</a></div>
+        <div class="alert-card orange"><b>📅 Vencimientos próximos</b><h2>{{ expiring_count }}</h2><span>productos</span><br><br><a href="/products">Ver detalles →</a></div>
+        <div class="alert-card red"><b>🔴 Stock negativo</b><h2>{{ negative_stock_count }}</h2><span>productos</span><br><br><a href="/products">Ver críticos →</a></div>
+        <div class="alert-card blue"><b>💳 Cuenta corriente</b><h2>$ {{ "{:,.0f}".format(account_pending).replace(',', '.') }}</h2><span>{{ clients_with_debt }} clientes con deuda</span></div>
+    </div>
+
+    <div class="stats-layout">
+        <div class="stats-card">
+            <h2>📈 Ventas por período</h2>
+            <div class="bar-chart">
+                {% for d in chart_days %}
+                    <div class="bar-item" title="{{ d.label }} - $ {{ d.value }}">
+                        <div class="bar" style="height:{{ (d.value / max_chart_value * 180)|int if max_chart_value else 4 }}px;"></div>
+                        <div class="bar-label">{{ d.label }}</div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="stats-card">
+            <h2>💳 Ventas por método de pago</h2>
+            {% set max_payment = payments_by_method.values()|list|max if payments_by_method else 1 %}
+            {% if payments_by_method %}
+                {% for method, amount in payments_by_method.items() %}
+                    <div class="payment-row">
+                        <div style="flex:1;">
+                            <div class="payment-name">{{ method }}</div>
+                            <div class="progress-line"><div class="progress-fill" style="width:{{ (amount / max_payment * 100)|int }}%;"></div></div>
+                        </div>
+                        <div class="payment-value">$ {{ "{:,.0f}".format(amount).replace(',', '.') }}</div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p style="color:#6b7280;">Sin pagos registrados en este período.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="four-grid">
+        <div class="stats-card">
+            <h2>🏆 Top productos vendidos</h2>
+            {% for item in top_products %}<div class="list-row"><span class="list-name">{{ loop.index }}. {{ item.name }}</span><span class="list-value">{{ item.qty|int }} u.</span></div>{% else %}<p style="color:#6b7280;">Sin ventas.</p>{% endfor %}
+        </div>
+
+        <div class="stats-card">
+            <h2>💰 Top productos por ganancia</h2>
+            {% for item in top_profit_products %}<div class="list-row"><span class="list-name">{{ loop.index }}. {{ item.name }}</span><span class="list-value">$ {{ "{:,.0f}".format(item.profit).replace(',', '.') }}</span></div>{% else %}<p style="color:#6b7280;">Sin datos.</p>{% endfor %}
+        </div>
+
+        <div class="stats-card">
+            <h2>🩺 Eventos por tipo</h2>
+            {% for item in event_type_cards %}<div class="event-row"><span class="event-icon">{{ item.icon }}</span><span>{{ item.label }}</span><b>{{ item.value }}</b></div>{% endfor %}
+        </div>
+
+        <div class="stats-card">
+            <h2>📦 Stock crítico</h2>
+            {% for p in critical_stock %}<div class="list-row"><span class="list-name">{{ p.name }}</span><span class="list-value">Stock: {{ p.stock or 0 }}</span></div>{% else %}<p style="color:#6b7280;">Sin productos críticos.</p>{% endfor %}
+        </div>
+    </div>
+
+    <div class="four-grid">
+        <div class="stats-card">
+            <h2>📅 Vencimientos próximos</h2>
+            {% for p in expiring_products %}<div class="list-row"><span class="list-name">{{ p.name }}</span><span class="list-value">{{ p.expiration_date.strftime('%d/%m/%Y') if p.expiration_date else '-' }}</span></div>{% else %}<p style="color:#6b7280;">Sin vencimientos próximos.</p>{% endfor %}
+        </div>
+
+        <div class="stats-card">
+            <h2>🐾 Pacientes frecuentes</h2>
+            {% for p in top_patients %}<div class="list-row"><span class="list-name">{{ loop.index }}. {{ p.name }}</span><span class="list-value">{{ p.visits }} visitas</span></div>{% else %}<p style="color:#6b7280;">Sin actividad.</p>{% endfor %}
+        </div>
+
+        <div class="stats-card">
+            <h2>👥 Propietarios activos</h2>
+            {% for o in top_owners %}<div class="list-row"><span class="list-name">{{ loop.index }}. {{ o.name }}</span><span class="list-value">{{ o.visits }} visitas</span></div>{% else %}<p style="color:#6b7280;">Sin actividad.</p>{% endfor %}
+        </div>
+
+        <div class="stats-card">
+            <h2>📆 Agenda del período</h2>
+            <div class="event-row"><span class="event-icon">📅</span><span>Turnos programados</span><b>{{ appointment_stats.total }}</b></div>
+            <div class="event-row"><span class="event-icon">✅</span><span>Confirmados</span><b>{{ appointment_stats.confirmed }}</b></div>
+            <div class="event-row"><span class="event-icon">🟢</span><span>Realizados</span><b>{{ appointment_stats.done }}</b></div>
+            <div class="event-row"><span class="event-icon">❌</span><span>Cancelados</span><b>{{ appointment_stats.cancelled }}</b></div>
+            <div class="event-row"><span class="event-icon">👥</span><span>Lista de espera activa</span><b>{{ waiting_active }}</b></div>
+        </div>
+    </div>
+
+    <div class="summary-panel">
+        <div class="summary-alerts">
+            <b>💡 Resumen inteligente</b>
+            {% for alert in alerts %}<span>• {{ alert }}</span>{% endfor %}
+        </div>
+        <div style="color:#d85b9a; font-weight:bold;">Los Aromos Cloud ❤</div>
+    </div>
+
+</div>
+
+{% endblock %}
