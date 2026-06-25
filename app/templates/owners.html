@@ -1,13 +1,374 @@
-{% extends 'base.html' %}{% block content %}
-<h1>Propietarios</h1>
-<form class="searchbar" method="get"><input name="q" value="{{ q }}" placeholder="Buscar por nombre, teléfono o WhatsApp"><button>Buscar</button></form>
-<div class="panel">
-<h2>Nuevo propietario</h2>
-<form method="post" action="/owners" class="form-grid">
-<input name="name" placeholder="Nombre y apellido" required><input name="phone" placeholder="Teléfono"><input name="whatsapp" placeholder="WhatsApp"><input name="email" placeholder="Email"><input name="address" placeholder="Dirección"><textarea name="notes" placeholder="Observaciones"></textarea><button>Guardar propietario</button>
-</form></div>
-<div class="panel"><h2>Listado</h2><table><tr><th>Nombre</th><th>Teléfono</th><th>WhatsApp</th><th></th></tr>{% for o in owners %}<tr><td>{{ o.name }}</td><td>{{ o.phone }}</td><td>{{ o.whatsapp }}<td>
-<a class="btn" href="/owners/{{ o.id }}/edit">✏️ Editar</a>
-<a class="btn" href="/patients/new?owner_id={{ o.id }}">➕ Agregar paciente</a>
-</td></tr>{% endfor %}</table></div>
+{% extends 'base.html' %}
+{% block content %}
+
+<style>
+    .owners-page {
+        padding:24px 28px;
+    }
+
+    .owners-hero {
+        background:white;
+        border:1px solid #f3c6d8;
+        border-radius:22px;
+        padding:22px;
+        box-shadow:0 8px 26px rgba(0,0,0,0.05);
+        margin-bottom:18px;
+        display:flex;
+        justify-content:space-between;
+        align-items:flex-start;
+        gap:18px;
+        flex-wrap:wrap;
+    }
+
+    .owners-hero h1 {
+        margin:0 0 6px 0;
+        font-size:32px;
+        color:#1f2937;
+    }
+
+    .owners-hero p {
+        margin:0;
+        color:#6b7280;
+    }
+
+    .owners-count {
+        background:#fff0f7;
+        color:#d85b9a;
+        border:1px solid #f3c6d8;
+        border-radius:999px;
+        padding:10px 14px;
+        font-weight:bold;
+    }
+
+    .owners-card {
+        background:white;
+        border:1px solid #f3c6d8;
+        border-radius:22px;
+        padding:22px;
+        box-shadow:0 8px 26px rgba(0,0,0,0.04);
+        margin-bottom:18px;
+    }
+
+    .owners-card h2 {
+        margin:0 0 16px 0;
+        color:#1f2937;
+        display:flex;
+        gap:10px;
+        align-items:center;
+    }
+
+    .searchbar-modern {
+        display:flex;
+        gap:10px;
+        margin-bottom:18px;
+    }
+
+    .searchbar-modern input {
+        flex:1;
+        border:1px solid #ead7e1;
+        border-radius:14px;
+        padding:13px 15px;
+        font-size:15px;
+    }
+
+    .pink-btn {
+        background:#d85b9a;
+        color:white;
+        border:none;
+        border-radius:13px;
+        padding:12px 18px;
+        font-weight:bold;
+        cursor:pointer;
+        text-decoration:none;
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        gap:7px;
+    }
+
+    .soft-btn {
+        background:#fff0f7;
+        color:#d85b9a;
+        border:1px solid #f3c6d8;
+        border-radius:12px;
+        padding:9px 12px;
+        font-weight:bold;
+        text-decoration:none;
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        gap:6px;
+    }
+
+    .owner-form-grid {
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+        gap:12px;
+    }
+
+    .field-box label {
+        display:block;
+        font-weight:bold;
+        color:#374151;
+        font-size:13px;
+        margin-bottom:6px;
+    }
+
+    .field-box input,
+    .field-box textarea {
+        width:100%;
+        border:1px solid #ead7e1;
+        border-radius:13px;
+        padding:12px 13px;
+        font-size:14px;
+        background:white;
+    }
+
+    .field-box textarea {
+        min-height:86px;
+        resize:vertical;
+    }
+
+    .field-full {
+        grid-column:1 / -1;
+    }
+
+    .owners-list-head {
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap:12px;
+        flex-wrap:wrap;
+        margin-bottom:12px;
+    }
+
+    .owners-total {
+        background:#fff0f7;
+        color:#d85b9a;
+        border-radius:999px;
+        padding:8px 12px;
+        font-weight:bold;
+        font-size:13px;
+        border:1px solid #f3c6d8;
+    }
+
+    .owners-table {
+        border:1px solid #f1d6e2;
+        border-radius:18px;
+        overflow:hidden;
+    }
+
+    .owners-row {
+        display:grid;
+        grid-template-columns:1.4fr 1fr 1fr 1fr 1.8fr;
+        gap:14px;
+        align-items:center;
+        padding:14px 16px;
+        border-bottom:1px solid #f3edf1;
+        background:white;
+    }
+
+    .owners-row:last-child {
+        border-bottom:none;
+    }
+
+    .owners-row.head {
+        background:#fff8fb;
+        color:#d85b9a;
+        font-weight:bold;
+        font-size:13px;
+    }
+
+    .owner-person {
+        display:flex;
+        align-items:center;
+        gap:12px;
+    }
+
+    .owner-avatar {
+        width:42px;
+        height:42px;
+        border-radius:50%;
+        background:#fff0f7;
+        color:#d85b9a;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-weight:bold;
+        border:1px solid #f3c6d8;
+        flex:0 0 auto;
+        text-transform:uppercase;
+    }
+
+    .owner-name {
+        font-weight:bold;
+        color:#1f2937;
+    }
+
+    .owner-muted {
+        color:#6b7280;
+        font-size:13px;
+    }
+
+    .owner-actions {
+        display:flex;
+        gap:8px;
+        flex-wrap:wrap;
+        justify-content:flex-end;
+    }
+
+    .empty-owners {
+        text-align:center;
+        color:#6b7280;
+        padding:35px 15px;
+    }
+
+    @media (max-width:1050px) {
+        .owners-row {
+            grid-template-columns:1fr;
+            gap:8px;
+        }
+
+        .owners-row.head {
+            display:none;
+        }
+
+        .owner-actions {
+            justify-content:flex-start;
+        }
+
+        .searchbar-modern {
+            flex-direction:column;
+        }
+    }
+</style>
+
+<div class="owners-page">
+
+    <div class="owners-hero">
+        <div>
+            <h1>👥 Propietarios</h1>
+            <p>Gestión de clientes, contactos y acceso rápido a sus pacientes.</p>
+        </div>
+        <div class="owners-count">
+            {{ owners|length }} propietarios
+        </div>
+    </div>
+
+    <form class="searchbar-modern" method="get">
+        <input name="q" value="{{ q }}" placeholder="Buscar por nombre, teléfono o WhatsApp...">
+        <button class="pink-btn" type="submit">🔎 Buscar</button>
+    </form>
+
+    <div class="owners-card">
+        <h2>➕ Nuevo propietario</h2>
+
+        <form method="post" action="/owners" class="owner-form-grid">
+            <div class="field-box">
+                <label>Nombre y apellido</label>
+                <input name="name" placeholder="Ej: Juan Pérez" required>
+            </div>
+
+            <div class="field-box">
+                <label>Teléfono</label>
+                <input name="phone" placeholder="Ej: 3456250361">
+            </div>
+
+            <div class="field-box">
+                <label>WhatsApp</label>
+                <input name="whatsapp" placeholder="Ej: 3456250361">
+            </div>
+
+            <div class="field-box">
+                <label>Email</label>
+                <input name="email" placeholder="Ej: cliente@email.com">
+            </div>
+
+            <div class="field-box">
+                <label>Dirección</label>
+                <input name="address" placeholder="Ej: San Martín 123">
+            </div>
+
+            <div class="field-box field-full">
+                <label>Observaciones</label>
+                <textarea name="notes" placeholder="Información adicional del propietario..."></textarea>
+            </div>
+
+            <div>
+                <button class="pink-btn" type="submit">💾 Guardar propietario</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="owners-card">
+        <div class="owners-list-head">
+            <h2>📋 Listado de propietarios</h2>
+            <span class="owners-total">Total: {{ owners|length }}</span>
+        </div>
+
+        {% if owners %}
+            <div class="owners-table">
+                <div class="owners-row head">
+                    <div>Nombre</div>
+                    <div>Teléfono</div>
+                    <div>WhatsApp</div>
+                    <div>Email</div>
+                    <div></div>
+                </div>
+
+                {% for o in owners %}
+                    <div class="owners-row">
+                        <div class="owner-person">
+                            <div class="owner-avatar">
+                                {{ o.name[:1] if o.name else '?' }}
+                            </div>
+                            <div>
+                                <div class="owner-name">{{ o.name }}</div>
+                                {% if o.address %}
+                                    <div class="owner-muted">📍 {{ o.address }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div>
+                            {% if o.phone %}
+                                📞 {{ o.phone }}
+                            {% else %}
+                                <span class="owner-muted">—</span>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            {% if o.whatsapp %}
+                                🟢 {{ o.whatsapp }}
+                            {% else %}
+                                <span class="owner-muted">—</span>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            {% if o.email %}
+                                ✉️ {{ o.email }}
+                            {% else %}
+                                <span class="owner-muted">—</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="owner-actions">
+                            <a class="soft-btn" href="/owners/{{ o.id }}/edit">✏️ Editar</a>
+                            <a class="pink-btn" href="/patients/new?owner_id={{ o.id }}">➕ Agregar paciente</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-owners">
+                <h3>No hay propietarios cargados</h3>
+                <p>Cuando agregues uno, aparecerá en este listado.</p>
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+
 {% endblock %}
