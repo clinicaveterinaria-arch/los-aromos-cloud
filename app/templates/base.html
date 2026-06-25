@@ -183,7 +183,9 @@
       <a href="/sales" class="{% if request.url.path.startswith('/sales') %}active{% endif %}">
         <span class="nav-left"><span class="nav-icon">🛒</span>Ventas</span><span class="nav-arrow">›</span>
       </a>
-
+      <a href="/stats" class="{% if request.url.path.startswith('/stats') %}active{% endif %}">
+          <span class="nav-left"><span class="nav-icon">📊</span>Estadísticas</span><span class="nav-arrow">›</span>
+      </a>
       <a href="/pendientes" class="{% if request.url.path.startswith('/pendientes') %}active{% endif %}">
         <span class="nav-left">
           <span class="nav-icon">🔔</span>
