@@ -3014,8 +3014,8 @@ def event_whatsapp(
     
         message = (
             f"Buenos días *{owner.name}*.\n\n"
-            f"Te recordamos que *{patient.name}* debe recibir hoy su vacuna *{vacuna}*.\n\n"
-            f"¡Los esperamos! 🐾"
+            f"Te recordamos que *{patient.name}* debe recibir hoy su *{vacuna}*.\n\n"
+            f"¡Los esperamos!"
         )
     
     elif event.event_type == "Desparasitación":
@@ -3026,7 +3026,7 @@ def event_whatsapp(
             f"• Traerlo a la clínica para realizar la desparasitación.\n"
             f"• Comprar la medicación y administrarla en casa.\n"
             f"• Solicitar envío a domicilio.\n\n"
-            f"¿Qué preferis? 🐾"
+            f"¿Qué preferis?"
         )
     
     else:
