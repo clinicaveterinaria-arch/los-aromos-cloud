@@ -1,4 +1,49 @@
-{% extends 'base.html' %}{% block content %}
+{% extends 'base.html' %}
+
+{% block content %}
 <h1>Migración MyVete</h1>
-<div class="panel"><p>Este módulo queda reservado para importar exportaciones de MyVete.</p><ul><li>Clientes y propietarios desde CSV/Excel.</li><li>Pacientes desde CSV/Excel.</li><li>Historias clínicas como eventos históricos.</li><li>Vista previa, mapeo de columnas y control de duplicados.</li></ul><p>En la próxima etapa se agregará carga de archivos y previsualización.</p></div>
+
+<div class="panel">
+    <h2>Agenda → Pendientes</h2>
+
+    <p>
+        Importa un archivo CSV o Excel de agenda de MyVete y lo carga como
+        pendientes en Aromos Cloud.
+    </p>
+
+    <form action="/migration/agenda-pendientes" method="post" enctype="multipart/form-data">
+        <label>Archivo de agenda MyVete</label>
+        <input type="file" name="file" accept=".csv,.xlsx" required>
+
+        <br><br>
+
+        <button type="submit" class="btn primary">
+            📥 Importar agenda a pendientes
+        </button>
+    </form>
+</div>
+
+{% if result %}
+<div class="panel" style="background:#fff4f8;">
+    <h2>Resultado de importación</h2>
+
+    <p>✅ Pendientes importados: <strong>{{ result.imported }}</strong></p>
+    <p>👤 Propietarios creados: <strong>{{ result.created_owners }}</strong></p>
+    <p>🐾 Pacientes creados: <strong>{{ result.created_patients }}</strong></p>
+    <p>⚠️ Filas omitidas o duplicadas: <strong>{{ result.skipped }}</strong></p>
+
+    <a class="btn" href="/pendientes">Ver pendientes</a>
+</div>
+{% endif %}
+
+<div class="panel">
+    <h2>Próximas etapas</h2>
+
+    <ul>
+        <li>Clientes y propietarios desde CSV/Excel.</li>
+        <li>Pacientes desde CSV/Excel.</li>
+        <li>Historias clínicas como eventos históricos.</li>
+        <li>Adjuntos de estudios e imágenes.</li>
+    </ul>
+</div>
 {% endblock %}
