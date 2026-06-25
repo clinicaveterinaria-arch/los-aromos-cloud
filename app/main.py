@@ -1959,7 +1959,18 @@ def sales_create(
             return float(str(value).replace(',', '.')) if value and str(value).strip() else 0
         except ValueError:
             return 0
+    has_product = False
 
+    for pid in product_id:
+        if pid and str(pid).strip():
+            has_product = True
+            break
+
+    if not has_product:
+        return RedirectResponse(
+            url='/sales',
+            status_code=303
+        )
     sale = Sale(
         status='quote' if save_as_quote else 'paid',
         total=0,
