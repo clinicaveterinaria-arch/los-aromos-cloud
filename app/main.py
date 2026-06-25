@@ -2384,22 +2384,27 @@ async def migration_agenda_pendientes(
         return value
 
     def pick(row, names):
-        normalized = {clean_text(k).lower(): clean_text(v) for k, v in row.items()}
+        normalized = {
+            clean_text(k).lower(): clean_text(v)
+            for k, v in row.items()
+        }
+
         for name in names:
             key = name.lower()
             if key in normalized:
                 return normalized[key]
+
         return ''
 
     def parse_date(value):
         if value is None:
             return None
-    
+
         if hasattr(value, 'date'):
             return value.date()
-    
+
         value = clean_text(value)
-    
+
         for fmt in [
             '%d/%m/%Y',
             '%Y-%m-%d',
@@ -2408,99 +2413,98 @@ async def migration_agenda_pendientes(
             '%d/%m/%y'
         ]:
             try:
-                return datetime.strptime(value, fmt).date()
-            except Exception:
-                pass
-    
-        return None
+    return datetime.strptime(value, fmt).date()
+except Exception:
+    pass
 
-    content = await file.read()
-    filename = (file.filename or '').lower()
+return None
 
-    rows = []
+content = await file.read()
+filename = (file.filename or "").lower()
 
-    if filename.endswith('.xlsx'):
-        wb = load_workbook(BytesIO(content), data_only=True)
-        ws = wb.active
-        headers = [clean_text(c.value) for c in ws[1]]
+rows = []
 
-        for row in ws.iter_rows(min_row=2, values_only=True):
-            rows.append(dict(zip(headers, row)))
-    else:
-        text_content = content.decode('utf-8-sig', errors='replace')
-        sample = text_content[:1000]
-        delimiter = ';' if sample.count(';') > sample.count(',') else ','
-        reader = csv.DictReader(io.StringIO(text_content), delimiter=delimiter)
-        rows = list(reader)
+if filename.endswith(".xlsx"):
+wb = load_workbook(BytesIO(content), data_only=True)
+ws = wb.active
 
-    imported = 0
-    skipped = 0
-    created_owners = 0
-    created_patients = 0
+headers = [clean_text(c.value) for c in ws[1]]
 
-    for row in rows:
-    owner_name = pick(row, [
-        'Propietario / Cliente',
-        'Propietario',
-        'Cliente',
-        'Dueño',
-        'Responsable',
-        'Nombre propietario'
-    ])
-    
-    patient_name = pick(row, [
-        'Paciente / Mascota',
-        'Paciente',
-        'Mascota',
-        'Animal',
-        'Nombre paciente'
-    ])
-    
-    phone = pick(row, [
-        'Teléfono / WhatsApp',
-        'Teléfono',
-        'Telefono',
-        'Celular',
-        'WhatsApp',
-        'Whatsapp'
-    ])
-    
-    date_value = pick(row, [
-        'Fecha',
-        'Fecha pendiente',
-        'Fecha agenda',
-        'Fecha turno'
-    ])
-    
-    time_value = pick(row, [
-        'Hora',
-        'Horario'
-    ])
-    
-    service = pick(row, [
-        'Motivo / Servicio',
-        'Motivo',
-        'Servicio',
-        'Detalle'
-    ])
-    
-    notes = pick(row, [
-        'Notas',
-        'Observaciones',
-        'Comentario'
-    ])
+for row in ws.iter_rows(min_row=2, values_only=True):
+rows.append(dict(zip(headers, row)))
 
-        reminder_date = parse_date(date_value)
+else:
+text_content = content.decode("utf-8-sig", errors="replace")
 
+sample = text_content[:1000]
+delimiter = ";" if sample.count(";") >= sample.count(",") else ","
+
+reader = csv.DictReader(
+io.StringIO(text_content),
+delimiter=delimiter
+)
+
+rows = list(reader)
+
+imported = 0
+skipped = 0
+created_owners = 0
+created_patients = 0
+
+for row in rows:
+
+owner_name = pick(row, [
+"Propietario / Cliente",
+"Propietario",
+"Cliente",
+"Dueño",
+"Responsable"
+])
+
+patient_name = pick(row, [
+"Paciente / Mascota",
+"Paciente",
+"Mascota",
+"Animal"
+])
+
+phone = pick(row, [
+"Teléfono / WhatsApp",
+"Teléfono",
+"Telefono",
+"WhatsApp",
+"Whatsapp",
+"Celular"
+])
+
+reminder_date = parse_date(
+pick(row, [
+    "Fecha",
+    "Fecha pendiente"
+])
+)
+
+service = pick(row, [
+"Motivo / Servicio",
+"Motivo",
+"Servicio",
+"Detalle"
+])
+
+notes = pick(row, [
+"Notas",
+"Observaciones",
+"Comentario"
+])
         if not reminder_date:
             skipped += 1
             continue
 
         if not owner_name:
-            owner_name = 'Sin propietario'
+            owner_name = "Sin propietario"
 
         if not patient_name:
-            patient_name = 'Sin paciente'
+            patient_name = "Sin paciente"
 
         owner = (
             db.query(Owner)
@@ -2517,6 +2521,12 @@ async def migration_agenda_pendientes(
             db.add(owner)
             db.flush()
             created_owners += 1
+        else:
+            if phone and not owner.phone:
+                owner.phone = phone
+
+            if phone and not owner.whatsapp:
+                owner.whatsapp = phone
 
         patient = (
             db.query(Patient)
@@ -2534,25 +2544,25 @@ async def migration_agenda_pendientes(
             db.flush()
             created_patients += 1
 
-        service_text = (service or notes or '').lower()
+        service_text = f"{service} {notes}".lower()
 
-        if 'vacuna' in service_text or 'vacun' in service_text:
-            event_type = 'Vacuna'
-            title = service or 'Vacuna pendiente'
-        elif 'despar' in service_text:
-            event_type = 'Desparasitación'
-            title = service or 'Desparasitación pendiente'
-        elif 'control' in service_text:
-            event_type = 'Control'
-            title = service or 'Control pendiente'
+        if "vacun" in service_text:
+            event_type = "Vacuna"
+            title = service or "Vacuna pendiente"
+        elif "despar" in service_text:
+            event_type = "Desparasitación"
+            title = service or "Desparasitación pendiente"
+        elif "control" in service_text:
+            event_type = "Control"
+            title = service or "Control pendiente"
         else:
-            event_type = 'Consulta clínica'
-            title = service or 'Pendiente importado MyVete'
-
+            event_type = "Consulta clínica"
+            title = service or "Pendiente importado MyVete"
         existing = (
             db.query(ClinicalEvent)
             .filter(ClinicalEvent.patient_id == patient.id)
             .filter(ClinicalEvent.reminder_date == reminder_date)
+            .filter(ClinicalEvent.event_type == event_type)
             .filter(ClinicalEvent.title == title)
             .first()
         )
@@ -2562,18 +2572,20 @@ async def migration_agenda_pendientes(
             continue
 
         description = (
-            f'Importado desde agenda MyVete\n'
-            f'Fecha: {reminder_date.strftime("%d/%m/%Y")}\n'
-            f'Hora: {time_value}\n'
-            f'Propietario: {owner.name}\n'
-            f'Paciente: {patient.name}\n'
-            f'Motivo/servicio: {service}\n'
-            f'Notas: {notes}'
+            "Importado desde pendientes MyVete\n"
+            f"Fecha: {reminder_date.strftime('%d/%m/%Y')}\n"
+            f"Propietario: {owner.name}\n"
+            f"Paciente: {patient.name}\n"
+            f"Motivo/servicio: {service}\n"
+            f"Notas: {notes}"
         )
 
         event = ClinicalEvent(
             patient_id=patient.id,
-            event_date=datetime.combine(reminder_date, datetime.min.time()),
+            event_date=datetime.combine(
+                reminder_date,
+                datetime.min.time()
+            ),
             event_type=event_type,
             title=title,
             description=description,
@@ -2587,19 +2599,22 @@ async def migration_agenda_pendientes(
     db.commit()
 
     result = {
-        'imported': imported,
-        'skipped': skipped,
-        'created_owners': created_owners,
-        'created_patients': created_patients
+        "type": "agenda_pendientes",
+        "imported": imported,
+        "skipped": skipped,
+        "created_owners": created_owners,
+        "created_patients": created_patients
     }
 
     return templates.TemplateResponse(
-        'migration.html',
+        "migration.html",
         {
-            'request': request,
-            'result': result
+            "request": request,
+            "result": result
         }
     )
+
+
 @app.post('/migration/clientes-pacientes', response_class=HTMLResponse)
 async def migration_clientes_pacientes(
     request: Request,
