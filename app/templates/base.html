@@ -166,7 +166,16 @@
       <a href="/agenda" class="{% if request.url.path.startswith('/agenda') %}active{% endif %}">
         <span class="nav-left"><span class="nav-icon">📅</span>Agenda</span><span class="nav-arrow">›</span>
       </a>
-
+      <a href="/waitlist" class="{% if request.url.path.startswith('/waitlist') %}active{% endif %}">
+        <span class="nav-left">
+            <span class="nav-icon">👥</span>
+            Lista de espera
+            {% if wc > 0 %}
+                <span class="pending-badge">{{ wc }}</span>
+            {% endif %}
+        </span>
+        <span class="nav-arrow">›</span>
+    </a>
       <a href="/products" class="{% if request.url.path.startswith('/products') %}active{% endif %}">
         <span class="nav-left"><span class="nav-icon">📦</span>Productos</span><span class="nav-arrow">›</span>
       </a>
