@@ -28,7 +28,7 @@ Base.metadata.create_all(bind=engine)
 ARG_TZ = ZoneInfo("America/Argentina/Buenos_Aires")
 
 def argentina_now():
-    return argentina_now()ARG_TZ)
+    return datetime.now(ARG_TZ)
 try:
     with engine.begin() as conn:
         conn.execute(text("ALTER TABLE appointments ADD COLUMN reminder_12h BOOLEAN DEFAULT FALSE"))
@@ -208,7 +208,7 @@ def logout(request: Request):
 
 @app.get('/', response_class=HTMLResponse)
 def home(request: Request, db: Session = Depends(get_db), user: User = Depends(require_user)):
-    today = argentina_now()).date()
+    today = argentina_now().date()
 
     stats = {
         'owners': db.query(Owner).count(),
@@ -461,7 +461,7 @@ def agenda(
     if date:
         selected_day = datetime.strptime(date, '%Y-%m-%d').date()
     else:
-        selected_day = argentina_now()).date()
+        selected_day = argentina_now().date()
 
     start_dt = datetime.combine(selected_day, datetime.min.time())
     end_dt = start_dt + timedelta(days=1)
@@ -647,7 +647,7 @@ def waitlist_page(
     db: Session = Depends(get_db),
     user: User = Depends(require_user)
 ):
-    today = argentina_now()).date()
+    today = argentina_now().date()
     day_start = datetime.combine(today, datetime.min.time())
     day_end = datetime.combine(today, datetime.max.time())
 
@@ -697,7 +697,7 @@ def waitlist_page(
             'selected_status': status,
             'q': q,
             'today': today,
-            'now': argentina_now())
+            'now': argentina_now()
         }
     )
 
@@ -740,7 +740,7 @@ def waitlist_enter_hc(
         raise HTTPException(status_code=404, detail='Entrada no encontrada')
 
     entry.status = 'En consulta'
-    entry.started_at = argentina_now())
+    entry.started_at = argentina_now()
     db.commit()
 
     if entry.patient_id:
@@ -764,10 +764,10 @@ def waitlist_update_status(
     entry.status = status
 
     if status == 'En consulta':
-        entry.started_at = argentina_now())
+        entry.started_at = argentina_now()
 
     if status == 'Finalizado':
-        entry.finished_at = argentina_now())
+        entry.finished_at = argentina_now()
 
     db.commit()
 
@@ -856,7 +856,7 @@ def search(
         'request': request,
         'q': q,
         'results': results,
-        'today': argentina_now()).date()
+        'today': argentina_now().date()
     }
 )
 @app.post('/patients/{patient_id}/weight')
@@ -1033,7 +1033,7 @@ def patient_detail(request: Request, patient_id: int, db: Session = Depends(get_
         .all()
     )
 
-    today = argentina_now()).date()
+    today = argentina_now().date()
 
     upcoming_events = (
         db.query(ClinicalEvent)
@@ -1519,7 +1519,7 @@ def event_create(
             except ValueError:
                 rd = None
     
-    event_created_at = argentina_now())
+    event_created_at = argentina_now()
     event_date = event_date or ""
     
     if event_date.strip():
@@ -1594,7 +1594,7 @@ def event_create(
 
     for waiting_entry in active_waiting_entries:
         waiting_entry.status = 'Finalizado'
-        waiting_entry.finished_at = argentina_now())
+        waiting_entry.finished_at = argentina_now()
 
     if active_waiting_entries:
         db.commit()
@@ -1665,7 +1665,7 @@ def products_page(
         Product.stock <= Product.min_stock
     ).count()
 
-    today = argentina_now()).date()
+    today = argentina_now().date()
     soon = today + timedelta(days=60)
     products = query.order_by(Product.name).limit(300).all()
     for p in products:
@@ -2027,7 +2027,7 @@ def sales_page(
 
     for patient in patients:
         patient_owner_map[str(patient.id)] = patient.owner_id if patient.owner_id else ''
-    selected_date = datetime.strptime(sale_date, "%Y-%m-%d").date() if sale_date else argentina_now()).date()
+    selected_date = datetime.strptime(sale_date, "%Y-%m-%d").date() if sale_date else argentina_now().date()
     
     day_start = datetime.combine(selected_date, datetime.min.time())
     day_end = datetime.combine(selected_date, datetime.max.time())
@@ -2084,7 +2084,7 @@ def sales_page(
             owner = db.get(Owner, sale.owner_id)
             if owner:
                 sale.owner_name = owner.name
-    today = argentina_now()).date()
+    today = argentina_now().date()
     month_start = today.replace(day=1)
 
     today_sales_total = 0
@@ -3132,7 +3132,7 @@ def delete_attachment(
     return RedirectResponse(f"/patients/{patient_id}", status_code=303)
 @app.get('/pendientes', response_class=HTMLResponse)
 def pendientes(request: Request, db: Session = Depends(get_db), user: User = Depends(require_user)):
-    today = argentina_now()).date()
+    today = argentina_now().date()
 
     eventos = (
         db.query(ClinicalEvent)
@@ -3166,7 +3166,7 @@ def quick_pendiente(
             detail="Paciente no encontrado"
         )
 
-    reminder_date = argentina_now()).date() + timedelta(days=days)
+    reminder_date = argentina_now().date() + timedelta(days=days)
 
     existing_event = (
         db.query(ClinicalEvent)
@@ -3744,7 +3744,7 @@ Velocidad: {fluid_rate} ml/kg/h
         patient_id=patient.id,
         event_type='Anestesia',
         description=description,
-        event_date=argentina_now())
+        event_date=argentina_now()
     )
 
     db.add(event)
@@ -3766,7 +3766,7 @@ def stats_page(
     from collections import defaultdict
     import calendar
 
-    today = argentina_now()).date()
+    today = argentina_now().date()
 
     if start and end:
         try:
