@@ -123,6 +123,29 @@ class Appointment(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     owner: Mapped[Optional['Owner']] = relationship()
     patient: Mapped[Optional['Patient']] = relationship()
+class WaitingListEntry(Base):
+    __tablename__ = 'waiting_list'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+
+    arrival_time: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
+    status: Mapped[str] = mapped_column(String(40), default='Esperando', index=True)
+    priority: Mapped[str] = mapped_column(String(40), default='Normal')
+    reason: Mapped[str] = mapped_column(String(200), default='')
+    notes: Mapped[str] = mapped_column(Text, default='')
+
+    owner_id: Mapped[Optional[int]] = mapped_column(ForeignKey('owners.id'), nullable=True)
+    patient_id: Mapped[Optional[int]] = mapped_column(ForeignKey('patients.id'), nullable=True)
+    appointment_id: Mapped[Optional[int]] = mapped_column(ForeignKey('appointments.id'), nullable=True)
+
+    started_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    finished_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+
+    created_by: Mapped[str] = mapped_column(String(100), default='admin')
+
+    owner: Mapped[Optional['Owner']] = relationship()
+    patient: Mapped[Optional['Patient']] = relationship()
+    appointment: Mapped[Optional['Appointment']] = relationship()
 class Product(Base):
     __tablename__ = 'products'
 
