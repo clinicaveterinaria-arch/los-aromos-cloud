@@ -3009,19 +3009,32 @@ def event_whatsapp(
     if not number.startswith("54"):
         number = "549" + number
 
-    message = (
-        f"Hola {owner.name}. "
-        f"Le recordamos que {patient.name} tiene pendiente: "
-        f"{event.event_type}. "
-    )
-
-    if event.title:
-        message += f"{event.title}. "
-
-    if event.reminder_date:
-        message += f"Fecha sugerida: {event.reminder_date.strftime('%d/%m/%Y')}. "
-
-    message += "Clínica Veterinaria Los Aromos."
+    if event.event_type == "Vacuna":
+        vacuna = event.title if event.title else "correspondiente"
+    
+        message = (
+            f"Buenos días *{owner.name}*.\n\n"
+            f"Te recordamos que *{patient.name}* debe recibir hoy su vacuna *{vacuna}*.\n\n"
+            f"¡Los esperamos! 🐾"
+        )
+    
+    elif event.event_type == "Desparasitación":
+        message = (
+            f"Buenos días *{owner.name}*.\n\n"
+            f"Te recordamos que *{patient.name}* debe desparasitarse hoy.\n\n"
+            f"Es solo un comprimido o una pipeta, por lo que pueden:\n"
+            f"• Traerlo a la clínica para realizar la desparasitación.\n"
+            f"• Comprar la medicación y administrarla en casa.\n"
+            f"• Solicitar envío a domicilio.\n\n"
+            f"¿Qué preferis? 🐾"
+        )
+    
+    else:
+        message = (
+            f"Hola *{owner.name}*.\n\n"
+            f"Te recordamos que *{patient.name}* tiene pendiente: *{event.title or event.event_type}*.\n\n"
+            f"Clínica Veterinaria Los Aromos."
+        )
 
     import urllib.parse
     url = f"https://wa.me/{number}?text={urllib.parse.quote(message)}"
