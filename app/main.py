@@ -394,7 +394,7 @@ def patient_new(request: Request, owner_id: Optional[int] = None, db: Session = 
 @app.post('/patients')
 def patient_create(
     name: str = Form(...),
-    owner_id: int | None = Form(None),
+    owner_id: str = Form(""),
     owner_name: str = Form(""),
     owner_phone: str = Form(""),
     owner_whatsapp: str = Form(""),
@@ -410,7 +410,9 @@ def patient_create(
     db: Session = Depends(get_db),
     user: User = Depends(require_user)
 ):
-    if not owner_id:
+    owner_id_value = int(owner_id) if owner_id and owner_id.strip() else None
+
+    if not owner_id_value:
         if owner_name.strip():
             owner = Owner(
                 name=owner_name.strip(),
@@ -422,7 +424,7 @@ def patient_create(
             db.add(owner)
             db.commit()
             db.refresh(owner)
-            owner_id = owner.id
+            owner_id_value = owner.id
         else:
             owner_id = None
 
@@ -437,7 +439,7 @@ def patient_create(
 
     p = Patient(
         name=name,
-        owner_id=owner_id,
+        owner_id=owner_id_value,
         species=species,
         breed=breed,
         sex=sex,
