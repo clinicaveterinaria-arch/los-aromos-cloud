@@ -203,7 +203,18 @@
             <div class="summary-tile"><div class="summary-icon" style="background:#fff7ed;color:#c2410c;">🪱</div><div><b>Desparasitación</b><span>{% if ns.desparasitacion and ns.desparasitacion.next_deworming_date %}Próxima: {{ ns.desparasitacion.next_deworming_date }}{% else %}Sin próxima cargada{% endif %}</span></div></div>
             <div class="summary-tile"><div class="summary-icon" style="background:#ede9fe;color:#6d28d9;">📅</div><div><b>Próximo turno</b><span>{% if next_visit %}{{ next_visit.reminder_date.strftime('%d/%m/%Y') if next_visit.reminder_date else '-' }}{% else %}Sin próximo turno{% endif %}</span></div></div>
             <div class="summary-tile"><div class="summary-icon" style="background:#dbeafe;color:#1d4ed8;">📋</div><div><b>Última consulta</b><span>{% if events %}{{ events[0].event_date.strftime('%d/%m/%Y') }}{% else %}Sin consultas{% endif %}</span></div></div>
-            <div class="summary-tile"><div class="summary-icon" style="background:#fff0f7;color:#d85b9a;">💗</div><div><b>Cardio</b><span>{{ ecg_count }} ECG · {{ eco_count }} Eco</span></div></div>
+            <a href="/patients/{{ patient.id }}/cardiology" style="text-decoration:none;color:inherit;">
+                <div class="summary-tile" style="border:2px solid #d85b9a;background:#fff8fb;">
+                    <div class="summary-icon" style="background:#fff0f7;color:#d85b9a;">❤️</div>
+                    <div>
+                        <b>Centro Cardiológico</b>
+                        <span>
+                            {{ ecg_count }} ECG · {{ eco_count }} Eco
+                            {% if last_ecg %} · Último {{ last_ecg.event_date.strftime('%d/%m/%Y') }}{% endif %}
+                        </span>
+                    </div>
+                </div>
+            </a>
         </div>
     </div>
 
@@ -309,7 +320,16 @@
                 <div class="module-row"><div class="module-icon">🩺</div><div><h3>Consulta clínica</h3><p>Consultas, evolución y tratamientos.</p></div><div class="module-count">{{ ns.consulta_count }} consultas</div></div>
                 <div class="module-row"><div class="module-icon">💉</div><div><h3>Vacunas</h3><p>Historial de vacunación del paciente.</p></div><div class="module-count">{{ ns.vacuna_count }} registros</div></div>
                 <div class="module-row"><div class="module-icon">🪱</div><div><h3>Desparasitación</h3><p>Desparasitaciones internas y externas.</p></div><div class="module-count">{{ ns.desp_count }} registros</div></div>
-                <div class="module-row"><div class="module-icon">💗</div><div><h3>Cardiología</h3><p>Controles, ECG y ecocardiografías.</p></div><div class="module-count">{{ ns.cardio_count }} registros</div></div>
+                <a href="/patients/{{ patient.id }}/cardiology" style="text-decoration:none;color:inherit;">
+                    <div class="module-row" style="background:#fff8fb;border:1px solid #f3c6d8;border-radius:18px;padding:14px;margin:8px 0;">
+                        <div class="module-icon">❤️</div>
+                        <div>
+                            <h3>Centro Cardiológico</h3>
+                            <p>ECG, ecocardiografía, RX cardíaca, evolución y tratamiento.</p>
+                        </div>
+                        <div class="module-count">{{ ns.cardio_count }} registros</div>
+                    </div>
+                </a>
                 <div class="module-row"><div class="module-icon">📎</div><div><h3>Adjuntos y estudios</h3><p>Imágenes, análisis, PDF y documentos.</p></div><div class="module-count">{{ ns.adj_count }} archivos</div></div>
                 <div class="module-row"><div class="module-icon">🕓</div><div><h3>Línea de tiempo</h3><p>Resumen cronológico de toda la actividad.</p></div><div class="module-count">{{ events|length }} eventos</div></div>
             </div>
