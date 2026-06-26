@@ -1,6 +1,8 @@
 from datetime import datetime, date, timedelta
 from zoneinfo import ZoneInfo
 import os
+import uuid
+import mimetypes
 
 from typing import Optional
 from io import BytesIO
@@ -14,9 +16,10 @@ from sqlalchemy import or_, text
 from passlib.context import CryptContext
 from starlette.middleware.sessions import SessionMiddleware
 from supabase import create_client
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")
-supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+SUPABASE_URL = os.getenv("SUPABASE_URL", "")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY", "")
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY) if SUPABASE_URL and SUPABASE_KEY else None
 from .database import Base, engine, get_db
 from .models import User, Owner, Patient, ClinicalEvent, EventAttachment, Appointment, Product, Sale, SaleItem, SalePayment, WaitingListEntry
 Base.metadata.create_all(bind=engine)
@@ -1893,23 +1896,49 @@ def event_create(
     if active_waiting_entries:
         db.commit()
     for file in attachments:
-        if not file.filename:
+        if not file or not file.filename:
             continue
 
-        content = file.file.read()
-        safe_name = file.filename.replace(" ", "_")
-        storage_path = f"patient_{patient_id}/event_{event.id}/{safe_name}"
+        if supabase is None:
+            raise HTTPException(
+                status_code=500,
+                detail="Supabase Storage no configurado. Faltan SUPABASE_URL o SUPABASE_KEY en Render."
+            )
 
-        supabase.storage.from_("adjuntos").upload(
-            storage_path,
-            content,
-            {"content-type": file.content_type}
-        )
-        
-        public_url = supabase.storage.from_("adjuntos").get_public_url(storage_path)
+        original_name = os.path.basename(file.filename)
+        safe_name = original_name.replace(" ", "_")
+        unique_name = f"{uuid.uuid4().hex}_{safe_name}"
+
+        content = file.file.read()
+
+        if not content:
+            continue
+
+        content_type = file.content_type or mimetypes.guess_type(original_name)[0] or "application/octet-stream"
+        storage_path = f"patient_{patient_id}/event_{event.id}/{unique_name}"
+
+        try:
+            supabase.storage.from_("adjuntos").upload(
+                path=storage_path,
+                file=content,
+                file_options={
+                    "content-type": content_type,
+                    "upsert": "false"
+                }
+            )
+
+            public_url = supabase.storage.from_("adjuntos").get_public_url(storage_path)
+
+        except Exception as e:
+            db.rollback()
+            raise HTTPException(
+                status_code=500,
+                detail=f"Error subiendo adjunto a Supabase Storage: {str(e)}"
+            )
+
         attachment = EventAttachment(
             event_id=event.id,
-            filename=file.filename,
+            filename=original_name,
             file_path=public_url
         )
 
