@@ -410,38 +410,44 @@ function setReminderDays(days) {
 }
 document.addEventListener('DOMContentLoaded', function() {
     const selector = document.getElementById('event_type');
+    const details = document.getElementById('nuevo-evento');
     const ecgBox = document.getElementById('ecg-box');
     const ecoBox = document.getElementById('eco-box');
     const vaccineBox = document.getElementById('vaccine-box');
     const dewormingBox = document.getElementById('deworming-box');
+
     function actualizarCampos() {
         if (!selector) return;
+
         const tipo = selector.value;
+
         if (ecgBox) ecgBox.style.display = tipo === 'ECG' ? 'block' : 'none';
         if (ecoBox) ecoBox.style.display = tipo === 'Ecocardiografía' ? 'block' : 'none';
         if (vaccineBox) vaccineBox.style.display = tipo === 'Vacuna' ? 'block' : 'none';
         if (dewormingBox) dewormingBox.style.display = tipo === 'Desparasitación' ? 'block' : 'none';
     }
-    if (selector) selector.addEventListener('change', actualizarCampos);
-    actualizarCampos();
-});
-<script>
-document.addEventListener('DOMContentLoaded', function() {
+
     const storedType = sessionStorage.getItem('aromos_event_type');
-    if (!storedType) return;
 
-    const details = document.getElementById('nuevo-evento');
-    const selector = document.getElementById('event_type');
-
-    if (details) details.open = true;
-
-    if (selector) {
+    if (storedType && selector) {
         selector.value = storedType;
-        selector.dispatchEvent(new Event('change'));
+        if (details) details.open = true;
+        sessionStorage.removeItem('aromos_event_type');
     }
 
-    sessionStorage.removeItem('aromos_event_type');
+    if (window.location.hash === '#nuevo-evento' && details) {
+        details.open = true;
+        setTimeout(() => {
+            details.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 250);
+    }
+
+    if (selector) {
+        selector.addEventListener('change', actualizarCampos);
+    }
+
+    actualizarCampos();
 });
-</script>
+
 </script>
 {% endblock %}
