@@ -1263,7 +1263,7 @@ def patient_ecg_list(
 def patient_cardiology(
     request: Request,
     patient_id: int,
-    db: Session = Depends(get_db),
+    db: Session =Depends(get_db),
     user: User = Depends(require_user)
 ):
     patient = db.get(Patient, patient_id)
@@ -1275,18 +1275,62 @@ def patient_cardiology(
         db.query(ClinicalEvent)
         .filter(
             ClinicalEvent.patient_id == patient.id,
-            ClinicalEvent.event_type.in_(["ECG", "Ecocardiografía", "Radiografía"])
+            ClinicalEvent.event_type.in_(
+                [
+                    "ECG",
+                    "Ecocardiografía",
+                    "Radiografía"
+                ]
+            )
         )
         .order_by(ClinicalEvent.event_date.desc())
         .all()
     )
 
+    last_ecg = next(
+        (e for e in cardiology_events if e.event_type == "ECG"),
+        None
+    )
+
+    last_eco = next(
+        (e for e in cardiology_events if e.event_type == "Ecocardiografía"),
+        None
+    )
+
+    last_rx = next(
+        (e for e in cardiology_events if e.event_type == "Radiografía"),
+        None
+    )
+
+    ecg_count = sum(
+        1 for e in cardiology_events
+        if e.event_type == "ECG"
+    )
+
+    eco_count = sum(
+        1 for e in cardiology_events
+        if e.event_type == "Ecocardiografía"
+    )
+
+    rx_count = sum(
+        1 for e in cardiology_events
+        if e.event_type == "Radiografía"
+    )
+
     return templates.TemplateResponse(
-        'patient_cardiology.html',
+        "patient_cardiology.html",
         {
-            'request': request,
-            'patient': patient,
-            'cardiology_events': cardiology_events
+            "request": request,
+            "patient": patient,
+            "cardiology_events": cardiology_events,
+
+            "last_ecg": last_ecg,
+            "last_eco": last_eco,
+            "last_rx": last_rx,
+
+            "ecg_count": ecg_count,
+            "eco_count": eco_count,
+            "rx_count": rx_count
         }
     )
 @app.get('/patients/{patient_id}/edit', response_class=HTMLResponse)
