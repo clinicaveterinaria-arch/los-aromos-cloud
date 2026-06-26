@@ -1933,10 +1933,18 @@ def event_create(
             public_url = supabase.storage.from_("adjuntos").get_public_url(storage_path)
 
         except Exception as e:
+            import traceback
+        
+            print("=" * 80)
+            print("ERROR SUBIENDO A SUPABASE")
+            traceback.print_exc()
+            print("=" * 80)
+        
             db.rollback()
+        
             raise HTTPException(
                 status_code=500,
-                detail=f"Error subiendo adjunto a Supabase Storage: {str(e)}"
+                detail=str(e)
             )
 
         attachment = EventAttachment(
