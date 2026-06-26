@@ -354,10 +354,35 @@
                     <div class="timeline-dot">
                         {% if e.event_type == 'Radiografía' %}📷{% elif e.event_type == 'ECG' %}💗{% elif e.event_type == 'Ecocardiografía' %}🫀{% elif e.event_type == 'Ecografía' %}🖥️{% elif e.event_type == 'Laboratorio' %}🧪{% elif e.event_type == 'Vacuna' %}💉{% elif e.event_type == 'Desparasitación' %}🪱{% elif e.event_type == 'Cirugía' %}🔪{% elif e.event_type == 'Anestesia' %}💤{% elif e.event_type == 'Internación' %}🏥{% else %}🩺{% endif %}
                     </div>
-                    <div class="timeline-content">
-                        <h3>{{ e.event_type }}{% if e.title %} <span style="color:#d85b9a; font-size:13px;">{{ e.title }}</span>{% endif %}</h3>
-                        <p>{% if e.description %}{{ e.description[:120] }}{% if e.description|length > 120 %}...{% endif %}{% elif e.diagnosis %}{{ e.diagnosis[:120] }}{% if e.diagnosis|length > 120 %}...{% endif %}{% elif e.treatment %}{{ e.treatment[:120] }}{% if e.treatment|length > 120 %}...{% endif %}{% else %}Sin detalle cargado.{% endif %}</p>
-                    </div>
+                <div class="timeline-content">
+                    <h3>{{ e.event_type }}{% if e.title %} <span style="color:#d85b9a;font-size:13px;">{{ e.title }}</span>{% endif %}</h3>
+                
+                    {% if e.attachments %}
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0;">
+                            {% for a in e.attachments %}
+                                {% set lower = a.filename.lower() %}
+                                {% if lower.endswith('.jpg') or lower.endswith('.jpeg') or lower.endswith('.png') or lower.endswith('.webp') %}
+                                    <a href="{{ a.file_path }}" target="_blank">
+                                        <img src="{{ a.file_path }}"
+                                             style="width:90px;height:90px;object-fit:cover;border-radius:10px;border:1px solid #f3c6d8;">
+                                    </a>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                
+                    <p>
+                        {% if e.description %}
+                            {{ e.description[:120] }}{% if e.description|length > 120 %}...{% endif %}
+                        {% elif e.diagnosis %}
+                            {{ e.diagnosis[:120] }}{% if e.diagnosis|length > 120 %}...{% endif %}
+                        {% elif e.treatment %}
+                            {{ e.treatment[:120] }}{% if e.treatment|length > 120 %}...{% endif %}
+                        {% else %}
+                            Sin detalle cargado.
+                        {% endif %}
+                    </p>
+                </div>
                     <div class="timeline-actions">
                         <a href="/patients/{{ patient.id }}/events/{{ e.id }}" class="small-btn">Ver</a>
                         <a href="/patients/{{ patient.id }}/events/{{ e.id }}/edit" class="small-btn">Editar</a>
