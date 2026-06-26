@@ -129,7 +129,28 @@
         </div>
     </div>
     {% endif %}
+    {% if event.attachments %}
+    <div class="event-card">
+        <h2>📎 Adjuntos / estudios</h2>
 
+        {% for a in event.attachments %}
+            {% set lower_name = a.filename.lower() %}
+            <div style="margin-bottom:18px;">
+                <p><b>{{ a.filename }}</b></p>
+
+                {% if lower_name.endswith('.jpg') or lower_name.endswith('.jpeg') or lower_name.endswith('.png') or lower_name.endswith('.webp') %}
+                    <a href="{{ a.file_path }}" target="_blank">
+                        <img src="{{ a.file_path }}" style="max-width:100%; border-radius:16px; border:1px solid #f3c6d8;">
+                    </a>
+                {% elif lower_name.endswith('.pdf') %}
+                    <a href="{{ a.file_path }}" target="_blank" class="event-btn">📄 Ver PDF</a>
+                {% else %}
+                    <a href="{{ a.file_path }}" target="_blank" class="event-btn">📎 Ver archivo</a>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
     {% if event.event_type == 'Desparasitación' %}
     <div class="event-card">
         <h2>🪱 Desparasitación</h2>
