@@ -1,42 +1,78 @@
 {% extends 'base.html' %}
 {% block content %}
 
-<h1>❤️ Electrocardiogramas - {{ patient.name }}</h1>
+<style>
+.ecg-page{padding:24px 28px;}
+.ecg-hero,.ecg-card{
+    background:white;border:1px solid #f3c6d8;border-radius:24px;
+    padding:22px;box-shadow:0 8px 26px rgba(0,0,0,.05);margin-bottom:18px;
+}
+.ecg-hero{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;background:linear-gradient(135deg,#fff8fb,#fff);}
+.ecg-hero h1{margin:0 0 6px 0;color:#1f2937;font-size:32px;}
+.ecg-hero p{margin:4px 0;color:#6b7280;}
+.ecg-btn{
+    border:1px solid #f3c6d8;background:white;color:#d85b9a;border-radius:13px;
+    padding:10px 14px;font-weight:bold;text-decoration:none;display:inline-flex;gap:7px;
+}
+.ecg-btn.primary{background:#d85b9a;color:white;}
+.ecg-list{display:grid;gap:12px;}
+.ecg-row{
+    display:grid;grid-template-columns:60px 1fr auto;gap:14px;align-items:center;
+    border:1px solid #f3edf1;border-radius:18px;padding:14px;background:white;
+}
+.ecg-icon{
+    width:52px;height:52px;border-radius:16px;background:#fff0f7;color:#d85b9a;
+    display:flex;align-items:center;justify-content:center;font-size:24px;
+}
+.ecg-row h3{margin:0 0 6px 0;color:#1f2937;}
+.ecg-meta{display:flex;gap:8px;flex-wrap:wrap;}
+.ecg-pill{background:#fff8fb;border:1px solid #f3c6d8;border-radius:999px;padding:6px 9px;color:#374151;font-size:13px;}
+.empty{text-align:center;color:#6b7280;border:2px dashed #f3c6d8;border-radius:18px;padding:35px;}
+@media(max-width:750px){.ecg-row{grid-template-columns:1fr;}.ecg-btn{justify-content:center;}}
+</style>
 
-<a href="/patients/{{ patient.id }}" class="btn">⬅️ Volver a ficha</a>
+<div class="ecg-page">
 
-<div class="panel" style="margin-top:20px;">
-    {% if ecg_events %}
-        <table style="width:100%; border-collapse:collapse;">
-            <tr>
-                <th>Fecha</th>
-                <th>FC</th>
-                <th>Ritmo</th>
-                <th>QRS</th>
-                <th>QT</th>
-                <th>Eje</th>
-                <th>Acción</th>
-            </tr>
+    <div class="ecg-hero">
+        <div>
+            <h1>💗 Electrocardiogramas</h1>
+            <p><b>Paciente:</b> {{ patient.name }}</p>
+            <p>Historial de ECG, comparación y acceso rápido al detalle.</p>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <a href="/patients/{{ patient.id }}/cardiology" class="ecg-btn">← Centro Cardiológico</a>
+            <a href="/patients/{{ patient.id }}#nuevo-evento" class="ecg-btn primary">➕ Nuevo ECG</a>
+        </div>
+    </div>
 
-            {% for ecg in ecg_events %}
-            <tr>
-                <td>{{ ecg.event_date.strftime('%d/%m/%Y %H:%M') }}</td>
-                <td>{{ ecg.ecg_hr }} lpm</td>
-                <td>{{ ecg.ecg_rhythm }}</td>
-                <td>{{ ecg.ecg_qrs }}</td>
-                <td>{{ ecg.ecg_qt }}</td>
-                <td>{{ ecg.ecg_axis }}°</td>
-                <td>
-                    <a href="/patients/{{ patient.id }}/events/{{ ecg.id }}" class="btn">
-                        Ver ECG
-                    </a>
-                </td>
-            </tr>
-            {% endfor %}
-        </table>
-    {% else %}
-        <p>No hay ECG registrados.</p>
-    {% endif %}
+    <div class="ecg-card">
+        {% if ecg_events %}
+            <div class="ecg-list">
+                {% for ecg in ecg_events %}
+                    <div class="ecg-row">
+                        <div class="ecg-icon">💗</div>
+                        <div>
+                            <h3>ECG · {{ ecg.event_date.strftime('%d/%m/%Y %H:%M') }}</h3>
+                            <div class="ecg-meta">
+                                <span class="ecg-pill">FC: {{ ecg.ecg_hr or '-' }} lpm</span>
+                                <span class="ecg-pill">Ritmo: {{ ecg.ecg_rhythm or '-' }}</span>
+                                <span class="ecg-pill">QRS: {{ ecg.ecg_qrs or '-' }}</span>
+                                <span class="ecg-pill">QT: {{ ecg.ecg_qt or '-' }}</span>
+                                <span class="ecg-pill">Eje: {{ ecg.ecg_axis or '-' }}°</span>
+                            </div>
+                        </div>
+                        <a href="/patients/{{ patient.id }}/events/{{ ecg.id }}" class="ecg-btn primary">Ver ECG</a>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty">
+                <h2>No hay ECG registrados</h2>
+                <p>Cuando cargues un evento tipo ECG, aparecerá automáticamente acá.</p>
+            </div>
+        {% endif %}
+    </div>
+
 </div>
 
 {% endblock %}
