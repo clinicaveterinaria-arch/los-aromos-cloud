@@ -95,9 +95,11 @@
 
         <div class="cardio-actions">
             <a href="/patients/{{ patient.id }}" class="cardio-btn">← Volver a HC</a>
-            <a href="/patients/{{ patient.id }}#nuevo-evento" class="cardio-btn primary">➕ Nuevo control</a>
+            <a href="/patients/{{ patient.id }}#nuevo-evento" class="cardio-btn primary">➕ Nuevo control cardiológico</a>
             <a href="/patients/{{ patient.id }}/cardiology/ecg" class="cardio-btn">📈 ECG</a>
             <a href="/patients/{{ patient.id }}/print" target="_blank" class="cardio-btn">🖨️ Imprimir</a>
+            <a href="/patients/{{ patient.id }}#nuevo-evento" class="cardio-btn" onclick="sessionStorage.setItem('aromos_event_type','ECG')">💗 Cargar ECG</a>
+            <a href="/patients/{{ patient.id }}#nuevo-evento" class="cardio-btn" onclick="sessionStorage.setItem('aromos_event_type','Ecocardiografía')">🫀 Cargar Eco</a>
         </div>
     </div>
 
