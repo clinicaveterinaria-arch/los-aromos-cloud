@@ -1263,7 +1263,7 @@ def patient_ecg_list(
 def patient_cardiology(
     request: Request,
     patient_id: int,
-    db: Session =Depends(get_db),
+    db: Session = Depends(get_db),
     user: User = Depends(require_user)
 ):
     patient = db.get(Patient, patient_id)
@@ -1287,50 +1287,299 @@ def patient_cardiology(
         .all()
     )
 
-    last_ecg = next(
-        (e for e in cardiology_events if e.event_type == "ECG"),
-        None
-    )
-
-    last_eco = next(
-        (e for e in cardiology_events if e.event_type == "Ecocardiografía"),
-        None
-    )
-
-    last_rx = next(
-        (e for e in cardiology_events if e.event_type == "Radiografía"),
-        None
-    )
-
-    ecg_count = sum(
-        1 for e in cardiology_events
+    ecg_events = [
+        e for e in cardiology_events
         if e.event_type == "ECG"
-    )
+    ]
 
-    eco_count = sum(
-        1 for e in cardiology_events
+    eco_events = [
+        e for e in cardiology_events
         if e.event_type == "Ecocardiografía"
-    )
+    ]
 
-    rx_count = sum(
-        1 for e in cardiology_events
+    rx_events = [
+        e for e in cardiology_events
         if e.event_type == "Radiografía"
+    ]
+
+    last_ecg = ecg_events[0] if ecg_events else None
+    previous_ecg = ecg_events[1] if len(ecg_events) > 1 else None
+
+    last_eco = eco_events[0] if eco_events else None
+    previous_eco = eco_events[1] if len(eco_events) > 1 else None
+
+    last_rx = rx_events[0] if rx_events else None
+    previous_rx = rx_events[1] if len(rx_events) > 1 else None
+
+    def to_float(value):
+        try:
+            if value is None:
+                return None
+
+            value = str(value).replace(",", ".").strip()
+
+            if value == "":
+                return None
+
+            return float(value)
+
+        except Exception:
+            return None
+
+    def delta(current, previous):
+
+        current_value = to_float(current)
+        previous_value = to_float(previous)
+
+        if current_value is None:
+            return None
+
+        if previous_value is None:
+            return None
+
+        return round(current_value - previous_value, 2)
+
+    def trend_width(value, maximum):
+
+        number = to_float(value)
+
+        if number is None:
+            return 0
+
+        width = int((number / maximum) * 100)
+
+        if width < 4:
+            width = 4
+
+        if width > 100:
+            width = 100
+
+        return width
+
+    fc_delta = delta(
+        last_ecg.ecg_hr if last_ecg else None,
+        previous_ecg.ecg_hr if previous_ecg else None
     )
 
+    axis_delta = delta(
+        last_ecg.ecg_axis if last_ecg else None,
+        previous_ecg.ecg_axis if previous_ecg else None
+    )
+
+    aiao_delta = delta(
+        last_eco.eco_aiao if last_eco else None,
+        previous_eco.eco_aiao if previous_eco else None
+    )
+
+    fs_delta = delta(
+        last_eco.eco_fs if last_eco else None,
+        previous_eco.eco_fs if previous_eco else None
+    )
+    acvim = (last_eco.eco_acvim if last_eco else "") or ""
+
+    cardio_status = {
+        "label": "Estable",
+        "class": "ok",
+        "icon": "🟢"
+    }
+
+    if acvim in ["B2"]:
+        cardio_status = {
+            "label": "En seguimiento",
+            "class": "warn",
+            "icon": "🟡"
+        }
+
+    if acvim in ["C", "D"]:
+        cardio_status = {
+            "label": "Control estricto",
+            "class": "danger",
+            "icon": "🔴"
+        }
+
+    active_treatment = ""
+
+    if last_eco:
+        active_treatment = (
+            getattr(last_eco, "eco_treatment", "")
+            or ""
+        )
+
+    if not active_treatment and last_ecg:
+        active_treatment = (
+            getattr(last_ecg, "treatment", "")
+            or ""
+        )
+
+    if not active_treatment:
+        active_treatment = "Sin tratamiento registrado"
+
+    next_control = None
+
+    if last_eco:
+        stage = (last_eco.eco_acvim or "").upper()
+
+        if stage in ["C", "D"]:
+            next_control = 30
+
+        elif stage == "B2":
+            next_control = 90
+
+        else:
+            next_control = 180
+
+    elif last_ecg:
+        next_control = 180
+
+    else:
+        next_control = None
+    fc_trend = [
+        {
+            "label": e.event_date.strftime("%d/%m"),
+            "value": e.ecg_hr,
+            "width": trend_width(e.ecg_hr, 220),
+            "event_id": e.id
+        }
+        for e in reversed(ecg_events[:8])
+        if e.ecg_hr
+    ]
+
+    aiao_trend = [
+        {
+            "label": e.event_date.strftime("%d/%m"),
+            "value": e.eco_aiao,
+            "width": trend_width(e.eco_aiao, 3),
+            "event_id": e.id
+        }
+        for e in reversed(eco_events[:8])
+        if e.eco_aiao
+    ]
+
+    fs_trend = [
+        {
+            "label": e.event_date.strftime("%d/%m"),
+            "value": e.eco_fs,
+            "width": trend_width(e.eco_fs, 60),
+            "event_id": e.id
+        }
+        for e in reversed(eco_events[:8])
+        if e.eco_fs
+    ]
+
+    comparison_notes = []
+
+    if fc_delta is not None:
+
+        if fc_delta < 0:
+            comparison_notes.append(
+                f"FC disminuyó {abs(fc_delta):g} lpm respecto al ECG previo."
+            )
+
+        elif fc_delta > 0:
+            comparison_notes.append(
+                f"FC aumentó {fc_delta:g} lpm respecto al ECG previo."
+            )
+
+        else:
+            comparison_notes.append(
+                "FC sin cambios respecto al ECG previo."
+            )
+
+    if axis_delta is not None:
+
+        if abs(axis_delta) <= 10:
+            comparison_notes.append(
+                "Eje eléctrico sin cambios clínicamente relevantes."
+            )
+
+        elif axis_delta > 0:
+            comparison_notes.append(
+                f"Eje eléctrico aumentó {axis_delta:g}°."
+            )
+
+        else:
+            comparison_notes.append(
+                f"Eje eléctrico disminuyó {abs(axis_delta):g}°."
+            )
+
+    if aiao_delta is not None:
+
+        if abs(aiao_delta) < 0.05:
+            comparison_notes.append(
+                "AI/Ao sin variación significativa."
+            )
+
+        elif aiao_delta > 0:
+            comparison_notes.append(
+                f"AI/Ao aumentó {aiao_delta:g}."
+            )
+
+        else:
+            comparison_notes.append(
+                f"AI/Ao disminuyó {abs(aiao_delta):g}."
+            )
+
+    if fs_delta is not None:
+
+        if fs_delta > 0:
+            comparison_notes.append(
+                f"FS aumentó {fs_delta:g}%."
+            )
+
+        elif fs_delta < 0:
+            comparison_notes.append(
+                f"FS disminuyó {abs(fs_delta):g}%."
+            )
+
+        else:
+            comparison_notes.append(
+                "FS sin cambios."
+            )
+
+    if not comparison_notes:
+
+        comparison_notes.append(
+            "Todavía no hay controles suficientes para comparar la evolución."
+        )
     return templates.TemplateResponse(
         "patient_cardiology.html",
         {
             "request": request,
             "patient": patient,
+
             "cardiology_events": cardiology_events,
 
-            "last_ecg": last_ecg,
-            "last_eco": last_eco,
-            "last_rx": last_rx,
+            "ecg_events": ecg_events,
+            "eco_events": eco_events,
+            "rx_events": rx_events,
 
-            "ecg_count": ecg_count,
-            "eco_count": eco_count,
-            "rx_count": rx_count
+            "last_ecg": last_ecg,
+            "previous_ecg": previous_ecg,
+
+            "last_eco": last_eco,
+            "previous_eco": previous_eco,
+
+            "last_rx": last_rx,
+            "previous_rx": previous_rx,
+
+            "fc_delta": fc_delta,
+            "axis_delta": axis_delta,
+            "aiao_delta": aiao_delta,
+            "fs_delta": fs_delta,
+
+            "cardio_status": cardio_status,
+
+            "active_treatment": active_treatment,
+
+            "next_control": next_control,
+
+            "fc_trend": fc_trend,
+            "aiao_trend": aiao_trend,
+            "fs_trend": fs_trend,
+
+            "comparison_notes": comparison_notes,
+
+            "today": argentina_now().date()
         }
     )
 @app.get('/patients/{patient_id}/edit', response_class=HTMLResponse)
