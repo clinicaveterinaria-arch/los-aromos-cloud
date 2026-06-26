@@ -1,0 +1,358 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<style>
+.cardio-page{padding:24px 28px;}
+.cardio-hero,.cardio-card{
+    background:white;border:1px solid #f3c6d8;border-radius:24px;
+    padding:22px;box-shadow:0 8px 26px rgba(0,0,0,.05);margin-bottom:18px;
+}
+.cardio-hero{
+    display:grid;grid-template-columns:1.2fr .8fr;gap:18px;align-items:start;
+    background:linear-gradient(135deg,#fff8fb,#fff);
+}
+.cardio-hero h1{margin:0 0 6px 0;font-size:34px;color:#1f2937;}
+.cardio-hero p{margin:4px 0;color:#6b7280;}
+.cardio-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;}
+.cardio-btn{
+    border:1px solid #f3c6d8;background:white;color:#d85b9a;border-radius:13px;
+    padding:10px 14px;font-weight:bold;text-decoration:none;display:inline-flex;gap:7px;align-items:center;
+}
+.cardio-btn.primary{background:#d85b9a;color:white;border-color:#d85b9a;}
+.cardio-btn.soft{background:#fff0f7;}
+.status-box{
+    margin-top:16px;border-radius:20px;padding:16px;border:1px solid #f3c6d8;background:white;
+    display:flex;gap:14px;align-items:center;max-width:520px;
+}
+.status-icon{font-size:32px;}
+.status-box b{display:block;font-size:20px;color:#1f2937;}
+.status-box span{color:#6b7280;font-size:13px;}
+.status-box.ok{border-color:#bbf7d0;background:#f0fdf4;}
+.status-box.warn{border-color:#fde68a;background:#fffbeb;}
+.status-box.danger{border-color:#fecaca;background:#fef2f2;}
+.quick-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-bottom:18px;}
+.quick-card{
+    border:1px solid #f3c6d8;background:white;border-radius:20px;padding:18px;text-decoration:none;color:inherit;
+    box-shadow:0 8px 26px rgba(0,0,0,.04);display:flex;gap:14px;align-items:center;
+}
+.quick-icon{
+    width:56px;height:56px;border-radius:17px;background:#fff0f7;color:#d85b9a;
+    display:flex;align-items:center;justify-content:center;font-size:28px;flex:0 0 auto;
+}
+.quick-card h3{margin:0 0 4px 0;color:#1f2937;}
+.quick-card p{margin:0;color:#6b7280;font-size:13px;}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:12px;}
+.kpi{
+    border:1px solid #f3c6d8;border-radius:18px;padding:16px;background:#fff8fb;min-height:96px;
+}
+.kpi span{color:#6b7280;font-size:13px;}
+.kpi b{display:block;font-size:23px;color:#1f2937;margin-top:6px;line-height:1.1;}
+.kpi small{display:block;margin-top:6px;color:#d85b9a;font-weight:bold;}
+.cardio-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:18px;align-items:start;}
+.cardio-card h2{margin:0 0 14px 0;color:#1f2937;}
+.cardio-card h3{margin:0 0 8px 0;color:#1f2937;}
+.timeline{display:grid;gap:12px;}
+.event-row{
+    display:grid;grid-template-columns:54px 1fr auto;gap:12px;align-items:center;
+    border:1px solid #f3edf1;border-radius:18px;padding:14px;background:white;
+}
+.event-icon{
+    width:48px;height:48px;border-radius:15px;background:#fff0f7;color:#d85b9a;
+    display:flex;align-items:center;justify-content:center;font-size:23px;
+}
+.event-row h3{margin:0;color:#1f2937;font-size:16px;}
+.event-row p{margin:4px 0 0 0;color:#6b7280;font-size:13px;line-height:1.35;}
+.small-btn{
+    border:1px solid #f3c6d8;background:#fff0f7;color:#d85b9a;
+    border-radius:11px;padding:8px 10px;font-weight:bold;text-decoration:none;white-space:nowrap;
+}
+.trend-list{display:grid;gap:12px;}
+.trend-item{border:1px solid #f3edf1;border-radius:15px;padding:12px;background:#fff8fb;}
+.trend-top{display:flex;justify-content:space-between;gap:10px;margin-bottom:8px;}
+.bar{height:10px;border-radius:999px;background:#f3d4e2;overflow:hidden;}
+.bar div{height:100%;background:#d85b9a;border-radius:999px;}
+.compare-list{display:grid;gap:9px;}
+.compare-item{
+    border:1px solid #f3edf1;border-radius:14px;background:#fff8fb;padding:11px 12px;color:#374151;
+}
+.med-box{
+    border:1px solid #f3c6d8;background:#fff8fb;border-radius:16px;padding:14px;color:#374151;
+    white-space:pre-wrap;line-height:1.45;
+}
+.med-list{display:grid;gap:8px;}
+.med-pill{border:1px solid #f3c6d8;background:white;border-radius:14px;padding:10px 12px;color:#374151;}
+.empty-card{text-align:center;color:#6b7280;padding:30px;border:2px dashed #f3c6d8;border-radius:18px;}
+.ai-panel{
+    background:linear-gradient(135deg,#fff0f7,#ffffff);border:1px solid #f3c6d8;border-radius:22px;
+    padding:18px;display:grid;gap:10px;
+}
+.ai-panel p{margin:0;color:#6b7280;line-height:1.45;}
+@media(max-width:1050px){.cardio-hero,.cardio-grid{grid-template-columns:1fr;}.cardio-actions{justify-content:flex-start;}}
+@media(max-width:720px){.event-row{grid-template-columns:1fr;}.cardio-page{padding:16px;}.quick-grid{grid-template-columns:1fr;}}
+</style>
+
+<div class="cardio-page">
+
+    <div class="cardio-hero">
+        <div>
+            <h1>❤️ Dashboard Cardiológico</h1>
+            <p><b>Paciente:</b> {{ patient.name }}</p>
+            <p>
+                {{ patient.species or 'Paciente' }}
+                {% if patient.breed %} · {{ patient.breed }}{% endif %}
+                {% if patient.weight %} · {{ patient.weight }} kg{% endif %}
+                {% if patient.birth_date %} · {{ ((today - patient.birth_date).days // 365) }} años{% endif %}
+            </p>
+
+            <div class="status-box {{ cardio_status.class }}">
+                <div class="status-icon">{{ cardio_status.icon }}</div>
+                <div>
+                    <b>{{ cardio_status.label }}</b>
+                    <span>
+                        Último control:
+                        {% if cardiology_events %}{{ cardiology_events[0].event_date.strftime('%d/%m/%Y') }}{% else %}sin controles cargados{% endif %}
+                        {% if next_control and next_control.reminder_date %}
+                            · Próximo: {{ next_control.reminder_date.strftime('%d/%m/%Y') }}
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="cardio-actions">
+            <a href="/patients/{{ patient.id }}" class="cardio-btn">← Volver a HC</a>
+            <a href="/patients/{{ patient.id }}/cardiology/ecg" class="cardio-btn">📈 ECG</a>
+            <a href="/patients/{{ patient.id }}/print" target="_blank" class="cardio-btn">🖨️ Imprimir</a>
+            <a href="#" class="cardio-btn primary" onclick="alert('Próximamente: análisis cardiológico automático.'); return false;">🤖 Analizar caso</a>
+        </div>
+    </div>
+
+    <div class="quick-grid">
+        <a href="/patients/{{ patient.id }}#nuevo-evento" class="quick-card" onclick="sessionStorage.setItem('aromos_event_type','ECG')">
+            <div class="quick-icon">💗</div>
+            <div><h3>Nuevo ECG</h3><p>Cargar parámetros y comparación automática.</p></div>
+        </a>
+        <a href="/patients/{{ patient.id }}#nuevo-evento" class="quick-card" onclick="sessionStorage.setItem('aromos_event_type','Ecocardiografía')">
+            <div class="quick-icon">🫀</div>
+            <div><h3>Nueva Eco</h3><p>AI/Ao, FS, ACVIM y tratamiento.</p></div>
+        </a>
+        <a href="/patients/{{ patient.id }}#nuevo-evento" class="quick-card" onclick="sessionStorage.setItem('aromos_event_type','Radiografía')">
+            <div class="quick-icon">📷</div>
+            <div><h3>Nueva RX cardíaca</h3><p>Registrar radiología vinculada al corazón.</p></div>
+        </a>
+    </div>
+
+    <div class="cardio-card">
+        <h2>📌 Resumen de 5 segundos</h2>
+        <div class="kpi-grid">
+            <div class="kpi">
+                <span>ECG</span>
+                <b>{% if last_ecg %}{{ last_ecg.event_date.strftime('%d/%m/%Y') }}{% else %}-{% endif %}</b>
+                <small>{{ ecg_events|length }} registrados</small>
+            </div>
+            <div class="kpi">
+                <span>FC</span>
+                <b>{% if last_ecg and last_ecg.ecg_hr %}{{ last_ecg.ecg_hr }} lpm{% else %}-{% endif %}</b>
+                {% if fc_delta is not none %}<small>{% if fc_delta > 0 %}▲ +{{ fc_delta|int }}{% elif fc_delta < 0 %}▼ {{ fc_delta|int }}{% else %}sin cambios{% endif %}</small>{% endif %}
+            </div>
+            <div class="kpi">
+                <span>Ritmo</span>
+                <b>{% if last_ecg %}{{ last_ecg.ecg_rhythm or '-' }}{% else %}-{% endif %}</b>
+            </div>
+            <div class="kpi">
+                <span>Eje</span>
+                <b>{% if last_ecg and last_ecg.ecg_axis %}{{ last_ecg.ecg_axis }}°{% else %}-{% endif %}</b>
+            </div>
+            <div class="kpi">
+                <span>Ecocardiografía</span>
+                <b>{% if last_eco %}{{ last_eco.event_date.strftime('%d/%m/%Y') }}{% else %}-{% endif %}</b>
+                <small>{{ eco_events|length }} registradas</small>
+            </div>
+            <div class="kpi">
+                <span>AI/Ao</span>
+                <b>{% if last_eco and last_eco.eco_aiao %}{{ last_eco.eco_aiao }}{% else %}-{% endif %}</b>
+                {% if aiao_delta is not none %}<small>{% if aiao_delta > 0 %}▲ +{{ aiao_delta }}{% elif aiao_delta < 0 %}▼ {{ aiao_delta }}{% else %}sin cambios{% endif %}</small>{% endif %}
+            </div>
+            <div class="kpi">
+                <span>FS</span>
+                <b>{% if last_eco and last_eco.eco_fs %}{{ last_eco.eco_fs }}%{% else %}-{% endif %}</b>
+                {% if fs_delta is not none %}<small>{% if fs_delta > 0 %}▲ +{{ fs_delta }}{% elif fs_delta < 0 %}▼ {{ fs_delta }}{% else %}sin cambios{% endif %}</small>{% endif %}
+            </div>
+            <div class="kpi">
+                <span>ACVIM</span>
+                <b>{% if last_eco and last_eco.eco_acvim %}{{ last_eco.eco_acvim }}{% else %}-{% endif %}</b>
+            </div>
+            <div class="kpi">
+                <span>RX cardíaca</span>
+                <b>{% if last_rx %}{{ last_rx.event_date.strftime('%d/%m/%Y') }}{% else %}-{% endif %}</b>
+                <small>{{ rx_events|length }} registradas</small>
+            </div>
+            <div class="kpi">
+                <span>Próximo control</span>
+                <b>{% if next_control and next_control.reminder_date %}{{ next_control.reminder_date.strftime('%d/%m/%Y') }}{% else %}-{% endif %}</b>
+            </div>
+        </div>
+    </div>
+
+    <div class="cardio-grid">
+        <div>
+            <div class="cardio-card">
+                <h2>📈 Evolución automática</h2>
+
+                <h3>FC</h3>
+                <div class="trend-list">
+                    {% if fc_trend %}
+                        {% for item in fc_trend %}
+                            <div class="trend-item">
+                                <div class="trend-top"><b>{{ item.label }}</b><span>{{ item.value }} lpm</span></div>
+                                <div class="bar"><div style="width:{{ item.width }}%"></div></div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p style="color:#6b7280;">Sin suficientes ECG para graficar FC.</p>
+                    {% endif %}
+                </div>
+
+                <h3 style="margin-top:18px;">AI/Ao</h3>
+                <div class="trend-list">
+                    {% if aiao_trend %}
+                        {% for item in aiao_trend %}
+                            <div class="trend-item">
+                                <div class="trend-top"><b>{{ item.label }}</b><span>{{ item.value }}</span></div>
+                                <div class="bar"><div style="width:{{ item.width }}%"></div></div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p style="color:#6b7280;">Sin suficientes ecos para graficar AI/Ao.</p>
+                    {% endif %}
+                </div>
+
+                <h3 style="margin-top:18px;">FS</h3>
+                <div class="trend-list">
+                    {% if fs_trend %}
+                        {% for item in fs_trend %}
+                            <div class="trend-item">
+                                <div class="trend-top"><b>{{ item.label }}</b><span>{{ item.value }}%</span></div>
+                                <div class="bar"><div style="width:{{ item.width }}%"></div></div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p style="color:#6b7280;">Sin suficientes ecos para graficar FS.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="cardio-card">
+                <h2>🕓 Línea de tiempo cardiológica</h2>
+
+                {% if cardiology_events %}
+                    <div class="timeline">
+                        {% for e in cardiology_events %}
+                            <div class="event-row">
+                                <div class="event-icon">
+                                    {% if e.event_type == 'ECG' %}💗
+                                    {% elif e.event_type == 'Ecocardiografía' %}🫀
+                                    {% elif e.event_type == 'Radiografía' %}📷
+                                    {% else %}❤️
+                                    {% endif %}
+                                </div>
+
+                                <div>
+                                    <h3>{{ e.event_type }} · {{ e.event_date.strftime('%d/%m/%Y') }}</h3>
+                                    <p>
+                                        {% if e.event_type == 'ECG' %}
+                                            FC: {{ e.ecg_hr or '-' }} lpm · Eje: {{ e.ecg_axis or '-' }}° · Ritmo: {{ e.ecg_rhythm or '-' }}
+                                        {% elif e.event_type == 'Ecocardiografía' %}
+                                            AI/Ao: {{ e.eco_aiao or '-' }} · FS: {{ e.eco_fs or '-' }}% · ACVIM: {{ e.eco_acvim or '-' }}
+                                        {% elif e.event_type == 'Radiografía' %}
+                                            {{ e.title or e.description or 'Radiografía cardíaca' }}
+                                        {% else %}
+                                            {{ e.title or e.description or 'Evento cardiológico' }}
+                                        {% endif %}
+                                    </p>
+                                </div>
+
+                                <a href="/patients/{{ patient.id }}/events/{{ e.id }}" class="small-btn">Ver</a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty-card">
+                        <h3>No hay eventos cardiológicos registrados</h3>
+                        <p>Los ECG, ecocardiografías y radiografías cardíacas aparecerán acá.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div>
+            <div class="cardio-card">
+                <h2>🧠 Comparación automática</h2>
+                <div class="compare-list">
+                    {% for note in comparison_notes %}
+                        <div class="compare-item">✔ {{ note }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="cardio-card">
+                <h2>💊 Tratamiento cardiológico</h2>
+
+                {% if active_treatment %}
+                    <div class="med-box">{{ active_treatment }}</div>
+                {% else %}
+                    <div class="med-list">
+                        <div class="med-pill">Pimobendan — pendiente de cargar</div>
+                        <div class="med-pill">IECA / ARA — pendiente de cargar</div>
+                        <div class="med-pill">Diurético — pendiente de cargar</div>
+                        <div class="med-pill">Espironolactona — pendiente de cargar</div>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="cardio-card">
+                <h2>📷 Estudios relacionados</h2>
+
+                <div class="compare-list">
+                    <div class="compare-item">
+                        <b>Último ECG:</b>
+                        {% if last_ecg %}
+                            {{ last_ecg.event_date.strftime('%d/%m/%Y') }} · FC {{ last_ecg.ecg_hr or '-' }}
+                        {% else %}
+                            sin ECG
+                        {% endif %}
+                    </div>
+                    <div class="compare-item">
+                        <b>Última Eco:</b>
+                        {% if last_eco %}
+                            {{ last_eco.event_date.strftime('%d/%m/%Y') }} · AI/Ao {{ last_eco.eco_aiao or '-' }}
+                        {% else %}
+                            sin ecocardiografía
+                        {% endif %}
+                    </div>
+                    <div class="compare-item">
+                        <b>Última RX:</b>
+                        {% if last_rx %}
+                            {{ last_rx.event_date.strftime('%d/%m/%Y') }} · {{ last_rx.title or 'Radiografía' }}
+                        {% else %}
+                            sin RX cardíaca
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="ai-panel">
+                <h2 style="margin:0;color:#1f2937;">🤖 Asistente cardiológico IA</h2>
+                <p>
+                    Próximo paso: analizar ECG + Eco + RX + evolución y generar informe automático para historia clínica y propietario.
+                </p>
+                <a href="#" class="cardio-btn primary" onclick="alert('Próximamente: análisis cardiológico automático.'); return false;">
+                    ❤️ Analizar caso
+                </a>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
