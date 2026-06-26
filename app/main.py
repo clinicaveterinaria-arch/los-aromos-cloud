@@ -1900,28 +1900,13 @@ def event_create(
         safe_name = file.filename.replace(" ", "_")
         storage_path = f"patient_{patient_id}/event_{event.id}/{safe_name}"
 
-        try:
-            result = supabase.storage.from_("adjuntos").upload(
-                storage_path,
-                content,
-                {"content-type": file.content_type}
-            )
+        supabase.storage.from_("adjuntos").upload(
+            storage_path,
+            content,
+            {"content-type": file.content_type}
+        )
         
-            print("UPLOAD OK:", result)
-        
-            public_url = supabase.storage.from_("adjuntos").get_public_url(storage_path)
-        
-        except Exception as e:
-            print("===================================")
-            print("ERROR SUBIENDO ARCHIVO")
-            print(type(e))
-            print(e)
-            print("Storage path:", storage_path)
-            print("===================================")
-            raise
-
         public_url = supabase.storage.from_("adjuntos").get_public_url(storage_path)
-
         attachment = EventAttachment(
             event_id=event.id,
             filename=file.filename,
