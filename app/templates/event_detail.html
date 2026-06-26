@@ -39,6 +39,12 @@
 
     <div class="event-toolbar">
         <a href="/patients/{{ patient.id }}" class="event-btn">← Volver a historia clínica</a>
+    
+        {% if event.event_type in ['ECG', 'Ecocardiografía', 'Radiografía'] %}
+            <a href="/patients/{{ patient.id }}/cardiology" class="event-btn">❤️ Centro Cardiológico</a>
+        {% endif %}
+    
+        <a href="/patients/{{ patient.id }}/events/{{ event.id }}/edit" class="event-btn">✏️ Editar</a>
         <button onclick="window.print()" class="event-btn primary">🖨️ Imprimir / Guardar PDF</button>
     </div>
 
