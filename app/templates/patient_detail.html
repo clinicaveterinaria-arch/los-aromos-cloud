@@ -425,5 +425,23 @@ document.addEventListener('DOMContentLoaded', function() {
     if (selector) selector.addEventListener('change', actualizarCampos);
     actualizarCampos();
 });
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const storedType = sessionStorage.getItem('aromos_event_type');
+    if (!storedType) return;
+
+    const details = document.getElementById('nuevo-evento');
+    const selector = document.getElementById('event_type');
+
+    if (details) details.open = true;
+
+    if (selector) {
+        selector.value = storedType;
+        selector.dispatchEvent(new Event('change'));
+    }
+
+    sessionStorage.removeItem('aromos_event_type');
+});
+</script>
 </script>
 {% endblock %}
