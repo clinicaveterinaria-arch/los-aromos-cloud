@@ -259,13 +259,14 @@ def init_db():
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """))       
-CREATE TABLE IF NOT EXISTS event_attachments (
-    id SERIAL PRIMARY KEY,
-    event_id INTEGER REFERENCES clinical_events(id),
-    filename VARCHAR(255) NOT NULL,
-    file_path VARCHAR(500) NOT NULL
-)
-"""))
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS event_attachments (
+                id SERIAL PRIMARY KEY,
+                event_id INTEGER REFERENCES clinical_events(id),
+                filename VARCHAR(255) NOT NULL,
+                file_path VARCHAR(500) NOT NULL
+            )
+        """))
         conn.execute(text("""
             CREATE TABLE IF NOT EXISTS products (
                 id SERIAL PRIMARY KEY,
