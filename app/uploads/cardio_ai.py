@@ -209,3 +209,421 @@ def analyze_ecg(event, ai):
         "Electrocardiografía",
         notes
     )
+def analyze_echo(event, ai):
+
+    if event is None:
+
+        ai.add_section(
+            "Ecocardiografía",
+            [
+                "No existe ecocardiografía cargada."
+            ]
+        )
+
+        ai.penalize(8)
+
+        return
+
+    notes = []
+
+    aiao = to_float(getattr(event, "eco_aiao", None))
+    fs = to_float(getattr(event, "eco_fs", None))
+    fe = to_float(getattr(event, "eco_fe", None))
+    epss = to_float(getattr(event, "eco_epss", None))
+
+    acvim = (
+        getattr(event, "eco_acvim", "") or ""
+    ).upper()
+
+    if aiao is not None:
+
+        if aiao >= 1.9:
+
+            ai.penalize(18)
+
+            notes.append(
+                f"AI/Ao severamente aumentado ({aiao})."
+            )
+
+            ai.add_alert(
+                "Dilatación auricular izquierda importante."
+            )
+
+        elif aiao >= 1.6:
+
+            ai.penalize(10)
+
+            notes.append(
+                f"AI/Ao aumentado ({aiao})."
+            )
+
+        else:
+
+            notes.append(
+                f"AI/Ao normal ({aiao})."
+            )
+
+    if fs is not None:
+
+        if fs < 20:
+
+            ai.penalize(18)
+
+            notes.append(
+                f"FS disminuida ({fs}%)."
+            )
+
+            ai.add_alert(
+                "Posible disfunción sistólica."
+            )
+
+        elif fs > 45:
+
+            notes.append(
+                f"FS elevada ({fs}%)."
+            )
+
+        else:
+
+            notes.append(
+                f"FS conservada ({fs}%)."
+            )
+
+    if fe is not None:
+
+        if fe < 45:
+
+            ai.penalize(10)
+
+            notes.append(
+                f"Fracción de eyección disminuida ({fe}%)."
+            )
+
+    if epss is not None:
+
+        if epss > 7:
+
+            ai.penalize(8)
+
+            notes.append(
+                f"EPSS aumentado ({epss})."
+            )
+
+    if acvim:
+
+        if acvim == "B2":
+
+            ai.penalize(10)
+
+            notes.append(
+                "Clasificación ACVIM B2."
+            )
+
+        elif acvim == "C":
+
+            ai.penalize(22)
+
+            notes.append(
+                "Clasificación ACVIM C."
+            )
+
+            ai.add_alert(
+                "Paciente con insuficiencia cardíaca."
+            )
+
+        elif acvim == "D":
+
+            ai.penalize(35)
+
+            notes.append(
+                "Clasificación ACVIM D."
+            )
+
+            ai.add_alert(
+                "Insuficiencia cardíaca avanzada."
+            )
+
+    if len(notes) == 0:
+
+        notes.append(
+            "Sin alteraciones ecocardiográficas relevantes."
+        )
+
+    ai.add_section(
+        "Ecocardiografía",
+        notes
+    )
+def analyze_rx(event, ai):
+
+    if event is None:
+
+        ai.add_section(
+            "Radiografía",
+            [
+                "No existe radiografía cardíaca cargada."
+            ]
+        )
+
+        return
+
+    notes = []
+
+    vhs = to_float(getattr(event, "rx_vhs", None))
+    vlas = to_float(getattr(event, "rx_vlas", None))
+
+    edema = (
+        getattr(event, "rx_edema", "") or ""
+    ).lower()
+
+    congestion = (
+        getattr(event, "rx_congestion", "") or ""
+    ).lower()
+
+    pattern = (
+        getattr(event, "rx_lung_pattern", "") or ""
+    ).lower()
+
+    if vhs is not None:
+
+        if vhs > 11.5:
+
+            ai.penalize(10)
+
+            notes.append(
+                f"VHS aumentado ({vhs})."
+            )
+
+            ai.add_alert(
+                "Cardiomegalia radiográfica."
+            )
+
+        else:
+
+            notes.append(
+                f"VHS normal ({vhs})."
+            )
+
+    if vlas is not None:
+
+        if vlas > 3:
+
+            ai.penalize(8)
+
+            notes.append(
+                f"VLAS aumentado ({vlas})."
+            )
+
+        else:
+
+            notes.append(
+                f"VLAS normal ({vlas})."
+            )
+
+    if "edema" in edema:
+
+        ai.penalize(20)
+
+        notes.append(
+            "Compatible con edema pulmonar."
+        )
+
+        ai.add_alert(
+            "Edema pulmonar."
+        )
+
+    if "congest" in congestion:
+
+        ai.penalize(12)
+
+        notes.append(
+            "Congestión vascular pulmonar."
+        )
+
+    if "intersticial" in pattern:
+
+        ai.penalize(5)
+
+        notes.append(
+            "Patrón intersticial."
+        )
+
+    if "alveolar" in pattern:
+
+        ai.penalize(10)
+
+        notes.append(
+            "Patrón alveolar."
+        )
+
+    if len(notes) == 0:
+
+        notes.append(
+            "Sin alteraciones radiográficas relevantes."
+        )
+
+    ai.add_section(
+        "Radiografía",
+        notes
+    )
+def calculate_score(ai):
+
+    if ai.score < 0:
+        ai.score = 0
+
+    if ai.score > 100:
+        ai.score = 100
+
+    if ai.score >= 85:
+
+        ai.conclusion = (
+            "Paciente cardiológicamente estable."
+        )
+
+    elif ai.score >= 60:
+
+        ai.conclusion = (
+            "Paciente estable pero requiere seguimiento."
+        )
+
+    elif ai.score >= 40:
+
+        ai.conclusion = (
+            "Paciente con riesgo cardiológico moderado."
+        )
+
+    else:
+
+        ai.conclusion = (
+            "Paciente con alto riesgo cardiológico."
+        )
+
+    return ai.score
+def build_recommendations(ai):
+
+    if ai.score >= 85:
+
+        ai.add_recommendation(
+            "Continuar controles cardiológicos periódicos."
+        )
+
+    elif ai.score >= 60:
+
+        ai.add_recommendation(
+            "Realizar control ecocardiográfico según evolución."
+        )
+
+    elif ai.score >= 40:
+
+        ai.add_recommendation(
+            "Control cardiológico cercano y ajuste terapéutico si corresponde."
+        )
+
+    else:
+
+        ai.add_recommendation(
+            "Reevaluación inmediata y tratamiento intensivo según criterio clínico."
+        )
+
+    if len(ai.alerts):
+
+        ai.add_recommendation(
+            "Correlacionar los hallazgos con la clínica del paciente."
+        )
+def build_owner_summary(ai):
+
+    ai.owner_summary.clear()
+
+    if ai.score >= 85:
+
+        ai.add_owner(
+            "Actualmente el corazón se encuentra estable según los estudios disponibles."
+        )
+
+    elif ai.score >= 60:
+
+        ai.add_owner(
+            "Se observaron algunos cambios que requieren controles periódicos."
+        )
+
+    elif ai.score >= 40:
+
+        ai.add_owner(
+            "El paciente presenta alteraciones cardíacas que necesitan seguimiento cercano."
+        )
+
+    else:
+
+        ai.add_owner(
+            "Los estudios muestran alteraciones cardíacas importantes que requieren tratamiento y controles frecuentes."
+        )
+def analyze_complete_case(last_ecg, last_eco, last_rx):
+
+    ai = CardioAI()
+
+    analyze_ecg(last_ecg, ai)
+
+    analyze_echo(last_eco, ai)
+
+    analyze_rx(last_rx, ai)
+
+    calculate_score(ai)
+
+    build_recommendations(ai)
+
+    build_owner_summary(ai)
+
+    report = []
+
+    report.append(ai.conclusion)
+
+    for section in ai.sections:
+
+        report.append("")
+
+        report.append(section.title)
+
+        for item in section.items:
+
+            report.append(f"- {item}")
+
+    ai.report = "\n".join(report)
+
+    return {
+
+        "score": ai.score,
+
+        "label": (
+            "🟢 Estable"
+            if ai.score >= 85 else
+            "🟡 Seguimiento"
+            if ai.score >= 60 else
+            "🟠 Riesgo moderado"
+            if ai.score >= 40 else
+            "🔴 Alto riesgo"
+        ),
+
+        "conclusion": ai.conclusion,
+
+        "sections": [
+
+            {
+
+                "title": s.title,
+
+                "items": s.items
+
+            }
+
+            for s in ai.sections
+
+        ],
+
+        "alerts": ai.alerts,
+
+        "recommendations": ai.recommendations,
+
+        "owner_summary": ai.owner_summary,
+
+        "report": ai.report
+
+    }        
