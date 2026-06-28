@@ -140,6 +140,115 @@
         line-height:1.35;
     }
 
+
+    .treatment-tools {
+        grid-column:1 / -1;
+        display:flex;
+        gap:8px;
+        flex-wrap:wrap;
+        margin-top:-6px;
+    }
+    .vade-inline-btn {
+        border:1px solid #f3c6d8;
+        background:#fff0f7;
+        color:#d85b9a;
+        border-radius:12px;
+        padding:10px 12px;
+        font-weight:bold;
+        cursor:pointer;
+    }
+    .vade-modal-backdrop {
+        display:none;
+        position:fixed;
+        inset:0;
+        background:rgba(17,24,39,.45);
+        z-index:9998;
+        align-items:center;
+        justify-content:center;
+        padding:20px;
+    }
+    .vade-modal {
+        width:min(880px,96vw);
+        max-height:88vh;
+        overflow:auto;
+        background:white;
+        border:1px solid #f3c6d8;
+        border-radius:22px;
+        box-shadow:0 18px 50px rgba(0,0,0,.18);
+        padding:18px;
+    }
+    .vade-modal-head {
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap:12px;
+        margin-bottom:12px;
+    }
+    .vade-modal-head h3 {
+        margin:0;
+        color:#1f2937;
+    }
+    .vade-close-btn {
+        border:1px solid #f3c6d8;
+        background:white;
+        color:#d85b9a;
+        border-radius:12px;
+        padding:8px 11px;
+        font-weight:bold;
+        cursor:pointer;
+    }
+    .vade-search-row {
+        display:grid;
+        grid-template-columns:1fr auto;
+        gap:8px;
+        margin-bottom:12px;
+    }
+    .vade-search-row input {
+        border:1px solid #ead7e1;
+        border-radius:13px;
+        padding:11px 12px;
+        font-size:14px;
+    }
+    .vade-search-row button {
+        border:1px solid #d85b9a;
+        background:#d85b9a;
+        color:white;
+        border-radius:13px;
+        padding:10px 14px;
+        font-weight:bold;
+        cursor:pointer;
+    }
+    .vade-modal-list {
+        display:grid;
+        gap:10px;
+    }
+    .vade-modal-item {
+        border:1px solid #f1d6e2;
+        border-radius:16px;
+        padding:12px;
+        background:#fff;
+    }
+    .vade-modal-item h4 {
+        margin:0 0 4px 0;
+        color:#1f2937;
+    }
+    .vade-modal-item p {
+        margin:4px 0;
+        color:#4b5563;
+        font-size:13px;
+        line-height:1.35;
+    }
+    .vade-insert-btn {
+        border:1px solid #22c55e;
+        background:#22c55e;
+        color:white;
+        border-radius:10px;
+        padding:8px 10px;
+        font-weight:bold;
+        cursor:pointer;
+        margin-top:8px;
+    }
+
     .save-event-btn { grid-column:1 / -1; background:#22c55e; color:white; border:none; border-radius:14px; padding:15px; font-size:17px; font-weight:bold; cursor:pointer; }
 
     .timeline { position:relative; padding-left:18px; }
@@ -178,7 +287,7 @@
         border:1px solid #f3c6d8;
         border-radius:999px;
         padding:3px 8px;
-                font-size:12px;
+        font-size:12px;
         font-weight:bold;
         margin:2px 4px 4px 0;
     }
@@ -188,7 +297,8 @@
         .timeline-item { grid-template-columns:1fr; }
         .timeline:before { display:none; }
         .timeline-actions { justify-content:flex-start; }
-        .hc-toolbar a { width:100%; justify-content:center; }
+        .hc-toolbar a, .hc-toolbar button { width:100%; justify-content:center; }
+        .vade-search-row { grid-template-columns:1fr; }
     }
 </style>
 
@@ -216,6 +326,7 @@
         <a href="#nuevo-evento" onclick="setEventType('Desparasitación'); document.getElementById('nuevo-evento').open = true;">🪱 Desparasitación</a>
         <a href="/agenda">📅 Agendar</a>
         <a href="/patients/{{ patient.id }}/cart">💰 Venta / Cobro</a>
+        <a href="/vademecum">💊 Vademécum</a>
         <a href="/patients/{{ patient.id }}/print" target="_blank">🖨️ Imprimir</a>
         <a href="/patients/{{ patient.id }}/cardiology">💗 Cardio</a>
         <a href="/patients/{{ patient.id }}/anesthesia">💤 Anestesia</a>
@@ -278,8 +389,7 @@
             </a>
         </div>
     </div>
-
-    <details class="hc-form-section" id="nuevo-evento" open>
+        <details class="hc-form-section" id="nuevo-evento" open>
         <summary>🩺 Nuevo evento clínico</summary>
         <div class="hc-section-body">
             <form method="post" action="/patients/{{ patient.id }}/events" enctype="multipart/form-data" class="form-grid">
@@ -304,7 +414,17 @@
                 <textarea name="anamnesis" placeholder="Anamnesis"></textarea>
                 <textarea name="physical_exam" placeholder="Examen físico"></textarea>
                 <textarea name="diagnosis" placeholder="Diagnóstico / conclusión"></textarea>
-                <textarea name="treatment" placeholder="Tratamiento / indicaciones"></textarea>
+
+                <textarea name="treatment" id="treatment_textarea" placeholder="Tratamiento / indicaciones"></textarea>
+
+                <div class="treatment-tools">
+                    <button type="button" class="vade-inline-btn" onclick="openVademecumModal()">
+                        💊 Buscar medicamento
+                    </button>
+                    <a href="/vademecum" target="_blank" class="vade-inline-btn" style="text-decoration:none;">
+                        Abrir Vademécum completo
+                    </a>
+                </div>
 
                 <div id="vaccine-box" class="soft-box" style="display:none;">
                     <h4>💉 Vacunas inteligentes</h4>
@@ -510,6 +630,16 @@
                         <div class="module-count">{{ ns.cardio_count }} registros</div>
                     </div>
                 </a>
+                <a href="/vademecum" style="text-decoration:none;color:inherit;">
+                    <div class="module-row" style="background:#fff8fb;border:1px solid #f3c6d8;border-radius:18px;padding:14px;margin:8px 0;">
+                        <div class="module-icon">💊</div>
+                        <div>
+                            <h3>Vademécum</h3>
+                            <p>Consulta de drogas, dosis, indicaciones y observaciones clínicas.</p>
+                        </div>
+                        <div class="module-count">Abrir</div>
+                    </div>
+                </a>
                 <div class="module-row"><div class="module-icon">📎</div><div><h3>Adjuntos y estudios</h3><p>Imágenes, análisis, PDF y documentos.</p></div><div class="module-count">{{ ns.adj_count }} archivos</div></div>
                 <div class="module-row"><div class="module-icon">🕓</div><div><h3>Línea de tiempo</h3><p>Resumen cronológico de toda la actividad.</p></div><div class="module-count">{{ events|length }} eventos</div></div>
             </div>
@@ -519,8 +649,7 @@
                 {{ patient.notes or 'Sin notas generales cargadas.' }}
             </div>
         </div>
-
-        <div class="hc-card">
+                <div class="hc-card">
             <div class="hc-card-head">
                 <h2>📍 Línea de tiempo</h2>
                 <a href="/patients/{{ patient.id }}/history" class="small-btn">Ver todo</a>
@@ -534,72 +663,76 @@
                     <div class="timeline-dot">
                         {% if e.event_type == 'Radiografía' %}📷{% elif e.event_type == 'ECG' %}💗{% elif e.event_type == 'Ecocardiografía' %}🫀{% elif e.event_type == 'Ecografía' %}🖥️{% elif e.event_type == 'Laboratorio' %}🧪{% elif e.event_type == 'Vacuna' %}💉{% elif e.event_type == 'Desparasitación' %}🪱{% elif e.event_type == 'Cirugía' %}🔪{% elif e.event_type == 'Anestesia' %}💤{% elif e.event_type == 'Internación' %}🏥{% else %}🩺{% endif %}
                     </div>
-                <div class="timeline-content">
-                    <h3>{{ e.event_type }}{% if e.title %} <span style="color:#d85b9a;font-size:13px;">{{ e.title }}</span>{% endif %}</h3>
-                
-                    {% if e.attachments %}
-                        <div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0;">
-                            {% for a in e.attachments %}
-                                {% set lower = a.filename.lower() %}
-                                {% if lower.endswith('.jpg') or lower.endswith('.jpeg') or lower.endswith('.png') or lower.endswith('.webp') %}
-                                    <a href="{{ a.file_path }}" target="_blank">
-                                        <img src="{{ a.file_path }}"
-                                             style="width:90px;height:90px;object-fit:cover;border-radius:10px;border:1px solid #f3c6d8;">
-                                    </a>
-                                {% endif %}
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                
-                    <p>
-                        {% if e.description %}
-                            {{ e.description[:120] }}{% if e.description|length > 120 %}...{% endif %}
-                        {% elif e.diagnosis %}
-                            {{ e.diagnosis[:120] }}{% if e.diagnosis|length > 120 %}...{% endif %}
-                        {% elif e.treatment %}
-                            {{ e.treatment[:120] }}{% if e.treatment|length > 120 %}...{% endif %}
-                        {% else %}
-                            Sin detalle cargado.
+
+                    <div class="timeline-content">
+                        <h3>{{ e.event_type }}{% if e.title %} <span style="color:#d85b9a;font-size:13px;">{{ e.title }}</span>{% endif %}</h3>
+
+                        {% if e.attachments %}
+                            <div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0;">
+                                {% for a in e.attachments %}
+                                    {% set lower = a.filename.lower() %}
+                                    {% if lower.endswith('.jpg') or lower.endswith('.jpeg') or lower.endswith('.png') or lower.endswith('.webp') %}
+                                        <a href="{{ a.file_path }}" target="_blank">
+                                            <img src="{{ a.file_path }}"
+                                                 style="width:90px;height:90px;object-fit:cover;border-radius:10px;border:1px solid #f3c6d8;">
+                                        </a>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
                         {% endif %}
-                    </p>
 
-                    {% if clinical_ai is defined and clinical_ai.get(e.id) %}
-                        {% set ai = clinical_ai.get(e.id) %}
-                        <div class="ai-clinical-card">
-                            <b>🤖 IA Clínica</b>
-
-                            {% if ai is mapping %}
-                                {% if ai.riesgo %}
-                                    <span class="ai-clinical-tag">Riesgo: {{ ai.riesgo }}</span>
-                                {% endif %}
-                                                                {% if ai.alerta %}
-                                    <span class="ai-clinical-tag">Alerta: {{ ai.alerta }}</span>
-                                {% endif %}
-                                {% if ai.resumen %}
-                                    <p><b style="display:inline;color:#374151;margin:0;">Resumen:</b> {{ ai.resumen }}</p>
-                                {% endif %}
-                                {% if ai.interpretacion %}
-                                    <p><b style="display:inline;color:#374151;margin:0;">Interpretación:</b> {{ ai.interpretacion }}</p>
-                                {% endif %}
-                                {% if ai.sugerencia %}
-                                    <p><b style="display:inline;color:#374151;margin:0;">Sugerencia:</b> {{ ai.sugerencia }}</p>
-                                {% endif %}
-                                {% if ai.recomendacion %}
-                                    <p><b style="display:inline;color:#374151;margin:0;">Recomendación:</b> {{ ai.recomendacion }}</p>
-                                {% endif %}
-                                {% if ai.alertas %}
-                                    <p><b style="display:inline;color:#374151;margin:0;">Alertas:</b> {{ ai.alertas }}</p>
-                                {% endif %}
+                        <p>
+                            {% if e.description %}
+                                {{ e.description[:120] }}{% if e.description|length > 120 %}...{% endif %}
+                            {% elif e.diagnosis %}
+                                {{ e.diagnosis[:120] }}{% if e.diagnosis|length > 120 %}...{% endif %}
+                            {% elif e.treatment %}
+                                {{ e.treatment[:120] }}{% if e.treatment|length > 120 %}...{% endif %}
                             {% else %}
-                                <p>{{ ai }}</p>
+                                Sin detalle cargado.
                             {% endif %}
-                        </div>
-                    {% endif %}
-                </div>
+                        </p>
+
+                        {% if clinical_ai is defined and clinical_ai.get(e.id) %}
+                            {% set ai = clinical_ai.get(e.id) %}
+                            <div class="ai-clinical-card">
+                                <b>🤖 IA Clínica</b>
+
+                                {% if ai is mapping %}
+                                    {% if ai.riesgo %}
+                                        <span class="ai-clinical-tag">Riesgo: {{ ai.riesgo }}</span>
+                                    {% endif %}
+                                    {% if ai.alerta %}
+                                        <span class="ai-clinical-tag">Alerta: {{ ai.alerta }}</span>
+                                    {% endif %}
+                                    {% if ai.resumen %}
+                                        <p><b style="display:inline;color:#374151;margin:0;">Resumen:</b> {{ ai.resumen }}</p>
+                                    {% endif %}
+                                    {% if ai.interpretacion %}
+                                        <p><b style="display:inline;color:#374151;margin:0;">Interpretación:</b> {{ ai.interpretacion }}</p>
+                                    {% endif %}
+                                    {% if ai.sugerencia %}
+                                        <p><b style="display:inline;color:#374151;margin:0;">Sugerencia:</b> {{ ai.sugerencia }}</p>
+                                    {% endif %}
+                                    {% if ai.recomendacion %}
+                                        <p><b style="display:inline;color:#374151;margin:0;">Recomendación:</b> {{ ai.recomendacion }}</p>
+                                    {% endif %}
+                                    {% if ai.alertas %}
+                                        <p><b style="display:inline;color:#374151;margin:0;">Alertas:</b> {{ ai.alertas }}</p>
+                                    {% endif %}
+                                {% else %}
+                                    <p>{{ ai }}</p>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    </div>
+
                     <div class="timeline-actions">
                         <a href="/patients/{{ patient.id }}/events/{{ e.id }}" class="small-btn">Ver</a>
                         <a href="/patients/{{ patient.id }}/events/{{ e.id }}/edit" class="small-btn">Editar</a>
-                        <form method="post" action="/patients/{{ patient.id }}/events/{{ e.id }}/delete" style="display:inline;" onsubmit="return confirm('¿Eliminar este evento?');"><button type="submit" class="small-btn delete-btn">🗑</button></form>
+                        <form method="post" action="/patients/{{ patient.id }}/events/{{ e.id }}/delete" style="display:inline;" onsubmit="return confirm('¿Eliminar este evento?');">
+                            <button type="submit" class="small-btn delete-btn">🗑</button>
+                        </form>
                     </div>
                 </div>
                 {% endfor %}
@@ -611,6 +744,58 @@
     </div>
 </div>
 
+<div class="vade-modal-backdrop" id="vademecum_modal">
+    <div class="vade-modal">
+        <div class="vade-modal-head">
+            <h3>💊 Buscar medicamento</h3>
+            <button type="button" class="vade-close-btn" onclick="closeVademecumModal()">Cerrar</button>
+        </div>
+
+        <div class="vade-search-row">
+            <input id="vade_modal_search" placeholder="Buscar por nombre comercial, droga o indicación">
+            <button type="button" onclick="filterVademecumModal()">Buscar</button>
+        </div>
+
+        <div class="vade-modal-list" id="vade_modal_list">
+            <div class="vade-modal-item">
+                <h4>Meloxicam</h4>
+                <p><b>Principio activo:</b> Meloxicam</p>
+                <p><b>Dosis:</b> 0,1–0,2 mg/kg según criterio clínico.</p>
+                <p><b>Frecuencia:</b> cada 24 horas.</p>
+                <p><b>Observaciones:</b> Administrar con alimento. Precaución en pacientes renales, deshidratados o geriátricos.</p>
+                <button type="button" class="vade-insert-btn" onclick="insertDrugTreatment('Meloxicam', 'Meloxicam', '0,1–0,2 mg/kg según criterio clínico', 'cada 24 horas', 'Administrar con alimento. Precaución en pacientes renales, deshidratados o geriátricos.')">Insertar en tratamiento</button>
+            </div>
+
+            <div class="vade-modal-item">
+                <h4>Amoxicilina + ácido clavulánico</h4>
+                <p><b>Principio activo:</b> Amoxicilina clavulánico</p>
+                <p><b>Dosis:</b> 12,5–20 mg/kg.</p>
+                <p><b>Frecuencia:</b> cada 12 horas.</p>
+                <p><b>Observaciones:</b> Útil en infecciones de piel, tejidos blandos, respiratorias y urinarias según criterio clínico.</p>
+                <button type="button" class="vade-insert-btn" onclick="insertDrugTreatment('Amoxicilina + ácido clavulánico', 'Amoxicilina clavulánico', '12,5–20 mg/kg', 'cada 12 horas', 'Usar según foco infeccioso y criterio clínico.')">Insertar en tratamiento</button>
+            </div>
+
+            <div class="vade-modal-item">
+                <h4>Enrofloxacina</h4>
+                <p><b>Principio activo:</b> Enrofloxacina</p>
+                <p><b>Dosis:</b> 5 mg/kg.</p>
+                <p><b>Frecuencia:</b> cada 24 horas.</p>
+                <p><b>Observaciones:</b> Precaución en pacientes jóvenes. Evitar uso empírico innecesario.</p>
+                <button type="button" class="vade-insert-btn" onclick="insertDrugTreatment('Enrofloxacina', 'Enrofloxacina', '5 mg/kg', 'cada 24 horas', 'Precaución en pacientes jóvenes. Evitar uso empírico innecesario.')">Insertar en tratamiento</button>
+            </div>
+
+            <div class="vade-modal-item">
+                <h4>Metronidazol</h4>
+                <p><b>Principio activo:</b> Metronidazol</p>
+                <p><b>Dosis:</b> 10–15 mg/kg.</p>
+                <p><b>Frecuencia:</b> cada 12 horas.</p>
+                <p><b>Observaciones:</b> Uso digestivo/anaerobios según criterio clínico.</p>
+                <button type="button" class="vade-insert-btn" onclick="insertDrugTreatment('Metronidazol', 'Metronidazol', '10–15 mg/kg', 'cada 12 horas', 'Uso digestivo/anaerobios según criterio clínico.')">Insertar en tratamiento</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 function setEventType(type) {
     const selector = document.getElementById('event_type');
@@ -618,6 +803,57 @@ function setEventType(type) {
     selector.value = type;
     selector.dispatchEvent(new Event('change'));
 }
+
+function openVademecumModal() {
+    const modal = document.getElementById('vademecum_modal');
+    if (modal) modal.style.display = 'flex';
+}
+
+function closeVademecumModal() {
+    const modal = document.getElementById('vademecum_modal');
+    if (modal) modal.style.display = 'none';
+}
+
+function filterVademecumModal() {
+    const search = document.getElementById('vade_modal_search');
+    const list = document.getElementById('vade_modal_list');
+
+    if (!search || !list) return;
+
+    const q = search.value.trim().toLowerCase();
+    const items = list.querySelectorAll('.vade-modal-item');
+
+    items.forEach(item => {
+        const text = item.innerText.toLowerCase();
+        item.style.display = text.includes(q) ? 'block' : 'none';
+    });
+}
+
+function insertDrugTreatment(name, active, dose, frequency, observations) {
+    const textarea = document.getElementById('treatment_textarea');
+
+    if (!textarea) return;
+
+    const block = `
+${name}
+Principio activo: ${active}
+Dosis: ${dose}
+Frecuencia: ${frequency}
+Observaciones: ${observations}
+`;
+
+    textarea.value = (textarea.value || '').trim();
+
+    if (textarea.value) {
+        textarea.value += "\n\n" + block.trim();
+    } else {
+        textarea.value = block.trim();
+    }
+
+    textarea.focus();
+    closeVademecumModal();
+}
+
 function addDewormerOption(targetInputId) {
     const input = document.getElementById(targetInputId);
     const list = document.getElementById('dewormers_list');
@@ -645,6 +881,7 @@ function addDewormerOption(targetInputId) {
     input.value = value;
     input.focus();
 }
+
 function addVaccineOption(targetInputId) {
     const input = document.getElementById(targetInputId);
     const list = document.getElementById('vaccines_list');
@@ -672,26 +909,31 @@ function addVaccineOption(targetInputId) {
     input.value = value;
     input.focus();
 }
+
 function setNextDewormingDays(days) {
     const input = document.querySelector('input[name="next_deworming_date"]');
     const date = new Date(); date.setDate(date.getDate() + days);
     if (input) input.value = date.toISOString().split('T')[0];
 }
+
 function setNextDewormingMonths(months) {
     const input = document.querySelector('input[name="next_deworming_date"]');
     const date = new Date(); date.setMonth(date.getMonth() + months);
     if (input) input.value = date.toISOString().split('T')[0];
 }
+
 function setNextVaccineDays(days) {
     const input = document.getElementById('next_vaccine_date');
     const date = new Date(); date.setDate(date.getDate() + days);
     if (input) input.value = date.toISOString().split('T')[0];
 }
+
 function setNextVaccineMonths(months) {
     const input = document.getElementById('next_vaccine_date');
     const date = new Date(); date.setMonth(date.getMonth() + months);
     if (input) input.value = date.toISOString().split('T')[0];
 }
+
 function setReminderDays(days) {
     const campo = document.querySelector('input[name="reminder_date"]');
     let fecha = new Date(); fecha.setDate(fecha.getDate() + days);
@@ -700,6 +942,7 @@ function setReminderDays(days) {
     const dd = String(fecha.getDate()).padStart(2, '0');
     if (campo) campo.value = `${yyyy}-${mm}-${dd}`;
 }
+
 document.addEventListener('DOMContentLoaded', function() {
     const selector = document.getElementById('event_type');
     const details = document.getElementById('nuevo-evento');
@@ -708,6 +951,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const rxCardioBox = document.getElementById('rx-cardio-box');
     const vaccineBox = document.getElementById('vaccine-box');
     const dewormingBox = document.getElementById('deworming-box');
+    const searchInput = document.getElementById('vade_modal_search');
 
     function actualizarCampos() {
         if (!selector) return;
@@ -740,9 +984,12 @@ document.addEventListener('DOMContentLoaded', function() {
         selector.addEventListener('change', actualizarCampos);
     }
 
+    if (searchInput) {
+        searchInput.addEventListener('keyup', filterVademecumModal);
+    }
+
     actualizarCampos();
 });
-
 </script>
 {% endblock %}
                             
