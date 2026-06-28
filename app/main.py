@@ -1221,7 +1221,25 @@ def patient_detail(request: Request, patient_id: int, db: Session = Depends(get_
     eco_count = len(cardiology_ecos)
 
     next_visit = upcoming_events[0] if upcoming_events else None
+    vaccine_names = sorted(
+        list(
+            {
+                e.vaccine_name.strip()
+                for e in db.query(ClinicalEvent).all()
+                if e.vaccine_name and e.vaccine_name.strip()
+            }
+        )
+    )
 
+    dewormer_names = sorted(
+        list(
+            {
+                e.dewormer_product.strip()
+                for e in db.query(ClinicalEvent).all()
+                if e.dewormer_product and e.dewormer_product.strip()
+            }
+        )
+    )
     return templates.TemplateResponse(
         'patient_detail.html',
         {
@@ -1240,6 +1258,8 @@ def patient_detail(request: Request, patient_id: int, db: Session = Depends(get_
             'ecg_count': ecg_count,
             'last_eco': last_eco,
             'eco_count': eco_count,
+            "vaccine_names": vaccine_names,
+            "dewormer_names": dewormer_names
         }
     )
 @app.get('/patients/{patient_id}/events/{event_id}/edit', response_class=HTMLResponse)
