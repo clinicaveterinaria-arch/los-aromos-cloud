@@ -107,6 +107,15 @@
     .quick-buttons { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
     .quick-buttons button { border:1px solid #f3c6d8; background:white; color:#d85b9a; border-radius:10px; padding:8px 10px; font-weight:bold; cursor:pointer; }
 
+    .cardio-center-link {
+        display:inline-flex; align-items:center; justify-content:center; gap:8px;
+        background:#d85b9a; color:white; border:1px solid #d85b9a;
+        border-radius:14px; padding:12px 16px; font-weight:bold;
+        text-decoration:none; margin-top:12px;
+    }
+    .cardio-center-link.secondary { background:#fff0f7; color:#d85b9a; }
+    .cardio-helper-text { color:#6b7280; font-size:13px; margin:10px 0 0 0; line-height:1.4; }
+
     .save-event-btn { grid-column:1 / -1; background:#22c55e; color:white; border:none; border-radius:14px; padding:15px; font-size:17px; font-weight:bold; cursor:pointer; }
 
     .timeline { position:relative; padding-left:18px; }
@@ -271,12 +280,65 @@
 
                 <div id="ecg-box" class="soft-box" style="display:none;">
                     <h4>❤️ ECG</h4>
-                    <input name="ecg_hr" placeholder="FC"><input name="ecg_rhythm" placeholder="Ritmo" style="margin-top:10px;"><input name="ecg_p" placeholder="Onda P" style="margin-top:10px;"><input name="ecg_pr" placeholder="Intervalo PR" style="margin-top:10px;"><input name="ecg_qrs" placeholder="QRS" style="margin-top:10px;"><input name="ecg_st" placeholder="Segmento ST" style="margin-top:10px;"><input name="ecg_t" placeholder="Onda T" style="margin-top:10px;"><input name="ecg_qt" placeholder="Intervalo QT" style="margin-top:10px;"><input name="ecg_axis" placeholder="Eje eléctrico" style="margin-top:10px;"><textarea name="ecg_interpretation" placeholder="Interpretación electrocardiográfica" style="margin-top:10px;"></textarea>
+                    <input name="ecg_hr" placeholder="FC">
+                    <input name="ecg_rhythm" placeholder="Ritmo" style="margin-top:10px;">
+                    <input name="ecg_p" placeholder="Onda P duración (seg)" style="margin-top:10px;">
+                    <input name="ecg_p_mv" placeholder="Onda P amplitud (mV)" style="margin-top:10px;">
+                    <input name="ecg_pr" placeholder="Intervalo PR" style="margin-top:10px;">
+                    <input name="ecg_qrs" placeholder="QRS duración (seg)" style="margin-top:10px;">
+                    <input name="ecg_qrs_mv" placeholder="QRS amplitud (mV)" style="margin-top:10px;">
+                    <input name="ecg_st" placeholder="Segmento ST" style="margin-top:10px;">
+                    <input name="ecg_t" placeholder="Onda T duración / descripción" style="margin-top:10px;">
+                    <input name="ecg_t_mv" placeholder="Onda T amplitud (mV)" style="margin-top:10px;">
+                    <input name="ecg_qt" placeholder="Intervalo QT" style="margin-top:10px;">
+                    <input name="ecg_qtc" placeholder="QTc" style="margin-top:10px;">
+                    <input name="ecg_axis" placeholder="Eje eléctrico" style="margin-top:10px;">
+                    <input name="ecg_arrhythmia" placeholder="Arritmia / extrasístoles" style="margin-top:10px;">
+                    <input name="ecg_conduction" placeholder="Conducción" style="margin-top:10px;">
+                    <textarea name="ecg_interpretation" placeholder="Interpretación electrocardiográfica" style="margin-top:10px;"></textarea>
+                    <textarea name="ecg_notes" placeholder="Observaciones ECG" style="margin-top:10px;"></textarea>
+                    <p class="cardio-helper-text">Estos datos alimentan el Dashboard Cardiológico y la interpretación inteligente.</p>
+                    <a href="/patients/{{ patient.id }}/cardiology" class="cardio-center-link">❤️ Abrir Centro Cardiológico completo</a>
                 </div>
 
                 <div id="eco-box" class="soft-box" style="display:none;">
                     <h4>🫀 Ecocardiografía</h4>
-                    <input name="eco_aiao" placeholder="AI/Ao"><input name="eco_fs" placeholder="Fracción de acortamiento (%)" style="margin-top:10px;"><input name="eco_acvim" placeholder="Clasificación ACVIM" style="margin-top:10px;"><textarea name="eco_diagnosis" placeholder="Diagnóstico ecocardiográfico" style="margin-top:10px;"></textarea><textarea name="eco_treatment" placeholder="Tratamiento cardiológico" style="margin-top:10px;"></textarea>
+                    <input name="eco_aiao" placeholder="AI/Ao">
+                    <input name="eco_fs" placeholder="Fracción de acortamiento (%)" style="margin-top:10px;">
+                    <input name="eco_fe" placeholder="Fracción de eyección (%)" style="margin-top:10px;">
+                    <input name="eco_epss" placeholder="EPSS" style="margin-top:10px;">
+                    <input name="eco_lvidd" placeholder="LVIDd" style="margin-top:10px;">
+                    <input name="eco_lvids" placeholder="LVIDs" style="margin-top:10px;">
+                    <input name="eco_la_size" placeholder="Aurícula izquierda" style="margin-top:10px;">
+                    <input name="eco_lv_size" placeholder="Ventrículo izquierdo" style="margin-top:10px;">
+                    <input name="eco_mitral" placeholder="Insuficiencia mitral" style="margin-top:10px;">
+                    <input name="eco_tricuspid" placeholder="Insuficiencia tricuspídea" style="margin-top:10px;">
+                    <input name="eco_pulmonary_htn" placeholder="Hipertensión pulmonar" style="margin-top:10px;">
+                    <input name="eco_acvim" placeholder="Clasificación ACVIM" style="margin-top:10px;">
+                    <textarea name="eco_doppler" placeholder="Doppler / velocidades / gradientes" style="margin-top:10px;"></textarea>
+                    <textarea name="eco_diagnosis" placeholder="Diagnóstico ecocardiográfico" style="margin-top:10px;"></textarea>
+                    <textarea name="eco_treatment" placeholder="Tratamiento cardiológico" style="margin-top:10px;"></textarea>
+                    <textarea name="eco_observations" placeholder="Observaciones ecocardiográficas" style="margin-top:10px;"></textarea>
+                    <p class="cardio-helper-text">La eco queda vinculada al Centro Cardiológico para evolución, tratamiento e IA.</p>
+                    <a href="/patients/{{ patient.id }}/cardiology" class="cardio-center-link">🫀 Abrir Centro Cardiológico completo</a>
+                </div>
+
+                <div id="rx-cardio-box" class="soft-box" style="display:none;">
+                    <h4>📷 Radiografía cardiológica</h4>
+                    <input name="rx_vhs" placeholder="VHS">
+                    <input name="rx_vlas" placeholder="VLAS" style="margin-top:10px;">
+                    <input name="rx_heart_size" placeholder="Tamaño / silueta cardíaca" style="margin-top:10px;">
+                    <input name="rx_left_atrium" placeholder="Aurícula izquierda" style="margin-top:10px;">
+                    <input name="rx_left_heart" placeholder="Corazón izquierdo" style="margin-top:10px;">
+                    <input name="rx_right_heart" placeholder="Corazón derecho" style="margin-top:10px;">
+                    <input name="rx_pulmonary_vessels" placeholder="Vasos pulmonares" style="margin-top:10px;">
+                    <input name="rx_lung_pattern" placeholder="Patrón pulmonar" style="margin-top:10px;">
+                    <input name="rx_edema" placeholder="Edema pulmonar" style="margin-top:10px;">
+                    <input name="rx_congestion" placeholder="Congestión" style="margin-top:10px;">
+                    <input name="rx_trachea" placeholder="Tráquea / bronquios" style="margin-top:10px;">
+                    <textarea name="rx_observations" placeholder="Observaciones radiográficas cardiológicas" style="margin-top:10px;"></textarea>
+                    <p class="cardio-helper-text">También podés adjuntar la RX abajo; los datos se integran al Centro Cardiológico.</p>
+                    <a href="/patients/{{ patient.id }}/cardiology" class="cardio-center-link">📷 Abrir Centro Cardiológico completo</a>
                 </div>
 
                 <div class="soft-box">
@@ -438,6 +500,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const details = document.getElementById('nuevo-evento');
     const ecgBox = document.getElementById('ecg-box');
     const ecoBox = document.getElementById('eco-box');
+    const rxCardioBox = document.getElementById('rx-cardio-box');
     const vaccineBox = document.getElementById('vaccine-box');
     const dewormingBox = document.getElementById('deworming-box');
 
@@ -448,6 +511,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (ecgBox) ecgBox.style.display = tipo === 'ECG' ? 'block' : 'none';
         if (ecoBox) ecoBox.style.display = tipo === 'Ecocardiografía' ? 'block' : 'none';
+        if (rxCardioBox) rxCardioBox.style.display = tipo === 'Radiografía' ? 'block' : 'none';
         if (vaccineBox) vaccineBox.style.display = tipo === 'Vacuna' ? 'block' : 'none';
         if (dewormingBox) dewormingBox.style.display = tipo === 'Desparasitación' ? 'block' : 'none';
     }
