@@ -1211,9 +1211,28 @@ async def edit_clinical_event_save(
         'diagnosis', 'treatment',
         'weight', 'temperature', 'heart_rate', 'respiratory_rate',
         'mucous_membranes', 'crt', 'hydration',
+
         'ecg_hr', 'ecg_rhythm', 'ecg_p', 'ecg_pr', 'ecg_qrs',
         'ecg_st', 'ecg_t', 'ecg_qt', 'ecg_axis', 'ecg_interpretation',
+
+        'ecg_p_mv', 'ecg_qrs_mv', 'ecg_t_mv', 'ecg_qtc',
+        'ecg_polarity', 'ecg_arrhythmia', 'ecg_conduction', 'ecg_notes',
+
         'eco_aiao', 'eco_fs', 'eco_acvim', 'eco_diagnosis', 'eco_treatment',
+
+        'eco_epss', 'eco_lvidd', 'eco_lvids', 'eco_ivsd', 'eco_ivss',
+        'eco_lvpwd', 'eco_lvpws', 'eco_fe',
+        'eco_la_size', 'eco_lv_size', 'eco_rv_size', 'eco_ra_size',
+        'eco_mitral', 'eco_tricuspid', 'eco_aortic', 'eco_pulmonary',
+        'eco_pulmonary_htn', 'eco_pericardium',
+        'eco_doppler', 'eco_observations',
+
+        'rx_vhs', 'rx_vlas', 'rx_heart_size', 'rx_left_atrium',
+        'rx_left_heart', 'rx_right_heart',
+        'rx_pulmonary_vessels', 'rx_lung_pattern',
+        'rx_edema', 'rx_congestion', 'rx_trachea',
+        'rx_observations',
+
         'vaccine_name', 'vaccine_lot', 'vaccine_expiration', 'next_vaccine_date',
         'dewormer_product', 'dewormer_drug', 'dewormer_dose', 'next_deworming_date',
         'reminder_date'
