@@ -518,15 +518,62 @@
                 </div>
             </div>
 
-            <div class="ai-panel">
-                <h2 style="margin:0;color:#1f2937;">🤖 Asistente cardiológico IA</h2>
-                <p>
-                    Próximo paso: analizar ECG + Eco + RX + evolución y generar informe automático para historia clínica y propietario.
-                </p>
-                <a href="#" class="cardio-btn primary" onclick="alert('Próximamente: análisis cardiológico automático.'); return false;">
-                    ❤️ Analizar caso
-                </a>
-            </div>
+<div class="cardio-card">
+    <h2>🤖 Interpretación cardiológica inteligente</h2>
+
+    <div style="border:1px solid #f3c6d8;background:#fff8fb;border-radius:18px;padding:16px;margin-bottom:14px;">
+        <h3 style="margin:0 0 6px 0;">{{ cardio_score_label }}</h3>
+
+        <div style="font-size:34px;font-weight:bold;color:#d85b9a;">
+            {{ cardio_score }}/100
+        </div>
+
+        <p style="margin:8px 0 0 0;color:#4b5563;">
+            {{ cardio_ai_conclusion }}
+        </p>
+    </div>
+
+    {% if cardio_ai_alerts %}
+    <div style="border:1px solid #fecaca;background:#fef2f2;border-radius:16px;padding:14px;margin-bottom:14px;">
+        <h3 style="margin-top:0;">⚠️ Alertas detectadas</h3>
+
+        {% for alert in cardio_ai_alerts %}
+            <p style="margin:6px 0;">• {{ alert }}</p>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% for section in cardio_ai_sections %}
+    <div style="border:1px solid #f3edf1;background:white;border-radius:16px;padding:14px;margin-bottom:12px;">
+
+        <h3>{{ section.title }}</h3>
+
+        {% for item in section.items %}
+            <p style="margin:6px 0;color:#374151;">✔ {{ item }}</p>
+        {% endfor %}
+
+    </div>
+    {% endfor %}
+
+    <div style="border:1px solid #bbf7d0;background:#f0fdf4;border-radius:16px;padding:14px;">
+
+        <h3 style="margin-top:0;">📌 Recomendaciones</h3>
+
+        {% for rec in cardio_ai_recommendations %}
+            <p style="margin:6px 0;">• {{ rec }}</p>
+        {% endfor %}
+
+    </div>
+
+    <a href="/patients/{{ patient.id }}/cardiology"
+       class="cardio-btn primary"
+       style="margin-top:14px;">
+
+        🔄 Analizar nuevamente
+
+    </a>
+
+</div>
         </div>
     </div>
 
