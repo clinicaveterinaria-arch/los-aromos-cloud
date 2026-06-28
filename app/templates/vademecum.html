@@ -1,0 +1,318 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<style>
+    .vade-page {
+        padding: 24px;
+    }
+
+    .vade-header {
+        background: linear-gradient(135deg, #fff8fb, #ffffff);
+        border: 1px solid #f3c6d8;
+        border-radius: 22px;
+        padding: 22px;
+        margin-bottom: 18px;
+        box-shadow: 0 8px 24px rgba(0,0,0,.04);
+    }
+
+    .vade-header h1 {
+        margin: 0 0 8px 0;
+        color: #1f2937;
+    }
+
+    .vade-header p {
+        margin: 0;
+        color: #6b7280;
+    }
+
+    .vade-grid {
+        display: grid;
+        grid-template-columns: 380px 1fr;
+        gap: 18px;
+        align-items: start;
+    }
+
+    .vade-card {
+        background: white;
+        border: 1px solid #f3c6d8;
+        border-radius: 20px;
+        padding: 18px;
+        box-shadow: 0 8px 22px rgba(0,0,0,.04);
+    }
+
+    .vade-card h2 {
+        margin: 0 0 14px 0;
+        color: #1f2937;
+        font-size: 20px;
+    }
+
+    .vade-card label {
+        display: block;
+        font-weight: bold;
+        color: #374151;
+        margin-top: 10px;
+        margin-bottom: 5px;
+        font-size: 13px;
+    }
+
+    .vade-card input,
+    .vade-card select,
+    .vade-card textarea {
+        width: 100%;
+        box-sizing: border-box;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 10px;
+        font-size: 14px;
+        background: #fff;
+    }
+
+    .vade-card textarea {
+        min-height: 70px;
+        resize: vertical;
+    }
+
+    .vade-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 14px;
+    }
+
+    .vade-btn {
+        border: 1px solid #d85b9a;
+        background: #d85b9a;
+        color: white;
+        border-radius: 12px;
+        padding: 10px 14px;
+        font-weight: bold;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .vade-btn.secondary {
+        background: white;
+        color: #d85b9a;
+        border-color: #f3c6d8;
+    }
+
+    .vade-btn.danger {
+        background: #fff1f2;
+        color: #991b1b;
+        border-color: #fecdd3;
+    }
+
+    .filter-row {
+        display: grid;
+        grid-template-columns: 1.4fr 1fr 1fr auto;
+        gap: 10px;
+        margin-bottom: 14px;
+    }
+
+    .drug-list {
+        display: grid;
+        gap: 12px;
+    }
+
+    .drug-card {
+        border: 1px solid #f1d6e2;
+        background: #fff;
+        border-radius: 18px;
+        padding: 15px;
+    }
+
+    .drug-title {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: start;
+        margin-bottom: 8px;
+    }
+
+    .drug-title h3 {
+        margin: 0;
+        color: #1f2937;
+        font-size: 19px;
+    }
+
+    .drug-title span {
+        display: inline-block;
+        background: #fff0f7;
+        color: #d85b9a;
+        border: 1px solid #f3c6d8;
+        border-radius: 999px;
+        padding: 4px 9px;
+        font-size: 12px;
+        font-weight: bold;
+        white-space: nowrap;
+    }
+
+    .drug-meta {
+        color: #6b7280;
+        font-size: 13px;
+        margin-bottom: 10px;
+    }
+
+    .drug-section {
+        margin-top: 8px;
+        color: #374151;
+        font-size: 14px;
+        line-height: 1.45;
+    }
+
+    .drug-section b {
+        color: #1f2937;
+    }
+
+    .empty-box {
+        background: #f8fafc;
+        border: 1px dashed #cbd5e1;
+        color: #6b7280;
+        border-radius: 18px;
+        padding: 18px;
+        text-align: center;
+    }
+
+    @media (max-width: 1100px) {
+        .vade-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .filter-row {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="vade-page">
+
+    <div class="vade-header">
+        <h1>💊 Vademécum inteligente</h1>
+        <p>Buscá medicamentos por nombre comercial, principio activo, especie, categoría o indicación clínica.</p>
+    </div>
+
+    <div class="vade-grid">
+
+        <div class="vade-card">
+            <h2>➕ Agregar medicamento</h2>
+
+            <form method="post" action="/vademecum">
+                <label>Nombre comercial</label>
+                <input name="commercial_name" placeholder="Ej: Convenia, Meloxicam, Total Full">
+
+                <label>Principio activo</label>
+                <input name="active_ingredient" placeholder="Ej: Cefovecina, Meloxicam, Praziquantel">
+
+                <label>Categoría</label>
+                <input name="category" placeholder="Antibiótico, AINE, antiparasitario...">
+
+                <label>Especie</label>
+                <input name="species" placeholder="Canino, Felino, ambos">
+
+                <label>Dosis</label>
+                <textarea name="dose" placeholder="Ej: 0,2 mg/kg inicial; luego 0,1 mg/kg cada 24 hs"></textarea>
+
+                <label>Vía</label>
+                <input name="route" placeholder="VO, SC, IM, EV, tópica">
+
+                <label>Frecuencia</label>
+                <input name="frequency" placeholder="Cada 12 hs, cada 24 hs, dosis única...">
+
+                <label>Indicaciones</label>
+                <textarea name="indications" placeholder="Usos clínicos habituales"></textarea>
+
+                <label>Contraindicaciones / precauciones</label>
+                <textarea name="contraindications" placeholder="No usar en..., precaución en..."></textarea>
+
+                <label>Observaciones clínicas</label>
+                <textarea name="observations" placeholder="Notas propias de la clínica"></textarea>
+
+                <div class="vade-actions">
+                    <button type="submit" class="vade-btn">💾 Guardar medicamento</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="vade-card">
+            <h2>🔎 Buscar en vademécum</h2>
+
+            <form method="get" action="/vademecum" class="filter-row">
+                <input name="q" value="{{ q or '' }}" placeholder="Buscar medicamento, droga o indicación">
+
+                <select name="category">
+                    <option value="">Todas las categorías</option>
+                    {% for c in categories %}
+                        <option value="{{ c }}" {% if category == c %}selected{% endif %}>{{ c }}</option>
+                    {% endfor %}
+                </select>
+
+                <select name="species">
+                    <option value="">Todas las especies</option>
+                    {% for s in species_options %}
+                        <option value="{{ s }}" {% if species == s %}selected{% endif %}>{{ s }}</option>
+                    {% endfor %}
+                </select>
+
+                <button type="submit" class="vade-btn">Buscar</button>
+            </form>
+
+            <div class="drug-list">
+                {% if drugs %}
+                    {% for d in drugs %}
+                        <div class="drug-card">
+                            <div class="drug-title">
+                                <div>
+                                    <h3>{{ d.commercial_name or 'Sin nombre comercial' }}</h3>
+                                    <div class="drug-meta">
+                                        <b>Principio activo:</b> {{ d.active_ingredient or '-' }}
+                                    </div>
+                                </div>
+                                <span>{{ d.category or 'Sin categoría' }}</span>
+                            </div>
+
+                            <div class="drug-meta">
+                                <b>Especie:</b> {{ d.species or '-' }} |
+                                <b>Vía:</b> {{ d.route or '-' }} |
+                                <b>Frecuencia:</b> {{ d.frequency or '-' }}
+                            </div>
+
+                            {% if d.dose %}
+                                <div class="drug-section"><b>Dosis:</b><br>{{ d.dose }}</div>
+                            {% endif %}
+
+                            {% if d.indications %}
+                                <div class="drug-section"><b>Indicaciones:</b><br>{{ d.indications }}</div>
+                            {% endif %}
+
+                            {% if d.contraindications %}
+                                <div class="drug-section"><b>Contraindicaciones / precauciones:</b><br>{{ d.contraindications }}</div>
+                            {% endif %}
+
+                            {% if d.observations %}
+                                <div class="drug-section"><b>Observaciones:</b><br>{{ d.observations }}</div>
+                            {% endif %}
+
+                            <form method="post"
+                                  action="/vademecum/{{ d.id }}/delete"
+                                  onsubmit="return confirm('¿Eliminar este medicamento del vademécum?');"
+                                  style="margin-top:12px;">
+                                <button type="submit" class="vade-btn danger">🗑 Eliminar</button>
+                            </form>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-box">
+                        Todavía no hay medicamentos cargados o no hubo resultados para esa búsqueda.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}
