@@ -2033,7 +2033,8 @@ def event_detail(
     'request': request,
     'patient': patient,
     'event': event,
-    'previous_ecg': previous_ecg
+    'previous_ecg': previous_ecg,
+    'clinical_ai': ai_clinical_summary(event)
 }
     )
 @app.post('/patients/{patient_id}/events/{event_id}/delete')
