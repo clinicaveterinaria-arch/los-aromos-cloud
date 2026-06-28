@@ -87,6 +87,27 @@
     padding:18px;display:grid;gap:10px;
 }
 .ai-panel p{margin:0;color:#6b7280;line-height:1.45;}
+.ai-smart-card{
+    background:linear-gradient(135deg,#fff7fb,#ffffff);border:1px solid #f3c6d8;border-radius:24px;
+    padding:22px;box-shadow:0 8px 26px rgba(0,0,0,.05);margin-bottom:18px;
+}
+.ai-smart-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;flex-wrap:wrap;margin-bottom:14px;}
+.ai-smart-head h2{margin:0;color:#1f2937;}
+.ai-smart-head p{margin:5px 0 0 0;color:#6b7280;line-height:1.4;}
+.ai-smart-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:12px;}
+.ai-smart-section{border:1px solid #f3edf1;background:white;border-radius:18px;padding:14px;}
+.ai-smart-section h3{margin:0 0 10px 0;color:#1f2937;font-size:17px;}
+.ai-line{display:flex;gap:8px;align-items:flex-start;border-top:1px solid #f9e5ee;padding-top:8px;margin-top:8px;color:#374151;line-height:1.35;}
+.ai-line:first-of-type{border-top:0;padding-top:0;margin-top:0;}
+.ai-dot{width:24px;height:24px;border-radius:999px;background:#f0fdf4;color:#16a34a;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:bold;flex:0 0 auto;}
+.ai-dot.warn{background:#fffbeb;color:#d97706;}
+.ai-dot.danger{background:#fef2f2;color:#dc2626;}
+.ai-dot.neutral{background:#f3f4f6;color:#6b7280;}
+.ai-note{border:1px solid #f3c6d8;background:#fff8fb;border-radius:16px;padding:12px;color:#374151;line-height:1.45;white-space:pre-wrap;}
+.ai-alerts{display:grid;gap:8px;margin-top:12px;}
+.ai-alert{border:1px solid #fde68a;background:#fffbeb;border-radius:14px;padding:10px 12px;color:#92400e;line-height:1.35;}
+.ai-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;}
+
 @media(max-width:1050px){.cardio-hero,.cardio-grid{grid-template-columns:1fr;}.cardio-actions{justify-content:flex-start;}}
 @media(max-width:720px){.event-row{grid-template-columns:1fr;}.cardio-page{padding:16px;}.quick-grid{grid-template-columns:1fr;}}
 </style>
@@ -192,6 +213,124 @@
                 <b>{% if next_control and next_control.reminder_date %}{{ next_control.reminder_date.strftime('%d/%m/%Y') }}{% else %}-{% endif %}</b>
             </div>
         </div>
+    </div>
+
+
+
+    <div class="ai-smart-card" id="interpretacion-ia">
+        <div class="ai-smart-head">
+            <div>
+                <h2>🤖 Interpretación Inteligente</h2>
+                <p>Análisis automático orientativo de ECG + ecocardiografía + RX + evolución. Siempre queda sujeto a criterio profesional.</p>
+            </div>
+            <a href="#interpretacion-ia" class="cardio-btn primary" onclick="alert('Análisis actualizado con los datos cardiológicos cargados hasta ahora.'); return false;">🔄 Analizar nuevamente</a>
+        </div>
+
+        {% if last_ecg or last_eco or last_rx %}
+            <div class="ai-smart-grid">
+                <div class="ai-smart-section">
+                    <h3>💗 ECG</h3>
+                    <div class="ai-line">
+                        <span class="ai-dot {% if not last_ecg %}neutral{% endif %}">✓</span>
+                        <div><b>Ritmo:</b> {% if last_ecg %}{{ last_ecg.ecg_rhythm or 'sin ritmo cargado' }}{% else %}sin ECG cargado{% endif %}</div>
+                    </div>
+                    <div class="ai-line">
+                        <span class="ai-dot {% if not last_ecg or not last_ecg.ecg_hr %}neutral{% elif last_ecg.ecg_hr|int > 180 or last_ecg.ecg_hr|int < 60 %}warn{% endif %}">✓</span>
+                        <div><b>Frecuencia:</b> {% if last_ecg and last_ecg.ecg_hr %}{{ last_ecg.ecg_hr }} lpm{% else %}pendiente{% endif %}</div>
+                    </div>
+                    <div class="ai-line">
+                        <span class="ai-dot {% if not last_ecg %}neutral{% endif %}">✓</span>
+                        <div><b>Eje:</b> {% if last_ecg and last_ecg.ecg_axis %}{{ last_ecg.ecg_axis }}°{% else %}pendiente{% endif %}</div>
+                    </div>
+                    <div class="ai-line">
+                        <span class="ai-dot neutral">•</span>
+                        <div><b>Lectura:</b> {% if last_ecg %}Interpretar junto con auscultación, RX y eco. No reemplaza la evaluación clínica.{% else %}Cargar un ECG para generar interpretación.{% endif %}</div>
+                    </div>
+                </div>
+
+                <div class="ai-smart-section">
+                    <h3>🫀 Ecocardiografía</h3>
+                    <div class="ai-line">
+                        <span class="ai-dot {% if not last_eco or not last_eco.eco_aiao %}neutral{% elif last_eco.eco_aiao|float >= 1.6 %}warn{% endif %}">✓</span>
+                        <div><b>AI/Ao:</b> {% if last_eco and last_eco.eco_aiao %}{{ last_eco.eco_aiao }}{% else %}pendiente{% endif %}</div>
+                    </div>
+                    <div class="ai-line">
+                        <span class="ai-dot {% if not last_eco or not last_eco.eco_fs %}neutral{% endif %}">✓</span>
+                        <div><b>FS:</b> {% if last_eco and last_eco.eco_fs %}{{ last_eco.eco_fs }}%{% else %}pendiente{% endif %}</div>
+                    </div>
+                    <div class="ai-line">
+                        <span class="ai-dot {% if not last_eco or not last_eco.eco_acvim %}neutral{% endif %}">✓</span>
+                        <div><b>ACVIM:</b> {% if last_eco and last_eco.eco_acvim %}{{ last_eco.eco_acvim }}{% else %}pendiente{% endif %}</div>
+                    </div>
+                    <div class="ai-line">
+                        <span class="ai-dot neutral">•</span>
+                        <div><b>Lectura:</b> {% if last_eco %}Valorar progresión según AI/Ao, FS, signos de remodelación y clínica.{% else %}Cargar ecocardiografía para estratificar mejor el caso.{% endif %}</div>
+                    </div>
+                </div>
+
+                <div class="ai-smart-section">
+                    <h3>📷 Radiografía</h3>
+                    <div class="ai-line">
+                        <span class="ai-dot {% if not last_rx %}neutral{% endif %}">✓</span>
+                        <div><b>Última RX:</b> {% if last_rx %}{{ last_rx.event_date.strftime('%d/%m/%Y') }}{% else %}sin RX cardíaca{% endif %}</div>
+                    </div>
+                    <div class="ai-line">
+                        <span class="ai-dot neutral">•</span>
+                        <div><b>Evaluar:</b> VHS, aurícula izquierda, vasos pulmonares, patrón pulmonar y signos de congestión/edema.</div>
+                    </div>
+                    <div class="ai-line">
+                        <span class="ai-dot neutral">•</span>
+                        <div><b>Comentario:</b> {% if last_rx %}{{ last_rx.title or last_rx.description or 'Revisar imágenes y descripción cargada.' }}{% else %}Pendiente de cargar o vincular RX cardíaca.{% endif %}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ai-smart-grid" style="margin-top:12px;">
+                <div class="ai-smart-section">
+                    <h3>📌 Conclusión IA</h3>
+                    <div class="ai-note">
+{% if ai_cardio_summary %}{{ ai_cardio_summary }}{% elif last_eco and last_eco.eco_acvim %}Caso cardiológico con estadio ACVIM {{ last_eco.eco_acvim }} según último registro cargado. Correlacionar con signos clínicos, auscultación, presión arterial, radiografía y evolución.{% elif last_ecg or last_eco or last_rx %}Hay datos cardiológicos cargados, pero todavía falta completar la integración automática completa desde main.py.{% else %}Sin datos suficientes para emitir conclusión.{% endif %}
+                    </div>
+                </div>
+
+                <div class="ai-smart-section">
+                    <h3>💊 Tratamiento sugerido</h3>
+                    <div class="ai-note">
+{% if ai_cardio_treatment %}{{ ai_cardio_treatment }}{% elif active_treatment %}{{ active_treatment }}{% else %}Pendiente. Definir según estadio ACVIM, presencia de signos clínicos, presión arterial, función renal, electrolitos y criterio profesional.{% endif %}
+                    </div>
+                </div>
+
+                <div class="ai-smart-section">
+                    <h3>🧭 Próximos pasos</h3>
+                    <div class="ai-note">
+{% if ai_cardio_plan %}{{ ai_cardio_plan }}{% else %}Completar datos faltantes, revisar tendencia de controles previos y programar próximo control cardiológico según evolución clínica.{% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="ai-alerts">
+                {% if fc_delta is not none and fc_delta|int > 25 %}
+                    <div class="ai-alert">⚠ La frecuencia cardíaca aumentó {{ fc_delta|int }} lpm respecto del control previo.</div>
+                {% endif %}
+                {% if aiao_delta is not none and aiao_delta|float > 0 %}
+                    <div class="ai-alert">⚠ El AI/Ao aumentó {{ aiao_delta }} respecto del estudio anterior.</div>
+                {% endif %}
+                {% if fs_delta is not none and fs_delta|float < 0 %}
+                    <div class="ai-alert">⚠ La FS disminuyó {{ fs_delta }} respecto del estudio anterior.</div>
+                {% endif %}
+                {% if last_ecg and not last_eco %}
+                    <div class="ai-alert">⚠ Hay ECG cargado, pero falta ecocardiografía para una interpretación cardiológica más completa.</div>
+                {% endif %}
+                {% if last_eco and not last_rx %}
+                    <div class="ai-alert">⚠ Hay ecocardiografía cargada, pero falta RX cardíaca para valorar congestión pulmonar.</div>
+                {% endif %}
+            </div>
+        {% else %}
+            <div class="empty-card">
+                <h3>No hay datos suficientes para analizar</h3>
+                <p>Cargá un ECG, ecocardiografía o RX cardíaca y este panel empezará a interpretar el caso automáticamente.</p>
+            </div>
+        {% endif %}
     </div>
 
     <div class="cardio-grid">
