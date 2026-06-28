@@ -1809,6 +1809,16 @@ def patient_cardiology(
         comparison_notes.append(
             "Todavía no hay controles suficientes para comparar la evolución."
         )
+
+    cardio_ai = build_cardio_ai(
+        last_ecg,
+        previous_ecg,
+        last_eco,
+        previous_eco,
+        last_rx,
+        previous_rx
+    )
+
     return templates.TemplateResponse(
         "patient_cardiology.html",
         {
