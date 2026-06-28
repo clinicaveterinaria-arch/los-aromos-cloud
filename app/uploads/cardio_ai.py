@@ -85,17 +85,14 @@ class CardioAI:
     def add_section(self, title, items):
 
         self.sections.append(
-
             AISection(
-
                 title=title,
-
                 items=items
-
             )
-
         )
-    def analyze_ecg(event, ai):
+
+
+def analyze_ecg(event, ai):
 
     if event is None:
 
