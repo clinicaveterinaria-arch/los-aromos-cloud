@@ -153,7 +153,7 @@
             <a href="/patients/{{ patient.id }}" class="cardio-btn">← Volver a HC</a>
             <a href="/patients/{{ patient.id }}/cardiology/ecg" class="cardio-btn">📈 ECG</a>
             <a href="/patients/{{ patient.id }}/print" target="_blank" class="cardio-btn">🖨️ Imprimir</a>
-            <a href="#" class="cardio-btn primary" onclick="alert('Próximamente: análisis cardiológico automático.'); return false;">🤖 Analizar caso</a>
+            <a href="#ia-cardiologica" class="cardio-btn primary">🤖 Ver análisis IA</a>
         </div>
     </div>
 
@@ -282,40 +282,6 @@
                 </details>
             </div>
 
-        </div>
-    </div>
-
-    <div class="cardio-card">
-        <h2>🤖 Estabilidad cardiológica inteligente</h2>
-        <div class="ai-score-wrap">
-            <div class="ai-score-circle">
-                <div>
-                    {% if cardio_score is defined %}
-                        <b>{{ cardio_score }}</b>
-                        <span>/ 100</span>
-                    {% else %}
-                        <b>—</b>
-                        <span>pendiente</span>
-                    {% endif %}
-                </div>
-            </div>
-            <div>
-                <h3 style="margin-top:0;">Lectura rápida</h3>
-                {% if cardio_score_label is defined %}
-                    <p style="color:#374151;line-height:1.45;"><b>{{ cardio_score_label }}</b></p>
-                {% else %}
-                    <p style="color:#374151;line-height:1.45;">
-                        La puntuación automática se activará en el próximo bloque, cuando conectemos el motor clínico.
-                        Ya queda reservado el espacio para valorar estabilidad, riesgo y tendencia.
-                    </p>
-                {% endif %}
-                <div class="ai-mini-grid">
-                    <div class="ai-mini-card">🟢 85–100: estable</div>
-                    <div class="ai-mini-card">🟡 60–84: seguimiento</div>
-                    <div class="ai-mini-card">🟠 40–59: riesgo moderado</div>
-                    <div class="ai-mini-card">🔴 0–39: alto riesgo</div>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -518,22 +484,22 @@
                 </div>
             </div>
 
-<div class="cardio-card">
+<div class="cardio-card" id="ia-cardiologica">
     <h2>🤖 Interpretación cardiológica inteligente</h2>
 
     <div style="border:1px solid #f3c6d8;background:#fff8fb;border-radius:18px;padding:16px;margin-bottom:14px;">
-        <h3 style="margin:0 0 6px 0;">{{ cardio_score_label }}</h3>
+        <h3 style="margin:0 0 6px 0;">{{ cardio_score_label if cardio_score_label is defined else 'Pendiente' }}</h3>
 
         <div style="font-size:34px;font-weight:bold;color:#d85b9a;">
-            {{ cardio_score }}/100
+            {{ cardio_score if cardio_score is defined else '—' }}/100
         </div>
 
         <p style="margin:8px 0 0 0;color:#4b5563;">
-            {{ cardio_ai_conclusion }}
+            {{ cardio_ai_conclusion if cardio_ai_conclusion is defined else 'El análisis inteligente se mostrará cuando el backend envíe los datos.' }}
         </p>
     </div>
 
-    {% if cardio_ai_alerts %}
+    {% if cardio_ai_alerts is defined and cardio_ai_alerts %}
     <div style="border:1px solid #fecaca;background:#fef2f2;border-radius:16px;padding:14px;margin-bottom:14px;">
         <h3 style="margin-top:0;">⚠️ Alertas detectadas</h3>
 
@@ -543,12 +509,12 @@
     </div>
     {% endif %}
 
-    {% for section in cardio_ai_sections %}
+    {% for section in (cardio_ai_sections if cardio_ai_sections is defined else []) %}
     <div style="border:1px solid #f3edf1;background:white;border-radius:16px;padding:14px;margin-bottom:12px;">
 
         <h3>{{ section["title"] }}</h3>
 
-        {% for item in section.items %}
+        {% for item in section["items"] %}
             <p style="margin:6px 0;color:#374151;">✔ {{ item }}</p>
         {% endfor %}
 
@@ -559,7 +525,7 @@
 
         <h3 style="margin-top:0;">📌 Recomendaciones</h3>
 
-        {% for rec in cardio_ai_recommendations %}
+        {% for rec in (cardio_ai_recommendations if cardio_ai_recommendations is defined else []) %}
             <p style="margin:6px 0;">• {{ rec }}</p>
         {% endfor %}
 
