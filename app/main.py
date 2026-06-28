@@ -1328,6 +1328,205 @@ def patient_ecg_list(
             'ecg_events': ecg_events
         }
     )
+def build_cardio_ai(last_ecg, previous_ecg, last_eco, previous_eco, last_rx, previous_rx):
+    def to_float(value):
+        try:
+            if value is None:
+                return None
+            value = str(value).replace(",", ".").strip()
+            if not value:
+                return None
+            return float(value)
+        except Exception:
+            return None
+
+    score = 100
+    alerts = []
+    sections = []
+    recommendations = []
+
+    hr = to_float(getattr(last_ecg, "ecg_hr", None)) if last_ecg else None
+    axis = to_float(getattr(last_ecg, "ecg_axis", None)) if last_ecg else None
+    rhythm = ((getattr(last_ecg, "ecg_rhythm", "") or "") + " " + (getattr(last_ecg, "ecg_arrhythmia", "") or "")).lower() if last_ecg else ""
+
+    aiao = to_float(getattr(last_eco, "eco_aiao", None)) if last_eco else None
+    fs = to_float(getattr(last_eco, "eco_fs", None)) if last_eco else None
+    epss = to_float(getattr(last_eco, "eco_epss", None)) if last_eco else None
+    fe = to_float(getattr(last_eco, "eco_fe", None)) if last_eco else None
+    acvim = (getattr(last_eco, "eco_acvim", "") or "").upper() if last_eco else ""
+
+    vhs = to_float(getattr(last_rx, "rx_vhs", None)) if last_rx else None
+    vlas = to_float(getattr(last_rx, "rx_vlas", None)) if last_rx else None
+    rx_text = " ".join([
+        getattr(last_rx, "rx_edema", "") or "",
+        getattr(last_rx, "rx_congestion", "") or "",
+        getattr(last_rx, "rx_pulmonary_vessels", "") or "",
+        getattr(last_rx, "rx_lung_pattern", "") or "",
+        getattr(last_rx, "rx_observations", "") or "",
+        getattr(last_rx, "description", "") or "",
+    ]).lower() if last_rx else ""
+
+    if last_ecg:
+        ecg_notes = []
+
+        if hr is not None:
+            if hr > 180:
+                score -= 10
+                ecg_notes.append(f"FC elevada ({hr:g} lpm).")
+                alerts.append("FC elevada en el último ECG.")
+            elif hr < 60:
+                score -= 10
+                ecg_notes.append(f"FC baja ({hr:g} lpm).")
+                alerts.append("FC baja en el último ECG.")
+            else:
+                ecg_notes.append(f"FC dentro de rango clínico orientativo ({hr:g} lpm).")
+
+        if "fibril" in rhythm or "bloqueo" in rhythm or "taqui" in rhythm or "extra" in rhythm:
+            score -= 12
+            ecg_notes.append("Se describe arritmia o alteración de conducción.")
+            alerts.append("Revisar arritmia/conducción descrita en ECG.")
+        elif rhythm.strip():
+            ecg_notes.append("Ritmo sin alteraciones mayores descritas.")
+
+        if axis is not None:
+            if axis < 40 or axis > 100:
+                score -= 6
+                ecg_notes.append(f"Eje eléctrico fuera del rango esperado ({axis:g}°).")
+            else:
+                ecg_notes.append(f"Eje eléctrico conservado ({axis:g}°).")
+
+        sections.append({"title": "ECG", "items": ecg_notes or ["ECG cargado sin datos suficientes para interpretación automática."]})
+    else:
+        score -= 8
+        sections.append({"title": "ECG", "items": ["Sin ECG cargado."]})
+
+    if last_eco:
+        eco_notes = []
+
+        if aiao is not None:
+            if aiao >= 1.9:
+                score -= 18
+                eco_notes.append(f"AI/Ao aumentado de forma importante ({aiao:g}).")
+                alerts.append("AI/Ao elevado: sugiere dilatación auricular izquierda.")
+            elif aiao >= 1.6:
+                score -= 10
+                eco_notes.append(f"AI/Ao aumentado ({aiao:g}).")
+            else:
+                eco_notes.append(f"AI/Ao dentro de rango orientativo ({aiao:g}).")
+
+        if fs is not None:
+            if fs < 20:
+                score -= 18
+                eco_notes.append(f"FS baja ({fs:g}%). Posible disfunción sistólica.")
+                alerts.append("FS baja: revisar función sistólica.")
+            elif fs > 45:
+                eco_notes.append(f"FS aumentada/hiperdinámica ({fs:g}%).")
+            else:
+                eco_notes.append(f"FS conservada ({fs:g}%).")
+
+        if epss is not None:
+            if epss > 7:
+                score -= 8
+                eco_notes.append(f"EPSS aumentado ({epss:g} mm).")
+            else:
+                eco_notes.append(f"EPSS sin aumento relevante ({epss:g} mm).")
+
+        if fe is not None:
+            if fe < 45:
+                score -= 12
+                eco_notes.append(f"FE disminuida ({fe:g}%).")
+            else:
+                eco_notes.append(f"FE conservada ({fe:g}%).")
+
+        if acvim:
+            if acvim == "B2":
+                score -= 12
+                eco_notes.append("Clasificación ACVIM B2: requiere seguimiento cardiológico.")
+            elif acvim in ["C", "D"]:
+                score -= 25
+                eco_notes.append(f"Clasificación ACVIM {acvim}: paciente de control estricto.")
+                alerts.append(f"ACVIM {acvim}: riesgo cardiológico elevado.")
+
+        sections.append({"title": "Ecocardiografía", "items": eco_notes or ["Eco cargada sin datos suficientes para interpretación automática."]})
+    else:
+        score -= 8
+        sections.append({"title": "Ecocardiografía", "items": ["Sin ecocardiografía cargada."]})
+
+    if last_rx:
+        rx_notes = []
+
+        if vhs is not None:
+            if vhs > 11.5:
+                score -= 10
+                rx_notes.append(f"VHS aumentado ({vhs:g}). Compatible con cardiomegalia.")
+                alerts.append("VHS elevado en RX.")
+            else:
+                rx_notes.append(f"VHS sin aumento relevante ({vhs:g}).")
+
+        if vlas is not None:
+            if vlas > 3:
+                score -= 8
+                rx_notes.append(f"VLAS aumentado ({vlas:g}). Sugiere aumento auricular izquierdo.")
+            else:
+                rx_notes.append(f"VLAS sin aumento relevante ({vlas:g}).")
+
+        if "edema" in rx_text:
+            score -= 20
+            rx_notes.append("Se menciona edema pulmonar.")
+            alerts.append("RX con mención de edema pulmonar.")
+        if "congest" in rx_text:
+            score -= 12
+            rx_notes.append("Se menciona congestión vascular/pulmonar.")
+        if "normal" in rx_text and not rx_notes:
+            rx_notes.append("RX descrita sin alteraciones cardiopulmonares relevantes.")
+
+        sections.append({"title": "Radiografía", "items": rx_notes or ["RX cargada sin datos suficientes para interpretación automática."]})
+    else:
+        sections.append({"title": "Radiografía", "items": ["Sin RX cardíaca cargada."]})
+
+    if aiao is not None and vhs is not None:
+        if aiao >= 1.6 and vhs <= 11.5:
+            alerts.append("Eco sugiere AI aumentada, pero VHS no acompaña: revisar concordancia RX/Eco.")
+        if aiao < 1.6 and vhs > 11.5:
+            alerts.append("VHS elevado con AI/Ao normal: revisar otras causas de cardiomegalia.")
+
+    if acvim in ["C", "D"] or "edema" in rx_text:
+        recommendations.append("Control cardiológico estricto y reevaluar signos de insuficiencia cardíaca congestiva.")
+    elif acvim == "B2" or (aiao is not None and aiao >= 1.6):
+        recommendations.append("Seguimiento cardiológico periódico y control ecocardiográfico.")
+    else:
+        recommendations.append("Continuar controles periódicos según evolución clínica.")
+
+    if not last_ecg:
+        recommendations.append("Cargar ECG para completar interpretación eléctrica.")
+    if not last_eco:
+        recommendations.append("Cargar ecocardiografía para estadificación cardiológica.")
+    if not last_rx:
+        recommendations.append("Cargar RX torácica/cardiológica si hay tos, disnea, soplo o sospecha de congestión.")
+
+    score = max(0, min(100, int(score)))
+
+    if score >= 85:
+        label = "🟢 Estable"
+        conclusion = "Paciente cardiológicamente estable con los datos disponibles."
+    elif score >= 60:
+        label = "🟡 Requiere seguimiento"
+        conclusion = "Paciente con hallazgos que justifican seguimiento cardiológico."
+    elif score >= 40:
+        label = "🟠 Riesgo moderado"
+        conclusion = "Paciente con alteraciones cardiológicas relevantes; conviene control cercano."
+    else:
+        label = "🔴 Alto riesgo"
+        conclusion = "Paciente con indicadores de alto riesgo cardiológico o posible descompensación."
+
+    return {
+        "score": score,
+        "label": label,
+        "conclusion": conclusion,
+        "sections": sections,
+        "alerts": alerts,
+        "recommendations": recommendations,
+    }
 @app.get('/patients/{patient_id}/cardiology', response_class=HTMLResponse)
 def patient_cardiology(
     request: Request,
