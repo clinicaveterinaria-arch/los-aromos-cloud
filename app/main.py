@@ -1168,6 +1168,10 @@ def patient_detail(request: Request, patient_id: int, db: Session = Depends(get_
         .order_by(ClinicalEvent.reminder_date.asc())
         .limit(5)
         .all()
+    clinical_ai = {}
+
+    for event in events:
+        clinical_ai[event.id] = ai_clinical_summary(event)    
     )
 
     last_anesthesia = (
