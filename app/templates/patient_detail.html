@@ -351,15 +351,49 @@
                 </div>
 
                 <div id="deworming-box" class="soft-box" style="display:none;">
-                    <h4>🪱 Desparasitación</h4>
-                    <input name="dewormer_product" list="dewormers_list" placeholder="Producto / marca comercial">
+                    <h4>🪱 Desparasitaciones inteligentes</h4>
+
+                    <div class="smart-input-row">
+                        <input name="dewormer_product" id="dewormer_product" list="dewormers_list" placeholder="Producto / marca comercial">
+                        <button type="button" class="smart-plus-btn" onclick="addDewormerOption('dewormer_product')">＋ Nuevo</button>
+                    </div>
+
                     <datalist id="dewormers_list">
-                        <option value="Total Full CG"><option value="Total Full suspensión"><option value="Aprax suspensión"><option value="Levamisol"><option value="Trivermex suspensión"><option value="Meltra Spot On"><option value="Feline Full Spot"><option value="Feline Endo Spot"><option value="Total Full LC"><option value="Aprax"><option value="Endofour"><option value="Trivermex"><option value="Meltra Gold"><option value="Apto"><option value="Moxidex Plus">
+                        {% if dewormer_names is defined and dewormer_names %}
+                            {% for d in dewormer_names %}
+                                <option value="{{ d }}">
+                            {% endfor %}
+                        {% else %}
+                            <option value="Total Full CG">
+                            <option value="Total Full suspensión">
+                            <option value="Aprax suspensión">
+                            <option value="Levamisol">
+                            <option value="Trivermex suspensión">
+                            <option value="Meltra Spot On">
+                            <option value="Feline Full Spot">
+                            <option value="Feline Endo Spot">
+                            <option value="Total Full LC">
+                            <option value="Aprax">
+                            <option value="Endofour">
+                            <option value="Trivermex">
+                            <option value="Meltra Gold">
+                            <option value="Apto">
+                            <option value="Moxidex Plus">
+                        {% endif %}
                     </datalist>
+
+                    <p class="smart-help">Si agregás un desparasitario nuevo con ＋ Nuevo y guardás el evento, después aparecerá automáticamente en la lista.</p>
+
                     <input name="dewormer_drug" placeholder="Principio activo" style="margin-top:10px;">
                     <input name="dewormer_dose" placeholder="Dosis / indicación" style="margin-top:10px;">
-                                        <input type="date" name="next_deworming_date" id="next_deworming_date" style="margin-top:10px;">
-                    <div class="quick-buttons"><button type="button" onclick="setNextDewormingDays(21)">+21 días</button><button type="button" onclick="setNextDewormingDays(30)">+30 días</button><button type="button" onclick="setNextDewormingMonths(3)">+3 meses</button><button type="button" onclick="setNextDewormingMonths(6)">+6 meses</button></div>
+                    <input type="date" name="next_deworming_date" id="next_deworming_date" style="margin-top:10px;">
+
+                    <div class="quick-buttons">
+                        <button type="button" onclick="setNextDewormingDays(21)">+21 días</button>
+                        <button type="button" onclick="setNextDewormingDays(30)">+30 días</button>
+                        <button type="button" onclick="setNextDewormingMonths(3)">+3 meses</button>
+                        <button type="button" onclick="setNextDewormingMonths(6)">+6 meses</button>
+                    </div>
                 </div>
 
                 <div id="ecg-box" class="soft-box" style="display:none;">
@@ -583,6 +617,33 @@ function setEventType(type) {
     if (!selector) return;
     selector.value = type;
     selector.dispatchEvent(new Event('change'));
+}
+function addDewormerOption(targetInputId) {
+    const input = document.getElementById(targetInputId);
+    const list = document.getElementById('dewormers_list');
+
+    if (!input || !list) return;
+
+    let value = prompt('Nombre del nuevo desparasitario:');
+
+    if (!value) return;
+
+    value = value.trim();
+
+    if (!value) return;
+
+    const exists = Array.from(list.options).some(
+        option => option.value.toLowerCase() === value.toLowerCase()
+    );
+
+    if (!exists) {
+        const option = document.createElement('option');
+        option.value = value;
+        list.appendChild(option);
+    }
+
+    input.value = value;
+    input.focus();
 }
 function addVaccineOption(targetInputId) {
     const input = document.getElementById(targetInputId);
