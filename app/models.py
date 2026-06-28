@@ -5,24 +5,26 @@ from typing import Optional
 from sqlalchemy import String, Text, Date, DateTime, Float, ForeignKey, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .database import Base
-# =====================================
-# Zona horaria Argentina
-# =====================================
 
 ARG_TZ = ZoneInfo("America/Argentina/Buenos_Aires")
 
 def argentina_now():
     return datetime.now(ARG_TZ)
+
+
 class User(Base):
     __tablename__ = 'users'
+
     id: Mapped[int] = mapped_column(primary_key=True)
     username: Mapped[str] = mapped_column(String(80), unique=True, index=True)
     password_hash: Mapped[str] = mapped_column(String(255))
     full_name: Mapped[str] = mapped_column(String(120), default='')
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
+
 class Owner(Base):
     __tablename__ = 'owners'
+
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(180), index=True)
     phone: Mapped[str] = mapped_column(String(80), default='', index=True)
@@ -31,10 +33,13 @@ class Owner(Base):
     address: Mapped[str] = mapped_column(String(255), default='')
     notes: Mapped[str] = mapped_column(Text, default='')
     created_at: Mapped[datetime] = mapped_column(DateTime, default=argentina_now)
+
     patients: Mapped[list['Patient']] = relationship(back_populates='owner')
+
 
 class Patient(Base):
     __tablename__ = 'patients'
+
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(140), index=True)
     species: Mapped[str] = mapped_column(String(80), default='')
@@ -46,9 +51,14 @@ class Patient(Base):
     microchip: Mapped[str] = mapped_column(String(100), default='')
     alerts: Mapped[str] = mapped_column(Text, default='')
     notes: Mapped[str] = mapped_column(Text, default='')
+
     owner_id: Mapped[int] = mapped_column(ForeignKey('owners.id'))
     owner: Mapped['Owner'] = relationship(back_populates='patients')
-    events: Mapped[list['ClinicalEvent']] = relationship(back_populates='patient', order_by='desc(ClinicalEvent.event_date)')
+    events: Mapped[list['ClinicalEvent']] = relationship(
+        back_populates='patient',
+        order_by='desc(ClinicalEvent.event_date)'
+    )
+
 
 class ClinicalEvent(Base):
     __tablename__ = 'clinical_events'
@@ -72,41 +82,99 @@ class ClinicalEvent(Base):
     mucous_membranes: Mapped[str] = mapped_column(String(100), default='')
     crt: Mapped[str] = mapped_column(String(50), default='')
     hydration: Mapped[str] = mapped_column(String(100), default='')
+    anamnesis: Mapped[str] = mapped_column(Text, default='')
+    physical_exam: Mapped[str] = mapped_column(Text, default='')
+
+    # =========================
+    # ECG
+    # =========================
     ecg_hr: Mapped[str] = mapped_column(String(50), default='')
     ecg_rhythm: Mapped[str] = mapped_column(String(100), default='')
-
     ecg_p: Mapped[str] = mapped_column(String(50), default='')
     ecg_pr: Mapped[str] = mapped_column(String(50), default='')
-
     ecg_qrs: Mapped[str] = mapped_column(String(50), default='')
     ecg_st: Mapped[str] = mapped_column(String(50), default='')
-
     ecg_t: Mapped[str] = mapped_column(String(50), default='')
     ecg_qt: Mapped[str] = mapped_column(String(50), default='')
-
     ecg_axis: Mapped[str] = mapped_column(String(50), default='')
     ecg_interpretation: Mapped[str] = mapped_column(Text, default='')
+
+    # Nuevos campos ECG ampliado
+    ecg_p_mv: Mapped[str] = mapped_column(String(50), default='')
+    ecg_qrs_mv: Mapped[str] = mapped_column(String(50), default='')
+    ecg_t_mv: Mapped[str] = mapped_column(String(50), default='')
+    ecg_qtc: Mapped[str] = mapped_column(String(50), default='')
+    ecg_polarity: Mapped[str] = mapped_column(String(100), default='')
+    ecg_arrhythmia: Mapped[str] = mapped_column(String(150), default='')
+    ecg_conduction: Mapped[str] = mapped_column(String(150), default='')
+    ecg_notes: Mapped[str] = mapped_column(Text, default='')
+
+    # =========================
+    # Ecocardiografía
+    # =========================
     eco_aiao: Mapped[str] = mapped_column(String(50), default='')
     eco_fs: Mapped[str] = mapped_column(String(50), default='')
     eco_acvim: Mapped[str] = mapped_column(String(50), default='')
-
     eco_diagnosis: Mapped[str] = mapped_column(Text, default='')
     eco_treatment: Mapped[str] = mapped_column(Text, default='')
-    anamnesis: Mapped[str] = mapped_column(Text, default='')
-    physical_exam: Mapped[str] = mapped_column(Text, default='')
+
+    # Nuevos campos Eco ampliada
+    eco_epss: Mapped[str] = mapped_column(String(50), default='')
+    eco_lvidd: Mapped[str] = mapped_column(String(50), default='')
+    eco_lvids: Mapped[str] = mapped_column(String(50), default='')
+    eco_ivsd: Mapped[str] = mapped_column(String(50), default='')
+    eco_ivss: Mapped[str] = mapped_column(String(50), default='')
+    eco_lvpwd: Mapped[str] = mapped_column(String(50), default='')
+    eco_lvpws: Mapped[str] = mapped_column(String(50), default='')
+    eco_fe: Mapped[str] = mapped_column(String(50), default='')
+    eco_la_size: Mapped[str] = mapped_column(String(100), default='')
+    eco_lv_size: Mapped[str] = mapped_column(String(100), default='')
+    eco_rv_size: Mapped[str] = mapped_column(String(100), default='')
+    eco_ra_size: Mapped[str] = mapped_column(String(100), default='')
+    eco_mitral: Mapped[str] = mapped_column(String(150), default='')
+    eco_tricuspid: Mapped[str] = mapped_column(String(150), default='')
+    eco_aortic: Mapped[str] = mapped_column(String(150), default='')
+    eco_pulmonary: Mapped[str] = mapped_column(String(150), default='')
+    eco_pulmonary_htn: Mapped[str] = mapped_column(String(150), default='')
+    eco_pericardium: Mapped[str] = mapped_column(String(150), default='')
+    eco_doppler: Mapped[str] = mapped_column(Text, default='')
+    eco_observations: Mapped[str] = mapped_column(Text, default='')
+
+    # =========================
+    # Radiografía cardiológica
+    # =========================
+    rx_vhs: Mapped[str] = mapped_column(String(50), default='')
+    rx_vlas: Mapped[str] = mapped_column(String(50), default='')
+    rx_heart_size: Mapped[str] = mapped_column(String(150), default='')
+    rx_left_atrium: Mapped[str] = mapped_column(String(150), default='')
+    rx_left_heart: Mapped[str] = mapped_column(String(150), default='')
+    rx_right_heart: Mapped[str] = mapped_column(String(150), default='')
+    rx_pulmonary_vessels: Mapped[str] = mapped_column(String(150), default='')
+    rx_lung_pattern: Mapped[str] = mapped_column(String(150), default='')
+    rx_edema: Mapped[str] = mapped_column(String(150), default='')
+    rx_congestion: Mapped[str] = mapped_column(String(150), default='')
+    rx_trachea: Mapped[str] = mapped_column(String(150), default='')
+    rx_observations: Mapped[str] = mapped_column(Text, default='')
+
+    # =========================
+    # Vacunas / desparasitación
+    # =========================
     vaccine_name: Mapped[str] = mapped_column(String(150), default='')
     vaccine_lot: Mapped[str] = mapped_column(String(100), default='')
     vaccine_expiration: Mapped[str] = mapped_column(String(100), default='')
     next_vaccine_date: Mapped[str] = mapped_column(String(100), default='')
+
     dewormer_product: Mapped[str] = mapped_column(String(150), default='')
     dewormer_drug: Mapped[str] = mapped_column(String(150), default='')
     dewormer_dose: Mapped[str] = mapped_column(String(100), default='')
     next_deworming_date: Mapped[str] = mapped_column(String(100), default='')
+
     patient: Mapped['Patient'] = relationship(back_populates='events')
     attachments: Mapped[list['EventAttachment']] = relationship(
         back_populates='event',
         cascade='all, delete-orphan'
     )
+
 
 class Appointment(Base):
     __tablename__ = 'appointments'
@@ -129,8 +197,11 @@ class Appointment(Base):
     reminder_12h: Mapped[bool] = mapped_column(Boolean, default=False)
     contact_whatsapp: Mapped[str] = mapped_column(String(80), default='')
     created_at: Mapped[datetime] = mapped_column(DateTime, default=argentina_now)
+
     owner: Mapped[Optional['Owner']] = relationship()
     patient: Mapped[Optional['Patient']] = relationship()
+
+
 class WaitingListEntry(Base):
     __tablename__ = 'waiting_list'
 
@@ -154,6 +225,8 @@ class WaitingListEntry(Base):
     owner: Mapped[Optional['Owner']] = relationship()
     patient: Mapped[Optional['Patient']] = relationship()
     appointment: Mapped[Optional['Appointment']] = relationship()
+
+
 class Product(Base):
     __tablename__ = 'products'
 
@@ -181,78 +254,41 @@ class Product(Base):
     notes: Mapped[str] = mapped_column(Text, default='')
 
     created_at: Mapped[datetime] = mapped_column(DateTime, default=argentina_now)
+
+
 class Sale(Base):
     __tablename__ = 'sales'
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    date: Mapped[datetime] = mapped_column(DateTime, default=argentina_now)
+    status: Mapped[str] = mapped_column(String(20), default='paid')
+    total: Mapped[float] = mapped_column(Float, default=0)
+    payment_method: Mapped[str] = mapped_column(String(50), default='Efectivo')
 
-    date: Mapped[datetime] = mapped_column(
-        DateTime,
-        default=argentina_now
-    )
-
-    status: Mapped[str] = mapped_column(
-        String(20),
-        default='paid'
-    )
-
-    total: Mapped[float] = mapped_column(
-        Float,
-        default=0
-    )
-    payment_method: Mapped[str] = mapped_column(
-        String(50),
-        default='Efectivo'
-    )
     patient_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey('patients.id'),
         nullable=True,
         index=True
     )
-    
+
     owner_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey('owners.id'),
         nullable=True,
         index=True
     )
-    notes: Mapped[str] = mapped_column(
-        Text,
-        default=''
-    )
 
-    discount_percent: Mapped[float] = mapped_column(
-        Float,
-        default=0
-    )
-    
-    discount_amount: Mapped[float] = mapped_column(
-        Float,
-        default=0
-    )
-    
-    credit_surcharge_percent: Mapped[float] = mapped_column(
-        Float,
-        default=0
-    )
-    
-    credit_surcharge_amount: Mapped[float] = mapped_column(
-        Float,
-        default=0
-    )
-    cost_total: Mapped[float] = mapped_column(
-    Float,
-    default=0
-    )
+    notes: Mapped[str] = mapped_column(Text, default='')
 
-    profit_amount: Mapped[float] = mapped_column(
-        Float,
-        default=0
-    )
+    discount_percent: Mapped[float] = mapped_column(Float, default=0)
+    discount_amount: Mapped[float] = mapped_column(Float, default=0)
+    credit_surcharge_percent: Mapped[float] = mapped_column(Float, default=0)
+    credit_surcharge_amount: Mapped[float] = mapped_column(Float, default=0)
 
-    margin_percent: Mapped[float] = mapped_column(
-        Float,
-        default=0
-    )
+    cost_total: Mapped[float] = mapped_column(Float, default=0)
+    profit_amount: Mapped[float] = mapped_column(Float, default=0)
+    margin_percent: Mapped[float] = mapped_column(Float, default=0)
+
+
 class SaleItem(Base):
     __tablename__ = 'sale_items'
 
@@ -268,20 +304,11 @@ class SaleItem(Base):
         index=True
     )
 
-    quantity: Mapped[float] = mapped_column(
-        Float,
-        default=1
-    )
+    quantity: Mapped[float] = mapped_column(Float, default=1)
+    unit_price: Mapped[float] = mapped_column(Float, default=0)
+    subtotal: Mapped[float] = mapped_column(Float, default=0)
 
-    unit_price: Mapped[float] = mapped_column(
-        Float,
-        default=0
-    )
 
-    subtotal: Mapped[float] = mapped_column(
-        Float,
-        default=0
-    )
 class SalePayment(Base):
     __tablename__ = 'sale_payments'
 
@@ -292,20 +319,11 @@ class SalePayment(Base):
         index=True
     )
 
-    method: Mapped[str] = mapped_column(
-        String(50),
-        default='Efectivo'
-    )
+    method: Mapped[str] = mapped_column(String(50), default='Efectivo')
+    amount: Mapped[float] = mapped_column(Float, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=argentina_now)
 
-    amount: Mapped[float] = mapped_column(
-        Float,
-        default=0
-    )
 
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime,
-        default=argentina_now
-    )
 class EventAttachment(Base):
     __tablename__ = 'event_attachments'
 
