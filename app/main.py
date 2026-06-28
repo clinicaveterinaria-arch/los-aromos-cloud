@@ -1228,6 +1228,7 @@ def patient_detail(request: Request, patient_id: int, db: Session = Depends(get_
             'patient': patient,
             'today': today,
             'events': events,
+            'clinical_ai': clinical_ai,
             'event_types': EVENT_TYPES,
             'upcoming_events': upcoming_events,
             'timedelta': timedelta,
