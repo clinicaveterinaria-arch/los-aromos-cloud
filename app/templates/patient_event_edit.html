@@ -111,15 +111,11 @@
             📄 {{ a.filename }}
         </a>
 
-        <form method="post"
-              action="/patients/{{ patient.id }}/events/{{ event.id }}/attachments/{{ a.id }}/delete"
-              style="display:inline;"
-              onsubmit="return confirm('¿Eliminar este adjunto?');">
-            <button type="submit"
-                    style="background:#fee2e2;color:#991b1b;border:none;border-radius:6px;padding:4px 8px;">
-                🗑 Eliminar
-            </button>
-        </form>
+        <button type="submit"
+                form="delete-attachment-{{ a.id }}"
+                style="background:#fee2e2;color:#991b1b;border:none;border-radius:6px;padding:4px 8px;">
+            🗑 Eliminar
+        </button>
     </p>
 {% endfor %}
 {% else %}
@@ -149,5 +145,13 @@
     </form>
 
 </div>
-
+{% if event.attachments %}
+    {% for a in event.attachments %}
+        <form id="delete-attachment-{{ a.id }}"
+              method="post"
+              action="/patients/{{ patient.id }}/events/{{ event.id }}/attachments/{{ a.id }}/delete"
+              onsubmit="return confirm('¿Eliminar este adjunto?');">
+        </form>
+    {% endfor %}
+{% endif %}
 {% endblock %}
