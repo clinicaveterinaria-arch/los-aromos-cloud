@@ -3,7 +3,7 @@ from zoneinfo import ZoneInfo
 import os
 import uuid
 import mimetypes
-
+import re
 from typing import Optional
 from io import BytesIO
 from openpyxl import load_workbook
@@ -34,6 +34,77 @@ ARG_TZ = ZoneInfo("America/Argentina/Buenos_Aires")
 
 def argentina_now():
     return datetime.now(ARG_TZ)
+# ==========================================================
+# IA CLÍNICA
+# ==========================================================
+
+def ai_clinical_summary(event):
+
+    text = " ".join([
+        str(getattr(event, "subjective", "") or ""),
+        str(getattr(event, "objective", "") or ""),
+        str(getattr(event, "assessment", "") or ""),
+        str(getattr(event, "plan", "") or ""),
+        str(getattr(event, "notes", "") or ""),
+    ]).lower()
+
+    result = {
+        "summary": "",
+        "priority": "Normal",
+        "problems": [],
+        "differentials": [],
+        "recommended_tests": [],
+        "treatment": [],
+        "alerts": []
+    }
+
+    def has(*words):
+        return any(w in text for w in words)
+
+    if has("tos", "disnea", "taquipnea", "sibil"):
+        result["problems"].append("Signos respiratorios")
+        result["differentials"] += [
+            "Bronquitis",
+            "Neumonía",
+            "Edema pulmonar",
+            "Enfermedad cardíaca"
+        ]
+        result["recommended_tests"] += [
+            "Radiografía de tórax",
+            "Hemograma",
+            "Ecocardiografía"
+        ]
+
+    if has("vomito", "vómito", "diarrea"):
+        result["problems"].append("Signos digestivos")
+        result["differentials"] += [
+            "Gastroenteritis",
+            "Pancreatitis",
+            "Cuerpo extraño"
+        ]
+        result["recommended_tests"] += [
+            "Laboratorio",
+            "Ecografía abdominal"
+        ]
+
+    if has("claudic", "cojera", "dolor"):
+        result["problems"].append("Dolor")
+
+    if has("fractura", "trauma", "atrop"):
+        result["alerts"].append(
+            "Paciente traumático."
+        )
+        result["priority"] = "Alta"
+
+    if has("shock", "coma"):
+        result["alerts"].append(
+            "Emergencia."
+        )
+        result["priority"] = "Crítica"
+
+    result["summary"] = ", ".join(result["problems"])
+
+    return result
 try:
     with engine.begin() as conn:
         conn.execute(text("ALTER TABLE appointments ADD COLUMN reminder_12h BOOLEAN DEFAULT FALSE"))
