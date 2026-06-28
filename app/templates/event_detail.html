@@ -27,6 +27,26 @@
     .modern-table th { background:#fff0f7; color:#d85b9a; text-align:left; padding:10px; border-bottom:1px solid #f3c6d8; }
     .modern-table td { padding:10px; border-bottom:1px solid #f3edf1; }
     .modern-table tr:last-child td { border-bottom:none; }
+
+    .ai-card {
+        background:linear-gradient(135deg,#fff8fb,#ffffff);
+        border:2px solid #f3c6d8;
+    }
+    .ai-head { display:flex; justify-content:space-between; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:12px; }
+    .ai-head h2 { margin:0; }
+    .ai-priority {
+        border-radius:999px; padding:8px 12px; font-weight:bold; border:1px solid #f3c6d8;
+        background:#fff0f7; color:#d85b9a;
+    }
+    .ai-priority.alta { background:#fff7ed; color:#c2410c; border-color:#fed7aa; }
+    .ai-priority.critica { background:#fff1f2; color:#991b1b; border-color:#fecdd3; }
+    .ai-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; }
+    .ai-box { background:white; border:1px solid #f3edf1; border-radius:16px; padding:14px; }
+    .ai-box h3 { margin:0 0 8px 0; color:#1f2937; font-size:15px; }
+    .ai-box ul { margin:0; padding-left:18px; color:#4b5563; }
+    .ai-box li { margin:5px 0; }
+    .ai-empty { color:#6b7280; margin:0; }
+
     @media print {
         .sidebar, .topbar, .event-toolbar { display:none !important; }
         .content { margin-left:0 !important; }
@@ -69,6 +89,60 @@
         {% if event.physical_exam %}<h3>Examen físico</h3><div class="text-block">{{ event.physical_exam }}</div>{% endif %}
         {% if event.diagnosis %}<h3>Diagnóstico</h3><div class="text-block">{{ event.diagnosis }}</div>{% endif %}
         {% if event.treatment %}<h3>Tratamiento</h3><div class="text-block">{{ event.treatment }}</div>{% endif %}
+    </div>
+
+    {% if clinical_ai is defined and clinical_ai %}
+    <div class="event-card ai-card">
+        <div class="ai-head">
+            <h2>🤖 IA clínica del evento</h2>
+            <span class="ai-priority {% if clinical_ai.priority == 'Alta' %}alta{% elif clinical_ai.priority == 'Crítica' %}critica{% endif %}">
+                Prioridad: {{ clinical_ai.priority or 'Normal' }}
+            </span>
+        </div>
+
+        {% if clinical_ai.summary %}
+            <div class="text-block"><b>Resumen:</b> {{ clinical_ai.summary }}</div>
+        {% else %}
+            <div class="text-block"><b>Resumen:</b> Sin problemas detectados automáticamente con los datos cargados.</div>
+        {% endif %}
+
+        <div class="ai-grid">
+            <div class="ai-box">
+                <h3>🧩 Problemas detectados</h3>
+                {% if clinical_ai.problems %}
+                    <ul>{% for item in clinical_ai.problems %}<li>{{ item }}</li>{% endfor %}</ul>
+                {% else %}
+                    <p class="ai-empty">Sin problemas automáticos.</p>
+                {% endif %}
+            </div>
+
+            <div class="ai-box">
+                <h3>🔎 Diferenciales posibles</h3>
+                {% if clinical_ai.differentials %}
+                    <ul>{% for item in clinical_ai.differentials %}<li>{{ item }}</li>{% endfor %}</ul>
+                {% else %}
+                    <p class="ai-empty">Sin diferenciales sugeridos.</p>
+                {% endif %}
+            </div>
+
+            <div class="ai-box">
+                <h3>🧪 Estudios sugeridos</h3>
+                {% if clinical_ai.recommended_tests %}
+                    <ul>{% for item in clinical_ai.recommended_tests %}<li>{{ item }}</li>{% endfor %}</ul>
+                {% else %}
+                    <p class="ai-empty">Sin estudios sugeridos.</p>
+                {% endif %}
+            </div>
+
+            <div class="ai-box">
+                <h3>🚨 Alertas</h3>
+                {% if clinical_ai.alerts %}
+                    <ul>{% for item in clinical_ai.alerts %}<li>{{ item }}</li>{% endfor %}</ul>
+                {% else %}
+                    <p class="ai-empty">Sin alertas automáticas.</p>
+                {% endif %}
+            </div>
+        </div>
     </div>
 
     {% if event.event_type == 'ECG' %}
