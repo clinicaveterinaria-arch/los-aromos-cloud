@@ -546,7 +546,7 @@
     {% for section in cardio_ai_sections %}
     <div style="border:1px solid #f3edf1;background:white;border-radius:16px;padding:14px;margin-bottom:12px;">
 
-        <h3>{{ section.title }}</h3>
+        <h3>{{ section["title"] }}</h3>
 
         {% for item in section.items %}
             <p style="margin:6px 0;color:#374151;">✔ {{ item }}</p>
