@@ -116,6 +116,30 @@
     .cardio-center-link.secondary { background:#fff0f7; color:#d85b9a; }
     .cardio-helper-text { color:#6b7280; font-size:13px; margin:10px 0 0 0; line-height:1.4; }
 
+    .smart-input-row {
+        display:grid;
+        grid-template-columns:1fr auto;
+        gap:8px;
+        align-items:center;
+        margin-top:10px;
+    }
+    .smart-plus-btn {
+        border:1px solid #f3c6d8;
+        background:#fff0f7;
+        color:#d85b9a;
+        border-radius:12px;
+        padding:10px 12px;
+        font-weight:bold;
+        cursor:pointer;
+        white-space:nowrap;
+    }
+    .smart-help {
+        color:#6b7280;
+        font-size:12px;
+        margin:8px 0 0 0;
+        line-height:1.35;
+    }
+
     .save-event-btn { grid-column:1 / -1; background:#22c55e; color:white; border:none; border-radius:14px; padding:15px; font-size:17px; font-weight:bold; cursor:pointer; }
 
     .timeline { position:relative; padding-left:18px; }
@@ -154,7 +178,7 @@
         border:1px solid #f3c6d8;
         border-radius:999px;
         padding:3px 8px;
-        font-size:12px;
+                font-size:12px;
         font-weight:bold;
         margin:2px 4px 4px 0;
     }
@@ -283,15 +307,47 @@
                 <textarea name="treatment" placeholder="Tratamiento / indicaciones"></textarea>
 
                 <div id="vaccine-box" class="soft-box" style="display:none;">
-                    <h4>💉 Datos de vacunación</h4>
-                    <input name="vaccine_name" list="vaccines_list" placeholder="Vacuna aplicada">
+                    <h4>💉 Vacunas inteligentes</h4>
+
+                    <div class="smart-input-row">
+                        <input name="vaccine_name" id="vaccine_name" list="vaccines_list" placeholder="Vacuna aplicada">
+                        <button type="button" class="smart-plus-btn" onclick="addVaccineOption('vaccine_name')">＋ Nueva</button>
+                    </div>
+
                     <datalist id="vaccines_list">
-                        <option value="Triple Felina"><option value="Antirrábica"><option value="Leucemia Felina"><option value="Puppy DP"><option value="DHPPI"><option value="Séxtuple"><option value="Traqueobronquitis"><option value="Leptospirosis">
+                        {% if vaccine_options is defined and vaccine_options %}
+                            {% for v in vaccine_options %}
+                                <option value="{{ v }}">
+                            {% endfor %}
+                        {% else %}
+                            <option value="Triple Felina">
+                            <option value="Antirrábica">
+                            <option value="Leucemia Felina">
+                            <option value="Puppy DP">
+                            <option value="DHPPI">
+                            <option value="Séxtuple">
+                            <option value="Traqueobronquitis">
+                            <option value="Leptospirosis">
+                        {% endif %}
                     </datalist>
+
+                    <p class="smart-help">Si agregás una vacuna nueva con ＋ Nueva y guardás el evento, después aparecerá automáticamente en la lista de futuras vacunaciones.</p>
+
                     <input name="vaccine_lot" placeholder="Lote" style="margin-top:10px;">
-                    <input name="vaccine_expiration" list="vaccines_list" placeholder="Próxima vacuna / refuerzo" style="margin-top:10px;">
+
+                    <div class="smart-input-row">
+                        <input name="vaccine_expiration" id="vaccine_expiration" list="vaccines_list" placeholder="Próxima vacuna / refuerzo">
+                        <button type="button" class="smart-plus-btn" onclick="addVaccineOption('vaccine_expiration')">＋ Nueva</button>
+                    </div>
+
                     <input type="date" name="next_vaccine_date" id="next_vaccine_date" style="margin-top:10px;">
-                    <div class="quick-buttons"><button type="button" onclick="setNextVaccineDays(21)">+21 días</button><button type="button" onclick="setNextVaccineDays(30)">+30 días</button><button type="button" onclick="setNextVaccineMonths(6)">+6 meses</button><button type="button" onclick="setNextVaccineDays(365)">+1 año</button></div>
+
+                    <div class="quick-buttons">
+                        <button type="button" onclick="setNextVaccineDays(21)">+21 días</button>
+                        <button type="button" onclick="setNextVaccineDays(30)">+30 días</button>
+                        <button type="button" onclick="setNextVaccineMonths(6)">+6 meses</button>
+                        <button type="button" onclick="setNextVaccineDays(365)">+1 año</button>
+                    </div>
                 </div>
 
                 <div id="deworming-box" class="soft-box" style="display:none;">
@@ -302,7 +358,7 @@
                     </datalist>
                     <input name="dewormer_drug" placeholder="Principio activo" style="margin-top:10px;">
                     <input name="dewormer_dose" placeholder="Dosis / indicación" style="margin-top:10px;">
-                    <input type="date" name="next_deworming_date" id="next_deworming_date" style="margin-top:10px;">
+                                        <input type="date" name="next_deworming_date" id="next_deworming_date" style="margin-top:10px;">
                     <div class="quick-buttons"><button type="button" onclick="setNextDewormingDays(21)">+21 días</button><button type="button" onclick="setNextDewormingDays(30)">+30 días</button><button type="button" onclick="setNextDewormingMonths(3)">+3 meses</button><button type="button" onclick="setNextDewormingMonths(6)">+6 meses</button></div>
                 </div>
 
@@ -482,7 +538,7 @@
                                 {% if ai.riesgo %}
                                     <span class="ai-clinical-tag">Riesgo: {{ ai.riesgo }}</span>
                                 {% endif %}
-                                {% if ai.alerta %}
+                                                                {% if ai.alerta %}
                                     <span class="ai-clinical-tag">Alerta: {{ ai.alerta }}</span>
                                 {% endif %}
                                 {% if ai.resumen %}
@@ -527,6 +583,33 @@ function setEventType(type) {
     if (!selector) return;
     selector.value = type;
     selector.dispatchEvent(new Event('change'));
+}
+function addVaccineOption(targetInputId) {
+    const input = document.getElementById(targetInputId);
+    const list = document.getElementById('vaccines_list');
+
+    if (!input || !list) return;
+
+    let value = prompt('Nombre de la nueva vacuna:');
+
+    if (!value) return;
+
+    value = value.trim();
+
+    if (!value) return;
+
+    const exists = Array.from(list.options).some(
+        option => option.value.toLowerCase() === value.toLowerCase()
+    );
+
+    if (!exists) {
+        const option = document.createElement('option');
+        option.value = value;
+        list.appendChild(option);
+    }
+
+    input.value = value;
+    input.focus();
 }
 function setNextDewormingDays(days) {
     const input = document.querySelector('input[name="next_deworming_date"]');
@@ -601,3 +684,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 </script>
 {% endblock %}
+                            
+                            
+    
