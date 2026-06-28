@@ -131,6 +131,34 @@
 
     .notes-box { background:#fff8fb; border:1px solid #f3c6d8; border-radius:20px; padding:16px; color:#4b5563; }
 
+    .ai-clinical-card {
+        margin-top:10px;
+        background:linear-gradient(135deg,#fff8fb,#ffffff);
+        border:1px solid #f3c6d8;
+        border-radius:14px;
+        padding:11px 12px;
+        color:#374151;
+        font-size:13px;
+        line-height:1.45;
+    }
+    .ai-clinical-card b {
+        color:#d85b9a;
+        display:block;
+        margin-bottom:6px;
+    }
+    .ai-clinical-card p { margin:4px 0; }
+    .ai-clinical-tag {
+        display:inline-block;
+        background:#fff0f7;
+        color:#d85b9a;
+        border:1px solid #f3c6d8;
+        border-radius:999px;
+        padding:3px 8px;
+        font-size:12px;
+        font-weight:bold;
+        margin:2px 4px 4px 0;
+    }
+
     @media (max-width:1100px) { .hc-hero-top, .hc-main-grid { grid-template-columns:1fr; } }
     @media (max-width:720px) {
         .timeline-item { grid-template-columns:1fr; }
@@ -444,6 +472,39 @@
                             Sin detalle cargado.
                         {% endif %}
                     </p>
+
+                    {% if clinical_ai is defined and clinical_ai.get(e.id) %}
+                        {% set ai = clinical_ai.get(e.id) %}
+                        <div class="ai-clinical-card">
+                            <b>🤖 IA Clínica</b>
+
+                            {% if ai is mapping %}
+                                {% if ai.riesgo %}
+                                    <span class="ai-clinical-tag">Riesgo: {{ ai.riesgo }}</span>
+                                {% endif %}
+                                {% if ai.alerta %}
+                                    <span class="ai-clinical-tag">Alerta: {{ ai.alerta }}</span>
+                                {% endif %}
+                                {% if ai.resumen %}
+                                    <p><b style="display:inline;color:#374151;margin:0;">Resumen:</b> {{ ai.resumen }}</p>
+                                {% endif %}
+                                {% if ai.interpretacion %}
+                                    <p><b style="display:inline;color:#374151;margin:0;">Interpretación:</b> {{ ai.interpretacion }}</p>
+                                {% endif %}
+                                {% if ai.sugerencia %}
+                                    <p><b style="display:inline;color:#374151;margin:0;">Sugerencia:</b> {{ ai.sugerencia }}</p>
+                                {% endif %}
+                                {% if ai.recomendacion %}
+                                    <p><b style="display:inline;color:#374151;margin:0;">Recomendación:</b> {{ ai.recomendacion }}</p>
+                                {% endif %}
+                                {% if ai.alertas %}
+                                    <p><b style="display:inline;color:#374151;margin:0;">Alertas:</b> {{ ai.alertas }}</p>
+                                {% endif %}
+                            {% else %}
+                                <p>{{ ai }}</p>
+                            {% endif %}
+                        </div>
+                    {% endif %}
                 </div>
                     <div class="timeline-actions">
                         <a href="/patients/{{ patient.id }}/events/{{ e.id }}" class="small-btn">Ver</a>
