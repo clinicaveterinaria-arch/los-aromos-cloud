@@ -243,7 +243,6 @@ def init_db():
         conn.execute(text("ALTER TABLE sales ADD COLUMN IF NOT EXISTS profit_amount FLOAT DEFAULT 0"))
         conn.execute(text("ALTER TABLE sales ADD COLUMN IF NOT EXISTS margin_percent FLOAT DEFAULT 0"))
         conn.execute(text("""
-        conn.execute(text("""
             CREATE TABLE IF NOT EXISTS vademecum_drugs (
                 id SERIAL PRIMARY KEY,
                 commercial_name VARCHAR(200) DEFAULT '',
