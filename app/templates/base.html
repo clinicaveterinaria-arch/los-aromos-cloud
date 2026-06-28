@@ -179,7 +179,9 @@
       <a href="/products" class="{% if request.url.path.startswith('/products') %}active{% endif %}">
         <span class="nav-left"><span class="nav-icon">📦</span>Productos</span><span class="nav-arrow">›</span>
       </a>
-
+      <a href="/vademecum" class="{% if request.url.path.startswith('/vademecum') %}active{% endif %}">
+        <span class="nav-left"><span class="nav-icon">💊</span>Vademécum</span><span class="nav-arrow">›</span>
+      </a>
       <a href="/sales" class="{% if request.url.path.startswith('/sales') %}active{% endif %}">
         <span class="nav-left"><span class="nav-icon">🛒</span>Ventas</span><span class="nav-arrow">›</span>
       </a>
