@@ -1857,6 +1857,13 @@ def patient_cardiology(
 
             "comparison_notes": comparison_notes,
 
+            "cardio_score": cardio_ai["score"],
+            "cardio_score_label": cardio_ai["label"],
+            "cardio_ai_conclusion": cardio_ai["conclusion"],
+            "cardio_ai_sections": cardio_ai["sections"],
+            "cardio_ai_alerts": cardio_ai["alerts"],
+            "cardio_ai_recommendations": cardio_ai["recommendations"],
+
             "today": argentina_now().date()
         }
     )
