@@ -243,7 +243,23 @@ def init_db():
         conn.execute(text("ALTER TABLE sales ADD COLUMN IF NOT EXISTS profit_amount FLOAT DEFAULT 0"))
         conn.execute(text("ALTER TABLE sales ADD COLUMN IF NOT EXISTS margin_percent FLOAT DEFAULT 0"))
         conn.execute(text("""
-       
+                conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS vademecum_drugs (
+                id SERIAL PRIMARY KEY,
+                commercial_name VARCHAR(200) DEFAULT '',
+                active_ingredient VARCHAR(200) DEFAULT '',
+                category VARCHAR(120) DEFAULT '',
+                species VARCHAR(120) DEFAULT '',
+                dose TEXT DEFAULT '',
+                route VARCHAR(120) DEFAULT '',
+                frequency VARCHAR(120) DEFAULT '',
+                indications TEXT DEFAULT '',
+                contraindications TEXT DEFAULT '',
+                observations TEXT DEFAULT '',
+                active BOOLEAN DEFAULT TRUE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """))       
 CREATE TABLE IF NOT EXISTS event_attachments (
     id SERIAL PRIMARY KEY,
     event_id INTEGER REFERENCES clinical_events(id),
