@@ -243,7 +243,7 @@ def init_db():
         conn.execute(text("ALTER TABLE sales ADD COLUMN IF NOT EXISTS profit_amount FLOAT DEFAULT 0"))
         conn.execute(text("ALTER TABLE sales ADD COLUMN IF NOT EXISTS margin_percent FLOAT DEFAULT 0"))
         conn.execute(text("""
-                conn.execute(text("""
+        conn.execute(text("""
             CREATE TABLE IF NOT EXISTS vademecum_drugs (
                 id SERIAL PRIMARY KEY,
                 commercial_name VARCHAR(200) DEFAULT '',
@@ -4834,6 +4834,152 @@ def stats_page(
             'max_chart_value': max_chart_value,
         }
     )
+# ===== VADEMÉCUM =====
+
+@app.get('/vademecum', response_class=HTMLResponse)
+def vademecum_page(
+    request: Request,
+    q: str = '',
+    category: str = '',
+    species: str = '',
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    query = text("""
+        SELECT *
+        FROM vademecum_drugs
+        WHERE active = TRUE
+        AND (
+            :q = ''
+            OR commercial_name ILIKE :like
+            OR active_ingredient ILIKE :like
+            OR category ILIKE :like
+            OR species ILIKE :like
+            OR indications ILIKE :like
+        )
+        AND (:category = '' OR category = :category)
+        AND (:species = '' OR species = :species)
+        ORDER BY commercial_name ASC
+    """)
+
+    params = {
+        "q": q,
+        "like": f"%{q}%",
+        "category": category,
+        "species": species
+    }
+
+    drugs = db.execute(query, params).mappings().all()
+
+    categories = db.execute(text("""
+        SELECT DISTINCT category
+        FROM vademecum_drugs
+        WHERE active = TRUE AND category != ''
+        ORDER BY category
+    """)).scalars().all()
+
+    species_options = db.execute(text("""
+        SELECT DISTINCT species
+        FROM vademecum_drugs
+        WHERE active = TRUE AND species != ''
+        ORDER BY species
+    """)).scalars().all()
+
+    return templates.TemplateResponse(
+        'vademecum.html',
+        {
+            'request': request,
+            'drugs': drugs,
+            'q': q,
+            'category': category,
+            'species': species,
+            'categories': categories,
+            'species_options': species_options
+        }
+    )
+
+
+@app.post('/vademecum')
+def vademecum_create(
+    commercial_name: str = Form(''),
+    active_ingredient: str = Form(''),
+    category: str = Form(''),
+    species: str = Form(''),
+    dose: str = Form(''),
+    route: str = Form(''),
+    frequency: str = Form(''),
+    indications: str = Form(''),
+    contraindications: str = Form(''),
+    observations: str = Form(''),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    db.execute(
+        text("""
+            INSERT INTO vademecum_drugs (
+                commercial_name,
+                active_ingredient,
+                category,
+                species,
+                dose,
+                route,
+                frequency,
+                indications,
+                contraindications,
+                observations,
+                active
+            )
+            VALUES (
+                :commercial_name,
+                :active_ingredient,
+                :category,
+                :species,
+                :dose,
+                :route,
+                :frequency,
+                :indications,
+                :contraindications,
+                :observations,
+                TRUE
+            )
+        """),
+        {
+            "commercial_name": commercial_name,
+            "active_ingredient": active_ingredient,
+            "category": category,
+            "species": species,
+            "dose": dose,
+            "route": route,
+            "frequency": frequency,
+            "indications": indications,
+            "contraindications": contraindications,
+            "observations": observations
+        }
+    )
+
+    db.commit()
+
+    return RedirectResponse('/vademecum', status_code=303)
+
+
+@app.post('/vademecum/{drug_id}/delete')
+def vademecum_delete(
+    drug_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    db.execute(
+        text("""
+            UPDATE vademecum_drugs
+            SET active = FALSE
+            WHERE id = :drug_id
+        """),
+        {"drug_id": drug_id}
+    )
+
+    db.commit()
+
+    return RedirectResponse('/vademecum', status_code=303)
 @app.get('/health')
 def health():
     return {'status': 'ok', 'app': 'Los Aromos Cloud'}
