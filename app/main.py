@@ -4965,6 +4965,93 @@ def vademecum_detail(
             "brands": brands
         }
     )
+@app.get("/vademecum/{active_id}/edit", response_class=HTMLResponse)
+def edit_vademecum(
+    active_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    active = db.execute(
+        text("""
+            SELECT *
+            FROM vademecum_active_ingredients
+            WHERE id = :id
+        """),
+        {"id": active_id}
+    ).mappings().first()
+
+    if not active:
+        raise HTTPException(status_code=404, detail="Principio activo no encontrado")
+
+    return templates.TemplateResponse(
+        "vademecum_edit.html",
+        {
+            "request": request,
+            "active": active
+        }
+    )
+
+
+@app.post("/vademecum/{active_id}/edit")
+def save_vademecum(
+    active_id: int,
+    name: str = Form(...),
+    category: str = Form(""),
+    species: str = Form(""),
+    dog_dose: str = Form(""),
+    cat_dose: str = Form(""),
+    route: str = Form(""),
+    frequency: str = Form(""),
+    indications: str = Form(""),
+    contraindications: str = Form(""),
+    interactions: str = Form(""),
+    warnings: str = Form(""),
+    observations: str = Form(""),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    db.execute(
+        text("""
+            UPDATE vademecum_active_ingredients
+            SET
+                name=:name,
+                category=:category,
+                species=:species,
+                dog_dose=:dog_dose,
+                cat_dose=:cat_dose,
+                route=:route,
+                frequency=:frequency,
+                indications=:indications,
+                contraindications=:contraindications,
+                interactions=:interactions,
+                warnings=:warnings,
+                observations=:observations
+            WHERE id=:id
+        """),
+        {
+            "id": active_id,
+            "name": name,
+            "category": category,
+            "species": species,
+            "dog_dose": dog_dose,
+            "cat_dose": cat_dose,
+            "route": route,
+            "frequency": frequency,
+            "indications": indications,
+            "contraindications": contraindications,
+            "interactions": interactions,
+            "warnings": warnings,
+            "observations": observations
+        }
+    )
+
+    db.commit()
+
+    return RedirectResponse(
+        f"/vademecum/{active_id}",
+        status_code=303
+    )
 @app.post('/vademecum')
 def vademecum_create(
     commercial_name: str = Form(''),
