@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ficha Vademécum</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            color: #333;
+            margin: 30px;
+        }
+
+        h1 {
+            color: #b85c7a;
+            margin-bottom: 5px;
+        }
+
+        h2 {
+            color: #555;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 4px;
+            margin-top: 25px;
+        }
+
+        .box {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 14px;
+        }
+
+        .label {
+            font-weight: bold;
+            color: #777;
+        }
+
+        .brand {
+            border-bottom: 1px solid #eee;
+            padding: 8px 0;
+        }
+
+        .no-print {
+            margin-bottom: 20px;
+        }
+
+        button {
+            background: #b85c7a;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        @media print {
+            .no-print {
+                display: none;
+            }
+
+            body {
+                margin: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="no-print">
+    <button onclick="window.print()">🖨️ Imprimir</button>
+</div>
+
+<h1>{{ active.name }}</h1>
+<div>
+    <span class="label">Categoría:</span> {{ active.category or "-" }} |
+    <span class="label">Especies:</span> {{ active.species or "-" }}
+</div>
+
+<div class="box">
+    <h2>Dosis</h2>
+    <p><span class="label">Perros:</span> {{ active.dog_dose or "-" }}</p>
+    <p><span class="label">Gatos:</span> {{ active.cat_dose or "-" }}</p>
+    <p><span class="label">Vía:</span> {{ active.route or "-" }}</p>
+    <p><span class="label">Frecuencia:</span> {{ active.frequency or "-" }}</p>
+</div>
+
+<div class="box">
+    <h2>Indicaciones</h2>
+    <p>{{ active.indications or "-" }}</p>
+</div>
+
+<div class="box">
+    <h2>Contraindicaciones</h2>
+    <p>{{ active.contraindications or "-" }}</p>
+</div>
+
+<div class="box">
+    <h2>Interacciones</h2>
+    <p>{{ active.interactions or "-" }}</p>
+</div>
+
+<div class="box">
+    <h2>Advertencias</h2>
+    <p>{{ active.warnings or "-" }}</p>
+</div>
+
+<div class="box">
+    <h2>Observaciones</h2>
+    <p>{{ active.observations or "-" }}</p>
+</div>
+
+<div class="box">
+    <h2>Nombres comerciales</h2>
+
+    {% if brands %}
+        {% for brand in brands %}
+            <div class="brand">
+                <strong>{{ brand.brand_name }}</strong><br>
+                Laboratorio: {{ brand.laboratory or "-" }}<br>
+                Presentación: {{ brand.presentation or "-" }}<br>
+                Concentración: {{ brand.concentration or "-" }}
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>No hay nombres comerciales cargados.</p>
+    {% endif %}
+</div>
+
+</body>
+</html>
