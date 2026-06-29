@@ -91,60 +91,51 @@
         {% if event.treatment %}<h3>Tratamiento</h3><div class="text-block">{{ event.treatment }}</div>{% endif %}
     </div>
 
-    {% if clinical_ai is defined and clinical_ai %}
     <div class="event-card ai-card">
         <div class="ai-head">
-            <h2>🤖 IA clínica del evento</h2>
-            <span class="ai-priority {% if clinical_ai.priority == 'Alta' %}alta{% elif clinical_ai.priority == 'Crítica' %}critica{% endif %}">
-                Prioridad: {{ clinical_ai.priority or 'Normal' }}
-            </span>
+            <h2>🧠 Asistente Clínico IA</h2>
+            <button type="button" onclick="analizarEventoIA()" class="event-btn primary">
+                🧠 Analizar con IA
+            </button>
         </div>
 
-        {% if clinical_ai.summary %}
-            <div class="text-block"><b>Resumen:</b> {{ clinical_ai.summary }}</div>
-        {% else %}
-            <div class="text-block"><b>Resumen:</b> Sin problemas detectados automáticamente con los datos cargados.</div>
-        {% endif %}
+        <div id="ai-loading" class="text-block" style="display:none;">
+            ⏳ Analizando evento clínico...
+        </div>
 
-        <div class="ai-grid">
-            <div class="ai-box">
-                <h3>🧩 Problemas detectados</h3>
-                {% if clinical_ai.problems %}
-                    <ul>{% for item in clinical_ai.problems %}<li>{{ item }}</li>{% endfor %}</ul>
-                {% else %}
-                    <p class="ai-empty">Sin problemas automáticos.</p>
-                {% endif %}
+        <div id="ai-result" style="display:none;">
+            <div class="text-block" id="ai-summary"></div>
+
+            <div class="ai-grid">
+                <div class="ai-box">
+                    <h3>🧩 Problemas detectados</h3>
+                    <ul id="ai-problems"></ul>
+                </div>
+
+                <div class="ai-box">
+                    <h3>🔎 Diferenciales posibles</h3>
+                    <ul id="ai-differentials"></ul>
+                </div>
+
+                <div class="ai-box">
+                    <h3>🧪 Estudios sugeridos</h3>
+                    <ul id="ai-tests"></ul>
+                </div>
+
+                <div class="ai-box">
+                    <h3>💊 Sugerencias terapéuticas</h3>
+                    <ul id="ai-treatment"></ul>
+                </div>
+
+                <div class="ai-box">
+                    <h3>🚨 Alertas</h3>
+                    <ul id="ai-alerts"></ul>
+                </div>
             </div>
 
-            <div class="ai-box">
-                <h3>🔎 Diferenciales posibles</h3>
-                {% if clinical_ai.differentials %}
-                    <ul>{% for item in clinical_ai.differentials %}<li>{{ item }}</li>{% endfor %}</ul>
-                {% else %}
-                    <p class="ai-empty">Sin diferenciales sugeridos.</p>
-                {% endif %}
-            </div>
-
-            <div class="ai-box">
-                <h3>🧪 Estudios sugeridos</h3>
-                {% if clinical_ai.recommended_tests %}
-                    <ul>{% for item in clinical_ai.recommended_tests %}<li>{{ item }}</li>{% endfor %}</ul>
-                {% else %}
-                    <p class="ai-empty">Sin estudios sugeridos.</p>
-                {% endif %}
-            </div>
-
-            <div class="ai-box">
-                <h3>🚨 Alertas</h3>
-                {% if clinical_ai.alerts %}
-                    <ul>{% for item in clinical_ai.alerts %}<li>{{ item }}</li>{% endfor %}</ul>
-                {% else %}
-                    <p class="ai-empty">Sin alertas automáticas.</p>
-                {% endif %}
-            </div>
+            <div class="text-block" id="ai-owner" style="margin-top:14px;"></div>
         </div>
     </div>
-
     {% if event.event_type == 'ECG' %}
     <div class="event-card">
         <h2>💗 Electrocardiograma</h2>
@@ -238,5 +229,57 @@
     {% endif %}
 
 </div>
-{% endif %}
+
+<script>
+async function analizarEventoIA() {
+    const loading = document.getElementById("ai-loading");
+    const resultBox = document.getElementById("ai-result");
+
+    loading.style.display = "block";
+    resultBox.style.display = "none";
+
+    try {
+        const response = await fetch("/patients/{{ patient.id }}/events/{{ event.id }}/ai", {
+            method: "POST"
+        });
+
+        const data = await response.json();
+
+        function fillList(id, items) {
+            const ul = document.getElementById(id);
+            ul.innerHTML = "";
+
+            if (!items || items.length === 0) {
+                ul.innerHTML = "<li>Sin datos suficientes.</li>";
+                return;
+            }
+
+            items.forEach(item => {
+                const li = document.createElement("li");
+                li.textContent = item;
+                ul.appendChild(li);
+            });
+        }
+
+        document.getElementById("ai-summary").innerHTML =
+            "<b>Resumen clínico:</b><br>" + (data.summary || "Sin resumen generado.");
+
+        document.getElementById("ai-owner").innerHTML =
+            "<b>Explicación para propietario:</b><br>" + (data.owner_explanation || "Sin explicación generada.");
+
+        fillList("ai-problems", data.problems);
+        fillList("ai-differentials", data.differentials);
+        fillList("ai-tests", data.recommended_tests);
+        fillList("ai-treatment", data.treatment);
+        fillList("ai-alerts", data.alerts);
+
+        loading.style.display = "none";
+        resultBox.style.display = "block";
+
+    } catch (error) {
+        loading.innerHTML = "❌ No se pudo generar el análisis IA.";
+    }
+}
+</script>
+
 {% endblock %}
