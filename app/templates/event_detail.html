@@ -104,6 +104,9 @@
         </div>
 
         <div id="ai-result" style="display:none;">
+        <div class="text-block" id="ai-priority-box" style="margin-bottom:14px;">
+            <b>Prioridad:</b> <span id="ai-priority">-</span>
+        </div>
             <div class="text-block" id="ai-summary"></div>
 
             <div class="ai-grid">
@@ -269,7 +272,7 @@ async function analizarEventoIA() {
                 ul.appendChild(li);
             });
         }
-
+        document.getElementById("ai-priority").textContent = data.priority || "Normal";
         document.getElementById("ai-summary").innerHTML =
             "<b>Resumen clínico:</b><br>" + (data.summary || "Sin resumen generado.");
 
