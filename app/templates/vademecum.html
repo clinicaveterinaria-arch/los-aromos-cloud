@@ -28,7 +28,7 @@
 
     .vade-grid {
         display: grid;
-        grid-template-columns: 380px 1fr;
+        grid-template-columns: 390px 1fr;
         gap: 18px;
         align-items: start;
     }
@@ -39,6 +39,7 @@
         border-radius: 20px;
         padding: 18px;
         box-shadow: 0 8px 22px rgba(0,0,0,.04);
+        margin-bottom: 16px;
     }
 
     .vade-card h2 {
@@ -100,32 +101,19 @@
         border-color: #f3c6d8;
     }
 
-    .vade-btn.danger {
-        background: #fff1f2;
-        color: #991b1b;
-        border-color: #fecdd3;
-    }
-
-    .filter-row {
+    .ingredient-list {
         display: grid;
-        grid-template-columns: 1.4fr 1fr 1fr auto;
-        gap: 10px;
-        margin-bottom: 14px;
+        gap: 14px;
     }
 
-    .drug-list {
-        display: grid;
-        gap: 12px;
-    }
-
-    .drug-card {
+    .ingredient-card {
         border: 1px solid #f1d6e2;
         background: #fff;
         border-radius: 18px;
-        padding: 15px;
+        padding: 16px;
     }
 
-    .drug-title {
+    .ingredient-title {
         display: flex;
         justify-content: space-between;
         gap: 12px;
@@ -133,13 +121,13 @@
         margin-bottom: 8px;
     }
 
-    .drug-title h3 {
+    .ingredient-title h3 {
         margin: 0;
         color: #1f2937;
-        font-size: 19px;
+        font-size: 21px;
     }
 
-    .drug-title span {
+    .ingredient-title span {
         display: inline-block;
         background: #fff0f7;
         color: #d85b9a;
@@ -151,21 +139,39 @@
         white-space: nowrap;
     }
 
-    .drug-meta {
-        color: #6b7280;
-        font-size: 13px;
-        margin-bottom: 10px;
-    }
-
-    .drug-section {
+    .vade-section {
         margin-top: 8px;
         color: #374151;
         font-size: 14px;
         line-height: 1.45;
     }
 
-    .drug-section b {
+    .vade-section b {
         color: #1f2937;
+    }
+
+    .brand-box {
+        margin-top: 12px;
+        padding: 12px;
+        background: #fff8fb;
+        border: 1px solid #f3c6d8;
+        border-radius: 14px;
+    }
+
+    .brand-box h4 {
+        margin: 0 0 8px 0;
+        color: #1f2937;
+    }
+
+    .brand-pill {
+        display: inline-block;
+        background: white;
+        color: #374151;
+        border: 1px solid #f1d6e2;
+        border-radius: 999px;
+        padding: 6px 10px;
+        margin: 4px;
+        font-size: 13px;
     }
 
     .empty-box {
@@ -181,10 +187,6 @@
         .vade-grid {
             grid-template-columns: 1fr;
         }
-
-        .filter-row {
-            grid-template-columns: 1fr;
-        }
     }
 </style>
 
@@ -192,127 +194,208 @@
 
     <div class="vade-header">
         <h1>💊 Vademécum inteligente</h1>
-        <p>Buscá medicamentos por nombre comercial, principio activo, especie, categoría o indicación clínica.</p>
+        <p>Organizado por principio activo, con marcas comerciales asociadas.</p>
     </div>
 
     <div class="vade-grid">
 
-        <div class="vade-card">
-            <h2>➕ Agregar medicamento</h2>
+        <div>
 
-            <form method="post" action="/vademecum">
-                <label>Nombre comercial</label>
-                <input name="commercial_name" placeholder="Ej: Convenia, Meloxicam, Total Full">
+            <div class="vade-card">
+                <h2>🧬 Nuevo principio activo</h2>
 
-                <label>Principio activo</label>
-                <input name="active_ingredient" placeholder="Ej: Cefovecina, Meloxicam, Praziquantel">
+                <form method="post" action="/vademecum/active-ingredient">
+                    <label>Principio activo</label>
+                    <input name="name" placeholder="Ej: Meloxicam">
 
-                <label>Categoría</label>
-                <input name="category" placeholder="Antibiótico, AINE, antiparasitario...">
+                    <label>Categoría</label>
+                    <input name="category" placeholder="AINE, antibiótico, antiparasitario...">
 
-                <label>Especie</label>
-                <input name="species" placeholder="Canino, Felino, ambos">
+                    <label>Especie</label>
+                    <input name="species" placeholder="Canino, felino, ambos">
 
-                <label>Dosis</label>
-                <textarea name="dose" placeholder="Ej: 0,2 mg/kg inicial; luego 0,1 mg/kg cada 24 hs"></textarea>
+                    <label>Dosis perro</label>
+                    <textarea name="dog_dose" placeholder="Ej: 0,1–0,2 mg/kg"></textarea>
 
-                <label>Vía</label>
-                <input name="route" placeholder="VO, SC, IM, EV, tópica">
+                    <label>Dosis gato</label>
+                    <textarea name="cat_dose" placeholder="Ej: usar con precaución / dosis según criterio"></textarea>
 
-                <label>Frecuencia</label>
-                <input name="frequency" placeholder="Cada 12 hs, cada 24 hs, dosis única...">
+                    <label>Vía</label>
+                    <input name="route" placeholder="VO, SC, IM, EV, tópica">
 
-                <label>Indicaciones</label>
-                <textarea name="indications" placeholder="Usos clínicos habituales"></textarea>
+                    <label>Frecuencia</label>
+                    <input name="frequency" placeholder="Cada 12 hs, cada 24 hs...">
 
-                <label>Contraindicaciones / precauciones</label>
-                <textarea name="contraindications" placeholder="No usar en..., precaución en..."></textarea>
+                    <label>Indicaciones</label>
+                    <textarea name="indications"></textarea>
 
-                <label>Observaciones clínicas</label>
-                <textarea name="observations" placeholder="Notas propias de la clínica"></textarea>
+                    <label>Contraindicaciones</label>
+                    <textarea name="contraindications"></textarea>
 
-                <div class="vade-actions">
-                    <button type="submit" class="vade-btn">💾 Guardar medicamento</button>
-                </div>
-            </form>
+                    <label>Interacciones</label>
+                    <textarea name="interactions"></textarea>
+
+                    <label>Advertencias</label>
+                    <textarea name="warnings"></textarea>
+
+                    <label>Observaciones clínicas</label>
+                    <textarea name="observations"></textarea>
+
+                    <div class="vade-actions">
+                        <button type="submit" class="vade-btn">💾 Guardar principio activo</button>
+                    </div>
+                </form>
+            </div>
+                        <div class="vade-card">
+                <h2>🏷 Nueva marca comercial</h2>
+
+                <form method="post" action="/vademecum/brand">
+
+                    <label>Principio activo</label>
+                    <select name="active_ingredient_id" required>
+                        <option value="">Seleccionar...</option>
+
+                        {% for a in active_ingredients %}
+                            <option value="{{ a.id }}">{{ a.name }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <label>Nombre comercial</label>
+                    <input name="brand_name" placeholder="Ej: Metacam">
+
+                    <label>Laboratorio</label>
+                    <input name="laboratory">
+
+                    <label>Presentación</label>
+                    <input name="presentation" placeholder="Inyectable, comprimidos, suspensión...">
+
+                    <label>Concentración</label>
+                    <input name="concentration" placeholder="5 mg/ml">
+
+                    <div class="vade-actions">
+                        <button class="vade-btn">
+                            💾 Guardar marca
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+
         </div>
 
-        <div class="vade-card">
-            <h2>🔎 Buscar en vademécum</h2>
+        <div>
 
-            <form method="get" action="/vademecum" class="filter-row">
-                <input name="q" value="{{ q or '' }}" placeholder="Buscar medicamento, droga o indicación">
+            <div class="vade-card">
 
-                <select name="category">
-                    <option value="">Todas las categorías</option>
-                    {% for c in categories %}
-                        <option value="{{ c }}" {% if category == c %}selected{% endif %}>{{ c }}</option>
-                    {% endfor %}
-                </select>
+                <h2>📚 Principios activos</h2>
 
-                <select name="species">
-                    <option value="">Todas las especies</option>
-                    {% for s in species_options %}
-                        <option value="{{ s }}" {% if species == s %}selected{% endif %}>{{ s }}</option>
-                    {% endfor %}
-                </select>
+                {% if active_ingredients %}
 
-                <button type="submit" class="vade-btn">Buscar</button>
-            </form>
+                    <div class="ingredient-list">
 
-            <div class="drug-list">
-                {% if drugs %}
-                    {% for d in drugs %}
-                        <div class="drug-card">
-                            <div class="drug-title">
-                                <div>
-                                    <h3>{{ d.commercial_name or 'Sin nombre comercial' }}</h3>
-                                    <div class="drug-meta">
-                                        <b>Principio activo:</b> {{ d.active_ingredient or '-' }}
-                                    </div>
-                                </div>
-                                <span>{{ d.category or 'Sin categoría' }}</span>
+                    {% for a in active_ingredients %}
+
+                        <div class="ingredient-card">
+
+                            <div class="ingredient-title">
+                                <h3>{{ a.name }}</h3>
+                                <span>{{ a.category or "Sin categoría" }}</span>
                             </div>
 
-                            <div class="drug-meta">
-                                <b>Especie:</b> {{ d.species or '-' }} |
-                                <b>Vía:</b> {{ d.route or '-' }} |
-                                <b>Frecuencia:</b> {{ d.frequency or '-' }}
+                            <div class="vade-section">
+                                <b>🐶 Dosis perro</b><br>
+                                {{ a.dog_dose or "-" }}
                             </div>
 
-                            {% if d.dose %}
-                                <div class="drug-section"><b>Dosis:</b><br>{{ d.dose }}</div>
-                            {% endif %}
+                            <div class="vade-section">
+                                <b>🐱 Dosis gato</b><br>
+                                {{ a.cat_dose or "-" }}
+                            </div>
 
-                            {% if d.indications %}
-                                <div class="drug-section"><b>Indicaciones:</b><br>{{ d.indications }}</div>
-                            {% endif %}
+                            <div class="vade-section">
+                                <b>💉 Vía</b><br>
+                                {{ a.route or "-" }}
+                            </div>
 
-                            {% if d.contraindications %}
-                                <div class="drug-section"><b>Contraindicaciones / precauciones:</b><br>{{ d.contraindications }}</div>
-                            {% endif %}
+                            <div class="vade-section">
+                                <b>🕒 Frecuencia</b><br>
+                                {{ a.frequency or "-" }}
+                            </div>
 
-                            {% if d.observations %}
-                                <div class="drug-section"><b>Observaciones:</b><br>{{ d.observations }}</div>
-                            {% endif %}
+                            <div class="vade-section">
+                                <b>📋 Indicaciones</b><br>
+                                {{ a.indications or "-" }}
+                            </div>
 
-                            <form method="post"
-                                  action="/vademecum/{{ d.id }}/delete"
-                                  onsubmit="return confirm('¿Eliminar este medicamento del vademécum?');"
-                                  style="margin-top:12px;">
-                                <button type="submit" class="vade-btn danger">🗑 Eliminar</button>
-                            </form>
+                            <div class="vade-section">
+                                <b>⛔ Contraindicaciones</b><br>
+                                {{ a.contraindications or "-" }}
+                            </div>
+
+                            <div class="vade-section">
+                                <b>⚠ Interacciones</b><br>
+                                {{ a.interactions or "-" }}
+                            </div>
+
+                            <div class="vade-section">
+                                <b>🚨 Advertencias</b><br>
+                                {{ a.warnings or "-" }}
+                            </div>
+
+                            <div class="vade-section">
+                                <b>📝 Observaciones</b><br>
+                                {{ a.observations or "-" }}
+                            </div>
+
+                            <div class="brand-box">
+
+                                <h4>🏷 Marcas comerciales</h4>
+
+                                {% set ns = namespace(found=false) %}
+
+                                {% for b in brands %}
+                                    {% if b.active_ingredient_id == a.id %}
+                                        {% set ns.found = true %}
+                                        <span class="brand-pill">
+                                            {{ b.brand_name }}
+                                            {% if b.concentration %}
+                                                ({{ b.concentration }})
+                                            {% endif %}
+                                        </span>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if not ns.found %}
+                                    <span style="color:#6b7280;">
+                                        Sin marcas comerciales cargadas.
+                                    </span>
+                                {% endif %}
+
+                            </div>
+
                         </div>
+
                     {% endfor %}
-                {% else %}
-                    <div class="empty-box">
-                        Todavía no hay medicamentos cargados o no hubo resultados para esa búsqueda.
+
                     </div>
+
+                {% else %}
+
+                    <div class="empty-box">
+
+                        Todavía no hay principios activos cargados.
+
+                    </div>
+
                 {% endif %}
+
             </div>
+
         </div>
 
     </div>
+
 </div>
 
 {% endblock %}
