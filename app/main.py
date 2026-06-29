@@ -165,7 +165,35 @@ Historia clínica previa relevante:
         fallback["summary"] = "Falta configurar OPENAI_API_KEY en Render."
         fallback["alerts"] = ["No se encontró OPENAI_API_KEY."]
         return fallback
+    event_type_text = (getattr(event, "event_type", "") or "").lower()
 
+    study_instruction = ""
+
+    if "radiografía" in event_type_text or "rx" in event_type_text:
+        study_instruction = """
+Este evento corresponde a RADIOGRAFÍA.
+Si hay imágenes adjuntas, analizalas como radiografías veterinarias.
+Describí hallazgos radiológicos con prudencia.
+No afirmes lesiones si la calidad o proyección no lo permite.
+Correlacioná siempre con la clínica.
+"""
+    elif "ecg" in event_type_text:
+        study_instruction = """
+Este evento corresponde a ELECTROCARDIOGRAMA.
+Priorizá ritmo, frecuencia, intervalos, eje eléctrico, alteraciones de conducción y signos compatibles con agrandamiento de cámaras.
+Si hay imagen adjunta, interpretala junto con los valores cargados.
+"""
+    elif "ecocardiografía" in event_type_text:
+        study_instruction = """
+Este evento corresponde a ECOCARDIOGRAFÍA.
+Priorizá AI/Ao, FS, FE, EPSS, ACVIM, válvulas, cámaras cardíacas, función sistólica y signos de congestión o hipertensión pulmonar.
+"""
+    elif "laboratorio" in event_type_text:
+        study_instruction = """
+Este evento corresponde a LABORATORIO.
+Interpretá alteraciones hematológicas y bioquímicas en contexto clínico.
+Indicá patrones compatibles, diferenciales y estudios complementarios si faltan datos.
+"""
     prompt = f"""
 Sos un médico veterinario especialista en clínica de pequeños animales, medicina interna, cardiología, diagnóstico por imágenes y urgencias.
 
@@ -204,6 +232,10 @@ Generá únicamente un JSON válido con exactamente esta estructura:
 "treatment":[],
 "alerts":[]
 }}
+
+Instrucción específica según tipo de evento:
+
+{study_instruction}
 
 Información clínica:
 
