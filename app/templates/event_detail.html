@@ -283,7 +283,20 @@ async function analizarEventoIA() {
                 ul.appendChild(li);
             });
         }
-        document.getElementById("ai-priority").textContent = data.priority || "Normal";
+        const priority = data.priority || "Normal";
+        const prioritySpan = document.getElementById("ai-priority");
+        
+        prioritySpan.textContent = priority;
+        
+        prioritySpan.className = "ai-priority-label";
+        
+        if (priority.toLowerCase().includes("alta")) {
+            prioritySpan.classList.add("alta");
+        } else if (priority.toLowerCase().includes("cr")) {
+            prioritySpan.classList.add("critica");
+        } else {
+            prioritySpan.classList.add("normal");
+        }
         document.getElementById("ai-summary").innerHTML =
             "<b>Resumen clínico:</b><br>" + (data.summary || "Sin resumen generado.");
 
