@@ -210,12 +210,51 @@ Información clínica:
 {clinical_text}
 """
 
+    content_blocks = [
+        {
+            "type": "input_text",
+            "text": prompt
+        }
+    ]
+
+    try:
+        image_count = 0
+
+        for attachment in getattr(event, "attachments", []) or []:
+            file_url = getattr(attachment, "file_path", "") or ""
+            file_name = (getattr(attachment, "filename", "") or "").lower()
+
+            if (
+                file_url.startswith("http")
+                and (
+                    file_name.endswith(".jpg")
+                    or file_name.endswith(".jpeg")
+                    or file_name.endswith(".png")
+                    or file_name.endswith(".webp")
+                )
+            ):
+                content_blocks.append({
+                    "type": "input_image",
+                    "image_url": file_url
+                })
+                image_count += 1
+
+                if image_count >= 4:
+                    break
+
+    except Exception:
+        pass
+
     payload = {
         "model": os.getenv("OPENAI_MODEL", "gpt-5.4-mini"),
-        "input": prompt,
+        "input": [
+            {
+                "role": "user",
+                "content": content_blocks
+            }
+        ],
         "max_output_tokens": 1400
     }
-
     try:
         req = urllib.request.Request(
             "https://api.openai.com/v1/responses",
