@@ -5361,6 +5361,45 @@ def delete_vademecum_brand(
         f"/vademecum/{brand.active_ingredient_id}",
         status_code=303
     )
+@app.get("/vademecum/{active_id}/print", response_class=HTMLResponse)
+def vademecum_print(
+    active_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    active = db.execute(
+        text("""
+            SELECT *
+            FROM vademecum_active_ingredients
+            WHERE id = :active_id
+            AND active = TRUE
+        """),
+        {"active_id": active_id}
+    ).mappings().first()
+
+    if not active:
+        raise HTTPException(status_code=404, detail="Principio activo no encontrado")
+
+    brands = db.execute(
+        text("""
+            SELECT *
+            FROM vademecum_brands
+            WHERE active_ingredient_id = :active_id
+            AND active = TRUE
+            ORDER BY brand_name
+        """),
+        {"active_id": active_id}
+    ).mappings().all()
+
+    return templates.TemplateResponse(
+        "vademecum_print.html",
+        {
+            "request": request,
+            "active": active,
+            "brands": brands
+        }
+    )
 @app.get('/health')
 def health():
     return {'status': 'ok', 'app': 'Los Aromos Cloud'}
