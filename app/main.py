@@ -5250,6 +5250,117 @@ def vademecum_brand_create(
     db.commit()
 
     return RedirectResponse('/vademecum', status_code=303)
+@app.get("/vademecum/brand/{brand_id}/edit", response_class=HTMLResponse)
+def edit_vademecum_brand(
+    brand_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    brand = db.execute(
+        text("""
+            SELECT *
+            FROM vademecum_brands
+            WHERE id = :brand_id
+            AND active = TRUE
+        """),
+        {"brand_id": brand_id}
+    ).mappings().first()
+
+    if not brand:
+        raise HTTPException(status_code=404, detail="Marca comercial no encontrada")
+
+    return templates.TemplateResponse(
+        "vademecum_brand_edit.html",
+        {
+            "request": request,
+            "brand": brand
+        }
+    )
+
+
+@app.post("/vademecum/brand/{brand_id}/edit")
+def save_vademecum_brand(
+    brand_id: int,
+    brand_name: str = Form(""),
+    laboratory: str = Form(""),
+    presentation: str = Form(""),
+    concentration: str = Form(""),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    brand = db.execute(
+        text("""
+            SELECT active_ingredient_id
+            FROM vademecum_brands
+            WHERE id = :brand_id
+        """),
+        {"brand_id": brand_id}
+    ).mappings().first()
+
+    if not brand:
+        raise HTTPException(status_code=404, detail="Marca comercial no encontrada")
+
+    db.execute(
+        text("""
+            UPDATE vademecum_brands
+            SET
+                brand_name = :brand_name,
+                laboratory = :laboratory,
+                presentation = :presentation,
+                concentration = :concentration
+            WHERE id = :brand_id
+        """),
+        {
+            "brand_id": brand_id,
+            "brand_name": brand_name,
+            "laboratory": laboratory,
+            "presentation": presentation,
+            "concentration": concentration
+        }
+    )
+
+    db.commit()
+
+    return RedirectResponse(
+        f"/vademecum/{brand.active_ingredient_id}",
+        status_code=303
+    )
+
+
+@app.post("/vademecum/brand/{brand_id}/delete")
+def delete_vademecum_brand(
+    brand_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    brand = db.execute(
+        text("""
+            SELECT active_ingredient_id
+            FROM vademecum_brands
+            WHERE id = :brand_id
+        """),
+        {"brand_id": brand_id}
+    ).mappings().first()
+
+    if not brand:
+        raise HTTPException(status_code=404, detail="Marca comercial no encontrada")
+
+    db.execute(
+        text("""
+            UPDATE vademecum_brands
+            SET active = FALSE
+            WHERE id = :brand_id
+        """),
+        {"brand_id": brand_id}
+    )
+
+    db.commit()
+
+    return RedirectResponse(
+        f"/vademecum/{brand.active_ingredient_id}",
+        status_code=303
+    )
 @app.get('/health')
 def health():
     return {'status': 'ok', 'app': 'Los Aromos Cloud'}
