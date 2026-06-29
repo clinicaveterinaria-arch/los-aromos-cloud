@@ -289,6 +289,23 @@
             <div class="vade-card">
 
                 <h2>📚 Principios activos</h2>
+                <form method="get" action="/vademecum" style="margin:18px 0 22px 0;">
+
+                    <input
+                        type="text"
+                        name="q"
+                        value="{{ q }}"
+                        placeholder="🔍 Buscar por principio activo, marca comercial, laboratorio o indicación..."
+                        style="
+                            width:100%;
+                            padding:12px 16px;
+                            border-radius:12px;
+                            border:1px solid #f3c6d8;
+                            font-size:15px;
+                        "
+                    >
+
+                </form>
 
                 {% if active_ingredients %}
 
@@ -347,7 +364,16 @@
                                 <b>📝 Observaciones</b><br>
                                 {{ a.observations or "-" }}
                             </div>
+                            <div class="vade-actions" style="margin-top:18px;">
 
+                                <a
+                                    class="vade-btn secondary"
+                                    href="/vademecum/{{ a.id }}"
+                                >
+                                    📖 Ver ficha completa
+                                </a>
+
+                            </div>
                             <div class="brand-box">
 
                                 <h4>🏷 Marcas comerciales</h4>
