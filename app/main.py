@@ -57,7 +57,46 @@ def ai_clinical_summary(event):
     }
 
     patient = getattr(event, "patient", None)
+    previous_events_text = ""
 
+    try:
+        previous_events = (
+            event.patient.events
+            if getattr(event, "patient", None) and getattr(event.patient, "events", None)
+            else []
+        )
+
+        previous_events = sorted(
+            previous_events,
+            key=lambda e: e.event_date or datetime.min,
+            reverse=True
+        )
+
+        previous_events = [
+            e for e in previous_events
+            if e.id != event.id
+        ][:8]
+
+        previous_events_lines = []
+
+        for previous in previous_events:
+            previous_events_lines.append(
+                f"""
+Fecha: {previous.event_date.strftime('%d/%m/%Y') if previous.event_date else ''}
+Tipo: {previous.event_type or ''}
+Título: {previous.title or ''}
+Descripción: {previous.description or ''}
+Anamnesis: {previous.anamnesis or ''}
+Examen físico: {previous.physical_exam or ''}
+Diagnóstico: {previous.diagnosis or ''}
+Tratamiento: {previous.treatment or ''}
+"""
+            )
+
+        previous_events_text = "\n---\n".join(previous_events_lines)
+
+    except Exception:
+        previous_events_text = ""
     clinical_text = f"""
 Paciente: {getattr(patient, "name", "") if patient else ""}
 Especie: {getattr(patient, "species", "") if patient else ""}
@@ -105,6 +144,8 @@ Patrón pulmonar: {getattr(event, "rx_lung_pattern", "") or ""}
 Edema: {getattr(event, "rx_edema", "") or ""}
 Congestión: {getattr(event, "rx_congestion", "") or ""}
 Observaciones RX: {getattr(event, "rx_observations", "") or ""}
+Historia clínica previa relevante:
+{previous_events_text}
 """
 
     if not api_key:
