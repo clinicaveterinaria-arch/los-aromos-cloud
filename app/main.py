@@ -274,6 +274,7 @@ def init_db():
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """))
+        conn.execute(text("""
             CREATE TABLE IF NOT EXISTS vademecum_drugs (
                 id SERIAL PRIMARY KEY,
                 commercial_name VARCHAR(200) DEFAULT '',
