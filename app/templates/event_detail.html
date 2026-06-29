@@ -103,12 +103,17 @@
     </div>
 
     <div class="event-card ai-card">
-        <div class="ai-head">
-            <h2>🧠 Asistente Clínico IA</h2>
+    <div class="ai-head">
+        <h2>🧠 Asistente Clínico IA</h2>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <button type="button" onclick="analizarEventoIA()" class="event-btn primary">
                 🧠 Analizar con IA
             </button>
+            <button type="button" onclick="copiarAnalisisIA()" class="event-btn" id="ai-copy-btn" style="display:none;">
+                📋 Copiar análisis
+            </button>
         </div>
+    </div>v>
 
         <div id="ai-loading" class="text-block" style="display:none;">
             ⏳ Analizando evento clínico...
@@ -311,6 +316,7 @@ async function analizarEventoIA() {
 
         loading.style.display = "none";
         resultBox.style.display = "block";
+        document.getElementById("ai-copy-btn").style.display = "inline-flex";
 
     } catch (error) {
         loading.style.display = "block";
@@ -319,6 +325,43 @@ async function analizarEventoIA() {
         button.disabled = false;
         button.innerHTML = "🧠 Analizar con IA";
     }
+}
+function copiarAnalisisIA() {
+    const priority = document.getElementById("ai-priority")?.textContent || "";
+    const summary = document.getElementById("ai-summary")?.innerText || "";
+    const owner = document.getElementById("ai-owner")?.innerText || "";
+
+    function listText(id, title) {
+        const items = Array.from(document.querySelectorAll("#" + id + " li"))
+            .map(li => "- " + li.innerText)
+            .join("\n");
+
+        return title + "\n" + (items || "- Sin datos suficientes.");
+    }
+
+    const text = [
+        "🧠 ANÁLISIS IA",
+        "",
+        "Prioridad: " + priority,
+        "",
+        summary,
+        "",
+        listText("ai-problems", "🧩 Problemas detectados"),
+        "",
+        listText("ai-differentials", "🔎 Diferenciales posibles"),
+        "",
+        listText("ai-tests", "🧪 Estudios sugeridos"),
+        "",
+        listText("ai-treatment", "💊 Sugerencias terapéuticas"),
+        "",
+        listText("ai-alerts", "🚨 Alertas"),
+        "",
+        owner
+    ].join("\n");
+
+    navigator.clipboard.writeText(text).then(() => {
+        alert("Análisis IA copiado al portapapeles.");
+    });
 }
 </script>
 
