@@ -234,8 +234,13 @@
 async function analizarEventoIA() {
     const loading = document.getElementById("ai-loading");
     const resultBox = document.getElementById("ai-result");
+    const button = document.querySelector("button[onclick='analizarEventoIA()']");
+
+    button.disabled = true;
+    button.innerHTML = "⏳ Analizando...";
 
     loading.style.display = "block";
+    loading.innerHTML = "⏳ Analizando evento clínico...";
     resultBox.style.display = "none";
 
     try {
@@ -244,6 +249,10 @@ async function analizarEventoIA() {
         });
 
         const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.detail || "Error al analizar con IA.");
+        }
 
         function fillList(id, items) {
             const ul = document.getElementById(id);
@@ -277,7 +286,11 @@ async function analizarEventoIA() {
         resultBox.style.display = "block";
 
     } catch (error) {
-        loading.innerHTML = "❌ No se pudo generar el análisis IA.";
+        loading.style.display = "block";
+        loading.innerHTML = "❌ " + error.message;
+    } finally {
+        button.disabled = false;
+        button.innerHTML = "🧠 Analizar con IA";
     }
 }
 </script>
