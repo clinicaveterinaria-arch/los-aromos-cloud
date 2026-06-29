@@ -2252,6 +2252,42 @@ def event_ai_analyze(
     result = ai_clinical_summary(event)
 
     return JSONResponse(result)
+@app.post('/patients/{patient_id}/events/{event_id}/ai/save')
+def event_ai_save_to_event(
+    patient_id: int,
+    event_id: int,
+    ai_text: str = Form(''),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    patient = db.get(Patient, patient_id)
+    event = db.get(ClinicalEvent, event_id)
+
+    if not patient or not event or event.patient_id != patient.id:
+        raise HTTPException(status_code=404)
+
+    if not ai_text.strip():
+        return JSONResponse({
+            "ok": False,
+            "message": "No hay análisis IA para guardar."
+        })
+
+    separator = "\n\n────────────────────────\n\n"
+    block = "🧠 ANÁLISIS IA\n\n" + ai_text.strip()
+
+    current_description = event.description or ""
+
+    if "🧠 ANÁLISIS IA" not in current_description:
+        event.description = current_description + separator + block
+    else:
+        event.description = current_description + "\n\n" + block
+
+    db.commit()
+
+    return JSONResponse({
+        "ok": True,
+        "message": "Análisis IA agregado al evento."
+    })
 @app.post('/patients/{patient_id}/events/{event_id}/delete')
 def event_delete(
     patient_id: int,
