@@ -243,7 +243,6 @@ def init_db():
         conn.execute(text("ALTER TABLE sales ADD COLUMN IF NOT EXISTS profit_amount FLOAT DEFAULT 0"))
         conn.execute(text("ALTER TABLE sales ADD COLUMN IF NOT EXISTS margin_percent FLOAT DEFAULT 0"))
         conn.execute(text("""
-        conn.execute(text("""
             CREATE TABLE IF NOT EXISTS vademecum_active_ingredients (
                 id SERIAL PRIMARY KEY,
                 name VARCHAR(200) DEFAULT '',
@@ -5007,6 +5006,93 @@ def vademecum_delete(
             WHERE id = :drug_id
         """),
         {"drug_id": drug_id}
+    )
+
+    db.commit()
+
+    return RedirectResponse('/vademecum', status_code=303)
+@app.post('/vademecum/active-ingredient')
+def vademecum_active_ingredient_create(
+    name: str = Form(''),
+    category: str = Form(''),
+    species: str = Form(''),
+    dog_dose: str = Form(''),
+    cat_dose: str = Form(''),
+    route: str = Form(''),
+    frequency: str = Form(''),
+    indications: str = Form(''),
+    contraindications: str = Form(''),
+    interactions: str = Form(''),
+    warnings: str = Form(''),
+    observations: str = Form(''),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    db.execute(
+        text("""
+            INSERT INTO vademecum_active_ingredients (
+                name, category, species, dog_dose, cat_dose, route,
+                frequency, indications, contraindications, interactions,
+                warnings, observations, active
+            )
+            VALUES (
+                :name, :category, :species, :dog_dose, :cat_dose, :route,
+                :frequency, :indications, :contraindications, :interactions,
+                :warnings, :observations, TRUE
+            )
+        """),
+        {
+            "name": name,
+            "category": category,
+            "species": species,
+            "dog_dose": dog_dose,
+            "cat_dose": cat_dose,
+            "route": route,
+            "frequency": frequency,
+            "indications": indications,
+            "contraindications": contraindications,
+            "interactions": interactions,
+            "warnings": warnings,
+            "observations": observations
+        }
+    )
+
+    db.commit()
+
+    return RedirectResponse('/vademecum', status_code=303)
+
+
+@app.post('/vademecum/brand')
+def vademecum_brand_create(
+    active_ingredient_id: str = Form(''),
+    brand_name: str = Form(''),
+    laboratory: str = Form(''),
+    presentation: str = Form(''),
+    concentration: str = Form(''),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    if not active_ingredient_id:
+        return RedirectResponse('/vademecum', status_code=303)
+
+    db.execute(
+        text("""
+            INSERT INTO vademecum_brands (
+                active_ingredient_id, brand_name, laboratory,
+                presentation, concentration, active
+            )
+            VALUES (
+                :active_ingredient_id, :brand_name, :laboratory,
+                :presentation, :concentration, TRUE
+            )
+        """),
+        {
+            "active_ingredient_id": int(active_ingredient_id),
+            "brand_name": brand_name,
+            "laboratory": laboratory,
+            "presentation": presentation,
+            "concentration": concentration
+        }
     )
 
     db.commit()
