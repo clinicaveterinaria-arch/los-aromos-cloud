@@ -6,12 +6,19 @@
   <title>Los Aromos Cloud</title>
   <link rel="stylesheet" href="/static/style.css">
 
-  <style>
-    .sidebar{
-      width:280px;
-      background:linear-gradient(180deg,#26313d,#3d4550);
-      box-shadow:8px 0 24px rgba(0,0,0,.12);
-    }
+.sidebar{
+  width:280px;
+  background:linear-gradient(180deg,#26313d,#3d4550);
+  box-shadow:8px 0 24px rgba(0,0,0,.12);
+
+  position:fixed;
+  left:0;
+  top:0;
+  bottom:0;
+
+  overflow-y:auto;
+  overflow-x:hidden;
+}
 
     .brand{
       background:linear-gradient(135deg,#df6aa0,#d85b9a);
@@ -105,6 +112,7 @@
 
     .content{
       margin-left:280px;
+      min-height:100vh;
     }
 
     .sidebar-whatsapp{
