@@ -4868,7 +4868,7 @@ def stats_page(
     )
 # ===== VADEMÉCUM =====
 
-    @app.get('/vademecum', response_class=HTMLResponse)
+@app.get('/vademecum', response_class=HTMLResponse)
 def vademecum_page(
     request: Request,
     q: str = "",
