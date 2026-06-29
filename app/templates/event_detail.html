@@ -334,6 +334,7 @@ async function analizarEventoIA() {
         loading.style.display = "none";
         resultBox.style.display = "block";
         document.getElementById("ai-copy-btn").style.display = "inline-flex";
+        document.getElementById("ai-save-btn").style.display = "inline-flex";
 
     } catch (error) {
         loading.style.display = "block";
@@ -343,8 +344,8 @@ async function analizarEventoIA() {
         button.innerHTML = "🧠 Analizar con IA";
     }
 }
-function copiarAnalisisIA() {
-    const priority = document.getElementById("ai-priority")?.textContent || "";
+function copiarTextoAnalisisIA() {
+    const priority = document.getElementById("ai-priority")?.innerText || "";
     const summary = document.getElementById("ai-summary")?.innerText || "";
     const owner = document.getElementById("ai-owner")?.innerText || "";
 
@@ -356,7 +357,7 @@ function copiarAnalisisIA() {
         return title + "\n" + (items || "- Sin datos suficientes.");
     }
 
-    const text = [
+    return [
         "🧠 ANÁLISIS IA",
         "",
         "Prioridad: " + priority,
@@ -375,10 +376,36 @@ function copiarAnalisisIA() {
         "",
         owner
     ].join("\n");
+}
+
+function copiarAnalisisIA() {
+    const text = copiarTextoAnalisisIA();
 
     navigator.clipboard.writeText(text).then(() => {
         alert("Análisis IA copiado al portapapeles.");
     });
+}
+
+async function guardarAnalisisIA() {
+    const text = copiarTextoAnalisisIA();
+
+    const response = await fetch("/patients/{{ patient.id }}/events/{{ event.id }}/ai/save", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: new URLSearchParams({
+            ai_text: text
+        })
+    });
+
+    const data = await response.json();
+
+    if (data.ok) {
+        alert("✅ El análisis IA fue agregado al evento.");
+    } else {
+        alert(data.message || "No se pudo guardar el análisis IA.");
+    }
 }
 </script>
 
