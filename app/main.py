@@ -4877,32 +4877,35 @@ def vademecum_page(
     db: Session = Depends(get_db),
     user: User = Depends(require_user)
 ):
-    query = text("""
+    active_ingredients = db.execute(text("""
         SELECT *
-        FROM vademecum_drugs
+        FROM vademecum_active_ingredients
         WHERE active = TRUE
-        AND (
-            :q = ''
-            OR commercial_name ILIKE :like
-            OR active_ingredient ILIKE :like
-            OR category ILIKE :like
-            OR species ILIKE :like
-            OR indications ILIKE :like
-        )
-        AND (:category = '' OR category = :category)
-        AND (:species = '' OR species = :species)
-        ORDER BY commercial_name ASC
-    """)
+        ORDER BY name
+    """)).mappings().all()
 
-    params = {
-        "q": q,
-        "like": f"%{q}%",
-        "category": category,
-        "species": species
-    }
+    brands = db.execute(text("""
+        SELECT
+            b.*,
+            a.name AS active_name
+        FROM vademecum_brands b
+        JOIN vademecum_active_ingredients a
+            ON a.id = b.active_ingredient_id
+        WHERE b.active = TRUE
+        ORDER BY a.name, b.brand_name
+    """)).mappings().all()
 
-    drugs = db.execute(query, params).mappings().all()
-
+    return templates.TemplateResponse(
+        "vademecum.html",
+        {
+            "request": request,
+            "active_ingredients": active_ingredients,
+            "brands": brands,
+            "q": q,
+            "category": category,
+            "species": species
+        }
+    )
     categories = db.execute(text("""
         SELECT DISTINCT category
         FROM vademecum_drugs
