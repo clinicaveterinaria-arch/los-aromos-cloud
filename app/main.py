@@ -241,7 +241,7 @@ Información clínica:
 
 {clinical_text}
 """
-
+    image_count = 0
     content_blocks = [
         {
             "type": "input_text",
@@ -250,8 +250,7 @@ Información clínica:
     ]
 
     try:
-        image_count = 0
-
+        
         for attachment in getattr(event, "attachments", []) or []:
             file_url = getattr(attachment, "file_path", "") or ""
             file_name = (getattr(attachment, "filename", "") or "").lower()
