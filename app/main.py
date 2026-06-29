@@ -4869,7 +4869,15 @@ def stats_page(
 # ===== VADEMÉCUM =====
 
     @app.get('/vademecum', response_class=HTMLResponse)
-        active_ingredients = db.execute(
+def vademecum_page(
+    request: Request,
+    q: str = "",
+    category: str = "",
+    species: str = "",
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    active_ingredients = db.execute(
             text("""
                 SELECT DISTINCT a.*
                 FROM vademecum_active_ingredients a
