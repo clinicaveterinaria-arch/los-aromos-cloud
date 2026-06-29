@@ -77,6 +77,18 @@
         <hr style="border:none;border-top:1px solid #f3c6d8;margin:18px 0;">
 
         <h2>🏷 Marcas comerciales</h2>
+       <form method="post" action="/vademecum/brand" style="background:#fff8fb;border:1px solid #f3c6d8;border-radius:14px;padding:12px;margin:12px 0;">
+            <input type="hidden" name="active_ingredient_id" value="{{ active.id }}">
+
+            <input name="brand_name" placeholder="Nueva marca comercial" style="width:100%;margin-bottom:8px;padding:10px;border:1px solid #f3c6d8;border-radius:10px;">
+            <input name="laboratory" placeholder="Laboratorio" style="width:100%;margin-bottom:8px;padding:10px;border:1px solid #f3c6d8;border-radius:10px;">
+            <input name="presentation" placeholder="Presentación" style="width:100%;margin-bottom:8px;padding:10px;border:1px solid #f3c6d8;border-radius:10px;">
+            <input name="concentration" placeholder="Concentración" style="width:100%;margin-bottom:8px;padding:10px;border:1px solid #f3c6d8;border-radius:10px;">
+
+            <button type="submit" style="background:#d85b9a;color:white;border:none;border-radius:10px;padding:10px 14px;font-weight:bold;">
+                ➕ Agregar marca
+            </button>
+        </form> 
 
         {% if brands %}
             {% for b in brands %}
