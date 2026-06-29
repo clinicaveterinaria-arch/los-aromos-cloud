@@ -102,6 +102,9 @@ Paciente: {getattr(patient, "name", "") if patient else ""}
 Especie: {getattr(patient, "species", "") if patient else ""}
 Raza: {getattr(patient, "breed", "") if patient else ""}
 Sexo: {getattr(patient, "sex", "") if patient else ""}
+Edad: {getattr(patient, "age", "") if patient else ""}
+Castrado: {getattr(patient, "neutered", "") if patient else ""}
+Fecha del evento: {event.event_date.strftime('%d/%m/%Y %H:%M') if event.event_date else ""}
 Peso paciente: {getattr(patient, "weight", "") if patient else ""}
 Peso evento: {getattr(event, "weight", "") or ""}
 
