@@ -207,6 +207,11 @@ Reglas obligatorias:
     • Hallazgos objetivos.
     • Hipótesis diagnósticas.
     • Diagnósticos diferenciales.
+- Ordená los diagnósticos diferenciales desde el más probable al menos probable.
+- Para cada diagnóstico diferencial, agregá una justificación clínica de una o dos oraciones basada únicamente en los hallazgos disponibles.
+- Indicá el grado de confianza (Alta, Media o Baja) para cada hipótesis diagnóstica.
+- Si alguno representa un riesgo vital aunque sea poco probable, incluilo igualmente.
+- Si el cuadro no permite priorizar, decilo explícitamente.
     • Recomendaciones.
 - Si faltan datos importantes, decilo explícitamente.
 - Nunca afirmes un diagnóstico definitivo sin evidencia suficiente.
