@@ -97,12 +97,22 @@ Tratamiento: {previous.treatment or ''}
 
     except Exception:
         previous_events_text = ""
+    age_text = ""
+
+    try:
+        if patient and getattr(patient, "birth_date", None):
+            today = argentina_now().date()
+            birth = patient.birth_date
+            years = today.year - birth.year - ((today.month, today.day) < (birth.month, birth.day))
+            age_text = f"{years} años"
+    except Exception:
+        age_text = ""
     clinical_text = f"""
 Paciente: {getattr(patient, "name", "") if patient else ""}
 Especie: {getattr(patient, "species", "") if patient else ""}
 Raza: {getattr(patient, "breed", "") if patient else ""}
 Sexo: {getattr(patient, "sex", "") if patient else ""}
-Edad: {getattr(patient, "age", "") if patient else ""}
+Edad: {age_text}
 Castrado: {getattr(patient, "neutered", "") if patient else ""}
 Fecha del evento: {event.event_date.strftime('%d/%m/%Y %H:%M') if event.event_date else ""}
 Peso paciente: {getattr(patient, "weight", "") if patient else ""}
