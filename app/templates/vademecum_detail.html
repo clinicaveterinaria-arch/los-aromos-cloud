@@ -9,7 +9,17 @@
         <a href="/vademecum" style="color:#d85b9a;text-decoration:none;font-weight:bold;">← Volver al Vademécum</a>
 
         <h1 style="margin-top:18px;color:#1f2937;">💊 {{ active.name }}</h1>
+        <div style="margin:14px 0 22px 0;">
 
+            <a
+                href="/vademecum/{{ active.id }}/edit"
+                class="vade-btn"
+                style="text-decoration:none;"
+            >
+                ✏️ Editar principio activo
+            </a>
+
+        </div>
         <p style="color:#6b7280;">
             <b>Categoría:</b> {{ active.category or '-' }} |
             <b>Especie:</b> {{ active.species or '-' }} |
