@@ -4868,72 +4868,57 @@ def stats_page(
     )
 # ===== VADEMÉCUM =====
 
-@app.get('/vademecum', response_class=HTMLResponse)
-def vademecum_page(
-    request: Request,
-    q: str = '',
-    category: str = '',
-    species: str = '',
-    db: Session = Depends(get_db),
-    user: User = Depends(require_user)
-):
-    active_ingredients = db.execute(text("""
-        SELECT *
-        FROM vademecum_active_ingredients
-        WHERE active = TRUE
-        ORDER BY name
-    """)).mappings().all()
-
-    brands = db.execute(text("""
-        SELECT
-            b.*,
-            a.name AS active_name
-        FROM vademecum_brands b
-        JOIN vademecum_active_ingredients a
-            ON a.id = b.active_ingredient_id
-        WHERE b.active = TRUE
-        ORDER BY a.name, b.brand_name
-    """)).mappings().all()
-
-    return templates.TemplateResponse(
-        "vademecum.html",
-        {
-            "request": request,
-            "active_ingredients": active_ingredients,
-            "brands": brands,
-            "q": q,
-            "category": category,
-            "species": species
-        }
-    )
-    categories = db.execute(text("""
-        SELECT DISTINCT category
-        FROM vademecum_drugs
-        WHERE active = TRUE AND category != ''
-        ORDER BY category
-    """)).scalars().all()
-
-    species_options = db.execute(text("""
-        SELECT DISTINCT species
-        FROM vademecum_drugs
-        WHERE active = TRUE AND species != ''
-        ORDER BY species
-    """)).scalars().all()
-
-    return templates.TemplateResponse(
-        'vademecum.html',
-        {
-            'request': request,
-            'drugs': drugs,
-            'q': q,
-            'category': category,
-            'species': species,
-            'categories': categories,
-            'species_options': species_options
-        }
-    )
-
-
+    @app.get('/vademecum', response_class=HTMLResponse)
+        active_ingredients = db.execute(
+            text("""
+                SELECT DISTINCT a.*
+                FROM vademecum_active_ingredients a
+                LEFT JOIN vademecum_brands b
+                    ON b.active_ingredient_id = a.id
+                WHERE a.active = TRUE
+                AND (
+                    :q = ''
+                    OR a.name ILIKE :like
+                    OR a.category ILIKE :like
+                    OR a.species ILIKE :like
+                    OR a.indications ILIKE :like
+                    OR a.contraindications ILIKE :like
+                    OR a.observations ILIKE :like
+                    OR b.brand_name ILIKE :like
+                    OR b.laboratory ILIKE :like
+                )
+                ORDER BY a.name
+            """),
+            {
+                "q": q,
+                "like": f"%{q}%"
+            }
+        ).mappings().all()
+    
+        brands = db.execute(
+            text("""
+                SELECT
+                    b.*,
+                    a.name AS active_name
+                FROM vademecum_brands b
+                JOIN vademecum_active_ingredients a
+                    ON a.id = b.active_ingredient_id
+                WHERE b.active = TRUE
+                ORDER BY a.name, b.brand_name
+            """)
+        ).mappings().all()
+    
+        return templates.TemplateResponse(
+            "vademecum.html",
+            {
+                "request": request,
+                "active_ingredients": active_ingredients,
+                "brands": brands,
+                "q": q,
+                "category": category,
+                "species": species
+            }
+        )
 @app.post('/vademecum')
 def vademecum_create(
     commercial_name: str = Form(''),
