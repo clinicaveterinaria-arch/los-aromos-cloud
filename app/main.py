@@ -39,17 +39,15 @@ def argentina_now():
 # ==========================================================
 
 def ai_clinical_summary(event):
+    import json
+    import urllib.request
+    import urllib.error
 
-    text = " ".join([
-        str(getattr(event, "subjective", "") or ""),
-        str(getattr(event, "objective", "") or ""),
-        str(getattr(event, "assessment", "") or ""),
-        str(getattr(event, "plan", "") or ""),
-        str(getattr(event, "notes", "") or ""),
-    ]).lower()
+    api_key = os.getenv("OPENAI_API_KEY", "").strip()
 
-    result = {
-        "summary": "",
+    fallback = {
+        "summary": "Asistente IA no disponible todavía.",
+        "owner_explanation": "",
         "priority": "Normal",
         "problems": [],
         "differentials": [],
@@ -58,53 +56,135 @@ def ai_clinical_summary(event):
         "alerts": []
     }
 
-    def has(*words):
-        return any(w in text for w in words)
+    patient = getattr(event, "patient", None)
 
-    if has("tos", "disnea", "taquipnea", "sibil"):
-        result["problems"].append("Signos respiratorios")
-        result["differentials"] += [
-            "Bronquitis",
-            "Neumonía",
-            "Edema pulmonar",
-            "Enfermedad cardíaca"
-        ]
-        result["recommended_tests"] += [
-            "Radiografía de tórax",
-            "Hemograma",
-            "Ecocardiografía"
-        ]
+    clinical_text = f"""
+Paciente: {getattr(patient, "name", "") if patient else ""}
+Especie: {getattr(patient, "species", "") if patient else ""}
+Raza: {getattr(patient, "breed", "") if patient else ""}
+Sexo: {getattr(patient, "sex", "") if patient else ""}
+Peso paciente: {getattr(patient, "weight", "") if patient else ""}
+Peso evento: {getattr(event, "weight", "") or ""}
 
-    if has("vomito", "vómito", "diarrea"):
-        result["problems"].append("Signos digestivos")
-        result["differentials"] += [
-            "Gastroenteritis",
-            "Pancreatitis",
-            "Cuerpo extraño"
-        ]
-        result["recommended_tests"] += [
-            "Laboratorio",
-            "Ecografía abdominal"
-        ]
+Tipo de evento: {getattr(event, "event_type", "") or ""}
+Título: {getattr(event, "title", "") or ""}
+Descripción: {getattr(event, "description", "") or ""}
+Anamnesis: {getattr(event, "anamnesis", "") or ""}
+Examen físico: {getattr(event, "physical_exam", "") or ""}
+Diagnóstico cargado: {getattr(event, "diagnosis", "") or ""}
+Tratamiento cargado: {getattr(event, "treatment", "") or ""}
 
-    if has("claudic", "cojera", "dolor"):
-        result["problems"].append("Dolor")
+Constantes:
+Temperatura: {getattr(event, "temperature", "") or ""}
+FC: {getattr(event, "heart_rate", "") or ""}
+FR: {getattr(event, "respiratory_rate", "") or ""}
+Mucosas: {getattr(event, "mucous_membranes", "") or ""}
+TLLC/CRT: {getattr(event, "crt", "") or ""}
+Hidratación: {getattr(event, "hydration", "") or ""}
 
-    if has("fractura", "trauma", "atrop"):
-        result["alerts"].append(
-            "Paciente traumático."
+ECG:
+FC ECG: {getattr(event, "ecg_hr", "") or ""}
+Ritmo: {getattr(event, "ecg_rhythm", "") or ""}
+PR: {getattr(event, "ecg_pr", "") or ""}
+QRS: {getattr(event, "ecg_qrs", "") or ""}
+QT: {getattr(event, "ecg_qt", "") or ""}
+Eje: {getattr(event, "ecg_axis", "") or ""}
+Interpretación ECG: {getattr(event, "ecg_interpretation", "") or ""}
+
+Eco:
+AI/Ao: {getattr(event, "eco_aiao", "") or ""}
+FS: {getattr(event, "eco_fs", "") or ""}
+ACVIM: {getattr(event, "eco_acvim", "") or ""}
+Diagnóstico eco: {getattr(event, "eco_diagnosis", "") or ""}
+Tratamiento eco: {getattr(event, "eco_treatment", "") or ""}
+
+RX:
+VHS: {getattr(event, "rx_vhs", "") or ""}
+VLAS: {getattr(event, "rx_vlas", "") or ""}
+Patrón pulmonar: {getattr(event, "rx_lung_pattern", "") or ""}
+Edema: {getattr(event, "rx_edema", "") or ""}
+Congestión: {getattr(event, "rx_congestion", "") or ""}
+Observaciones RX: {getattr(event, "rx_observations", "") or ""}
+"""
+
+    if not api_key:
+        fallback["summary"] = "Falta configurar OPENAI_API_KEY en Render."
+        fallback["alerts"] = ["No se encontró OPENAI_API_KEY."]
+        return fallback
+
+    prompt = f"""
+Sos un asistente clínico veterinario para una médica veterinaria.
+Analizá SOLO la información cargada abajo. No inventes datos.
+Diferenciá hechos, hipótesis y sugerencias.
+No confirmes diagnósticos si no hay evidencia suficiente.
+Respondé en español claro, profesional y útil para clínica de pequeños animales.
+
+Devolvé EXCLUSIVAMENTE un JSON válido con esta estructura:
+{{
+  "summary": "resumen clínico profesional breve",
+  "owner_explanation": "explicación simple para propietario",
+  "priority": "Normal/Alta/Crítica",
+  "problems": ["problema 1", "problema 2"],
+  "differentials": ["diferencial 1", "diferencial 2"],
+  "recommended_tests": ["estudio sugerido 1", "estudio sugerido 2"],
+  "treatment": ["sugerencia terapéutica 1", "sugerencia terapéutica 2"],
+  "alerts": ["alerta 1", "alerta 2"]
+}}
+
+Datos del evento:
+{clinical_text}
+"""
+
+    payload = {
+        "model": os.getenv("OPENAI_MODEL", "gpt-5.4-mini"),
+        "input": prompt,
+        "max_output_tokens": 1400
+    }
+
+    try:
+        req = urllib.request.Request(
+            "https://api.openai.com/v1/responses",
+            data=json.dumps(payload).encode("utf-8"),
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json"
+            },
+            method="POST"
         )
-        result["priority"] = "Alta"
 
-    if has("shock", "coma"):
-        result["alerts"].append(
-            "Emergencia."
-        )
-        result["priority"] = "Crítica"
+        with urllib.request.urlopen(req, timeout=35) as response:
+            data = json.loads(response.read().decode("utf-8"))
 
-    result["summary"] = ", ".join(result["problems"])
+        output_text = data.get("output_text", "")
 
-    return result
+        if not output_text:
+            parts = []
+            for item in data.get("output", []):
+                for content in item.get("content", []):
+                    if content.get("type") in ["output_text", "text"]:
+                        parts.append(content.get("text", ""))
+            output_text = "\n".join(parts).strip()
+
+        cleaned = output_text.strip()
+        if cleaned.startswith("```"):
+            cleaned = cleaned.replace("```json", "").replace("```", "").strip()
+
+        result = json.loads(cleaned)
+
+        for key in fallback:
+            if key not in result:
+                result[key] = fallback[key]
+
+        if result.get("priority") not in ["Normal", "Alta", "Crítica"]:
+            result["priority"] = "Normal"
+
+        return result
+
+    except Exception as e:
+        print("ERROR IA CLINICA:", str(e))
+        fallback["summary"] = "No se pudo generar el análisis IA en este momento."
+        fallback["alerts"] = [f"Error IA: {str(e)}"]
+        return fallback
 try:
     with engine.begin() as conn:
         conn.execute(text("ALTER TABLE appointments ADD COLUMN reminder_12h BOOLEAN DEFAULT FALSE"))
