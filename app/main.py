@@ -4903,7 +4903,7 @@ def vademecum_page(
             }
         ).mappings().all()
     
-        brands = db.execute(
+    brands = db.execute(
             text("""
                 SELECT
                     b.*,
@@ -4916,7 +4916,7 @@ def vademecum_page(
             """)
         ).mappings().all()
     
-        return templates.TemplateResponse(
+    return templates.TemplateResponse(
             "vademecum.html",
             {
                 "request": request,
