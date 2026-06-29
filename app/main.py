@@ -240,6 +240,9 @@ Instrucción específica según tipo de evento:
 Información clínica:
 
 {clinical_text}
+
+Cantidad de imágenes adjuntas enviadas para análisis:
+{image_count}
 """
     image_count = 0
     content_blocks = [
