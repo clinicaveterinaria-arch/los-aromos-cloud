@@ -1298,10 +1298,7 @@ def patient_detail(request: Request, patient_id: int, db: Session = Depends(get_
         .all()
     )
     
-    clinical_ai = {}
-
-    for event in events:
-        clinical_ai[event.id] = ai_clinical_summary(event)    
+    clinical_ai = {}    
     
     last_anesthesia = (
         db.query(ClinicalEvent)
