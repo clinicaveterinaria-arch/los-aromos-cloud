@@ -97,6 +97,23 @@
                     Laboratorio: {{ b.laboratory or '-' }}<br>
                     Presentación: {{ b.presentation or '-' }}<br>
                     Concentración: {{ b.concentration or '-' }}
+
+                    <div style="margin-top:10px;">
+                        <a href="/vademecum/brand/{{ b.id }}/edit"
+                           style="background:#d85b9a;color:white;border-radius:10px;padding:7px 10px;text-decoration:none;font-weight:bold;">
+                            ✏️ Editar
+                        </a>
+
+                        <form method="post"
+                              action="/vademecum/brand/{{ b.id }}/delete"
+                              style="display:inline;"
+                              onsubmit="return confirm('¿Eliminar esta marca comercial?');">
+                            <button type="submit"
+                                    style="background:#dc2626;color:white;border:none;border-radius:10px;padding:7px 10px;font-weight:bold;cursor:pointer;">
+                                🗑 Eliminar
+                            </button>
+                        </form>
+                    </div>
                 </div>
             {% endfor %}
         {% else %}
