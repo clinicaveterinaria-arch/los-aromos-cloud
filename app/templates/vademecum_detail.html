@@ -11,12 +11,22 @@
         <h1 style="margin-top:18px;color:#1f2937;">💊 {{ active.name }}</h1>
         <div style="margin:14px 0 22px 0;">
 
-            <a
-                href="/vademecum/{{ active.id }}/edit"
-                class="vade-btn"
-                style="text-decoration:none;"
-            >
-                ✏️ Editar principio activo
+        <a
+            href="/vademecum/{{ active.id }}/edit"
+            class="vade-btn"
+            style="text-decoration:none;"
+        >
+            📝 Editar principio activo
+        </a>
+        
+        <a
+            href="/vademecum/{{ active.id }}/print"
+            target="_blank"
+            class="vade-btn"
+            style="text-decoration:none;margin-left:8px;"
+        >
+            🖨️ Imprimir ficha
+        </a>
         <form
             method="post"
             action="/vademecum/{{ active.id }}/delete"
