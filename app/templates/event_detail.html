@@ -105,14 +105,31 @@
     <div class="event-card ai-card">
     <div class="ai-head">
         <h2>🧠 Asistente Clínico IA</h2>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button type="button" onclick="analizarEventoIA()" class="event-btn primary">
-                🧠 Analizar con IA
-            </button>
-            <button type="button" onclick="copiarAnalisisIA()" class="event-btn" id="ai-copy-btn" style="display:none;">
-                📋 Copiar análisis
-            </button>
-        </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+    
+        <button type="button"
+                onclick="analizarEventoIA()"
+                class="event-btn primary">
+            🧠 Analizar con IA
+        </button>
+    
+        <button type="button"
+                onclick="copiarAnalisisIA()"
+                class="event-btn"
+                id="ai-copy-btn"
+                style="display:none;">
+            📋 Copiar
+        </button>
+    
+        <button type="button"
+                onclick="guardarAnalisisIA()"
+                class="event-btn"
+                id="ai-save-btn"
+                style="display:none;">
+            💾 Agregar al evento
+        </button>
+    
+    </div>
     </div>v>
 
         <div id="ai-loading" class="text-block" style="display:none;">
