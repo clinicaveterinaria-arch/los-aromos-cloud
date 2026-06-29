@@ -166,6 +166,13 @@
       <a href="/agenda" class="{% if request.url.path.startswith('/agenda') %}active{% endif %}">
         <span class="nav-left"><span class="nav-icon">📅</span>Agenda</span><span class="nav-arrow">›</span>
       </a>
+      <a href="/pendientes" class="{% if request.url.path.startswith('/pendientes') %}active{% endif %}">
+        <span class="nav-left">
+          <span class="nav-icon">🔔</span>
+          Pendientes{% if pc > 0 %}<span class="pending-badge">{{ pc }}</span>{% endif %}
+        </span>
+        <span class="nav-arrow">›</span>
+      </a>
       <a href="/waitlist" class="{% if request.url.path.startswith('/waitlist') %}active{% endif %}">
         <span class="nav-left">
             <span class="nav-icon">👥</span>
@@ -188,13 +195,7 @@
       <a href="/stats" class="{% if request.url.path.startswith('/stats') %}active{% endif %}">
           <span class="nav-left"><span class="nav-icon">📊</span>Estadísticas</span><span class="nav-arrow">›</span>
       </a>
-      <a href="/pendientes" class="{% if request.url.path.startswith('/pendientes') %}active{% endif %}">
-        <span class="nav-left">
-          <span class="nav-icon">🔔</span>
-          Pendientes{% if pc > 0 %}<span class="pending-badge">{{ pc }}</span>{% endif %}
-        </span>
-        <span class="nav-arrow">›</span>
-      </a>
+
 
       <a href="/logout">
         <span class="nav-left"><span class="nav-icon">🚪</span>Salir</span><span class="nav-arrow">›</span>
