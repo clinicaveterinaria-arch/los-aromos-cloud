@@ -4927,6 +4927,44 @@ def vademecum_page(
                 "species": species
             }
         )
+@app.get('/vademecum/{active_id}', response_class=HTMLResponse)
+def vademecum_detail(
+    active_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    active = db.execute(
+        text("""
+            SELECT *
+            FROM vademecum_active_ingredients
+            WHERE id = :active_id AND active = TRUE
+        """),
+        {"active_id": active_id}
+    ).mappings().first()
+
+    if not active:
+        raise HTTPException(status_code=404, detail="Principio activo no encontrado")
+
+    brands = db.execute(
+        text("""
+            SELECT *
+            FROM vademecum_brands
+            WHERE active_ingredient_id = :active_id
+            AND active = TRUE
+            ORDER BY brand_name
+        """),
+        {"active_id": active_id}
+    ).mappings().all()
+
+    return templates.TemplateResponse(
+        "vademecum_detail.html",
+        {
+            "request": request,
+            "active": active,
+            "brands": brands
+        }
+    )
 @app.post('/vademecum')
 def vademecum_create(
     commercial_name: str = Form(''),
