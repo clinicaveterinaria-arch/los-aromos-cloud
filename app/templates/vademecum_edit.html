@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div style="padding:24px;">
+
+    <div style="background:white;border:1px solid #f3c6d8;border-radius:22px;padding:22px;box-shadow:0 8px 24px rgba(0,0,0,.04);max-width:900px;">
+
+        <a href="/vademecum/{{ active.id }}" style="color:#d85b9a;text-decoration:none;font-weight:bold;">
+            ← Volver a ficha
+        </a>
+
+        <h1 style="margin-top:18px;color:#1f2937;">✏️ Editar {{ active.name }}</h1>
+
+        <form method="post" action="/vademecum/{{ active.id }}/edit">
+
+            <label>Principio activo</label>
+            <input name="name" value="{{ active.name or '' }}">
+
+            <label>Categoría</label>
+            <input name="category" value="{{ active.category or '' }}">
+
+            <label>Especie</label>
+            <input name="species" value="{{ active.species or '' }}">
+
+            <label>Dosis perro</label>
+            <textarea name="dog_dose">{{ active.dog_dose or '' }}</textarea>
+
+            <label>Dosis gato</label>
+            <textarea name="cat_dose">{{ active.cat_dose or '' }}</textarea>
+
+            <label>Vía</label>
+            <input name="route" value="{{ active.route or '' }}">
+
+            <label>Frecuencia</label>
+            <input name="frequency" value="{{ active.frequency or '' }}">
+
+            <label>Indicaciones</label>
+            <textarea name="indications">{{ active.indications or '' }}</textarea>
+
+            <label>Contraindicaciones</label>
+            <textarea name="contraindications">{{ active.contraindications or '' }}</textarea>
+
+            <label>Interacciones</label>
+            <textarea name="interactions">{{ active.interactions or '' }}</textarea>
+
+            <label>Advertencias</label>
+            <textarea name="warnings">{{ active.warnings or '' }}</textarea>
+
+            <label>Observaciones</label>
+            <textarea name="observations">{{ active.observations or '' }}</textarea>
+
+            <br><br>
+
+            <button type="submit" style="background:#22c55e;color:white;border:none;border-radius:12px;padding:12px 16px;font-weight:bold;">
+                💾 Guardar cambios
+            </button>
+
+            <a href="/vademecum/{{ active.id }}" style="background:#d85b9a;color:white;border-radius:12px;padding:12px 16px;text-decoration:none;font-weight:bold;margin-left:8px;">
+                Cancelar
+            </a>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}
