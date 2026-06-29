@@ -8,7 +8,7 @@ from typing import Optional
 from io import BytesIO
 from openpyxl import load_workbook
 from fastapi import FastAPI, Request, Form, Depends, HTTPException, UploadFile, File
-from fastapi.responses import RedirectResponse, HTMLResponse
+from fastapi.responses import RedirectResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
@@ -2182,9 +2182,25 @@ def event_detail(
     'patient': patient,
     'event': event,
     'previous_ecg': previous_ecg,
-    'clinical_ai': ai_clinical_summary(event)
+    'clinical_ai': None
 }
     )
+@app.post('/patients/{patient_id}/events/{event_id}/ai')
+def event_ai_analyze(
+    patient_id: int,
+    event_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    patient = db.get(Patient, patient_id)
+    event = db.get(ClinicalEvent, event_id)
+
+    if not patient or not event or event.patient_id != patient.id:
+        raise HTTPException(status_code=404)
+
+    result = ai_clinical_summary(event)
+
+    return JSONResponse(result)
 @app.post('/patients/{patient_id}/events/{event_id}/delete')
 def event_delete(
     patient_id: int,
