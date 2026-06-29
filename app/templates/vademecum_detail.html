@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div style="padding:24px;">
+
+    <div style="background:white;border:1px solid #f3c6d8;border-radius:22px;padding:22px;box-shadow:0 8px 24px rgba(0,0,0,.04);">
+
+        <a href="/vademecum" style="color:#d85b9a;text-decoration:none;font-weight:bold;">← Volver al Vademécum</a>
+
+        <h1 style="margin-top:18px;color:#1f2937;">💊 {{ active.name }}</h1>
+
+        <p style="color:#6b7280;">
+            <b>Categoría:</b> {{ active.category or '-' }} |
+            <b>Especie:</b> {{ active.species or '-' }} |
+            <b>Vía:</b> {{ active.route or '-' }} |
+            <b>Frecuencia:</b> {{ active.frequency or '-' }}
+        </p>
+
+        <hr style="border:none;border-top:1px solid #f3c6d8;margin:18px 0;">
+
+        <h3>🐶 Dosis perro</h3>
+        <p>{{ active.dog_dose or '-' }}</p>
+
+        <h3>🐱 Dosis gato</h3>
+        <p>{{ active.cat_dose or '-' }}</p>
+
+        <h3>📋 Indicaciones</h3>
+        <p>{{ active.indications or '-' }}</p>
+
+        <h3>⛔ Contraindicaciones</h3>
+        <p>{{ active.contraindications or '-' }}</p>
+
+        <h3>⚠ Interacciones</h3>
+        <p>{{ active.interactions or '-' }}</p>
+
+        <h3>🚨 Advertencias</h3>
+        <p>{{ active.warnings or '-' }}</p>
+
+        <h3>📝 Observaciones clínicas</h3>
+        <p>{{ active.observations or '-' }}</p>
+
+        <hr style="border:none;border-top:1px solid #f3c6d8;margin:18px 0;">
+
+        <h2>🏷 Marcas comerciales</h2>
+
+        {% if brands %}
+            {% for b in brands %}
+                <div style="background:#fff8fb;border:1px solid #f3c6d8;border-radius:14px;padding:12px;margin:10px 0;">
+                    <b>{{ b.brand_name }}</b><br>
+                    Laboratorio: {{ b.laboratory or '-' }}<br>
+                    Presentación: {{ b.presentation or '-' }}<br>
+                    Concentración: {{ b.concentration or '-' }}
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>Sin marcas comerciales cargadas.</p>
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}
