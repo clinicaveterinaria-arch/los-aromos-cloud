@@ -5052,6 +5052,36 @@ def save_vademecum(
         f"/vademecum/{active_id}",
         status_code=303
     )
+@app.post("/vademecum/{active_id}/delete")
+def delete_vademecum(
+    active_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    db.execute(
+        text("""
+            UPDATE vademecum_active_ingredients
+            SET active = FALSE
+            WHERE id = :id
+        """),
+        {"id": active_id}
+    )
+
+    db.execute(
+        text("""
+            UPDATE vademecum_brands
+            SET active = FALSE
+            WHERE active_ingredient_id = :id
+        """),
+        {"id": active_id}
+    )
+
+    db.commit()
+
+    return RedirectResponse(
+        "/vademecum",
+        status_code=303
+    )
 @app.post('/vademecum')
 def vademecum_create(
     commercial_name: str = Form(''),
