@@ -636,7 +636,7 @@ def init_db():
 
 @app.on_event('startup')
 def on_startup():
-    init_db()
+    pass
 
 def current_user(request: Request, db: Session = Depends(get_db)):
     username = request.session.get('user')
