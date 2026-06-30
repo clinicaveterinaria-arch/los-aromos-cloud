@@ -6230,6 +6230,29 @@ def hospitalization_fluid_finish(
         f'/hospitalizations/{hospitalization.id}',
         status_code=303
     )
+@app.post('/hospitalizations/{hospitalization_id}/fluids/{fluid_id}/delete')
+def hospitalization_fluid_delete(
+    hospitalization_id: int,
+    fluid_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    hospitalization = db.get(Hospitalization, hospitalization_id)
+    fluid = db.get(HospitalizationFluid, fluid_id)
+
+    if not hospitalization or not fluid:
+        raise HTTPException(status_code=404, detail='Fluidoterapia no encontrada')
+
+    if fluid.hospitalization_id != hospitalization.id:
+        raise HTTPException(status_code=404, detail='Fluidoterapia no corresponde a esta internación')
+
+    db.delete(fluid)
+    db.commit()
+
+    return RedirectResponse(
+        f'/hospitalizations/{hospitalization.id}',
+        status_code=303
+    )
 @app.post('/hospitalizations/{hospitalization_id}/medications')
 def hospitalization_medication_create(
     hospitalization_id: int,
