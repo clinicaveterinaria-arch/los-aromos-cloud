@@ -575,9 +575,10 @@
                                 </td>
                                 <td style="padding:9px;border:1px solid #f1d6e2;">
                                     {% if m.status != 'Aplicada' %}
-                                    <form method="post" action="/hospitalizations/{{ hospitalization.id }}/medications/{{ m.id }}/done">
+                                    <form method="post" action="/hospitalizations/{{ hospitalization.id }}/medications/{{ m.id }}/done"
+                                          onsubmit="return confirm('¿Marcar esta medicación como aplicada?');">
                                         <button type="submit" style="background:#22c55e;color:white;border:none;border-radius:8px;padding:7px 9px;font-weight:bold;cursor:pointer;">
-                                            ✔
+                                            ✔ Aplicar
                                         </button>
                                     </form>
                                     {% endif %}
