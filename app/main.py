@@ -24,7 +24,7 @@ print("SUPABASE_URL =", SUPABASE_URL)
 print("SUPABASE_KEY cargada =", bool(SUPABASE_KEY))
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY) if SUPABASE_URL and SUPABASE_KEY else None
 from .database import Base, engine, get_db
-from .models import User, Owner, Patient, ClinicalEvent, EventAttachment, Appointment, Product, Sale, SaleItem, SalePayment, WaitingListEntry
+from .models import User, Owner, Patient, ClinicalEvent, EventAttachment, Appointment, Product, Sale, SaleItem, SalePayment, WaitingListEntry, Hospitalization
 Base.metadata.create_all(bind=engine)
 # =====================================
 # Zona horaria Argentina
@@ -562,6 +562,33 @@ def init_db():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
         """))
+        conn.execute(text("""
+        CREATE TABLE IF NOT EXISTS hospitalizations (
+            id SERIAL PRIMARY KEY,
+            patient_id INTEGER REFERENCES patients(id),
+            clinical_event_id INTEGER REFERENCES clinical_events(id),
+            admission_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            discharge_date TIMESTAMP NULL,
+            status VARCHAR(40) DEFAULT 'Internado',
+            cage VARCHAR(80) DEFAULT '',
+            responsible_vet VARCHAR(120) DEFAULT '',
+            reason TEXT DEFAULT '',
+            diagnosis TEXT DEFAULT '',
+            treatment_plan TEXT DEFAULT '',
+            notes TEXT DEFAULT '',
+            initial_weight FLOAT,
+            initial_temperature FLOAT,
+            initial_heart_rate INTEGER,
+            initial_respiratory_rate INTEGER,
+            initial_mucous_membranes VARCHAR(100) DEFAULT '',
+            initial_crt VARCHAR(50) DEFAULT '',
+            initial_hydration VARCHAR(100) DEFAULT '',
+            discharge_summary TEXT DEFAULT '',
+            discharge_indications TEXT DEFAULT '',
+            created_by VARCHAR(100) DEFAULT 'admin',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        """))           
     try:
         admin = db.query(User).filter(User.username == 'admin').first()
         if not admin:
@@ -1518,6 +1545,16 @@ def patient_detail(request: Request, patient_id: int, db: Session = Depends(get_
             }
         )
     )
+    
+    active_hospitalization = (
+        db.query(Hospitalization)
+        .filter(
+            Hospitalization.patient_id == patient.id,
+            Hospitalization.status == 'Internado'
+        )
+        .order_by(Hospitalization.admission_date.desc())
+        .first()
+    )
     return templates.TemplateResponse(
         'patient_detail.html',
         {
@@ -1537,7 +1574,8 @@ def patient_detail(request: Request, patient_id: int, db: Session = Depends(get_
             'last_eco': last_eco,
             'eco_count': eco_count,
             "vaccine_names": vaccine_names,
-            "dewormer_names": dewormer_names
+            "dewormer_names": dewormer_names,
+            "active_hospitalization": active_hospitalization
         }
     )
 @app.get('/patients/{patient_id}/events/{event_id}/edit', response_class=HTMLResponse)
@@ -5681,6 +5719,321 @@ def vademecum_print(
             "active": active,
             "brands": brands
         }
+    )
+# ===== INTERNACIÓN =====
+
+@app.get('/hospitalizations', response_class=HTMLResponse)
+def hospitalizations_page(
+    request: Request,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    active_hospitalizations = (
+        db.query(Hospitalization)
+        .filter(Hospitalization.status == 'Internado')
+        .order_by(Hospitalization.admission_date.desc())
+        .all()
+    )
+
+    closed_hospitalizations = (
+        db.query(Hospitalization)
+        .filter(Hospitalization.status != 'Internado')
+        .order_by(Hospitalization.admission_date.desc())
+        .limit(20)
+        .all()
+    )
+
+    return templates.TemplateResponse(
+        'hospitalizations.html',
+        {
+            'request': request,
+            'active_hospitalizations': active_hospitalizations,
+            'closed_hospitalizations': closed_hospitalizations,
+            'today': argentina_now().date()
+        }
+    )
+
+
+@app.get('/patients/{patient_id}/hospitalize', response_class=HTMLResponse)
+def hospitalization_form(
+    request: Request,
+    patient_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    patient = db.get(Patient, patient_id)
+
+    if not patient:
+        raise HTTPException(status_code=404, detail='Paciente no encontrado')
+
+    active_hospitalization = (
+        db.query(Hospitalization)
+        .filter(
+            Hospitalization.patient_id == patient.id,
+            Hospitalization.status == 'Internado'
+        )
+        .first()
+    )
+
+    if active_hospitalization:
+        return RedirectResponse(
+            f'/hospitalizations/{active_hospitalization.id}',
+            status_code=303
+        )
+
+    return templates.TemplateResponse(
+        'hospitalization_form.html',
+        {
+            'request': request,
+            'patient': patient,
+            'today': argentina_now().date()
+        }
+    )
+
+
+@app.post('/patients/{patient_id}/hospitalize')
+def hospitalization_create(
+    patient_id: int,
+    cage: str = Form(''),
+    responsible_vet: str = Form(''),
+    reason: str = Form(''),
+    diagnosis: str = Form(''),
+    treatment_plan: str = Form(''),
+    notes: str = Form(''),
+    initial_weight: str = Form(''),
+    initial_temperature: str = Form(''),
+    initial_heart_rate: str = Form(''),
+    initial_respiratory_rate: str = Form(''),
+    initial_mucous_membranes: str = Form(''),
+    initial_crt: str = Form(''),
+    initial_hydration: str = Form(''),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    patient = db.get(Patient, patient_id)
+
+    if not patient:
+        raise HTTPException(status_code=404, detail='Paciente no encontrado')
+
+    active_hospitalization = (
+        db.query(Hospitalization)
+        .filter(
+            Hospitalization.patient_id == patient.id,
+            Hospitalization.status == 'Internado'
+        )
+        .first()
+    )
+
+    if active_hospitalization:
+        return RedirectResponse(
+            f'/hospitalizations/{active_hospitalization.id}',
+            status_code=303
+        )
+
+    def to_float(value):
+        try:
+            return float(str(value).replace(',', '.')) if value and str(value).strip() else None
+        except ValueError:
+            return None
+
+    def to_int(value):
+        try:
+            return int(float(str(value).replace(',', '.'))) if value and str(value).strip() else None
+        except ValueError:
+            return None
+
+    event = ClinicalEvent(
+        patient_id=patient.id,
+        event_type='Internación',
+        title='Ingreso a internación',
+        description=reason or '',
+        diagnosis=diagnosis or '',
+        treatment=treatment_plan or '',
+        weight=to_float(initial_weight),
+        temperature=to_float(initial_temperature),
+        heart_rate=to_int(initial_heart_rate),
+        respiratory_rate=to_int(initial_respiratory_rate),
+        mucous_membranes=initial_mucous_membranes or '',
+        crt=initial_crt or '',
+        hydration=initial_hydration or '',
+        created_by=user.username,
+        event_date=argentina_now()
+    )
+
+    db.add(event)
+    db.flush()
+
+    hospitalization = Hospitalization(
+        patient_id=patient.id,
+        clinical_event_id=event.id,
+        cage=cage or '',
+        responsible_vet=responsible_vet or '',
+        reason=reason or '',
+        diagnosis=diagnosis or '',
+        treatment_plan=treatment_plan or '',
+        notes=notes or '',
+        initial_weight=to_float(initial_weight),
+        initial_temperature=to_float(initial_temperature),
+        initial_heart_rate=to_int(initial_heart_rate),
+        initial_respiratory_rate=to_int(initial_respiratory_rate),
+        initial_mucous_membranes=initial_mucous_membranes or '',
+        initial_crt=initial_crt or '',
+        initial_hydration=initial_hydration or '',
+        created_by=user.username,
+        admission_date=argentina_now(),
+        status='Internado'
+    )
+
+    db.add(hospitalization)
+
+    if initial_weight and str(initial_weight).strip():
+        patient.weight = to_float(initial_weight)
+
+    db.commit()
+    db.refresh(hospitalization)
+
+    return RedirectResponse(
+        f'/hospitalizations/{hospitalization.id}',
+        status_code=303
+    )
+
+
+@app.get('/hospitalizations/{hospitalization_id}', response_class=HTMLResponse)
+def hospitalization_detail(
+    hospitalization_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    hospitalization = db.get(Hospitalization, hospitalization_id)
+
+    if not hospitalization:
+        raise HTTPException(status_code=404, detail='Internación no encontrada')
+
+    patient = hospitalization.patient
+
+    related_events = (
+        db.query(ClinicalEvent)
+        .filter(ClinicalEvent.patient_id == patient.id)
+        .filter(ClinicalEvent.event_type.in_(['Internación', 'Control', 'Consulta clínica', 'Alta']))
+        .order_by(ClinicalEvent.event_date.desc())
+        .limit(20)
+        .all()
+    )
+
+    return templates.TemplateResponse(
+        'hospitalization_detail.html',
+        {
+            'request': request,
+            'hospitalization': hospitalization,
+            'patient': patient,
+            'related_events': related_events,
+            'today': argentina_now().date()
+        }
+    )
+
+
+@app.post('/hospitalizations/{hospitalization_id}/evolution')
+def hospitalization_add_evolution(
+    hospitalization_id: int,
+    title: str = Form('Evolución de internación'),
+    description: str = Form(''),
+    temperature: str = Form(''),
+    heart_rate: str = Form(''),
+    respiratory_rate: str = Form(''),
+    weight: str = Form(''),
+    mucous_membranes: str = Form(''),
+    crt: str = Form(''),
+    hydration: str = Form(''),
+    treatment: str = Form(''),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    hospitalization = db.get(Hospitalization, hospitalization_id)
+
+    if not hospitalization:
+        raise HTTPException(status_code=404, detail='Internación no encontrada')
+
+    patient = hospitalization.patient
+
+    def to_float(value):
+        try:
+            return float(str(value).replace(',', '.')) if value and str(value).strip() else None
+        except ValueError:
+            return None
+
+    def to_int(value):
+        try:
+            return int(float(str(value).replace(',', '.'))) if value and str(value).strip() else None
+        except ValueError:
+            return None
+
+    event = ClinicalEvent(
+        patient_id=patient.id,
+        event_type='Control',
+        title=title or 'Evolución de internación',
+        description=description or '',
+        treatment=treatment or '',
+        temperature=to_float(temperature),
+        heart_rate=to_int(heart_rate),
+        respiratory_rate=to_int(respiratory_rate),
+        weight=to_float(weight),
+        mucous_membranes=mucous_membranes or '',
+        crt=crt or '',
+        hydration=hydration or '',
+        created_by=user.username,
+        event_date=argentina_now()
+    )
+
+    db.add(event)
+
+    if weight and str(weight).strip():
+        patient.weight = to_float(weight)
+
+    db.commit()
+
+    return RedirectResponse(
+        f'/hospitalizations/{hospitalization.id}',
+        status_code=303
+    )
+
+
+@app.post('/hospitalizations/{hospitalization_id}/discharge')
+def hospitalization_discharge(
+    hospitalization_id: int,
+    discharge_summary: str = Form(''),
+    discharge_indications: str = Form(''),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    hospitalization = db.get(Hospitalization, hospitalization_id)
+
+    if not hospitalization:
+        raise HTTPException(status_code=404, detail='Internación no encontrada')
+
+    patient = hospitalization.patient
+
+    hospitalization.status = 'Alta'
+    hospitalization.discharge_date = argentina_now()
+    hospitalization.discharge_summary = discharge_summary or ''
+    hospitalization.discharge_indications = discharge_indications or ''
+
+    event = ClinicalEvent(
+        patient_id=patient.id,
+        event_type='Alta',
+        title='Alta de internación',
+        description=discharge_summary or '',
+        treatment=discharge_indications or '',
+        created_by=user.username,
+        event_date=argentina_now()
+    )
+
+    db.add(event)
+    db.commit()
+
+    return RedirectResponse(
+        f'/hospitalizations/{hospitalization.id}',
+        status_code=303
     )
 @app.get('/health')
 def health():
