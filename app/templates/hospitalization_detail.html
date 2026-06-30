@@ -463,21 +463,24 @@
                                 {% if m.notes %}<br><small>{{ m.notes }}</small>{% endif %}
                             </span>
 
-                            {% if m.status == 'Aplicada' %}
-                                <b>Aplicada</b>
-                            {% else %}
-                                <form method="post" action="/hospitalizations/{{ hospitalization.id }}/medications/{{ m.id }}/done">
-                                    <button type="submit" style="background:#22c55e;color:white;border:none;border-radius:10px;padding:8px 10px;font-weight:bold;cursor:pointer;">
-                                        ✔ Aplicar
-                                    </button>
-                                </form>
+                            <div>
+                                {% if m.status == 'Aplicada' %}
+                                    <b>Aplicada</b>
+                                {% else %}
+                                    <form method="post" action="/hospitalizations/{{ hospitalization.id }}/medications/{{ m.id }}/done">
+                                        <button type="submit" style="background:#22c55e;color:white;border:none;border-radius:10px;padding:8px 10px;font-weight:bold;cursor:pointer;">
+                                            ✔ Aplicar
+                                        </button>
+                                    </form>
+                                {% endif %}
+
                                 <form method="post" action="/hospitalizations/{{ hospitalization.id }}/medications/{{ m.id }}/delete"
                                       onsubmit="return confirm('¿Eliminar esta medicación programada?');">
                                     <button type="submit" style="background:#ef4444;color:white;border:none;border-radius:10px;padding:8px 10px;font-weight:bold;cursor:pointer;margin-top:5px;">
                                         🗑 Eliminar
                                     </button>
-                                </form>                            
-                            {% endif %}
+                                </form>
+                            </div>
                         </div>
                         {% endfor %}
                     </div>
