@@ -24,7 +24,7 @@ print("SUPABASE_URL =", SUPABASE_URL)
 print("SUPABASE_KEY cargada =", bool(SUPABASE_KEY))
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY) if SUPABASE_URL and SUPABASE_KEY else None
 from .database import Base, engine, get_db
-from .models import User, Owner, Patient, ClinicalEvent, EventAttachment, Appointment, Product, Sale, SaleItem, SalePayment, WaitingListEntry, Hospitalization
+from .models import User, Owner, Patient, ClinicalEvent, EventAttachment, Appointment, Product, Sale, SaleItem, SalePayment, WaitingListEntry, Hospitalization, HospitalizationMedication
 Base.metadata.create_all(bind=engine)
 # =====================================
 # Zona horaria Argentina
@@ -588,7 +588,22 @@ def init_db():
             created_by VARCHAR(100) DEFAULT 'admin',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
-        """))           
+        """)) 
+        conn.execute(text("""
+        CREATE TABLE IF NOT EXISTS hospitalization_medications (
+            id SERIAL PRIMARY KEY,
+            hospitalization_id INTEGER REFERENCES hospitalizations(id),
+            medication_name VARCHAR(200) DEFAULT '',
+            dose VARCHAR(120) DEFAULT '',
+            route VARCHAR(80) DEFAULT '',
+            frequency VARCHAR(120) DEFAULT '',
+            scheduled_time VARCHAR(50) DEFAULT '',
+            status VARCHAR(40) DEFAULT 'Pendiente',
+            notes TEXT DEFAULT '',
+            created_by VARCHAR(100) DEFAULT 'admin',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        """))      
     try:
         admin = db.query(User).filter(User.username == 'admin').first()
         if not admin:
