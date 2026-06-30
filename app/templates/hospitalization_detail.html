@@ -1,0 +1,286 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+.hosp-page{padding:24px 28px;}
+.hosp-hero{
+    background:linear-gradient(135deg,#fff8fb,#ffffff);
+    border:1px solid #f3c6d8;
+    border-radius:24px;
+    padding:22px;
+    box-shadow:0 10px 30px rgba(0,0,0,.05);
+    margin-bottom:18px;
+}
+.hosp-top{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;flex-wrap:wrap;}
+.hosp-title h1{margin:0;color:#1f2937;font-size:34px;}
+.hosp-title p{margin:6px 0;color:#6b7280;}
+.status{
+    background:#dcfce7;
+    color:#166534;
+    border:1px solid #bbf7d0;
+    border-radius:999px;
+    padding:8px 13px;
+    font-weight:bold;
+}
+.status.closed{background:#f3f4f6;color:#374151;border-color:#e5e7eb;}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+.actions a,.actions button{
+    border:1px solid #f3c6d8;
+    background:white;
+    color:#d85b9a;
+    border-radius:13px;
+    padding:10px 13px;
+    font-weight:bold;
+    text-decoration:none;
+    cursor:pointer;
+}
+.grid{display:grid;grid-template-columns:1.1fr .9fr;gap:18px;align-items:start;}
+.card{
+    background:white;
+    border:1px solid #f3c6d8;
+    border-radius:22px;
+    padding:18px;
+    box-shadow:0 8px 26px rgba(0,0,0,.04);
+    margin-bottom:18px;
+}
+.card h2{margin:0 0 14px;color:#1f2937;}
+.info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;}
+.info{
+    border:1px solid #f1d6e2;
+    border-radius:15px;
+    padding:12px;
+    background:#fff;
+}
+.info span{display:block;color:#6b7280;font-size:13px;}
+.info b{display:block;color:#1f2937;margin-top:4px;}
+.big-note{
+    background:#fff8fb;
+    border:1px solid #f3c6d8;
+    border-radius:16px;
+    padding:13px;
+    color:#374151;
+    line-height:1.45;
+    white-space:pre-wrap;
+}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;}
+.form-grid input,.form-grid textarea{
+    width:100%;
+    border:1px solid #ead7e1;
+    border-radius:13px;
+    padding:11px 12px;
+    font-size:14px;
+}
+.form-grid textarea{min-height:86px;resize:vertical;}
+.full{grid-column:1 / -1;}
+.save-btn{
+    grid-column:1 / -1;
+    background:#22c55e;
+    color:white;
+    border:none;
+    border-radius:14px;
+    padding:14px;
+    font-size:16px;
+    font-weight:bold;
+    cursor:pointer;
+}
+.discharge-btn{
+    background:#d85b9a;
+    color:white;
+    border:none;
+    border-radius:14px;
+    padding:14px;
+    font-size:16px;
+    font-weight:bold;
+    cursor:pointer;
+}
+.timeline{position:relative;padding-left:18px;}
+.timeline:before{content:'';position:absolute;left:10px;top:8px;bottom:8px;width:2px;background:#f3c6d8;}
+.item{display:grid;grid-template-columns:88px 34px 1fr;gap:10px;position:relative;padding:10px 0;}
+.date{color:#6b7280;font-size:12px;padding-top:7px;}
+.dot{
+    width:30px;height:30px;border-radius:50%;
+    background:#fff0f7;color:#d85b9a;border:1px solid #f3c6d8;
+    display:flex;align-items:center;justify-content:center;z-index:1;
+}
+.item h3{margin:0 0 5px;color:#1f2937;font-size:15px;}
+.item p{margin:0;color:#4b5563;font-size:13px;line-height:1.35;white-space:pre-wrap;}
+.alert{
+    background:#fff7ed;
+    border:1px solid #fed7aa;
+    color:#9a3412;
+    border-radius:16px;
+    padding:13px;
+    margin-bottom:12px;
+}
+@media(max-width:1000px){.grid{grid-template-columns:1fr;}}
+</style>
+
+<div class="hosp-page">
+
+    <div class="hosp-hero">
+        <div class="hosp-top">
+            <div class="hosp-title">
+                <h1>🏥 Internación de {{ patient.name }}</h1>
+                <p>
+                    {{ patient.species or '-' }}
+                    {% if patient.breed %} · {{ patient.breed }}{% endif %}
+                    {% if patient.owner %} · Propietario: {{ patient.owner.name }}{% endif %}
+                </p>
+                <p>
+                    Ingreso:
+                    <b>{{ hospitalization.admission_date.strftime('%d/%m/%Y %H:%M') if hospitalization.admission_date else '-' }}</b>
+                    · Jaula:
+                    <b>{{ hospitalization.cage or 'Sin jaula' }}</b>
+                </p>
+            </div>
+
+            <div class="{% if hospitalization.status == 'Internado' %}status{% else %}status closed{% endif %}">
+                {{ hospitalization.status }}
+            </div>
+        </div>
+
+        <div class="actions">
+            <a href="/hospitalizations">← Tablero</a>
+            <a href="/patients/{{ patient.id }}">🐾 Ficha paciente</a>
+            <a href="/patients/{{ patient.id }}/cart">💰 Venta / Cobro</a>
+            <a href="/vademecum">💊 Vademécum</a>
+            <a href="/patients/{{ patient.id }}/anesthesia">💤 Anestesia</a>
+        </div>
+    </div>
+
+    <div class="grid">
+
+        <div>
+
+            <div class="card">
+                <h2>📋 Resumen de internación</h2>
+
+                <div class="info-grid">
+                    <div class="info"><span>Paciente</span><b>{{ patient.name }}</b></div>
+                    <div class="info"><span>Peso inicial</span><b>{{ hospitalization.initial_weight or patient.weight or '-' }} kg</b></div>
+                    <div class="info"><span>Responsable</span><b>{{ hospitalization.responsible_vet or '-' }}</b></div>
+                    <div class="info"><span>Jaula</span><b>{{ hospitalization.cage or '-' }}</b></div>
+                </div>
+
+                <br>
+
+                <b>Motivo</b>
+                <div class="big-note">{{ hospitalization.reason or 'Sin motivo cargado.' }}</div>
+
+                <br>
+
+                <b>Diagnóstico inicial</b>
+                <div class="big-note">{{ hospitalization.diagnosis or 'Sin diagnóstico inicial cargado.' }}</div>
+
+                <br>
+
+                <b>Plan terapéutico</b>
+                <div class="big-note">{{ hospitalization.treatment_plan or 'Sin plan terapéutico cargado.' }}</div>
+            </div>
+
+            <div class="card">
+                <h2>➕ Nueva evolución / control</h2>
+
+                {% if hospitalization.status == 'Internado' %}
+                <form method="post" action="/hospitalizations/{{ hospitalization.id }}/evolution" class="form-grid">
+                    <input name="title" value="Evolución de internación" placeholder="Título">
+                    <input name="temperature" placeholder="Temperatura">
+                    <input name="heart_rate" placeholder="FC">
+                    <input name="respiratory_rate" placeholder="FR">
+                    <input name="weight" placeholder="Peso kg">
+                    <input name="mucous_membranes" placeholder="Mucosas">
+                    <input name="crt" placeholder="TRC">
+                    <input name="hydration" placeholder="Hidratación">
+                    <textarea name="description" class="full" placeholder="Evolución / observaciones"></textarea>
+                    <textarea name="treatment" class="full" placeholder="Tratamiento / indicaciones"></textarea>
+                    <button type="submit" class="save-btn">💾 Guardar evolución</button>
+                </form>
+                {% else %}
+                    <div class="alert">Esta internación ya fue cerrada. No se pueden cargar nuevas evoluciones.</div>
+                {% endif %}
+            </div>
+
+            <div class="card">
+                <h2>🕓 Evoluciones y eventos relacionados</h2>
+
+                {% if related_events %}
+                <div class="timeline">
+                    {% for e in related_events %}
+                    <div class="item">
+                        <div class="date">{{ e.event_date.strftime('%d/%m %H:%M') if e.event_date else '-' }}</div>
+                        <div class="dot">
+                            {% if e.event_type == 'Alta' %}🏠{% elif e.event_type == 'Internación' %}🏥{% elif e.event_type == 'Control' %}📋{% else %}🩺{% endif %}
+                        </div>
+                        <div>
+                            <h3>{{ e.event_type }}{% if e.title %} · {{ e.title }}{% endif %}</h3>
+                            <p>
+{% if e.description %}{{ e.description }}{% elif e.diagnosis %}{{ e.diagnosis }}{% elif e.treatment %}{{ e.treatment }}{% else %}Sin detalle cargado.{% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                    <p style="color:#6b7280;">Todavía no hay evoluciones cargadas.</p>
+                {% endif %}
+            </div>
+
+        </div>
+
+        <div>
+
+            <div class="card">
+                <h2>❤️ Signos vitales iniciales</h2>
+
+                <div class="info-grid">
+                    <div class="info"><span>T°</span><b>{{ hospitalization.initial_temperature or '-' }}</b></div>
+                    <div class="info"><span>FC</span><b>{{ hospitalization.initial_heart_rate or '-' }}</b></div>
+                    <div class="info"><span>FR</span><b>{{ hospitalization.initial_respiratory_rate or '-' }}</b></div>
+                    <div class="info"><span>Mucosas</span><b>{{ hospitalization.initial_mucous_membranes or '-' }}</b></div>
+                    <div class="info"><span>TRC</span><b>{{ hospitalization.initial_crt or '-' }}</b></div>
+                    <div class="info"><span>Hidratación</span><b>{{ hospitalization.initial_hydration or '-' }}</b></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🤖 IA / Alertas</h2>
+                <div class="alert">Bloque IA de internación reservado para la próxima etapa.</div>
+                <p style="color:#6b7280;font-size:14px;">
+                    Acá luego vamos a mostrar alertas tipo: falta temperatura, no hay diuresis cargada,
+                    medicación pendiente, evolución desfavorable o pérdida de peso.
+                </p>
+            </div>
+
+            <div class="card">
+                <h2>🏠 Alta</h2>
+
+                {% if hospitalization.status == 'Internado' %}
+                <form method="post" action="/hospitalizations/{{ hospitalization.id }}/discharge" class="form-grid"
+                      onsubmit="return confirm('¿Confirmar alta de internación?');">
+                    <textarea name="discharge_summary" class="full" placeholder="Resumen de alta"></textarea>
+                    <textarea name="discharge_indications" class="full" placeholder="Indicaciones domiciliarias"></textarea>
+                    <button type="submit" class="discharge-btn full">🏠 Dar alta</button>
+                </form>
+                {% else %}
+                    <b>Fecha de alta</b>
+                    <div class="big-note">{{ hospitalization.discharge_date.strftime('%d/%m/%Y %H:%M') if hospitalization.discharge_date else '-' }}</div>
+
+                    <br>
+
+                    <b>Resumen</b>
+                    <div class="big-note">{{ hospitalization.discharge_summary or '-' }}</div>
+
+                    <br>
+
+                    <b>Indicaciones</b>
+                    <div class="big-note">{{ hospitalization.discharge_indications or '-' }}</div>
+                {% endif %}
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
