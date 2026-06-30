@@ -330,6 +330,11 @@
         <a href="/patients/{{ patient.id }}/print" target="_blank">🖨️ Imprimir</a>
         <a href="/patients/{{ patient.id }}/cardiology">💗 Cardio</a>
         <a href="/patients/{{ patient.id }}/anesthesia">💤 Anestesia</a>
+        {% if active_hospitalization %}
+            <a href="/hospitalizations/{{ active_hospitalization.id }}" style="background:#dcfce7;color:#166534;border-color:#bbf7d0;">🟢 Ver internación</a>
+        {% else %}
+            <a href="/patients/{{ patient.id }}/hospitalize" style="background:#fff0f7;color:#d85b9a;border-color:#f3c6d8;">🛏️ Internar paciente</a>
+        {% endif %}
         <a href="/patients/{{ patient.id }}/edit">✏️ Editar</a>
     </div>
 
