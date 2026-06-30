@@ -6152,6 +6152,45 @@ def hospitalization_medication_create(
         f'/hospitalizations/{hospitalization.id}',
         status_code=303
     )
+@app.post('/hospitalizations/{hospitalization_id}/medications/{medication_id}/done')
+def hospitalization_medication_done(
+    hospitalization_id: int,
+    medication_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    hospitalization = db.get(Hospitalization, hospitalization_id)
+    medication = db.get(HospitalizationMedication, medication_id)
+
+    if not hospitalization or not medication:
+        raise HTTPException(status_code=404, detail='Medicación no encontrada')
+
+    if medication.hospitalization_id != hospitalization.id:
+        raise HTTPException(status_code=404, detail='Medicación no corresponde a esta internación')
+
+    medication.status = 'Aplicada'
+
+    event = ClinicalEvent(
+        patient_id=hospitalization.patient_id,
+        event_type='Control',
+        title='Medicación aplicada',
+        description=(
+            f'Medicación aplicada: {medication.medication_name or "-"}\n'
+            f'Dosis: {medication.dose or "-"}\n'
+            f'Vía: {medication.route or "-"}\n'
+            f'Horario programado: {medication.scheduled_time or "-"}'
+        ),
+        created_by=user.username,
+        event_date=argentina_now()
+    )
+
+    db.add(event)
+    db.commit()
+
+    return RedirectResponse(
+        f'/hospitalizations/{hospitalization.id}',
+        status_code=303
+    )
 @app.post('/hospitalizations/{hospitalization_id}/discharge')
 def hospitalization_discharge(
     hospitalization_id: int,
