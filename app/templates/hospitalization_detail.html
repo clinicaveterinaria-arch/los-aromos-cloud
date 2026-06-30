@@ -269,7 +269,56 @@
                     <div class="alert">Esta internación ya fue cerrada. No se pueden cargar nuevas evoluciones.</div>
                 {% endif %}
             </div>
+            <div class="card">
+                <h2>✅ Checklist de enfermería</h2>
 
+                {% if hospitalization.status == 'Internado' %}
+                <form method="post" action="/hospitalizations/{{ hospitalization.id }}/checklist" class="form-grid">
+
+                    <label class="check-row">
+                        <span class="fake-check"></span>
+                        <input type="checkbox" name="ate" style="display:none;">
+                        Comió
+                    </label>
+
+                    <label class="check-row">
+                        <span class="fake-check"></span>
+                        <input type="checkbox" name="drank" style="display:none;">
+                        Tomó agua
+                    </label>
+
+                    <label class="check-row">
+                        <span class="fake-check"></span>
+                        <input type="checkbox" name="urinated" style="display:none;">
+                        Orinó
+                    </label>
+
+                    <label class="check-row">
+                        <span class="fake-check"></span>
+                        <input type="checkbox" name="defecated" style="display:none;">
+                        Defecó
+                    </label>
+
+                    <label class="check-row">
+                        <span class="fake-check"></span>
+                        <input type="checkbox" name="vomiting_diarrhea" style="display:none;">
+                        Vómitos / diarrea
+                    </label>
+
+                    <label class="check-row">
+                        <span class="fake-check"></span>
+                        <input type="checkbox" name="cage_cleaned" style="display:none;">
+                        Limpieza de jaula
+                    </label>
+
+                    <textarea name="checklist_notes" class="full" placeholder="Observaciones de enfermería"></textarea>
+
+                    <button type="submit" class="save-btn">✅ Guardar checklist</button>
+                </form>
+                {% else %}
+                    <div class="alert">Esta internación ya fue cerrada. No se pueden cargar checklists.</div>
+                {% endif %}
+            </div>
             <div class="card">
                 <h2>🕓 Evoluciones</h2>
 
