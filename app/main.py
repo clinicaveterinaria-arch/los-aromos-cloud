@@ -25,7 +25,7 @@ print("SUPABASE_KEY cargada =", bool(SUPABASE_KEY))
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY) if SUPABASE_URL and SUPABASE_KEY else None
 from .database import Base, engine, get_db
 from .models import User, Owner, Patient, ClinicalEvent, EventAttachment, Appointment, Product, Sale, SaleItem, SalePayment, WaitingListEntry, Hospitalization, HospitalizationMedication, HospitalizationFluid
-Base.metadata.create_all(bind=engine)
+# Base.metadata.create_all(bind=engine)
 # =====================================
 # Zona horaria Argentina
 # =====================================
@@ -338,24 +338,7 @@ Cantidad de imágenes adjuntas enviadas para análisis:
         fallback["summary"] = "No se pudo generar el análisis IA en este momento."
         fallback["alerts"] = [f"Error IA: {str(e)}"]
         return fallback
-try:
-    with engine.begin() as conn:
-        conn.execute(text("ALTER TABLE appointments ADD COLUMN reminder_12h BOOLEAN DEFAULT FALSE"))
-except Exception:
-    pass
 
-try:
-    with engine.begin() as conn:
-        conn.execute(text("ALTER TABLE appointments ADD COLUMN contact_whatsapp VARCHAR(80) DEFAULT ''"))
-except Exception:
-    pass
-try:
-    with engine.begin() as conn:
-        conn.execute(text(
-            "ALTER TABLE sales ADD COLUMN IF NOT EXISTS payment_method VARCHAR(50)"
-        ))
-except Exception:
-    pass
 app = FastAPI(title='Los Aromos Cloud')
 app.add_middleware(SessionMiddleware, secret_key=os.getenv('SECRET_KEY', 'dev-secret-change-me'))
 app.mount('/static', StaticFiles(directory='app/static'), name='static')
@@ -385,7 +368,7 @@ pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 EVENT_TYPES = ['Consulta clínica','Control','Vacuna','Desparasitación','Radiografía','ECG','Ecocardiografía','Ecografía','Laboratorio','Cirugía','Anestesia','Internación','Alta','Otro procedimiento']
 
 def init_db():
-    Base.metadata.create_all(bind=engine)
+    # Base.metadata.create_all(bind=engine)
     db = next(get_db())
 
     with engine.begin() as conn:
@@ -634,7 +617,7 @@ def init_db():
     finally:
         db.close()
 
-@app.on_event('startup')
+@app.on_event("startup")
 def on_startup():
     pass
 
