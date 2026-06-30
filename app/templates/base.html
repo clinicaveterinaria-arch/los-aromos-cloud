@@ -179,6 +179,9 @@
           <div class="quick-action-title">Internación</div>
           <div class="quick-action-subtitle">Pacientes internados</div>
       </a>
+      <a href="/nursing" class="{% if request.url.path.startswith('/nursing') %}active{% endif %}">
+        <span class="nav-left"><span class="nav-icon">👩‍⚕️</span>Enfermería</span><span class="nav-arrow">›</span>
+      </a>
       <a href="/pendientes" class="{% if request.url.path.startswith('/pendientes') %}active{% endif %}">
         <span class="nav-left">
           <span class="nav-icon">🔔</span>
