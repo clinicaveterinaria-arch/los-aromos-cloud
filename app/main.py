@@ -6210,7 +6210,8 @@ def hospitalization_fluid_finish(
         raise HTTPException(status_code=404, detail='Fluidoterapia no corresponde a esta internación')
 
     fluid.status = 'Finalizado'
-
+    fluid.finished_at = argentina_now()
+    fluid.finished_by = user.username
     event = ClinicalEvent(
         patient_id=hospitalization.patient_id,
         event_type='Control',
