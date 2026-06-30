@@ -603,7 +603,9 @@ def init_db():
             created_by VARCHAR(100) DEFAULT 'admin',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
-        """))      
+        """))
+        conn.execute(text("ALTER TABLE hospitalization_medications ADD COLUMN IF NOT EXISTS applied_at TIMESTAMP NULL"))
+        conn.execute(text("ALTER TABLE hospitalization_medications ADD COLUMN IF NOT EXISTS applied_by VARCHAR(100) DEFAULT ''"))
     try:
         admin = db.query(User).filter(User.username == 'admin').first()
         if not admin:
@@ -6169,6 +6171,8 @@ def hospitalization_medication_done(
         raise HTTPException(status_code=404, detail='Medicación no corresponde a esta internación')
 
     medication.status = 'Aplicada'
+    medication.applied_at = argentina_now()
+    medication.applied_by = user.username
 
     event = ClinicalEvent(
         patient_id=hospitalization.patient_id,
