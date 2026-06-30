@@ -5935,7 +5935,12 @@ def hospitalization_detail(
         .limit(20)
         .all()
     )
-
+    medications = (
+        db.query(HospitalizationMedication)
+        .filter(HospitalizationMedication.hospitalization_id == hospitalization.id)
+        .order_by(HospitalizationMedication.created_at.desc())
+        .all()
+    )
     return templates.TemplateResponse(
         'hospitalization_detail.html',
         {
@@ -5943,6 +5948,7 @@ def hospitalization_detail(
             'hospitalization': hospitalization,
             'patient': patient,
             'related_events': related_events,
+            'medications': medications,
             'today': argentina_now().date()
         }
     )
