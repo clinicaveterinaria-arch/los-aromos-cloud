@@ -433,49 +433,51 @@
             </div>
 
             <div class="card">
-                <h2>💊 Medicación / fluidos</h2>
+                <h2>💊 Medicación programada</h2>
 
-                <div class="mini-list">
-                    <div class="mini-row">
-                        <span>Plan terapéutico cargado</span>
-                        <b>{% if hospitalization.treatment_plan %}Sí{% else %}Pendiente{% endif %}</b>
-                    </div>
-                    <div class="mini-row">
-                        <span>Fluidoterapia</span>
-                        <b>Bloque 3</b>
-                    </div>
-                    <div class="mini-row">
-                        <span>Próxima medicación</span>
-                        <b>Bloque 3</b>
-                    </div>
-                </div>
-            </div>
+                {% if hospitalization.status == 'Internado' %}
+                <form method="post" action="/hospitalizations/{{ hospitalization.id }}/medications" class="form-grid">
+                    <input name="medication_name" placeholder="Medicamento">
+                    <input name="dose" placeholder="Dosis">
+                    <input name="route" placeholder="Vía">
+                    <input name="frequency" placeholder="Frecuencia">
+                    <input name="scheduled_time" placeholder="Horario">
+                    <textarea name="notes" class="full" placeholder="Observaciones"></textarea>
 
-            <div class="card">
-                <h2>💊 Medicación</h2>
-
-                <div class="mini-list">
-                    <div class="mini-row">
-                        <span>Plan terapéutico</span>
-                        <b>{% if hospitalization.treatment_plan %}Cargado{% else %}Pendiente{% endif %}</b>
-                    </div>
-
-                    <div class="mini-row">
-                        <span>Programación por horarios</span>
-                        <b>Próximo bloque</b>
-                    </div>
-
-                    <div class="mini-row">
-                        <span>Integración Vademécum IA</span>
-                        <b>Reservado</b>
-                    </div>
-                </div>
+                    <button type="submit" class="save-btn">💊 Programar medicación</button>
+                </form>
+                {% else %}
+                    <div class="alert">Internación cerrada. No se puede programar medicación.</div>
+                {% endif %}
 
                 <br>
 
-                <div class="note">
-                    {{ hospitalization.treatment_plan or "Todavía no hay medicación programada. Por ahora se usa el plan terapéutico inicial y las evoluciones." }}
-                </div>
+                {% if medications %}
+                    <div class="mini-list">
+                        {% for m in medications %}
+                        <div class="mini-row">
+                            <span>
+                                <b>{{ m.medication_name or '-' }}</b><br>
+                                {{ m.dose or '-' }} · {{ m.route or '-' }} · {{ m.frequency or '-' }}
+                                {% if m.scheduled_time %} · {{ m.scheduled_time }}{% endif %}
+                                {% if m.notes %}<br><small>{{ m.notes }}</small>{% endif %}
+                            </span>
+
+                            {% if m.status == 'Aplicada' %}
+                                <b>Aplicada</b>
+                            {% else %}
+                                <form method="post" action="/hospitalizations/{{ hospitalization.id }}/medications/{{ m.id }}/done">
+                                    <button type="submit" style="background:#22c55e;color:white;border:none;border-radius:10px;padding:8px 10px;font-weight:bold;cursor:pointer;">
+                                        ✔ Aplicar
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="note">Todavía no hay medicación programada.</div>
+                {% endif %}
             </div>
 
             <div class="card">
