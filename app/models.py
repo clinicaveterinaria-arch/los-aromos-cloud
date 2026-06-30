@@ -250,6 +250,8 @@ class HospitalizationFluid(Base):
     notes: Mapped[str] = mapped_column(Text, default='')
 
     status: Mapped[str] = mapped_column(String(40), default='Activo')
+    finished_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    finished_by: Mapped[str] = mapped_column(String(100), default='')
     created_by: Mapped[str] = mapped_column(String(100), default='admin')
     created_at: Mapped[datetime] = mapped_column(DateTime, default=argentina_now)
 
