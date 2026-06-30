@@ -6012,11 +6012,49 @@ def hospitalization_add_evolution(
         except ValueError:
             return None
 
+    evolution_lines = []
+
+    evolution_lines.append('Constantes / control')
+    evolution_lines.append('')
+
+    if temperature and str(temperature).strip():
+        evolution_lines.append(f'🌡 Temperatura: {temperature} °C')
+
+    if heart_rate and str(heart_rate).strip():
+        evolution_lines.append(f'❤️ FC: {heart_rate} lpm')
+
+    if respiratory_rate and str(respiratory_rate).strip():
+        evolution_lines.append(f'🫁 FR: {respiratory_rate} rpm')
+
+    if weight and str(weight).strip():
+        evolution_lines.append(f'⚖ Peso: {weight} kg')
+
+    if mucous_membranes and str(mucous_membranes).strip():
+        evolution_lines.append(f'👄 Mucosas: {mucous_membranes}')
+
+    if crt and str(crt).strip():
+        evolution_lines.append(f'⏱ TRC: {crt}')
+
+    if hydration and str(hydration).strip():
+        evolution_lines.append(f'💧 Hidratación: {hydration}')
+
+    if description and description.strip():
+        evolution_lines.append('')
+        evolution_lines.append('Evolución:')
+        evolution_lines.append(description.strip())
+
+    if treatment and treatment.strip():
+        evolution_lines.append('')
+        evolution_lines.append('Tratamiento / indicaciones:')
+        evolution_lines.append(treatment.strip())
+
+    final_description = '\n'.join(evolution_lines)
+
     event = ClinicalEvent(
         patient_id=patient.id,
         event_type='Control',
         title=title or 'Evolución de internación',
-        description=description or '',
+        description=final_description,
         treatment=treatment or '',
         temperature=to_float(temperature),
         heart_rate=to_int(heart_rate),
@@ -6040,7 +6078,6 @@ def hospitalization_add_evolution(
         f'/hospitalizations/{hospitalization.id}',
         status_code=303
     )
-
 @app.post('/hospitalizations/{hospitalization_id}/checklist')
 def hospitalization_checklist(
     hospitalization_id: int,
