@@ -6191,6 +6191,29 @@ def hospitalization_medication_done(
         f'/hospitalizations/{hospitalization.id}',
         status_code=303
     )
+@app.post('/hospitalizations/{hospitalization_id}/medications/{medication_id}/delete')
+def hospitalization_medication_delete(
+    hospitalization_id: int,
+    medication_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    hospitalization = db.get(Hospitalization, hospitalization_id)
+    medication = db.get(HospitalizationMedication, medication_id)
+
+    if not hospitalization or not medication:
+        raise HTTPException(status_code=404, detail='Medicación no encontrada')
+
+    if medication.hospitalization_id != hospitalization.id:
+        raise HTTPException(status_code=404, detail='Medicación no corresponde a esta internación')
+
+    db.delete(medication)
+    db.commit()
+
+    return RedirectResponse(
+        f'/hospitalizations/{hospitalization.id}',
+        status_code=303
+    )
 @app.post('/hospitalizations/{hospitalization_id}/discharge')
 def hospitalization_discharge(
     hospitalization_id: int,
