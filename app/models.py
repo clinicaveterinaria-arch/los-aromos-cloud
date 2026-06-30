@@ -233,7 +233,27 @@ class HospitalizationMedication(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=argentina_now)
 
     hospitalization: Mapped['Hospitalization'] = relationship()
+class HospitalizationFluid(Base):
+    __tablename__ = 'hospitalization_fluids'
 
+    id: Mapped[int] = mapped_column(primary_key=True)
+
+    hospitalization_id: Mapped[int] = mapped_column(
+        ForeignKey('hospitalizations.id'),
+        index=True
+    )
+
+    fluid_type: Mapped[str] = mapped_column(String(200), default='')
+    fluid_rate: Mapped[str] = mapped_column(String(80), default='')
+    ml_kg_h: Mapped[str] = mapped_column(String(80), default='')
+    drip_set: Mapped[str] = mapped_column(String(80), default='')
+    notes: Mapped[str] = mapped_column(Text, default='')
+
+    status: Mapped[str] = mapped_column(String(40), default='Activo')
+    created_by: Mapped[str] = mapped_column(String(100), default='admin')
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=argentina_now)
+
+    hospitalization: Mapped['Hospitalization'] = relationship()
 class Appointment(Base):
     __tablename__ = 'appointments'
 
