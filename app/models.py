@@ -225,6 +225,8 @@ class HospitalizationMedication(Base):
     scheduled_time: Mapped[str] = mapped_column(String(50), default='')
 
     status: Mapped[str] = mapped_column(String(40), default='Pendiente')
+    applied_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    applied_by: Mapped[str] = mapped_column(String(100), default='')
     notes: Mapped[str] = mapped_column(Text, default='')
 
     created_by: Mapped[str] = mapped_column(String(100), default='admin')
