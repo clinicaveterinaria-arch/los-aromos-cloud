@@ -620,8 +620,7 @@ def init_db():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
         """))
-        conn.execute(text("ALTER TABLE hospitalization_fluids ADD COLUMN IF NOT EXISTS finished_at TIMESTAMP NULL"))
-        conn.execute(text("ALTER TABLE hospitalization_fluids ADD COLUMN IF NOT EXISTS finished_by VARCHAR(100) DEFAULT ''"))
+
     try:
         admin = db.query(User).filter(User.username == 'admin').first()
         if not admin:
