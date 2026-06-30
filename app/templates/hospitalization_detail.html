@@ -471,6 +471,12 @@
                                         ✔ Aplicar
                                     </button>
                                 </form>
+                                <form method="post" action="/hospitalizations/{{ hospitalization.id }}/medications/{{ m.id }}/delete"
+                                      onsubmit="return confirm('¿Eliminar esta medicación programada?');">
+                                    <button type="submit" style="background:#ef4444;color:white;border:none;border-radius:10px;padding:8px 10px;font-weight:bold;cursor:pointer;margin-top:5px;">
+                                        🗑 Eliminar
+                                    </button>
+                                </form>                            
                             {% endif %}
                         </div>
                         {% endfor %}
