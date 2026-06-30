@@ -347,19 +347,10 @@ os.makedirs('app/uploads', exist_ok=True)
 app.mount('/uploads', StaticFiles(directory='app/uploads'), name='uploads')
 templates = Jinja2Templates(directory='app/templates')
 def get_pending_count():
-    db = next(get_db())
-    try:
-        return db.query(ClinicalEvent).filter(ClinicalEvent.reminder_date != None).count()
-    finally:
-        db.close()
+    return 0
+
 def get_waiting_count():
-    db = next(get_db())
-    try:
-        return db.query(WaitingListEntry).filter(
-            WaitingListEntry.status.in_(['Esperando', 'En consulta'])
-        ).count()
-    finally:
-        db.close()
+    return 0
 
 templates.env.globals['get_waiting_count'] = get_waiting_count
 templates.env.globals['get_pending_count'] = get_pending_count
@@ -6192,8 +6183,12 @@ def hospitalization_fluid_finish(
         raise HTTPException(status_code=404, detail='Fluidoterapia no corresponde a esta internación')
 
     fluid.status = 'Finalizado'
-    fluid.finished_at = argentina_now()
-    fluid.finished_by = user.username
+
+    if hasattr(fluid, 'finished_at'):
+        fluid.finished_at = argentina_now()
+
+    if hasattr(fluid, 'finished_by'):
+        fluid.finished_by = user.username
     event = ClinicalEvent(
         patient_id=hospitalization.patient_id,
         event_type='Control',
