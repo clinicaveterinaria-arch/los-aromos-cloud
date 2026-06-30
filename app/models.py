@@ -208,7 +208,29 @@ class Hospitalization(Base):
 
     patient: Mapped['Patient'] = relationship(back_populates='hospitalizations')
     clinical_event: Mapped[Optional['ClinicalEvent']] = relationship()
+class HospitalizationMedication(Base):
+    __tablename__ = 'hospitalization_medications'
 
+    id: Mapped[int] = mapped_column(primary_key=True)
+
+    hospitalization_id: Mapped[int] = mapped_column(
+        ForeignKey('hospitalizations.id'),
+        index=True
+    )
+
+    medication_name: Mapped[str] = mapped_column(String(200), default='')
+    dose: Mapped[str] = mapped_column(String(120), default='')
+    route: Mapped[str] = mapped_column(String(80), default='')
+    frequency: Mapped[str] = mapped_column(String(120), default='')
+    scheduled_time: Mapped[str] = mapped_column(String(50), default='')
+
+    status: Mapped[str] = mapped_column(String(40), default='Pendiente')
+    notes: Mapped[str] = mapped_column(Text, default='')
+
+    created_by: Mapped[str] = mapped_column(String(100), default='admin')
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=argentina_now)
+
+    hospitalization: Mapped['Hospitalization'] = relationship()
 
 class Appointment(Base):
     __tablename__ = 'appointments'
