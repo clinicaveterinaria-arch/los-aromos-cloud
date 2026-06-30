@@ -6049,6 +6049,52 @@ def hospitalization_checklist(
         f'/hospitalizations/{hospitalization.id}',
         status_code=303
     )
+@app.post('/hospitalizations/{hospitalization_id}/fluids')
+def hospitalization_fluids(
+    hospitalization_id: int,
+    fluid_type: str = Form(''),
+    fluid_rate: str = Form(''),
+    drip_set: str = Form(''),
+    fluid_notes: str = Form(''),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    hospitalization = db.get(Hospitalization, hospitalization_id)
+
+    if not hospitalization:
+        raise HTTPException(status_code=404, detail='Internación no encontrada')
+
+    patient = hospitalization.patient
+
+    lines = [
+        'Fluidoterapia',
+        '',
+        f'Tipo de fluido: {fluid_type or "-"}',
+        f'Velocidad: {fluid_rate or "-"} ml/h',
+        f'Equipo: {drip_set or "-"}'
+    ]
+
+    if fluid_notes and fluid_notes.strip():
+        lines.append('')
+        lines.append('Observaciones:')
+        lines.append(fluid_notes.strip())
+
+    event = ClinicalEvent(
+        patient_id=patient.id,
+        event_type='Control',
+        title='Fluidoterapia',
+        description='\n'.join(lines),
+        created_by=user.username,
+        event_date=argentina_now()
+    )
+
+    db.add(event)
+    db.commit()
+
+    return RedirectResponse(
+        f'/hospitalizations/{hospitalization.id}',
+        status_code=303
+    )
 @app.post('/hospitalizations/{hospitalization_id}/discharge')
 def hospitalization_discharge(
     hospitalization_id: int,
