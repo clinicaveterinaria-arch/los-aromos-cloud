@@ -392,17 +392,24 @@
                 {% if hospitalization.status == 'Internado' %}
                 <form method="post" action="/hospitalizations/{{ hospitalization.id }}/fluids" class="form-grid">
                     <input name="fluid_type" placeholder="Tipo de fluido">
-                    <input name="fluid_rate" placeholder="Velocidad (ml/h)">
-                    <input name="ml_kg_h" placeholder="ml/kg/h">
 
-                    <select name="drip_set">
+                    <input id="fluid_ml_kg_h" name="ml_kg_h" placeholder="ml/kg/h" oninput="calculateFluids()">
+
+                    <input id="fluid_rate" name="fluid_rate" placeholder="Velocidad (ml/h)">
+
+                    <select id="drip_set" name="drip_set" onchange="calculateFluids()">
                         <option value="">Equipo</option>
                         <option>Macrogotero</option>
                         <option>Microgotero</option>
                         <option>Bomba de infusión</option>
                     </select>
 
+                    <div class="note full" id="fluid_calc_result">
+                        Cálculo automático: cargá ml/kg/h y elegí equipo.
+                    </div>
+
                     <textarea name="fluid_notes" class="full" placeholder="Observaciones"></textarea>
+
                     <button class="save-btn" type="submit">💧 Guardar fluidoterapia</button>
                 </form>
                 {% else %}
@@ -444,6 +451,42 @@
                     <div class="note">Todavía no hay fluidoterapia cargada.</div>
                 {% endif %}
             </div>
+
+            <script>
+            function calculateFluids() {
+                const weight = parseFloat("{{ hospitalization.initial_weight or patient.weight or 0 }}");
+                const mlKgH = parseFloat((document.getElementById("fluid_ml_kg_h").value || "").replace(",", "."));
+                const dripSet = document.getElementById("drip_set").value;
+                const rateInput = document.getElementById("fluid_rate");
+                const result = document.getElementById("fluid_calc_result");
+
+                if (!weight || !mlKgH) {
+                    result.innerHTML = "Cálculo automático: cargá ml/kg/h y elegí equipo.";
+                    return;
+                }
+
+                const mlH = weight * mlKgH;
+                rateInput.value = mlH.toFixed(1);
+
+                let text = "Paciente: " + weight + " kg · Velocidad: " + mlH.toFixed(1) + " ml/h";
+
+                if (dripSet === "Macrogotero") {
+                    const gotasMin = (mlH * 20) / 60;
+                    text += "<br>Macrogotero: " + gotasMin.toFixed(1) + " gotas/min";
+                }
+
+                if (dripSet === "Microgotero") {
+                    const gotasMin = (mlH * 60) / 60;
+                    text += "<br>Microgotero: " + gotasMin.toFixed(1) + " gotas/min";
+                }
+
+                if (dripSet === "Bomba de infusión") {
+                    text += "<br>Bomba: programar " + mlH.toFixed(1) + " ml/h";
+                }
+
+                result.innerHTML = text;
+            }
+            </script>
             <div class="card">
                 <h2>💊 Medicación programada</h2>
 
