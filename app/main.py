@@ -5938,6 +5938,83 @@ def hospitalization_detail(
         .order_by(HospitalizationFluid.created_at.desc())
         .all()
     )
+
+    hospital_alerts = []
+    now = argentina_now()
+
+    pending_medications = [
+        m for m in medications
+        if m.status != 'Aplicada'
+    ]
+
+    if pending_medications:
+        hospital_alerts.append({
+            'level': 'warning',
+            'icon': '💊',
+            'title': 'Medicación pendiente',
+            'detail': f'{len(pending_medications)} medicación/es pendiente/s de aplicar.'
+        })
+
+    last_control = related_events[0] if related_events else None
+
+    if last_control and last_control.event_date:
+        hours_since_control = (now.replace(tzinfo=None) - last_control.event_date.replace(tzinfo=None)).total_seconds() / 3600
+
+        if hours_since_control >= 6:
+            hospital_alerts.append({
+                'level': 'warning',
+                'icon': '🕓',
+                'title': 'Control demorado',
+                'detail': f'Último control hace {int(hours_since_control)} horas.'
+            })
+    else:
+        hospital_alerts.append({
+            'level': 'warning',
+            'icon': '🕓',
+            'title': 'Sin controles',
+            'detail': 'Todavía no hay controles cargados en esta internación.'
+        })
+
+    last_vital = None
+
+    for event in related_events:
+        if event.temperature or event.heart_rate or event.respiratory_rate:
+            last_vital = event
+            break
+
+    if last_vital:
+        if last_vital.temperature and (last_vital.temperature >= 39.5 or last_vital.temperature <= 37):
+            hospital_alerts.append({
+                'level': 'danger',
+                'icon': '🌡',
+                'title': 'Temperatura fuera de rango',
+                'detail': f'Última temperatura registrada: {last_vital.temperature} °C.'
+            })
+
+        if last_vital.heart_rate and last_vital.heart_rate >= 180:
+            hospital_alerts.append({
+                'level': 'danger',
+                'icon': '❤️',
+                'title': 'FC elevada',
+                'detail': f'Última FC registrada: {last_vital.heart_rate} lpm.'
+            })
+
+        if last_vital.respiratory_rate and last_vital.respiratory_rate >= 60:
+            hospital_alerts.append({
+                'level': 'danger',
+                'icon': '🫁',
+                'title': 'FR elevada',
+                'detail': f'Última FR registrada: {last_vital.respiratory_rate} rpm.'
+            })
+
+    if not hospital_alerts:
+        hospital_alerts.append({
+            'level': 'ok',
+            'icon': '🟢',
+            'title': 'Sin alertas activas',
+            'detail': 'No se detectan alertas automáticas por ahora.'
+        })
+
     return templates.TemplateResponse(
         'hospitalization_detail.html',
         {
@@ -5947,6 +6024,7 @@ def hospitalization_detail(
             'related_events': related_events,
             'medications': medications,
             'fluids': fluids,
+            'hospital_alerts': hospital_alerts,
             'today': argentina_now().date()
         }
     )
