@@ -5911,7 +5911,10 @@ def build_hospitalization_ai(hospitalization, patient, related_events, medicatio
         try:
             if value is None:
                 return None
-            return float(str(value).replace(',', '.').strip())
+            value = str(value).replace(',', '.').strip()
+            if not value:
+                return None
+            return float(value)
         except Exception:
             return None
 
@@ -5920,32 +5923,49 @@ def build_hospitalization_ai(hospitalization, patient, related_events, medicatio
             return None
         return (now - dt.replace(tzinfo=None)).total_seconds() / 3600
 
+    def clean_text(value):
+        return (value or '').strip().lower()
+
+    def med_minutes(time_text):
+        try:
+            if not time_text:
+                return None
+            h, m = str(time_text).split(':')[:2]
+            return int(h) * 60 + int(m)
+        except Exception:
+            return None
+
     alerts = []
     score = 0
 
-    last_control = related_events[0] if related_events else None
+    vitals_events = [
+        e for e in related_events
+        if e.temperature or e.heart_rate or e.respiratory_rate or e.weight or e.mucous_membranes or e.crt or e.hydration
+    ]
 
-    last_vital = None
-    for event in related_events:
-        if event.temperature or event.heart_rate or event.respiratory_rate or event.mucous_membranes or event.crt or event.hydration:
-            last_vital = event
-            break
+    last_control = related_events[0] if related_events else None
+    last_vital = vitals_events[0] if vitals_events else None
+    previous_vital = vitals_events[1] if len(vitals_events) > 1 else None
 
     temp = to_float(getattr(last_vital, 'temperature', None)) if last_vital else to_float(hospitalization.initial_temperature)
     hr = to_float(getattr(last_vital, 'heart_rate', None)) if last_vital else to_float(hospitalization.initial_heart_rate)
     rr = to_float(getattr(last_vital, 'respiratory_rate', None)) if last_vital else to_float(hospitalization.initial_respiratory_rate)
+    weight = to_float(getattr(last_vital, 'weight', None)) if last_vital else to_float(hospitalization.initial_weight or patient.weight)
 
-    mucosas = (
-        getattr(last_vital, 'mucous_membranes', '') if last_vital else hospitalization.initial_mucous_membranes
-    ) or ''
+    prev_temp = to_float(getattr(previous_vital, 'temperature', None)) if previous_vital else None
+    prev_hr = to_float(getattr(previous_vital, 'heart_rate', None)) if previous_vital else None
+    prev_rr = to_float(getattr(previous_vital, 'respiratory_rate', None)) if previous_vital else None
+    prev_weight = to_float(getattr(previous_vital, 'weight', None)) if previous_vital else None
 
-    crt = (
-        getattr(last_vital, 'crt', '') if last_vital else hospitalization.initial_crt
-    ) or ''
+    mucosas = (getattr(last_vital, 'mucous_membranes', '') if last_vital else hospitalization.initial_mucous_membranes) or ''
+    crt = (getattr(last_vital, 'crt', '') if last_vital else hospitalization.initial_crt) or ''
+    hidratacion = (getattr(last_vital, 'hydration', '') if last_vital else hospitalization.initial_hydration) or ''
 
-    hidratacion = (
-        getattr(last_vital, 'hydration', '') if last_vital else hospitalization.initial_hydration
-    ) or ''
+    clinical_text = f"{mucosas} {crt} {hidratacion}".lower()
+    all_recent_text = " ".join([clean_text(e.description) for e in related_events[:8]])
+
+    danger_words = ['pálida', 'palida', 'cianótica', 'cianotica', 'gris', 'shock', 'colapso', 'débil', 'debil', 'estupor', 'convuls']
+    warning_words = ['ictérica', 'icterica', 'congestiva', 'seca', 'deshidrat', 'pegajosa', 'deca', 'dolor', 'hiporexia']
 
     if temp is not None:
         if temp >= 40 or temp <= 36.5:
@@ -5955,6 +5975,12 @@ def build_hospitalization_ai(hospitalization, patient, related_events, medicatio
             score += 22
             alerts.append({'level': 'warning', 'icon': '🌡', 'title': 'Temperatura fuera de rango', 'detail': f'Última temperatura: {temp:g} °C.'})
 
+    if prev_temp is not None and temp is not None:
+        delta = temp - prev_temp
+        if abs(delta) >= 1:
+            score += 12
+            alerts.append({'level': 'warning', 'icon': '📈', 'title': 'Cambio térmico importante', 'detail': f'Variación de temperatura: {delta:+.1f} °C respecto al control previo.'})
+
     if hr is not None:
         if hr >= 200 or hr <= 50:
             score += 30
@@ -5962,6 +5988,10 @@ def build_hospitalization_ai(hospitalization, patient, related_events, medicatio
         elif hr >= 180 or hr <= 60:
             score += 18
             alerts.append({'level': 'warning', 'icon': '❤️', 'title': 'Frecuencia cardíaca alterada', 'detail': f'Última FC: {hr:g} lpm.'})
+
+    if prev_hr is not None and hr is not None and abs(hr - prev_hr) >= 35:
+        score += 10
+        alerts.append({'level': 'warning', 'icon': '📈', 'title': 'Cambio de FC', 'detail': f'FC varió {hr - prev_hr:+.0f} lpm respecto al control previo.'})
 
     if rr is not None:
         if rr >= 80 or rr <= 8:
@@ -5971,10 +6001,15 @@ def build_hospitalization_ai(hospitalization, patient, related_events, medicatio
             score += 18
             alerts.append({'level': 'warning', 'icon': '🫁', 'title': 'Frecuencia respiratoria alterada', 'detail': f'Última FR: {rr:g} rpm.'})
 
-    clinical_text = f"{mucosas} {crt} {hidratacion}".lower()
+    if prev_rr is not None and rr is not None and abs(rr - prev_rr) >= 20:
+        score += 10
+        alerts.append({'level': 'warning', 'icon': '📈', 'title': 'Cambio de FR', 'detail': f'FR varió {rr - prev_rr:+.0f} rpm respecto al control previo.'})
 
-    danger_words = ['pálida', 'palida', 'cianótica', 'cianotica', 'gris', 'shock', 'colapso', 'débil', 'debil']
-    warning_words = ['ictérica', 'icterica', 'congestiva', 'seca', 'deshidrat', 'pegajosa']
+    if prev_weight is not None and weight is not None and prev_weight > 0:
+        weight_delta_percent = ((weight - prev_weight) / prev_weight) * 100
+        if abs(weight_delta_percent) >= 5:
+            score += 12
+            alerts.append({'level': 'warning', 'icon': '⚖', 'title': 'Cambio de peso', 'detail': f'Peso varió {weight_delta_percent:+.1f}% respecto al control previo.'})
 
     if any(word in clinical_text for word in danger_words):
         score += 30
@@ -5983,42 +6018,68 @@ def build_hospitalization_ai(hospitalization, patient, related_events, medicatio
         score += 16
         alerts.append({'level': 'warning', 'icon': '👄', 'title': 'Perfusión a revisar', 'detail': 'Mucosas o hidratación requieren control.'})
 
+    if 'vómitos / diarrea: sí' in all_recent_text or 'vomitos / diarrea: sí' in all_recent_text:
+        score += 18
+        alerts.append({'level': 'warning', 'icon': '🤢', 'title': 'Vómitos o diarrea registrados', 'detail': 'Checklist reciente con vómitos/diarrea positivos.'})
+
+    if 'comió: no' in all_recent_text or 'comio: no' in all_recent_text:
+        score += 10
+        alerts.append({'level': 'warning', 'icon': '🍽', 'title': 'No comió', 'detail': 'Checklist reciente indica que no comió.'})
+
+    if 'orinó: no' in all_recent_text or 'orino: no' in all_recent_text:
+        score += 12
+        alerts.append({'level': 'warning', 'icon': '🚽', 'title': 'No orinó', 'detail': 'Checklist reciente indica que no orinó.'})
+
     hours_since_control = hours_from(last_control.event_date) if last_control else None
 
     if hours_since_control is None:
         score += 20
         alerts.append({'level': 'warning', 'icon': '🕓', 'title': 'Sin controles registrados', 'detail': 'Todavía no hay controles/evoluciones en esta internación.'})
     elif hours_since_control >= 8:
-        score += 22
-        alerts.append({'level': 'warning', 'icon': '🕓', 'title': 'Control demorado', 'detail': f'Último control hace {int(hours_since_control)} horas.'})
+        score += 25
+        alerts.append({'level': 'danger', 'icon': '🕓', 'title': 'Control muy demorado', 'detail': f'Último control hace {int(hours_since_control)} horas.'})
     elif hours_since_control >= 4:
-        score += 10
+        score += 12
         alerts.append({'level': 'warning', 'icon': '🕓', 'title': 'Control próximo', 'detail': f'Último control hace {int(hours_since_control)} horas.'})
 
+    now_minutes = now.hour * 60 + now.minute
     pending_medications = [m for m in medications if m.status != 'Aplicada']
+    overdue_medications = []
 
-    if pending_medications:
-        score += min(25, len(pending_medications) * 8)
-        alerts.append({'level': 'warning', 'icon': '💊', 'title': 'Medicación pendiente', 'detail': f'{len(pending_medications)} medicación/es pendiente/s de aplicar.'})
+    for m in pending_medications:
+        mins = med_minutes(m.scheduled_time)
+        if mins is not None and mins <= now_minutes:
+            overdue_medications.append(m)
+
+    if overdue_medications:
+        score += min(35, len(overdue_medications) * 12)
+        alerts.append({'level': 'danger', 'icon': '💊', 'title': 'Medicación vencida', 'detail': f'{len(overdue_medications)} medicación/es ya deberían haberse aplicado.'})
+    elif pending_medications:
+        score += min(20, len(pending_medications) * 7)
+        alerts.append({'level': 'warning', 'icon': '💊', 'title': 'Medicación pendiente', 'detail': f'{len(pending_medications)} medicación/es pendiente/s.'})
 
     active_fluids = [f for f in fluids if f.status == 'Activo']
 
     if active_fluids:
         alerts.append({'level': 'ok', 'icon': '💧', 'title': 'Fluidoterapia activa', 'detail': f'{len(active_fluids)} plan/es activo/s.'})
+    else:
+        if hospitalization.status == 'Internado' and ('deshidrat' in clinical_text or 'shock' in clinical_text):
+            score += 18
+            alerts.append({'level': 'warning', 'icon': '💧', 'title': 'Revisar fluidoterapia', 'detail': 'Hay datos de hidratación/perfusión a revisar y no figura fluido activo.'})
 
     if hospitalization.status != 'Internado':
         priority_label = 'Alta / Cerrado'
         priority_class = 'closed'
         priority_icon = '⚪'
-    elif score >= 60:
+    elif score >= 70:
         priority_label = 'Crítico'
         priority_class = 'danger'
         priority_icon = '🔴'
-    elif score >= 30:
+    elif score >= 40:
         priority_label = 'Alta prioridad'
         priority_class = 'warning'
         priority_icon = '🟠'
-    elif score >= 12:
+    elif score >= 15:
         priority_label = 'Control cercano'
         priority_class = 'watch'
         priority_icon = '🟡'
@@ -6032,37 +6093,67 @@ def build_hospitalization_ai(hospitalization, patient, related_events, medicatio
 
     nursing_tasks = []
 
-    for m in pending_medications:
+    for m in overdue_medications:
         nursing_tasks.append({
             'icon': '💊',
-            'title': m.medication_name or 'Medicación',
+            'title': m.medication_name or 'Medicación vencida',
             'detail': f'{m.scheduled_time or "Sin horario"} · {m.dose or "-"} · {m.route or "-"}',
-            'priority': 'Alta' if priority_class in ['danger', 'warning'] else 'Normal'
+            'priority': 'Urgente',
+            'class': 'danger',
+            'hospitalization_id': hospitalization.id
         })
+
+    for m in pending_medications:
+        if m not in overdue_medications:
+            nursing_tasks.append({
+                'icon': '💊',
+                'title': m.medication_name or 'Medicación pendiente',
+                'detail': f'{m.scheduled_time or "Sin horario"} · {m.dose or "-"} · {m.route or "-"}',
+                'priority': 'Pendiente',
+                'class': 'warning',
+                'hospitalization_id': hospitalization.id
+            })
 
     for f in active_fluids:
         nursing_tasks.append({
             'icon': '💧',
             'title': f.fluid_type or 'Fluidoterapia',
             'detail': f'{f.fluid_rate or "-"} ml/h · {f.drip_set or "-"}',
-            'priority': 'Activa'
+            'priority': 'Activa',
+            'class': 'ok',
+            'hospitalization_id': hospitalization.id
         })
 
     nursing_tasks.append({
         'icon': '📋',
         'title': 'Próximo control clínico',
         'detail': 'Registrar T°, FC, FR, mucosas, TRC, hidratación y evolución.',
-        'priority': 'Prioritario' if priority_class in ['danger', 'warning'] else 'Rutina'
+        'priority': 'Prioritario' if priority_class in ['danger', 'warning'] else 'Rutina',
+        'class': priority_class,
+        'hospitalization_id': hospitalization.id
     })
 
     uti_monitor = [
         {'label': 'Temperatura', 'value': temp if temp is not None else '-', 'unit': '°C', 'class': 'danger' if temp is not None and (temp >= 40 or temp <= 36.5) else 'warning' if temp is not None and (temp >= 39.5 or temp <= 37) else 'ok'},
         {'label': 'FC', 'value': hr if hr is not None else '-', 'unit': 'lpm', 'class': 'danger' if hr is not None and (hr >= 200 or hr <= 50) else 'warning' if hr is not None and (hr >= 180 or hr <= 60) else 'ok'},
         {'label': 'FR', 'value': rr if rr is not None else '-', 'unit': 'rpm', 'class': 'danger' if rr is not None and (rr >= 80 or rr <= 8) else 'warning' if rr is not None and (rr >= 60 or rr <= 10) else 'ok'},
+        {'label': 'Peso', 'value': weight if weight is not None else '-', 'unit': 'kg', 'class': 'warning' if prev_weight is not None and weight is not None and prev_weight > 0 and abs(((weight - prev_weight) / prev_weight) * 100) >= 5 else 'ok'},
         {'label': 'Mucosas', 'value': mucosas or '-', 'unit': '', 'class': 'danger' if any(word in clinical_text for word in danger_words) else 'warning' if any(word in clinical_text for word in warning_words) else 'ok'},
-        {'label': 'TRC', 'value': crt or '-', 'unit': '', 'class': 'warning' if crt else 'ok'},
         {'label': 'Hidratación', 'value': hidratacion or '-', 'unit': '', 'class': 'warning' if any(word in clinical_text for word in warning_words) else 'ok'}
     ]
+
+    clinical_summary = []
+    clinical_summary.append(f"{priority_icon} Prioridad: {priority_label}.")
+    if temp is not None:
+        clinical_summary.append(f"Temperatura actual: {temp:g} °C.")
+    if hr is not None:
+        clinical_summary.append(f"FC actual: {hr:g} lpm.")
+    if rr is not None:
+        clinical_summary.append(f"FR actual: {rr:g} rpm.")
+    if pending_medications:
+        clinical_summary.append(f"Medicación pendiente: {len(pending_medications)}.")
+    if active_fluids:
+        clinical_summary.append(f"Fluidoterapia activa: {len(active_fluids)} plan/es.")
 
     return {
         'alerts': alerts,
@@ -6073,8 +6164,142 @@ def build_hospitalization_ai(hospitalization, patient, related_events, medicatio
         'uti_monitor': uti_monitor,
         'nursing_tasks': nursing_tasks,
         'last_vital': last_vital,
-        'hours_since_control': hours_since_control
+        'hours_since_control': hours_since_control,
+        'clinical_summary': clinical_summary,
+        'pending_medications_count': len(pending_medications),
+        'overdue_medications_count': len(overdue_medications),
+        'active_fluids_count': len(active_fluids)
     }
+
+
+@app.get('/nursing', response_class=HTMLResponse)
+def nursing_view(
+    request: Request,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    active_hospitalizations = (
+        db.query(Hospitalization)
+        .filter(Hospitalization.status == 'Internado')
+        .order_by(Hospitalization.admission_date.asc())
+        .all()
+    )
+
+    nursing_patients = []
+    global_tasks = []
+    stats = {
+        'total': 0,
+        'critical': 0,
+        'warning': 0,
+        'watch': 0,
+        'stable': 0,
+        'overdue_meds': 0,
+        'pending_meds': 0,
+        'active_fluids': 0
+    }
+
+    for hospitalization in active_hospitalizations:
+        patient = hospitalization.patient
+
+        related_events = (
+            db.query(ClinicalEvent)
+            .filter(ClinicalEvent.patient_id == patient.id)
+            .filter(ClinicalEvent.event_type.in_(['Internación', 'Control', 'Consulta clínica', 'Alta']))
+            .order_by(ClinicalEvent.event_date.desc())
+            .limit(30)
+            .all()
+        )
+
+        medications = (
+            db.query(HospitalizationMedication)
+            .filter(HospitalizationMedication.hospitalization_id == hospitalization.id)
+            .order_by(HospitalizationMedication.scheduled_time.asc(), HospitalizationMedication.created_at.desc())
+            .all()
+        )
+
+        fluids = (
+            db.query(HospitalizationFluid)
+            .filter(HospitalizationFluid.hospitalization_id == hospitalization.id)
+            .order_by(HospitalizationFluid.created_at.desc())
+            .all()
+        )
+
+        hospital_ai = build_hospitalization_ai(
+            hospitalization,
+            patient,
+            related_events,
+            medications,
+            fluids
+        )
+
+        stats['total'] += 1
+        stats['overdue_meds'] += hospital_ai['overdue_medications_count']
+        stats['pending_meds'] += hospital_ai['pending_medications_count']
+        stats['active_fluids'] += hospital_ai['active_fluids_count']
+
+        if hospital_ai['priority_class'] == 'danger':
+            stats['critical'] += 1
+        elif hospital_ai['priority_class'] == 'warning':
+            stats['warning'] += 1
+        elif hospital_ai['priority_class'] == 'watch':
+            stats['watch'] += 1
+        else:
+            stats['stable'] += 1
+
+        patient_card = {
+            'hospitalization': hospitalization,
+            'patient': patient,
+            'owner': patient.owner if patient else None,
+            'ai': hospital_ai,
+            'tasks': hospital_ai['nursing_tasks'],
+            'alerts': hospital_ai['alerts'],
+            'last_event': related_events[0] if related_events else None,
+            'medications': medications,
+            'fluids': fluids
+        }
+
+        nursing_patients.append(patient_card)
+
+        for task in hospital_ai['nursing_tasks']:
+            global_tasks.append({
+                'patient_name': patient.name if patient else '-',
+                'cage': hospitalization.cage or '-',
+                'hospitalization_id': hospitalization.id,
+                'task': task,
+                'priority_class': task.get('class') or hospital_ai['priority_class']
+            })
+
+    order_map = {'danger': 0, 'warning': 1, 'watch': 2, 'ok': 3, 'closed': 4}
+    nursing_patients = sorted(
+        nursing_patients,
+        key=lambda item: order_map.get(item['ai']['priority_class'], 9)
+    )
+
+    global_tasks = sorted(
+        global_tasks,
+        key=lambda item: order_map.get(item['priority_class'], 9)
+    )
+
+    return templates.TemplateResponse(
+        'nursing.html',
+        {
+            'request': request,
+            'nursing_patients': nursing_patients,
+            'global_tasks': global_tasks,
+            'stats': stats,
+            'now': argentina_now().replace(tzinfo=None),
+            'today': argentina_now().date()
+        }
+    )
+
+
+@app.get('/hospitalizations/nursing', response_class=HTMLResponse)
+def hospitalizations_nursing_alias(
+    request: Request,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    return RedirectResponse('/nursing', status_code=303)
 
 
 @app.get('/hospitalizations/{hospitalization_id}', response_class=HTMLResponse)
@@ -6140,10 +6365,10 @@ def hospitalization_detail(
             'nursing_tasks': hospital_ai['nursing_tasks'],
             'last_vital': hospital_ai['last_vital'],
             'hours_since_control': hospital_ai['hours_since_control'],
+            'clinical_summary': hospital_ai['clinical_summary'],
             'today': argentina_now().date()
         }
     )
-
 
 @app.post('/hospitalizations/{hospitalization_id}/evolution')
 def hospitalization_add_evolution(
