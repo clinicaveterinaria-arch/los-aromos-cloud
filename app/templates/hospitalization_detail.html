@@ -823,7 +823,23 @@
                 </div>
 
                 <br>
+                <br>
 
+                <div class="note">
+
+                    <b>📋 Resumen clínico automático</b>
+
+                    <ul style="margin-top:10px;margin-bottom:0;">
+
+                        {% for line in clinical_summary %}
+
+                        <li>{{ line }}</li>
+
+                        {% endfor %}
+
+                    </ul>
+
+                </div>
                 <p style="color:#6b7280;font-size:14px;">
                     IA clínica local: cruza constantes, controles demorados, medicación pendiente,
                     fluidoterapia activa, mucosas, TRC e hidratación.
