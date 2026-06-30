@@ -452,20 +452,63 @@
             </div>
 
             <div class="card">
-                <h2>✅ Checklist enfermería</h2>
+                <h2>💊 Medicación</h2>
 
-                <div class="check-row"><span class="fake-check"></span> Comió</div>
-                <div class="check-row"><span class="fake-check"></span> Tomó agua</div>
-                <div class="check-row"><span class="fake-check"></span> Orinó</div>
-                <div class="check-row"><span class="fake-check"></span> Defecó</div>
-                <div class="check-row"><span class="fake-check"></span> Vómitos / diarrea</div>
-                <div class="check-row"><span class="fake-check"></span> Limpieza de jaula</div>
+                <div class="mini-list">
+                    <div class="mini-row">
+                        <span>Plan terapéutico</span>
+                        <b>{% if hospitalization.treatment_plan %}Cargado{% else %}Pendiente{% endif %}</b>
+                    </div>
 
-                <p style="color:#6b7280;font-size:13px;margin-top:12px;">
-                    En el próximo bloque estos checks se van a poder guardar por turno.
-                </p>
+                    <div class="mini-row">
+                        <span>Programación por horarios</span>
+                        <b>Próximo bloque</b>
+                    </div>
+
+                    <div class="mini-row">
+                        <span>Integración Vademécum IA</span>
+                        <b>Reservado</b>
+                    </div>
+                </div>
+
+                <br>
+
+                <div class="note">
+                    {{ hospitalization.treatment_plan or "Todavía no hay medicación programada. Por ahora se usa el plan terapéutico inicial y las evoluciones." }}
+                </div>
             </div>
 
+            <div class="card">
+                <h2>🍽️ Enfermería rápida</h2>
+
+                <div class="mini-list">
+                    <div class="mini-row">
+                        <span>Comió / tomó agua</span>
+                        <b>Checklist</b>
+                    </div>
+
+                    <div class="mini-row">
+                        <span>Orina / materia fecal</span>
+                        <b>Checklist</b>
+                    </div>
+
+                    <div class="mini-row">
+                        <span>Vómitos / diarrea</span>
+                        <b>Checklist</b>
+                    </div>
+
+                    <div class="mini-row">
+                        <span>Limpieza de jaula</span>
+                        <b>Checklist</b>
+                    </div>
+                </div>
+
+                <br>
+
+                <div class="soft-alert">
+                    El checklist guardable está en la columna izquierda y queda registrado como evolución.
+                </div>
+            </div>
             <div class="card">
                 <h2>🤖 IA / Alertas</h2>
 
