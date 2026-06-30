@@ -2,96 +2,86 @@
 {% block content %}
 
 <style>
-.hosp-page{padding:24px 28px;}
+.hosp-page{padding:24px 28px;background:#fafafa;min-height:100vh;}
 .hosp-hero{
     background:linear-gradient(135deg,#fff8fb,#ffffff);
     border:1px solid #f3c6d8;
-    border-radius:24px;
+    border-radius:26px;
     padding:22px;
-    box-shadow:0 10px 30px rgba(0,0,0,.05);
+    box-shadow:0 12px 34px rgba(0,0,0,.06);
     margin-bottom:18px;
 }
 .hosp-top{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;flex-wrap:wrap;}
 .hosp-title h1{margin:0;color:#1f2937;font-size:34px;}
 .hosp-title p{margin:6px 0;color:#6b7280;}
 .status{
-    background:#dcfce7;
-    color:#166534;
-    border:1px solid #bbf7d0;
-    border-radius:999px;
-    padding:8px 13px;
-    font-weight:bold;
+    background:#dcfce7;color:#166534;border:1px solid #bbf7d0;
+    border-radius:999px;padding:8px 14px;font-weight:bold;
 }
 .status.closed{background:#f3f4f6;color:#374151;border-color:#e5e7eb;}
 .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
-.actions a,.actions button{
-    border:1px solid #f3c6d8;
-    background:white;
-    color:#d85b9a;
-    border-radius:13px;
-    padding:10px 13px;
-    font-weight:bold;
+.actions a{
+    border:1px solid #f3c6d8;background:white;color:#d85b9a;
+    border-radius:13px;padding:10px 13px;font-weight:bold;
     text-decoration:none;
-    cursor:pointer;
 }
-.grid{display:grid;grid-template-columns:1.1fr .9fr;gap:18px;align-items:start;}
+.dashboard{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+    gap:12px;
+    margin-bottom:18px;
+}
+.dash-card{
+    background:white;border:1px solid #f3c6d8;border-radius:20px;
+    padding:15px;box-shadow:0 8px 24px rgba(0,0,0,.04);
+}
+.dash-card span{display:block;color:#6b7280;font-size:13px;}
+.dash-card b{display:block;color:#1f2937;font-size:22px;margin-top:5px;}
+.dash-card small{color:#d85b9a;font-weight:bold;}
+.layout{display:grid;grid-template-columns:1.15fr .85fr;gap:18px;align-items:start;}
 .card{
-    background:white;
-    border:1px solid #f3c6d8;
-    border-radius:22px;
-    padding:18px;
-    box-shadow:0 8px 26px rgba(0,0,0,.04);
+    background:white;border:1px solid #f3c6d8;border-radius:22px;
+    padding:18px;box-shadow:0 8px 26px rgba(0,0,0,.04);
     margin-bottom:18px;
 }
 .card h2{margin:0 0 14px;color:#1f2937;}
-.info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;}
+.card h3{margin:0 0 10px;color:#374151;font-size:16px;}
+.info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;}
 .info{
-    border:1px solid #f1d6e2;
-    border-radius:15px;
-    padding:12px;
-    background:#fff;
+    border:1px solid #f1d6e2;border-radius:15px;padding:12px;background:#fff;
 }
 .info span{display:block;color:#6b7280;font-size:13px;}
 .info b{display:block;color:#1f2937;margin-top:4px;}
-.big-note{
-    background:#fff8fb;
-    border:1px solid #f3c6d8;
-    border-radius:16px;
-    padding:13px;
-    color:#374151;
-    line-height:1.45;
-    white-space:pre-wrap;
+.note{
+    background:#fff8fb;border:1px solid #f3c6d8;border-radius:16px;
+    padding:13px;color:#374151;line-height:1.45;white-space:pre-wrap;
 }
-.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;}
+.clinical-board{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+    gap:12px;
+}
+.board-box{
+    background:#fff;border:1px solid #f1d6e2;border-radius:18px;
+    padding:14px;
+}
+.board-box .icon{font-size:24px;margin-bottom:8px;}
+.board-box b{display:block;color:#1f2937;margin-bottom:5px;}
+.board-box p{margin:0;color:#6b7280;font-size:13px;line-height:1.35;}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:10px;}
 .form-grid input,.form-grid textarea{
-    width:100%;
-    border:1px solid #ead7e1;
-    border-radius:13px;
-    padding:11px 12px;
-    font-size:14px;
+    width:100%;border:1px solid #ead7e1;border-radius:13px;
+    padding:11px 12px;font-size:14px;background:white;
 }
-.form-grid textarea{min-height:86px;resize:vertical;}
+.form-grid textarea{min-height:88px;resize:vertical;}
 .full{grid-column:1 / -1;}
 .save-btn{
-    grid-column:1 / -1;
-    background:#22c55e;
-    color:white;
-    border:none;
-    border-radius:14px;
-    padding:14px;
-    font-size:16px;
-    font-weight:bold;
-    cursor:pointer;
+    grid-column:1 / -1;background:#22c55e;color:white;border:none;
+    border-radius:14px;padding:14px;font-size:16px;font-weight:bold;cursor:pointer;
 }
 .discharge-btn{
-    background:#d85b9a;
-    color:white;
-    border:none;
-    border-radius:14px;
-    padding:14px;
-    font-size:16px;
-    font-weight:bold;
-    cursor:pointer;
+    background:#d85b9a;color:white;border:none;border-radius:14px;
+    padding:14px;font-size:16px;font-weight:bold;cursor:pointer;
 }
 .timeline{position:relative;padding-left:18px;}
 .timeline:before{content:'';position:absolute;left:10px;top:8px;bottom:8px;width:2px;background:#f3c6d8;}
@@ -105,14 +95,29 @@
 .item h3{margin:0 0 5px;color:#1f2937;font-size:15px;}
 .item p{margin:0;color:#4b5563;font-size:13px;line-height:1.35;white-space:pre-wrap;}
 .alert{
-    background:#fff7ed;
-    border:1px solid #fed7aa;
-    color:#9a3412;
-    border-radius:16px;
-    padding:13px;
-    margin-bottom:12px;
+    background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;
+    border-radius:16px;padding:13px;margin-bottom:12px;
 }
-@media(max-width:1000px){.grid{grid-template-columns:1fr;}}
+.soft-alert{
+    background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;
+    border-radius:16px;padding:13px;margin-bottom:10px;
+}
+.mini-list{display:grid;gap:8px;}
+.mini-row{
+    display:flex;justify-content:space-between;gap:10px;align-items:center;
+    border:1px solid #f1d6e2;border-radius:14px;padding:10px;background:#fff;
+}
+.mini-row span{color:#374151;font-size:14px;}
+.mini-row b{color:#d85b9a;font-size:13px;white-space:nowrap;}
+.check-row{
+    display:flex;align-items:center;gap:9px;padding:9px 0;
+    border-bottom:1px solid #f3edf1;color:#374151;
+}
+.check-row:last-child{border-bottom:none;}
+.fake-check{
+    width:18px;height:18px;border-radius:6px;border:2px solid #f3c6d8;background:#fff8fb;
+}
+@media(max-width:1000px){.layout{grid-template-columns:1fr;}}
 </style>
 
 <div class="hosp-page">
@@ -131,6 +136,8 @@
                     <b>{{ hospitalization.admission_date.strftime('%d/%m/%Y %H:%M') if hospitalization.admission_date else '-' }}</b>
                     · Jaula:
                     <b>{{ hospitalization.cage or 'Sin jaula' }}</b>
+                    · Responsable:
+                    <b>{{ hospitalization.responsible_vet or '-' }}</b>
                 </p>
             </div>
 
@@ -148,34 +155,97 @@
         </div>
     </div>
 
-    <div class="grid">
+    <div class="dashboard">
+        <div class="dash-card">
+            <span>Estado</span>
+            <b>{{ hospitalization.status }}</b>
+            <small>{% if hospitalization.status == 'Internado' %}Activo{% else %}Cerrado{% endif %}</small>
+        </div>
+        <div class="dash-card">
+            <span>Jaula</span>
+            <b>{{ hospitalization.cage or '-' }}</b>
+            <small>Ubicación</small>
+        </div>
+        <div class="dash-card">
+            <span>Peso</span>
+            <b>{{ hospitalization.initial_weight or patient.weight or '-' }} kg</b>
+            <small>Último cargado</small>
+        </div>
+        <div class="dash-card">
+            <span>Temperatura</span>
+            <b>{{ hospitalization.initial_temperature or '-' }}</b>
+            <small>Inicial</small>
+        </div>
+        <div class="dash-card">
+            <span>FC</span>
+            <b>{{ hospitalization.initial_heart_rate or '-' }}</b>
+            <small>Inicial</small>
+        </div>
+        <div class="dash-card">
+            <span>FR</span>
+            <b>{{ hospitalization.initial_respiratory_rate or '-' }}</b>
+            <small>Inicial</small>
+        </div>
+    </div>
+
+    <div class="layout">
 
         <div>
 
             <div class="card">
-                <h2>📋 Resumen de internación</h2>
+                <h2>📋 Resumen clínico</h2>
 
                 <div class="info-grid">
                     <div class="info"><span>Paciente</span><b>{{ patient.name }}</b></div>
-                    <div class="info"><span>Peso inicial</span><b>{{ hospitalization.initial_weight or patient.weight or '-' }} kg</b></div>
+                    <div class="info"><span>Propietario</span><b>{{ patient.owner.name if patient.owner else '-' }}</b></div>
+                    <div class="info"><span>Teléfono</span><b>{{ patient.owner.whatsapp or patient.owner.phone or '-' if patient.owner else '-' }}</b></div>
                     <div class="info"><span>Responsable</span><b>{{ hospitalization.responsible_vet or '-' }}</b></div>
-                    <div class="info"><span>Jaula</span><b>{{ hospitalization.cage or '-' }}</b></div>
                 </div>
 
                 <br>
 
-                <b>Motivo</b>
-                <div class="big-note">{{ hospitalization.reason or 'Sin motivo cargado.' }}</div>
+                <h3>Motivo</h3>
+                <div class="note">{{ hospitalization.reason or 'Sin motivo cargado.' }}</div>
 
                 <br>
 
-                <b>Diagnóstico inicial</b>
-                <div class="big-note">{{ hospitalization.diagnosis or 'Sin diagnóstico inicial cargado.' }}</div>
+                <h3>Diagnóstico inicial</h3>
+                <div class="note">{{ hospitalization.diagnosis or 'Sin diagnóstico inicial cargado.' }}</div>
 
                 <br>
 
-                <b>Plan terapéutico</b>
-                <div class="big-note">{{ hospitalization.treatment_plan or 'Sin plan terapéutico cargado.' }}</div>
+                <h3>Plan terapéutico</h3>
+                <div class="note">{{ hospitalization.treatment_plan or 'Sin plan terapéutico cargado.' }}</div>
+            </div>
+
+            <div class="card">
+                <h2>🧭 Panel de trabajo</h2>
+
+                <div class="clinical-board">
+                    <div class="board-box">
+                        <div class="icon">❤️</div>
+                        <b>Signos vitales</b>
+                        <p>Registrar temperatura, FC, FR, peso, mucosas, TRC e hidratación.</p>
+                    </div>
+
+                    <div class="board-box">
+                        <div class="icon">💊</div>
+                        <b>Medicación</b>
+                        <p>En el próximo bloque se programan horarios y dosis.</p>
+                    </div>
+
+                    <div class="board-box">
+                        <div class="icon">💧</div>
+                        <b>Fluidoterapia</b>
+                        <p>Reservado para cálculo de ml/h, macro y microgotero.</p>
+                    </div>
+
+                    <div class="board-box">
+                        <div class="icon">📎</div>
+                        <b>Estudios</b>
+                        <p>RX, eco, ECG, laboratorio y adjuntos desde historia clínica.</p>
+                    </div>
+                </div>
             </div>
 
             <div class="card">
@@ -201,7 +271,7 @@
             </div>
 
             <div class="card">
-                <h2>🕓 Evoluciones y eventos relacionados</h2>
+                <h2>🕓 Evoluciones</h2>
 
                 {% if related_events %}
                 <div class="timeline">
@@ -213,9 +283,7 @@
                         </div>
                         <div>
                             <h3>{{ e.event_type }}{% if e.title %} · {{ e.title }}{% endif %}</h3>
-                            <p>
-{% if e.description %}{{ e.description }}{% elif e.diagnosis %}{{ e.diagnosis }}{% elif e.treatment %}{{ e.treatment }}{% else %}Sin detalle cargado.{% endif %}
-                            </p>
+                            <p>{% if e.description %}{{ e.description }}{% elif e.diagnosis %}{{ e.diagnosis }}{% elif e.treatment %}{{ e.treatment }}{% else %}Sin detalle cargado.{% endif %}</p>
                         </div>
                     </div>
                     {% endfor %}
@@ -243,11 +311,52 @@
             </div>
 
             <div class="card">
+                <h2>💊 Medicación / fluidos</h2>
+
+                <div class="mini-list">
+                    <div class="mini-row">
+                        <span>Plan terapéutico cargado</span>
+                        <b>{% if hospitalization.treatment_plan %}Sí{% else %}Pendiente{% endif %}</b>
+                    </div>
+                    <div class="mini-row">
+                        <span>Fluidoterapia</span>
+                        <b>Bloque 3</b>
+                    </div>
+                    <div class="mini-row">
+                        <span>Próxima medicación</span>
+                        <b>Bloque 3</b>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>✅ Checklist enfermería</h2>
+
+                <div class="check-row"><span class="fake-check"></span> Comió</div>
+                <div class="check-row"><span class="fake-check"></span> Tomó agua</div>
+                <div class="check-row"><span class="fake-check"></span> Orinó</div>
+                <div class="check-row"><span class="fake-check"></span> Defecó</div>
+                <div class="check-row"><span class="fake-check"></span> Vómitos / diarrea</div>
+                <div class="check-row"><span class="fake-check"></span> Limpieza de jaula</div>
+
+                <p style="color:#6b7280;font-size:13px;margin-top:12px;">
+                    En el próximo bloque estos checks se van a poder guardar por turno.
+                </p>
+            </div>
+
+            <div class="card">
                 <h2>🤖 IA / Alertas</h2>
-                <div class="alert">Bloque IA de internación reservado para la próxima etapa.</div>
+
+                {% if hospitalization.status == 'Internado' %}
+                    <div class="soft-alert">Paciente internado activo.</div>
+                {% endif %}
+
+                <div class="alert">IA de internación reservada para la próxima etapa.</div>
+
                 <p style="color:#6b7280;font-size:14px;">
-                    Acá luego vamos a mostrar alertas tipo: falta temperatura, no hay diuresis cargada,
-                    medicación pendiente, evolución desfavorable o pérdida de peso.
+                    Acá después vamos a mostrar alertas por falta de controles,
+                    cambios de FC/temperatura, pérdida de peso, falta de diuresis,
+                    medicación pendiente o evolución desfavorable.
                 </p>
             </div>
 
@@ -262,18 +371,18 @@
                     <button type="submit" class="discharge-btn full">🏠 Dar alta</button>
                 </form>
                 {% else %}
-                    <b>Fecha de alta</b>
-                    <div class="big-note">{{ hospitalization.discharge_date.strftime('%d/%m/%Y %H:%M') if hospitalization.discharge_date else '-' }}</div>
+                    <h3>Fecha de alta</h3>
+                    <div class="note">{{ hospitalization.discharge_date.strftime('%d/%m/%Y %H:%M') if hospitalization.discharge_date else '-' }}</div>
 
                     <br>
 
-                    <b>Resumen</b>
-                    <div class="big-note">{{ hospitalization.discharge_summary or '-' }}</div>
+                    <h3>Resumen</h3>
+                    <div class="note">{{ hospitalization.discharge_summary or '-' }}</div>
 
                     <br>
 
-                    <b>Indicaciones</b>
-                    <div class="big-note">{{ hospitalization.discharge_indications or '-' }}</div>
+                    <h3>Indicaciones</h3>
+                    <div class="note">{{ hospitalization.discharge_indications or '-' }}</div>
                 {% endif %}
             </div>
 
