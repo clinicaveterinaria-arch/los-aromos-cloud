@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+.nursing-page{padding:24px 28px;background:#fafafa;min-height:100vh;}
+.nursing-hero{
+    background:linear-gradient(135deg,#fff8fb,#ffffff);
+    border:1px solid #f3c6d8;
+    border-radius:26px;
+    padding:22px;
+    box-shadow:0 12px 34px rgba(0,0,0,.06);
+    margin-bottom:18px;
+}
+.nursing-top{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;flex-wrap:wrap;}
+.nursing-title h1{margin:0;color:#1f2937;font-size:34px;}
+.nursing-title p{margin:6px 0;color:#6b7280;}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+.actions a{
+    border:1px solid #f3c6d8;background:white;color:#d85b9a;
+    border-radius:13px;padding:10px 13px;font-weight:bold;
+    text-decoration:none;
+}
+.dashboard{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+    gap:12px;
+    margin-bottom:18px;
+}
+.dash-card{
+    background:white;border:1px solid #f3c6d8;border-radius:20px;
+    padding:15px;box-shadow:0 8px 24px rgba(0,0,0,.04);
+}
+.dash-card span{display:block;color:#6b7280;font-size:13px;}
+.dash-card b{display:block;color:#1f2937;font-size:24px;margin-top:5px;}
+.dash-card small{color:#d85b9a;font-weight:bold;}
+.layout{display:grid;grid-template-columns:1fr .75fr;gap:18px;align-items:start;}
+.card{
+    background:white;border:1px solid #f3c6d8;border-radius:22px;
+    padding:18px;box-shadow:0 8px 26px rgba(0,0,0,.04);
+    margin-bottom:18px;
+}
+.card h2{margin:0 0 14px;color:#1f2937;}
+.patient-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;}
+.patient-card{
+    border:1px solid #f1d6e2;border-radius:22px;background:white;
+    padding:16px;box-shadow:0 8px 22px rgba(0,0,0,.04);
+}
+.patient-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:12px;}
+.patient-head h3{margin:0;color:#1f2937;font-size:21px;}
+.patient-head p{margin:4px 0 0;color:#6b7280;font-size:13px;}
+.badge{
+    border-radius:999px;padding:7px 11px;font-weight:bold;font-size:13px;white-space:nowrap;
+}
+.badge.danger{background:#fff1f2;color:#991b1b;border:1px solid #fecaca;}
+.badge.warning{background:#fff7ed;color:#9a3412;border:1px solid #fed7aa;}
+.badge.watch{background:#fefce8;color:#854d0e;border:1px solid #fde68a;}
+.badge.ok{background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;}
+.monitor{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:8px;
+    margin:12px 0;
+}
+.monitor-box{
+    border-radius:14px;padding:10px;border:1px solid #e5e7eb;
+}
+.monitor-box span{display:block;font-size:12px;color:#6b7280;}
+.monitor-box b{display:block;font-size:18px;color:#1f2937;margin-top:3px;}
+.monitor-box.danger{background:#fff1f2;border-color:#fecaca;}
+.monitor-box.warning{background:#fff7ed;border-color:#fed7aa;}
+.monitor-box.ok{background:#f0fdf4;border-color:#bbf7d0;}
+.task-list{display:grid;gap:8px;margin-top:10px;}
+.task{
+    display:flex;justify-content:space-between;gap:10px;align-items:center;
+    border:1px solid #f1d6e2;border-radius:14px;padding:10px;background:#fff;
+}
+.task span{color:#374151;font-size:14px;}
+.task b{font-size:13px;color:#d85b9a;white-space:nowrap;}
+.task.danger{background:#fff1f2;border-color:#fecaca;}
+.task.warning{background:#fff7ed;border-color:#fed7aa;}
+.task.ok{background:#f0fdf4;border-color:#bbf7d0;}
+.detail-link{
+    display:block;text-align:center;margin-top:12px;
+    background:#d85b9a;color:white;text-decoration:none;
+    border-radius:14px;padding:11px;font-weight:bold;
+}
+.alert-line{
+    border-radius:14px;padding:10px;margin-top:8px;font-size:13px;
+    border:1px solid #f1d6e2;background:#fff;
+}
+.alert-line.danger{background:#fff1f2;border-color:#fecaca;color:#991b1b;}
+.alert-line.warning{background:#fff7ed;border-color:#fed7aa;color:#9a3412;}
+.alert-line.ok{background:#f0fdf4;border-color:#bbf7d0;color:#166534;}
+.empty{
+    background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;
+    border-radius:18px;padding:18px;
+}
+@media(max-width:1000px){.layout{grid-template-columns:1fr;}.monitor{grid-template-columns:repeat(2,1fr);}}
+</style>
+
+<div class="nursing-page">
+
+    <div class="nursing-hero">
+        <div class="nursing-top">
+            <div class="nursing-title">
+                <h1>👩‍⚕️ Vista de enfermería</h1>
+                <p>Pacientes internados activos, prioridades, medicaciones, fluidos y controles.</p>
+                <p>Actualizado: <b>{{ now.strftime('%d/%m/%Y %H:%M') if now else '-' }}</b></p>
+            </div>
+        </div>
+
+        <div class="actions">
+            <a href="/hospitalizations">← Internación</a>
+            <a href="/search">🩺 Historia clínica</a>
+            <a href="/agenda">📅 Agenda</a>
+        </div>
+    </div>
+
+    <div class="dashboard">
+        <div class="dash-card"><span>Internados</span><b>{{ stats.total }}</b><small>Activos</small></div>
+        <div class="dash-card"><span>Críticos</span><b>{{ stats.critical }}</b><small>🔴 Urgente</small></div>
+        <div class="dash-card"><span>Alta prioridad</span><b>{{ stats.warning }}</b><small>🟠 Revisar</small></div>
+        <div class="dash-card"><span>Control cercano</span><b>{{ stats.watch }}</b><small>🟡 Seguimiento</small></div>
+        <div class="dash-card"><span>Medicación vencida</span><b>{{ stats.overdue_meds }}</b><small>💊 Ahora</small></div>
+        <div class="dash-card"><span>Fluidos activos</span><b>{{ stats.active_fluids }}</b><small>💧 Activos</small></div>
+    </div>
+
+    <div class="layout">
+
+        <div class="card">
+            <h2>🏥 Pacientes internados</h2>
+
+            {% if nursing_patients %}
+            <div class="patient-grid">
+                {% for item in nursing_patients %}
+                <div class="patient-card">
+                    <div class="patient-head">
+                        <div>
+                            <h3>{{ item.patient.name }}</h3>
+                            <p>
+                                Jaula: <b>{{ item.hospitalization.cage or '-' }}</b><br>
+                                Responsable: {{ item.hospitalization.responsible_vet or '-' }}<br>
+                                Propietario: {{ item.owner.name if item.owner else '-' }}
+                            </p>
+                        </div>
+
+                        <div class="badge {{ item.ai.priority_class }}">
+                            {{ item.ai.priority_icon }} {{ item.ai.priority_label }}
+                        </div>
+                    </div>
+
+                    <div class="monitor">
+                        {% for vital in item.ai.uti_monitor[:6] %}
+                        <div class="monitor-box {{ vital.class }}">
+                            <span>{{ vital.label }}</span>
+                            <b>{{ vital.value }} {{ vital.unit }}</b>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="task-list">
+                        {% for task in item.tasks[:4] %}
+                        <div class="task {{ task.class }}">
+                            <span>
+                                {{ task.icon }} <b style="color:#374151;">{{ task.title }}</b><br>
+                                <small style="color:#6b7280;">{{ task.detail }}</small>
+                            </span>
+                            <b>{{ task.priority }}</b>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    {% for alert in item.alerts[:3] %}
+                    <div class="alert-line {{ alert.level }}">
+                        {{ alert.icon }} <b>{{ alert.title }}</b><br>
+                        {{ alert.detail }}
+                    </div>
+                    {% endfor %}
+
+                    <a class="detail-link" href="/hospitalizations/{{ item.hospitalization.id }}">
+                        Abrir internación
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+                <div class="empty">No hay pacientes internados activos.</div>
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <h2>📌 Tareas de enfermería</h2>
+
+            {% if global_tasks %}
+            <div class="task-list">
+                {% for row in global_tasks %}
+                <div class="task {{ row.priority_class }}">
+                    <span>
+                        {{ row.task.icon }} <b style="color:#374151;">{{ row.patient_name }}</b>
+                        · Jaula {{ row.cage }}<br>
+                        <small style="color:#6b7280;">
+                            {{ row.task.title }} — {{ row.task.detail }}
+                        </small>
+                    </span>
+                    <b>{{ row.task.priority }}</b>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+                <div class="empty">No hay tareas pendientes.</div>
+            {% endif %}
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
