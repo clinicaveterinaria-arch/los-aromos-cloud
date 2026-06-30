@@ -444,7 +444,11 @@
                                 <td style="padding:9px;border:1px solid #f1d6e2;">{{ f.drip_set or '-' }}</td>
                                 <td style="padding:9px;border:1px solid #f1d6e2;">
                                     {% if f.status == 'Finalizado' %}
-                                        🟢 Finalizado
+                                        🟢 Finalizado<br>
+                                        <small>
+                                            {{ f.finished_at.strftime('%d/%m %H:%M') if f.finished_at else '' }}
+                                            {% if f.finished_by %} · {{ f.finished_by }}{% endif %}
+                                        </small>
                                     {% else %}
                                         🔵 Activo
                                     {% endif %}
