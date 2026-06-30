@@ -526,7 +526,7 @@
                     <input name="dose" placeholder="Dosis">
                     <input name="route" placeholder="Vía">
                     <input name="frequency" placeholder="Frecuencia">
-                    <input name="scheduled_time" placeholder="Horario">
+                    <input type="time" name="scheduled_time" placeholder="Horario">
                     <textarea name="notes" class="full" placeholder="Observaciones"></textarea>
                     <button type="submit" class="save-btn">💊 Programar medicación</button>
                 </form>
@@ -553,7 +553,9 @@
                         <tbody>
                             {% for m in medications %}
                             <tr>
-                                <td style="padding:9px;border:1px solid #f1d6e2;">{{ m.scheduled_time or '-' }}</td>
+                                <td style="padding:9px;border:1px solid #f1d6e2;">
+                                    <b>🕘 {{ m.scheduled_time or '-' }}</b>
+                                </td>
                                 <td style="padding:9px;border:1px solid #f1d6e2;">
                                     <b>{{ m.medication_name or '-' }}</b><br>
                                     <small>{{ m.frequency or '-' }}</small>
