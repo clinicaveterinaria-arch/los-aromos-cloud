@@ -341,16 +341,95 @@
         <div>
 
             <div class="card">
-                <h2>❤️ Signos vitales iniciales</h2>
 
-                <div class="info-grid">
-                    <div class="info"><span>T°</span><b>{{ hospitalization.initial_temperature or '-' }}</b></div>
-                    <div class="info"><span>FC</span><b>{{ hospitalization.initial_heart_rate or '-' }}</b></div>
-                    <div class="info"><span>FR</span><b>{{ hospitalization.initial_respiratory_rate or '-' }}</b></div>
-                    <div class="info"><span>Mucosas</span><b>{{ hospitalization.initial_mucous_membranes or '-' }}</b></div>
-                    <div class="info"><span>TRC</span><b>{{ hospitalization.initial_crt or '-' }}</b></div>
-                    <div class="info"><span>Hidratación</span><b>{{ hospitalization.initial_hydration or '-' }}</b></div>
+                <h2>❤️ Estado del paciente</h2>
+
+                <div class="dashboard">
+
+                    <div class="dash-card">
+                        <span>🌡 Temperatura</span>
+                        <b>{{ hospitalization.initial_temperature or "-" }}</b>
+                        <small>Ingreso</small>
+                    </div>
+
+                    <div class="dash-card">
+                        <span>❤️ FC</span>
+                        <b>{{ hospitalization.initial_heart_rate or "-" }}</b>
+                        <small>lpm</small>
+                    </div>
+
+                    <div class="dash-card">
+                        <span>🫁 FR</span>
+                        <b>{{ hospitalization.initial_respiratory_rate or "-" }}</b>
+                        <small>rpm</small>
+                    </div>
+
+                    <div class="dash-card">
+                        <span>⚖ Peso</span>
+                        <b>{{ hospitalization.initial_weight or patient.weight or "-" }}</b>
+                        <small>kg</small>
+                    </div>
+
+                    <div class="dash-card">
+                        <span>👄 Mucosas</span>
+                        <b>{{ hospitalization.initial_mucous_membranes or "-" }}</b>
+                        <small>Inicial</small>
+                    </div>
+
+                    <div class="dash-card">
+                        <span>💧 Hidratación</span>
+                        <b>{{ hospitalization.initial_hydration or "-" }}</b>
+                        <small>Inicial</small>
+                    </div>
+
                 </div>
+
+            </div>
+
+            <div class="card">
+
+                <h2>💧 Fluidoterapia</h2>
+
+                <form
+                    method="post"
+                    action="/hospitalizations/{{ hospitalization.id }}/fluids"
+                    class="form-grid">
+
+                    <input
+                        name="fluid_type"
+                        placeholder="Tipo de fluido">
+
+                    <input
+                        name="fluid_rate"
+                        placeholder="Velocidad (ml/h)">
+
+                    <select name="drip_set">
+
+                        <option value="">Equipo</option>
+
+                        <option>Macrogotero</option>
+
+                        <option>Microgotero</option>
+
+                        <option>Bomba de infusión</option>
+
+                    </select>
+
+                    <textarea
+                        name="fluid_notes"
+                        class="full"
+                        placeholder="Observaciones"></textarea>
+
+                    <button
+                        class="save-btn"
+                        type="submit">
+
+                        💧 Guardar fluidoterapia
+
+                    </button>
+
+                </form>
+
             </div>
 
             <div class="card">
