@@ -59,6 +59,11 @@ class Patient(Base):
         order_by='desc(ClinicalEvent.event_date)'
     )
 
+    hospitalizations: Mapped[list['Hospitalization']] = relationship(
+        back_populates='patient',
+        order_by='desc(Hospitalization.admission_date)'
+    )
+
 
 class ClinicalEvent(Base):
     __tablename__ = 'clinical_events'
@@ -85,9 +90,6 @@ class ClinicalEvent(Base):
     anamnesis: Mapped[str] = mapped_column(Text, default='')
     physical_exam: Mapped[str] = mapped_column(Text, default='')
 
-    # =========================
-    # ECG
-    # =========================
     ecg_hr: Mapped[str] = mapped_column(String(50), default='')
     ecg_rhythm: Mapped[str] = mapped_column(String(100), default='')
     ecg_p: Mapped[str] = mapped_column(String(50), default='')
@@ -99,7 +101,6 @@ class ClinicalEvent(Base):
     ecg_axis: Mapped[str] = mapped_column(String(50), default='')
     ecg_interpretation: Mapped[str] = mapped_column(Text, default='')
 
-    # Nuevos campos ECG ampliado
     ecg_p_mv: Mapped[str] = mapped_column(String(50), default='')
     ecg_qrs_mv: Mapped[str] = mapped_column(String(50), default='')
     ecg_t_mv: Mapped[str] = mapped_column(String(50), default='')
@@ -109,16 +110,12 @@ class ClinicalEvent(Base):
     ecg_conduction: Mapped[str] = mapped_column(String(150), default='')
     ecg_notes: Mapped[str] = mapped_column(Text, default='')
 
-    # =========================
-    # Ecocardiografía
-    # =========================
     eco_aiao: Mapped[str] = mapped_column(String(50), default='')
     eco_fs: Mapped[str] = mapped_column(String(50), default='')
     eco_acvim: Mapped[str] = mapped_column(String(50), default='')
     eco_diagnosis: Mapped[str] = mapped_column(Text, default='')
     eco_treatment: Mapped[str] = mapped_column(Text, default='')
 
-    # Nuevos campos Eco ampliada
     eco_epss: Mapped[str] = mapped_column(String(50), default='')
     eco_lvidd: Mapped[str] = mapped_column(String(50), default='')
     eco_lvids: Mapped[str] = mapped_column(String(50), default='')
@@ -140,9 +137,6 @@ class ClinicalEvent(Base):
     eco_doppler: Mapped[str] = mapped_column(Text, default='')
     eco_observations: Mapped[str] = mapped_column(Text, default='')
 
-    # =========================
-    # Radiografía cardiológica
-    # =========================
     rx_vhs: Mapped[str] = mapped_column(String(50), default='')
     rx_vlas: Mapped[str] = mapped_column(String(50), default='')
     rx_heart_size: Mapped[str] = mapped_column(String(150), default='')
@@ -156,9 +150,6 @@ class ClinicalEvent(Base):
     rx_trachea: Mapped[str] = mapped_column(String(150), default='')
     rx_observations: Mapped[str] = mapped_column(Text, default='')
 
-    # =========================
-    # Vacunas / desparasitación
-    # =========================
     vaccine_name: Mapped[str] = mapped_column(String(150), default='')
     vaccine_lot: Mapped[str] = mapped_column(String(100), default='')
     vaccine_expiration: Mapped[str] = mapped_column(String(100), default='')
@@ -174,6 +165,49 @@ class ClinicalEvent(Base):
         back_populates='event',
         cascade='all, delete-orphan'
     )
+
+
+class Hospitalization(Base):
+    __tablename__ = 'hospitalizations'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+
+    patient_id: Mapped[int] = mapped_column(ForeignKey('patients.id'), index=True)
+    clinical_event_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey('clinical_events.id'),
+        nullable=True,
+        index=True
+    )
+
+    admission_date: Mapped[datetime] = mapped_column(DateTime, default=argentina_now, index=True)
+    discharge_date: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+
+    status: Mapped[str] = mapped_column(String(40), default='Internado', index=True)
+
+    cage: Mapped[str] = mapped_column(String(80), default='')
+    responsible_vet: Mapped[str] = mapped_column(String(120), default='')
+
+    reason: Mapped[str] = mapped_column(Text, default='')
+    diagnosis: Mapped[str] = mapped_column(Text, default='')
+    treatment_plan: Mapped[str] = mapped_column(Text, default='')
+    notes: Mapped[str] = mapped_column(Text, default='')
+
+    initial_weight: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    initial_temperature: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    initial_heart_rate: Mapped[Optional[int]] = mapped_column(nullable=True)
+    initial_respiratory_rate: Mapped[Optional[int]] = mapped_column(nullable=True)
+    initial_mucous_membranes: Mapped[str] = mapped_column(String(100), default='')
+    initial_crt: Mapped[str] = mapped_column(String(50), default='')
+    initial_hydration: Mapped[str] = mapped_column(String(100), default='')
+
+    discharge_summary: Mapped[str] = mapped_column(Text, default='')
+    discharge_indications: Mapped[str] = mapped_column(Text, default='')
+
+    created_by: Mapped[str] = mapped_column(String(100), default='admin')
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=argentina_now)
+
+    patient: Mapped['Patient'] = relationship(back_populates='hospitalizations')
+    clinical_event: Mapped[Optional['ClinicalEvent']] = relationship()
 
 
 class Appointment(Base):
@@ -333,4 +367,3 @@ class EventAttachment(Base):
     file_path: Mapped[str] = mapped_column(String(500))
 
     event: Mapped['ClinicalEvent'] = relationship(back_populates='attachments')
-   
