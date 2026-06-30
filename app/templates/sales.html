@@ -678,9 +678,14 @@
                                     <a href="/sales/{{ sale.id }}" class="mini-btn primary">👁 Ver</a>
 
                                     {% if sale.status != 'cancelled' %}
-                                        <form method="post" action="/sales/{{ sale.id }}/cancel" class="mini-action" onsubmit="return confirm('¿Cancelar esta venta y devolver stock?');">
-                                            <button type="submit" class="cancel">Cancelar</button>
-                                        </form>
+                                        <button
+                                            type="submit"
+                                            class="cancel"
+                                            formmethod="post"
+                                            formaction="/sales/{{ sale.id }}/cancel"
+                                            onclick="return confirm('¿Cancelar esta venta y devolver stock?');">
+                                            Cancelar
+                                        </button>
                                     {% endif %}
                                 </div>
                             </div>
