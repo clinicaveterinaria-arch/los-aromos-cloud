@@ -343,7 +343,37 @@
             <div class="card">
 
                 <h2>❤️ Estado del paciente</h2>
+                <div class="note">
 
+                <b>📈 Evolución rápida</b>
+                
+                <br><br>
+                
+                🌡 Temperatura
+                
+                <progress value="{{ uti_monitor[0].value|default(0) }}" max="42" style="width:100%;"></progress>
+                
+                <br><br>
+                
+                ❤️ FC
+                
+                <progress value="{{ uti_monitor[1].value|default(0) }}" max="240" style="width:100%;"></progress>
+                
+                <br><br>
+                
+                🫁 FR
+                
+                <progress value="{{ uti_monitor[2].value|default(0) }}" max="80" style="width:100%;"></progress>
+                
+                <br><br>
+                
+                ⚖ Peso
+                
+                <progress value="{{ uti_monitor[3].value|default(0) }}" max="80" style="width:100%;"></progress>
+                
+                </div>
+                
+                <br>
                 <div class="dashboard">
 
                     <div class="dash-card">
@@ -633,7 +663,50 @@
             </div>
             <div class="card">
                 <h2>🖥️ Monitor UTI / Prioridad</h2>
+                <div class="dashboard" style="margin-bottom:16px;">
 
+                    <div class="dash-card">
+                        <span>💊 Próxima medicación</span>
+                
+                        {% if medications %}
+                            {% set next_med = medications|selectattr("status","equalto","Pendiente")|list|first %}
+                
+                            {% if next_med %}
+                                <b>{{ next_med.medication_name }}</b>
+                                <small>{{ next_med.scheduled_time }}</small>
+                            {% else %}
+                                <b>Sin pendientes</b>
+                                <small>✔</small>
+                            {% endif %}
+                
+                        {% else %}
+                            <b>—</b>
+                        {% endif %}
+                    </div>
+                
+                    <div class="dash-card">
+                
+                        <span>⏰ Próximo control</span>
+                
+                        {% if hours_since_control is not none %}
+                
+                            {% if hours_since_control < 2 %}
+                                <b>🟢 OK</b>
+                            {% elif hours_since_control < 4 %}
+                                <b>🟡 Control</b>
+                            {% else %}
+                                <b>🔴 Urgente</b>
+                            {% endif %}
+                
+                            <small>Hace {{ hours_since_control|int }} h</small>
+                
+                        {% else %}
+                            <b>Sin datos</b>
+                        {% endif %}
+                
+                    </div>
+                
+                </div>
                 <div class="note"
                      style="{% if priority_class == 'danger' %}background:#fff1f2;border-color:#fecaca;color:#991b1b;{% elif priority_class == 'warning' %}background:#fff7ed;border-color:#fed7aa;color:#9a3412;{% elif priority_class == 'watch' %}background:#fefce8;border-color:#fde68a;color:#854d0e;{% else %}background:#f0fdf4;border-color:#bbf7d0;color:#166534;{% endif %}">
                     <b>{{ priority_icon }} {{ priority_label }}</b><br>
@@ -661,7 +734,21 @@
 
             <div class="card">
                 <h2>👩‍⚕️ Enfermería en tiempo real</h2>
+                <div class="soft-alert">
 
+                <b>Resumen IA</b>
+                
+                <ul style="margin-top:10px;">
+                
+                {% for line in clinical_summary %}
+                
+                <li>{{ line }}</li>
+                
+                {% endfor %}
+                
+                </ul>
+                
+                </div>
                 <div class="mini-list">
                     {% for task in nursing_tasks %}
                     <div class="mini-row">
