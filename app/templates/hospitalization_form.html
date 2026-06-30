@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+
+.page{
+    max-width:1100px;
+    margin:30px auto;
+    padding:0 25px;
+}
+
+.card{
+    background:white;
+    border-radius:22px;
+    padding:26px;
+    box-shadow:0 10px 28px rgba(0,0,0,.06);
+    border:1px solid #f3d5e2;
+}
+
+h1{
+    margin-top:0;
+    color:#d85b9a;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:18px;
+}
+
+.group{
+    display:flex;
+    flex-direction:column;
+}
+
+.group.full{
+    grid-column:1 / -1;
+}
+
+label{
+    font-weight:bold;
+    margin-bottom:6px;
+    color:#555;
+}
+
+input,
+textarea{
+    padding:12px;
+    border-radius:12px;
+    border:1px solid #e5c8d6;
+    font-size:15px;
+}
+
+textarea{
+    resize:vertical;
+    min-height:90px;
+}
+
+.section{
+    margin-top:28px;
+    padding-top:18px;
+    border-top:1px solid #eee;
+}
+
+.section h2{
+    color:#555;
+    margin-bottom:18px;
+}
+
+.buttons{
+    margin-top:28px;
+    display:flex;
+    gap:12px;
+}
+
+.btn{
+    padding:13px 22px;
+    border-radius:14px;
+    border:none;
+    cursor:pointer;
+    font-size:15px;
+    font-weight:bold;
+}
+
+.save{
+    background:#d85b9a;
+    color:white;
+}
+
+.cancel{
+    background:#ececec;
+    color:#555;
+    text-decoration:none;
+    display:flex;
+    align-items:center;
+}
+
+.patient{
+    background:#fff4f8;
+    border:1px solid #f3d5e2;
+    padding:15px;
+    border-radius:15px;
+    margin-bottom:25px;
+}
+
+.patient b{
+    font-size:22px;
+    color:#333;
+}
+
+</style>
+
+<div class="page">
+
+<div class="card">
+
+<div class="patient">
+
+<b>{{ patient.name }}</b><br>
+
+{{ patient.species }}
+{% if patient.breed %}
+ - {{ patient.breed }}
+{% endif %}
+
+{% if patient.weight %}
+<br>
+Peso actual:
+<b>{{ patient.weight }} kg</b>
+{% endif %}
+
+</div>
+
+<h1>🏥 Nueva internación</h1>
+
+<form method="post">
+
+<div class="grid">
+
+<div class="group">
+<label>Jaula</label>
+<input
+name="cage"
+placeholder="Ej: Jaula 3">
+</div>
+
+<div class="group">
+<label>Veterinario responsable</label>
+<input
+name="responsible_vet">
+</div>
+
+<div class="group full">
+<label>Motivo de internación</label>
+<textarea
+name="reason"></textarea>
+</div>
+
+<div class="group full">
+<label>Diagnóstico inicial</label>
+<textarea
+name="diagnosis"></textarea>
+</div>
+
+<div class="group full">
+<label>Plan terapéutico</label>
+<textarea
+name="treatment_plan"></textarea>
+</div>
+
+<div class="group full">
+<label>Observaciones</label>
+<textarea
+name="notes"></textarea>
+</div>
+
+</div>
+
+<div class="section">
+
+<h2>Signos vitales iniciales</h2>
+
+<div class="grid">
+
+<div class="group">
+<label>Peso (kg)</label>
+<input
+name="initial_weight"
+value="{{ patient.weight or '' }}">
+</div>
+
+<div class="group">
+<label>Temperatura</label>
+<input
+name="initial_temperature">
+</div>
+
+<div class="group">
+<label>Frecuencia cardíaca</label>
+<input
+name="initial_heart_rate">
+</div>
+
+<div class="group">
+<label>Frecuencia respiratoria</label>
+<input
+name="initial_respiratory_rate">
+</div>
+
+<div class="group">
+<label>Mucosas</label>
+<input
+name="initial_mucous_membranes">
+</div>
+
+<div class="group">
+<label>TRC</label>
+<input
+name="initial_crt">
+</div>
+
+<div class="group">
+<label>Hidratación</label>
+<input
+name="initial_hydration">
+</div>
+
+</div>
+
+</div>
+
+<div class="buttons">
+
+<button
+class="btn save"
+type="submit">
+
+🛏️ Iniciar internación
+
+</button>
+
+<a
+class="btn cancel"
+href="/patients/{{ patient.id }}">
+
+Cancelar
+
+</a>
+
+</div>
+
+</form>
+
+</div>
+
+</div>
+
+{% endblock %}
