@@ -24,7 +24,7 @@ print("SUPABASE_URL =", SUPABASE_URL)
 print("SUPABASE_KEY cargada =", bool(SUPABASE_KEY))
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY) if SUPABASE_URL and SUPABASE_KEY else None
 from .database import Base, engine, get_db
-from .models import User, Owner, Patient, ClinicalEvent, EventAttachment, Appointment, Product, Sale, SaleItem, SalePayment, WaitingListEntry, Hospitalization, HospitalizationMedication
+from .models import User, Owner, Patient, ClinicalEvent, EventAttachment, Appointment, Product, Sale, SaleItem, SalePayment, WaitingListEntry, Hospitalization, HospitalizationMedication, HospitalizationFluid
 Base.metadata.create_all(bind=engine)
 # =====================================
 # Zona horaria Argentina
@@ -606,6 +606,20 @@ def init_db():
         """))
         conn.execute(text("ALTER TABLE hospitalization_medications ADD COLUMN IF NOT EXISTS applied_at TIMESTAMP NULL"))
         conn.execute(text("ALTER TABLE hospitalization_medications ADD COLUMN IF NOT EXISTS applied_by VARCHAR(100) DEFAULT ''"))
+        conn.execute(text("""
+        CREATE TABLE IF NOT EXISTS hospitalization_fluids (
+            id SERIAL PRIMARY KEY,
+            hospitalization_id INTEGER REFERENCES hospitalizations(id),
+            fluid_type VARCHAR(200) DEFAULT '',
+            fluid_rate VARCHAR(80) DEFAULT '',
+            ml_kg_h VARCHAR(80) DEFAULT '',
+            drip_set VARCHAR(80) DEFAULT '',
+            notes TEXT DEFAULT '',
+            status VARCHAR(40) DEFAULT 'Activo',
+            created_by VARCHAR(100) DEFAULT 'admin',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        """))        
     try:
         admin = db.query(User).filter(User.username == 'admin').first()
         if not admin:
@@ -5943,6 +5957,12 @@ def hospitalization_detail(
         .order_by(HospitalizationMedication.created_at.desc())
         .all()
     )
+    fluids = (
+        db.query(HospitalizationFluid)
+        .filter(HospitalizationFluid.hospitalization_id == hospitalization.id)
+        .order_by(HospitalizationFluid.created_at.desc())
+        .all()
+    )
     return templates.TemplateResponse(
         'hospitalization_detail.html',
         {
@@ -5951,6 +5971,7 @@ def hospitalization_detail(
             'patient': patient,
             'related_events': related_events,
             'medications': medications,
+            'fluids': fluids,
             'today': argentina_now().date()
         }
     )
@@ -6077,6 +6098,7 @@ def hospitalization_fluids(
     hospitalization_id: int,
     fluid_type: str = Form(''),
     fluid_rate: str = Form(''),
+    ml_kg_h: str = Form(''),
     drip_set: str = Form(''),
     fluid_notes: str = Form(''),
     db: Session = Depends(get_db),
@@ -6089,11 +6111,25 @@ def hospitalization_fluids(
 
     patient = hospitalization.patient
 
+    fluid = HospitalizationFluid(
+        hospitalization_id=hospitalization.id,
+        fluid_type=fluid_type or '',
+        fluid_rate=fluid_rate or '',
+        ml_kg_h=ml_kg_h or '',
+        drip_set=drip_set or '',
+        notes=fluid_notes or '',
+        status='Activo',
+        created_by=user.username
+    )
+
+    db.add(fluid)
+
     lines = [
         'Fluidoterapia',
         '',
         f'Tipo de fluido: {fluid_type or "-"}',
         f'Velocidad: {fluid_rate or "-"} ml/h',
+        f'Ml/kg/h: {ml_kg_h or "-"}',
         f'Equipo: {drip_set or "-"}'
     ]
 
