@@ -387,49 +387,62 @@
             </div>
 
             <div class="card">
-
                 <h2>💧 Fluidoterapia</h2>
 
-                <form
-                    method="post"
-                    action="/hospitalizations/{{ hospitalization.id }}/fluids"
-                    class="form-grid">
-
-                    <input
-                        name="fluid_type"
-                        placeholder="Tipo de fluido">
-
-                    <input
-                        name="fluid_rate"
-                        placeholder="Velocidad (ml/h)">
+                {% if hospitalization.status == 'Internado' %}
+                <form method="post" action="/hospitalizations/{{ hospitalization.id }}/fluids" class="form-grid">
+                    <input name="fluid_type" placeholder="Tipo de fluido">
+                    <input name="fluid_rate" placeholder="Velocidad (ml/h)">
+                    <input name="ml_kg_h" placeholder="ml/kg/h">
 
                     <select name="drip_set">
-
                         <option value="">Equipo</option>
-
                         <option>Macrogotero</option>
-
                         <option>Microgotero</option>
-
                         <option>Bomba de infusión</option>
-
                     </select>
 
-                    <textarea
-                        name="fluid_notes"
-                        class="full"
-                        placeholder="Observaciones"></textarea>
-
-                    <button
-                        class="save-btn"
-                        type="submit">
-
-                        💧 Guardar fluidoterapia
-
-                    </button>
-
+                    <textarea name="fluid_notes" class="full" placeholder="Observaciones"></textarea>
+                    <button class="save-btn" type="submit">💧 Guardar fluidoterapia</button>
                 </form>
+                {% else %}
+                    <div class="alert">Internación cerrada. No se puede cargar fluidoterapia.</div>
+                {% endif %}
 
+                <br>
+
+                {% if fluids %}
+                <div style="overflow-x:auto;">
+                    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                        <thead>
+                            <tr style="background:#fff8fb;color:#374151;">
+                                <th style="padding:9px;border:1px solid #f1d6e2;">Fluido</th>
+                                <th style="padding:9px;border:1px solid #f1d6e2;">ml/h</th>
+                                <th style="padding:9px;border:1px solid #f1d6e2;">ml/kg/h</th>
+                                <th style="padding:9px;border:1px solid #f1d6e2;">Equipo</th>
+                                <th style="padding:9px;border:1px solid #f1d6e2;">Estado</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for f in fluids %}
+                            <tr>
+                                <td style="padding:9px;border:1px solid #f1d6e2;">
+                                    <b>{{ f.fluid_type or '-' }}</b><br>
+                                    <small>{{ f.notes or '' }}</small>
+                                </td>
+                                <td style="padding:9px;border:1px solid #f1d6e2;">{{ f.fluid_rate or '-' }}</td>
+                                <td style="padding:9px;border:1px solid #f1d6e2;">{{ f.ml_kg_h or '-' }}</td>
+                                <td style="padding:9px;border:1px solid #f1d6e2;">{{ f.drip_set or '-' }}</td>
+                                <td style="padding:9px;border:1px solid #f1d6e2;">🔵 {{ f.status or 'Activo' }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                    <div class="note">Todavía no hay fluidoterapia cargada.</div>
+                {% endif %}
             </div>
             <div class="card">
                 <h2>💊 Medicación programada</h2>
