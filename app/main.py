@@ -6110,6 +6110,42 @@ def hospitalization_fluids(
         f'/hospitalizations/{hospitalization.id}',
         status_code=303
     )
+@app.post('/hospitalizations/{hospitalization_id}/medications')
+def hospitalization_medication_create(
+    hospitalization_id: int,
+    medication_name: str = Form(''),
+    dose: str = Form(''),
+    route: str = Form(''),
+    frequency: str = Form(''),
+    scheduled_time: str = Form(''),
+    notes: str = Form(''),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    hospitalization = db.get(Hospitalization, hospitalization_id)
+
+    if not hospitalization:
+        raise HTTPException(status_code=404, detail='Internación no encontrada')
+
+    medication = HospitalizationMedication(
+        hospitalization_id=hospitalization.id,
+        medication_name=medication_name or '',
+        dose=dose or '',
+        route=route or '',
+        frequency=frequency or '',
+        scheduled_time=scheduled_time or '',
+        notes=notes or '',
+        created_by=user.username,
+        status='Pendiente'
+    )
+
+    db.add(medication)
+    db.commit()
+
+    return RedirectResponse(
+        f'/hospitalizations/{hospitalization.id}',
+        status_code=303
+    )
 @app.post('/hospitalizations/{hospitalization_id}/discharge')
 def hospitalization_discharge(
     hospitalization_id: int,
