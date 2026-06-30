@@ -641,28 +641,31 @@
                 {% endif %}
 
                 <div class="mini-list">
-                    <div class="mini-row">
-                        <span>Control de constantes</span>
-                        <b>Próximo</b>
+                    {% for alert in hospital_alerts %}
+                    <div class="mini-row"
+                         style="{% if alert.level == 'danger' %}border-color:#fecaca;background:#fff1f2;{% elif alert.level == 'warning' %}border-color:#fed7aa;background:#fff7ed;{% else %}border-color:#bbf7d0;background:#f0fdf4;{% endif %}">
+                        <span>
+                            {{ alert.icon }} <b style="color:#374151;">{{ alert.title }}</b><br>
+                            <small style="color:#6b7280;">{{ alert.detail }}</small>
+                        </span>
+                        <b>
+                            {% if alert.level == 'danger' %}
+                                Urgente
+                            {% elif alert.level == 'warning' %}
+                                Revisar
+                            {% else %}
+                                OK
+                            {% endif %}
+                        </b>
                     </div>
-
-                    <div class="mini-row">
-                        <span>Alertas por evolución</span>
-                        <b>IA</b>
-                    </div>
-
-                    <div class="mini-row">
-                        <span>Medicación pendiente</span>
-                        <b>Reservado</b>
-                    </div>
+                    {% endfor %}
                 </div>
 
                 <br>
 
                 <p style="color:#6b7280;font-size:14px;">
-                    En el bloque IA vamos a detectar falta de controles, cambios de temperatura,
-                    FC elevada, pérdida de peso, falta de diuresis, medicación pendiente
-                    o evolución desfavorable.
+                    Alertas automáticas simples: medicación pendiente, controles demorados,
+                    temperatura, FC y FR fuera de rango.
                 </p>
             </div>
 
