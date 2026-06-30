@@ -275,39 +275,33 @@
                 {% if hospitalization.status == 'Internado' %}
                 <form method="post" action="/hospitalizations/{{ hospitalization.id }}/checklist" class="form-grid">
 
-                    <label class="check-row">
-                        <span class="fake-check"></span>
-                        <input type="checkbox" name="ate" style="display:none;">
+                    <label class="check-row" style="cursor:pointer;">
+                        <input type="checkbox" name="ate">
                         Comió
                     </label>
 
-                    <label class="check-row">
-                        <span class="fake-check"></span>
-                        <input type="checkbox" name="drank" style="display:none;">
+                    <label class="check-row" style="cursor:pointer;">
+                        <input type="checkbox" name="drank">
                         Tomó agua
                     </label>
 
-                    <label class="check-row">
-                        <span class="fake-check"></span>
-                        <input type="checkbox" name="urinated" style="display:none;">
+                    <label class="check-row" style="cursor:pointer;">
+                        <input type="checkbox" name="urinated">
                         Orinó
                     </label>
 
-                    <label class="check-row">
-                        <span class="fake-check"></span>
-                        <input type="checkbox" name="defecated" style="display:none;">
+                    <label class="check-row" style="cursor:pointer;">
+                        <input type="checkbox" name="defecated">
                         Defecó
                     </label>
 
-                    <label class="check-row">
-                        <span class="fake-check"></span>
-                        <input type="checkbox" name="vomiting_diarrhea" style="display:none;">
+                    <label class="check-row" style="cursor:pointer;">
+                        <input type="checkbox" name="vomiting_diarrhea">
                         Vómitos / diarrea
                     </label>
 
-                    <label class="check-row">
-                        <span class="fake-check"></span>
-                        <input type="checkbox" name="cage_cleaned" style="display:none;">
+                    <label class="check-row" style="cursor:pointer;">
+                        <input type="checkbox" name="cage_cleaned">
                         Limpieza de jaula
                     </label>
 
