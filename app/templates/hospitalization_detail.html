@@ -431,7 +431,6 @@
                 </form>
 
             </div>
-
             <div class="card">
                 <h2>💊 Medicación programada</h2>
 
@@ -443,7 +442,6 @@
                     <input name="frequency" placeholder="Frecuencia">
                     <input name="scheduled_time" placeholder="Horario">
                     <textarea name="notes" class="full" placeholder="Observaciones"></textarea>
-
                     <button type="submit" class="save-btn">💊 Programar medicación</button>
                 </form>
                 {% else %}
@@ -453,37 +451,61 @@
                 <br>
 
                 {% if medications %}
-                    <div class="mini-list">
-                        {% for m in medications %}
-                        <div class="mini-row">
-                            <span>
-                                <b>{{ m.medication_name or '-' }}</b><br>
-                                {{ m.dose or '-' }} · {{ m.route or '-' }} · {{ m.frequency or '-' }}
-                                {% if m.scheduled_time %} · {{ m.scheduled_time }}{% endif %}
-                                {% if m.notes %}<br><small>{{ m.notes }}</small>{% endif %}
-                            </span>
+                <div style="overflow-x:auto;">
+                    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                        <thead>
+                            <tr style="background:#fff8fb;color:#374151;">
+                                <th style="padding:9px;border:1px solid #f1d6e2;">Hora</th>
+                                <th style="padding:9px;border:1px solid #f1d6e2;">Medicación</th>
+                                <th style="padding:9px;border:1px solid #f1d6e2;">Dosis</th>
+                                <th style="padding:9px;border:1px solid #f1d6e2;">Vía</th>
+                                <th style="padding:9px;border:1px solid #f1d6e2;">Estado</th>
+                                <th style="padding:9px;border:1px solid #f1d6e2;">Acción</th>
+                            </tr>
+                        </thead>
 
-                            <div>
-                                {% if m.status == 'Aplicada' %}
-                                    <b>Aplicada</b>
-                                {% else %}
+                        <tbody>
+                            {% for m in medications %}
+                            <tr>
+                                <td style="padding:9px;border:1px solid #f1d6e2;">{{ m.scheduled_time or '-' }}</td>
+                                <td style="padding:9px;border:1px solid #f1d6e2;">
+                                    <b>{{ m.medication_name or '-' }}</b><br>
+                                    <small>{{ m.frequency or '-' }}</small>
+                                </td>
+                                <td style="padding:9px;border:1px solid #f1d6e2;">{{ m.dose or '-' }}</td>
+                                <td style="padding:9px;border:1px solid #f1d6e2;">{{ m.route or '-' }}</td>
+                                <td style="padding:9px;border:1px solid #f1d6e2;">
+                                    {% if m.status == 'Aplicada' %}
+                                        🟢 Aplicada<br>
+                                        <small>
+                                            {{ m.applied_at.strftime('%d/%m %H:%M') if m.applied_at else '' }}
+                                            {% if m.applied_by %} · {{ m.applied_by }}{% endif %}
+                                        </small>
+                                    {% else %}
+                                        🟡 Pendiente
+                                    {% endif %}
+                                </td>
+                                <td style="padding:9px;border:1px solid #f1d6e2;">
+                                    {% if m.status != 'Aplicada' %}
                                     <form method="post" action="/hospitalizations/{{ hospitalization.id }}/medications/{{ m.id }}/done">
-                                        <button type="submit" style="background:#22c55e;color:white;border:none;border-radius:10px;padding:8px 10px;font-weight:bold;cursor:pointer;">
-                                            ✔ Aplicar
+                                        <button type="submit" style="background:#22c55e;color:white;border:none;border-radius:8px;padding:7px 9px;font-weight:bold;cursor:pointer;">
+                                            ✔
                                         </button>
                                     </form>
-                                {% endif %}
+                                    {% endif %}
 
-                                <form method="post" action="/hospitalizations/{{ hospitalization.id }}/medications/{{ m.id }}/delete"
-                                      onsubmit="return confirm('¿Eliminar esta medicación programada?');">
-                                    <button type="submit" style="background:#ef4444;color:white;border:none;border-radius:10px;padding:8px 10px;font-weight:bold;cursor:pointer;margin-top:5px;">
-                                        🗑 Eliminar
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
+                                    <form method="post" action="/hospitalizations/{{ hospitalization.id }}/medications/{{ m.id }}/delete"
+                                          onsubmit="return confirm('¿Eliminar esta medicación programada?');">
+                                        <button type="submit" style="background:#ef4444;color:white;border:none;border-radius:8px;padding:7px 9px;font-weight:bold;cursor:pointer;margin-top:5px;">
+                                            🗑
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
                 {% else %}
                     <div class="note">Todavía no hay medicación programada.</div>
                 {% endif %}
