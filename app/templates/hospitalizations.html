@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<style>
+.hosp-page{padding:24px 28px;}
+.hosp-head{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:18px;}
+.hosp-head h1{margin:0;color:#1f2937;font-size:32px;}
+.hosp-head p{margin:6px 0 0;color:#6b7280;}
+.hosp-btn{background:#d85b9a;color:white;border:1px solid #d85b9a;border-radius:14px;padding:11px 16px;text-decoration:none;font-weight:bold;}
+.hosp-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:18px;}
+.hosp-stat{background:white;border:1px solid #f3c6d8;border-radius:18px;padding:16px;box-shadow:0 8px 24px rgba(0,0,0,.04);}
+.hosp-stat b{font-size:26px;color:#d85b9a;display:block;}
+.hosp-stat span{color:#6b7280;font-size:13px;}
+.hosp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;}
+.hosp-card{background:white;border:1px solid #f3c6d8;border-radius:22px;padding:18px;box-shadow:0 8px 26px rgba(0,0,0,.04);}
+.hosp-card-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:12px;}
+.hosp-patient{display:flex;gap:12px;align-items:center;}
+.hosp-avatar{width:54px;height:54px;border-radius:50%;background:#fff0f7;color:#d85b9a;border:2px solid #f3c6d8;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:bold;}
+.hosp-patient h3{margin:0;color:#1f2937;font-size:20px;}
+.hosp-patient p{margin:4px 0 0;color:#6b7280;font-size:13px;}
+.hosp-cage{background:#fff0f7;color:#d85b9a;border:1px solid #f3c6d8;border-radius:999px;padding:6px 10px;font-weight:bold;font-size:13px;white-space:nowrap;}
+.hosp-list{background:#fafafa;border:1px solid #eee;border-radius:16px;padding:12px;margin:12px 0;}
+.hosp-list p{margin:8px 0;color:#374151;}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px;}
+.red{background:#fb7185;}
+.green{background:#22c55e;}
+.yellow{background:#facc15;}
+.vitals{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0;}
+.vital{border:1px solid #f1d6e2;border-radius:14px;padding:10px;text-align:center;background:#fff;}
+.vital span{display:block;color:#d85b9a;font-weight:bold;font-size:13px;}
+.vital b{display:block;color:#1f2937;margin-top:3px;}
+.hosp-foot{display:flex;gap:8px;margin-top:14px;}
+.hosp-foot a{flex:1;text-align:center;background:#fff0f7;color:#d85b9a;border:1px solid #f3c6d8;border-radius:13px;padding:10px;text-decoration:none;font-weight:bold;}
+.empty{background:white;border:1px dashed #f3c6d8;border-radius:22px;padding:26px;text-align:center;color:#6b7280;}
+.closed-section{margin-top:26px;}
+.closed-section h2{color:#1f2937;margin-bottom:12px;}
+.closed-table{width:100%;border-collapse:collapse;background:white;border:1px solid #f3c6d8;border-radius:18px;overflow:hidden;}
+.closed-table th,.closed-table td{padding:12px;border-bottom:1px solid #f3edf1;text-align:left;font-size:14px;}
+.closed-table th{background:#fff8fb;color:#374151;}
+.closed-table td{color:#4b5563;}
+</style>
+
+<div class="hosp-page">
+
+    <div class="hosp-head">
+        <div>
+            <h1>🏥 Internación</h1>
+            <p>Tablero de pacientes internados</p>
+        </div>
+        <a href="/search" class="hosp-btn">＋ Internar paciente</a>
+    </div>
+
+    <div class="hosp-stats">
+        <div class="hosp-stat">
+            <b>{{ active_hospitalizations|length }}</b>
+            <span>Pacientes internados</span>
+        </div>
+        <div class="hosp-stat">
+            <b>{{ closed_hospitalizations|length }}</b>
+            <span>Altas recientes</span>
+        </div>
+        <div class="hosp-stat">
+            <b>{{ today.strftime('%d/%m') }}</b>
+            <span>Fecha de control</span>
+        </div>
+    </div>
+
+    {% if active_hospitalizations %}
+        <div class="hosp-grid">
+            {% for h in active_hospitalizations %}
+                <div class="hosp-card">
+                    <div class="hosp-card-top">
+                        <div class="hosp-patient">
+                            <div class="hosp-avatar">{{ h.patient.name[:1] if h.patient and h.patient.name else '?' }}</div>
+                            <div>
+                                <h3>{{ h.patient.name if h.patient else 'Sin paciente' }}</h3>
+                                <p>
+                                    {{ h.patient.species or '-' if h.patient else '-' }}
+                                    {% if h.patient and h.patient.breed %} · {{ h.patient.breed }}{% endif %}
+                                    {% if h.initial_weight %} · {{ h.initial_weight }} kg{% endif %}
+                                </p>
+                                <p>Internado desde {{ h.admission_date.strftime('%d/%m/%Y %H:%M') if h.admission_date else '-' }}</p>
+                            </div>
+                        </div>
+                        <div class="hosp-cage">{{ h.cage or 'Sin jaula' }}</div>
+                    </div>
+
+                    <div class="hosp-list">
+                        <p><span class="dot red"></span>{{ h.reason or 'Motivo no cargado' }}</p>
+                        <p><span class="dot green"></span>{{ h.diagnosis or 'Diagnóstico inicial pendiente' }}</p>
+                        <p><span class="dot yellow"></span>{{ h.treatment_plan or 'Plan terapéutico pendiente' }}</p>
+                    </div>
+
+                    <div class="vitals">
+                        <div class="vital">
+                            <span>FC</span>
+                            <b>{{ h.initial_heart_rate or '-' }}</b>
+                        </div>
+                        <div class="vital">
+                            <span>TRC</span>
+                            <b>{{ h.initial_crt or '-' }}</b>
+                        </div>
+                        <div class="vital">
+                            <span>T°</span>
+                            <b>{{ h.initial_temperature or '-' }}</b>
+                        </div>
+                    </div>
+
+                    <p style="color:#6b7280;font-size:13px;margin:10px 0;">
+                        Vet. responsable: <b>{{ h.responsible_vet or 'No cargado' }}</b>
+                    </p>
+
+                    <div class="hosp-foot">
+                        <a href="/hospitalizations/{{ h.id }}">Ver internación</a>
+                        <a href="/patients/{{ h.patient_id }}">Ficha</a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty">
+            <h3>No hay pacientes internados</h3>
+            <p>Desde la ficha del paciente podés tocar “Internar paciente”.</p>
+        </div>
+    {% endif %}
+
+    <div class="closed-section">
+        <h2>Altas recientes</h2>
+
+        {% if closed_hospitalizations %}
+            <table class="closed-table">
+                <thead>
+                    <tr>
+                        <th>Paciente</th>
+                        <th>Ingreso</th>
+                        <th>Alta</th>
+                        <th>Jaula</th>
+                        <th>Resumen</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for h in closed_hospitalizations %}
+                    <tr>
+                        <td>{{ h.patient.name if h.patient else '-' }}</td>
+                        <td>{{ h.admission_date.strftime('%d/%m/%Y') if h.admission_date else '-' }}</td>
+                        <td>{{ h.discharge_date.strftime('%d/%m/%Y') if h.discharge_date else '-' }}</td>
+                        <td>{{ h.cage or '-' }}</td>
+                        <td>{{ (h.discharge_summary or h.reason or '-')[:80] }}</td>
+                        <td><a href="/hospitalizations/{{ h.id }}" class="hosp-btn" style="padding:7px 10px;font-size:13px;">Ver</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="empty">Todavía no hay altas registradas.</div>
+        {% endif %}
+    </div>
+
+</div>
+
+{% endblock %}
