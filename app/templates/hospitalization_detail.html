@@ -460,6 +460,13 @@
                                     {% else %}
                                         <small>Finalizado</small>
                                     {% endif %}
+
+                                    <form method="post" action="/hospitalizations/{{ hospitalization.id }}/fluids/{{ f.id }}/delete"
+                                          onsubmit="return confirm('¿Eliminar esta fluidoterapia cargada?');">
+                                        <button type="submit" style="background:#ef4444;color:white;border:none;border-radius:8px;padding:7px 9px;font-weight:bold;cursor:pointer;margin-top:5px;">
+                                            🗑
+                                        </button>
+                                    </form>
                                 </td>
                             </tr>
                             {% endfor %}
