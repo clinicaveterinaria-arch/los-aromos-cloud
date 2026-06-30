@@ -5997,7 +5997,58 @@ def hospitalization_add_evolution(
         status_code=303
     )
 
+@app.post('/hospitalizations/{hospitalization_id}/checklist')
+def hospitalization_checklist(
+    hospitalization_id: int,
+    ate: str = Form(''),
+    drank: str = Form(''),
+    urinated: str = Form(''),
+    defecated: str = Form(''),
+    vomiting_diarrhea: str = Form(''),
+    cage_cleaned: str = Form(''),
+    checklist_notes: str = Form(''),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    hospitalization = db.get(Hospitalization, hospitalization_id)
 
+    if not hospitalization:
+        raise HTTPException(status_code=404, detail='Internación no encontrada')
+
+    patient = hospitalization.patient
+
+    checklist_lines = []
+
+    checklist_lines.append('Checklist de enfermería')
+    checklist_lines.append('')
+    checklist_lines.append(f"Comió: {'Sí' if ate else 'No'}")
+    checklist_lines.append(f"Tomó agua: {'Sí' if drank else 'No'}")
+    checklist_lines.append(f"Orinó: {'Sí' if urinated else 'No'}")
+    checklist_lines.append(f"Defecó: {'Sí' if defecated else 'No'}")
+    checklist_lines.append(f"Vómitos / diarrea: {'Sí' if vomiting_diarrhea else 'No'}")
+    checklist_lines.append(f"Limpieza de jaula: {'Sí' if cage_cleaned else 'No'}")
+
+    if checklist_notes and checklist_notes.strip():
+        checklist_lines.append('')
+        checklist_lines.append('Observaciones:')
+        checklist_lines.append(checklist_notes.strip())
+
+    event = ClinicalEvent(
+        patient_id=patient.id,
+        event_type='Control',
+        title='Checklist de enfermería',
+        description='\n'.join(checklist_lines),
+        created_by=user.username,
+        event_date=argentina_now()
+    )
+
+    db.add(event)
+    db.commit()
+
+    return RedirectResponse(
+        f'/hospitalizations/{hospitalization.id}',
+        status_code=303
+    )
 @app.post('/hospitalizations/{hospitalization_id}/discharge')
 def hospitalization_discharge(
     hospitalization_id: int,
