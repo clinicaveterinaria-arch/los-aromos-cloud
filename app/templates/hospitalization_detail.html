@@ -514,14 +514,33 @@
 
                 {% if hospitalization.status == 'Internado' %}
                     <div class="soft-alert">Paciente internado activo.</div>
+                {% else %}
+                    <div class="alert">Internación cerrada.</div>
                 {% endif %}
 
-                <div class="alert">IA de internación reservada para la próxima etapa.</div>
+                <div class="mini-list">
+                    <div class="mini-row">
+                        <span>Control de constantes</span>
+                        <b>Próximo</b>
+                    </div>
+
+                    <div class="mini-row">
+                        <span>Alertas por evolución</span>
+                        <b>IA</b>
+                    </div>
+
+                    <div class="mini-row">
+                        <span>Medicación pendiente</span>
+                        <b>Reservado</b>
+                    </div>
+                </div>
+
+                <br>
 
                 <p style="color:#6b7280;font-size:14px;">
-                    Acá después vamos a mostrar alertas por falta de controles,
-                    cambios de FC/temperatura, pérdida de peso, falta de diuresis,
-                    medicación pendiente o evolución desfavorable.
+                    En el bloque IA vamos a detectar falta de controles, cambios de temperatura,
+                    FC elevada, pérdida de peso, falta de diuresis, medicación pendiente
+                    o evolución desfavorable.
                 </p>
             </div>
 
@@ -531,9 +550,20 @@
                 {% if hospitalization.status == 'Internado' %}
                 <form method="post" action="/hospitalizations/{{ hospitalization.id }}/discharge" class="form-grid"
                       onsubmit="return confirm('¿Confirmar alta de internación?');">
-                    <textarea name="discharge_summary" class="full" placeholder="Resumen de alta"></textarea>
-                    <textarea name="discharge_indications" class="full" placeholder="Indicaciones domiciliarias"></textarea>
-                    <button type="submit" class="discharge-btn full">🏠 Dar alta</button>
+
+                    <textarea
+                        name="discharge_summary"
+                        class="full"
+                        placeholder="Resumen de alta"></textarea>
+
+                    <textarea
+                        name="discharge_indications"
+                        class="full"
+                        placeholder="Indicaciones domiciliarias"></textarea>
+
+                    <button type="submit" class="discharge-btn full">
+                        🏠 Dar alta
+                    </button>
                 </form>
                 {% else %}
                     <h3>Fecha de alta</h3>
@@ -549,6 +579,7 @@
                     <h3>Indicaciones</h3>
                     <div class="note">{{ hospitalization.discharge_indications or '-' }}</div>
                 {% endif %}
+            </div>
             </div>
 
         </div>
