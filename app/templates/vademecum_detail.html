@@ -542,6 +542,27 @@
 
 </div>
 <script>
+    function normalizeDoseNumber(text) {
+        if (!text) {
+            return null;
+        }
+
+        const cleanText = text
+            .toLowerCase()
+            .replace(",", ".");
+
+        const match = cleanText.match(/(\d+(\.\d+)?)\s*(mg|µg|mcg)\s*\/\s*kg/);
+
+        if (!match) {
+            return null;
+        }
+
+        return {
+            value: parseFloat(match[1]),
+            unit: match[3]
+        };
+    }
+
     function calculateVadeDose() {
         const species = document.getElementById("vadeDoseSpecies").value;
         const weightInput = document.getElementById("vadeDoseWeight");
@@ -565,11 +586,25 @@
             doseText = catDose || "No hay dosis cargada para gato.";
         }
 
-        resultBox.innerHTML =
-            "<b>Peso:</b> " + weight + " kg<br>" +
-            "<b>Dosis cargada:</b><br>" +
-            doseText +
-            "<br><br><b>Nota:</b> este calculador muestra la dosis textual cargada. En el próximo bloque vamos a detectar mg/kg automáticamente cuando el formato lo permita.";
+        const parsedDose = normalizeDoseNumber(doseText);
+
+        if (parsedDose) {
+            const totalDose = parsedDose.value * weight;
+
+            resultBox.innerHTML =
+                "<b>Peso:</b> " + weight + " kg<br>" +
+                "<b>Dosis detectada:</b> " + parsedDose.value + " " + parsedDose.unit + "/kg<br>" +
+                "<b>Dosis total estimada:</b> " + totalDose.toFixed(2) + " " + parsedDose.unit +
+                "<br><br><b>Dosis cargada en ficha:</b><br>" +
+                doseText +
+                "<br><br><b>Nota:</b> cálculo orientativo basado en el primer valor mg/kg o µg/kg detectado. Verificar siempre concentración, vía, frecuencia y criterio clínico.";
+        } else {
+            resultBox.innerHTML =
+                "<b>Peso:</b> " + weight + " kg<br>" +
+                "<b>Dosis cargada:</b><br>" +
+                doseText +
+                "<br><br><b>Nota:</b> no se detectó automáticamente una dosis tipo mg/kg o µg/kg. Revisar manualmente la dosis cargada.";
+        }
     }
 </script>
 {% endblock %}
