@@ -91,7 +91,38 @@
         font-size: 13px;
         font-weight: bold;
     }
+    .clinical-smart-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin: 18px 0;
+    }
 
+    .clinical-smart-box {
+        border-radius: 16px;
+        padding: 14px;
+        border: 1px solid #f3c6d8;
+        background: #fff8fb;
+    }
+
+    .clinical-smart-box h3 {
+        margin: 0 0 8px 0;
+        font-size: 16px;
+        color: #1f2937;
+    }
+
+    .clinical-smart-box p {
+        margin: 0;
+        font-size: 13px;
+        color: #4b5563;
+        line-height: 1.45;
+    }
+
+    @media (max-width: 900px) {
+        .clinical-smart-grid {
+            grid-template-columns: 1fr;
+        }
+    }
     .vade-section-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -246,7 +277,35 @@
         </div>
 
         <hr class="vade-divider">
+        <div class="clinical-smart-grid">
 
+            <div class="clinical-smart-box">
+                <h3>✅ Uso clínico rápido</h3>
+                <p>
+                    Revisar dosis, especie, vía y frecuencia antes de indicar.
+                    Esta ficha resume la información cargada en el vademécum.
+                </p>
+            </div>
+
+            <div class="clinical-smart-box">
+                <h3>⚠ Precauciones</h3>
+                <p>
+                    Controlar contraindicaciones, interacciones, edad, estado renal,
+                    hepático, gestación y condición clínica del paciente.
+                </p>
+            </div>
+
+            <div class="clinical-smart-box">
+                <h3>🧠 Próxima IA clínica</h3>
+                <p>
+                    En el siguiente bloque esta ficha podrá cruzarse con peso,
+                    especie y antecedentes del paciente.
+                </p>
+            </div>
+
+        </div>
+
+        <hr class="vade-divider">
         <div class="vade-section-grid">
 
             <div class="vade-info-box">
