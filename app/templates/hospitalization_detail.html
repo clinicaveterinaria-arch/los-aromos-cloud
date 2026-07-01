@@ -734,21 +734,7 @@
 
             <div class="card">
                 <h2>👩‍⚕️ Enfermería en tiempo real</h2>
-                <div class="soft-alert">
 
-                <b>Resumen IA</b>
-                
-                <ul style="margin-top:10px;">
-                
-                {% for line in clinical_summary %}
-                
-                <li>{{ line }}</li>
-                
-                {% endfor %}
-                
-                </ul>
-                
-                </div>
                 <h3 style="margin-bottom:12px;">
                     📌 Prioridad automática
                 </h3>
@@ -761,20 +747,30 @@
                             {% endif %}">
 
                     <b style="font-size:17px;">
-                        {{ priority_icon }}
-                        {{ priority_label }}
+                        {{ priority_icon }} {{ priority_label }}
                     </b>
 
                     <br>
 
-                    Score IA:
-                    {{ priority_score }}/100
+                    Score IA: {{ priority_score }}/100
+                </div>
 
+                <br>
+
+                <div class="soft-alert">
+                    <b>Resumen IA</b>
+
+                    <ul style="margin-top:10px;margin-bottom:0;">
+                        {% for line in clinical_summary %}
+                        <li>{{ line }}</li>
+                        {% endfor %}
+                    </ul>
                 </div>
 
                 <br>
 
                 <div class="mini-list">
+                    {% for task in nursing_tasks %}
                     <div class="mini-row">
                         <span>
                             {{ task.icon }} <b style="color:#374151;">{{ task.title }}</b><br>
@@ -782,7 +778,7 @@
                         </span>
                         <b>{{ task.priority }}</b>
                     </div>
-   
+                    {% endfor %}
                 </div>
 
                 <br>
