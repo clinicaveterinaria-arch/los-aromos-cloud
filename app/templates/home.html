@@ -392,24 +392,16 @@
             </div>
             <div class="watermark">⚠️</div>
         </a>
-        <a href="/pendientes?tipo=preventivos" class="home-stat-card card-pendientes" style="text-decoration:none;color:inherit;">
+        <a href="#plan-sanitario-pendiente" class="home-stat-card card-pendientes" style="text-decoration:none;color:inherit;">
             <h3>💉 Preventivos</h3>
-        
-            <div class="big-number">
-                {{ overdue_vaccines|length + overdue_dewormings|length }}
-            </div>
-        
-            <div class="label">
-                Vacunas + Desparasitaciones
-            </div>
-        
+            <div class="big-number">{{ overdue_vaccines|length + overdue_dewormings|length }}</div>
+            <div class="label">Plan sanitario pendiente</div>
             <div class="mini-row">
                 <span>{{ overdue_vaccines|length }} Vacunas</span>
                 <span>{{ overdue_dewormings|length }} Despar.</span>
             </div>
-        
             <div class="watermark">💉</div>
-        </a>        
+        </a>       
     </div>
 
     <div class="home-main-grid">
