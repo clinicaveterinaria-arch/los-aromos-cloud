@@ -769,6 +769,48 @@ def home(request: Request, db: Session = Depends(get_db), user: User = Depends(r
 
     overdue_vaccines = []
     overdue_dewormings = []
+    preventive_due = []
+
+    for p in db.query(Patient).all():
+        last_vaccine = (
+            db.query(ClinicalEvent)
+            .filter(ClinicalEvent.patient_id == p.id)
+            .filter(ClinicalEvent.event_type == 'Vacuna')
+            .order_by(ClinicalEvent.event_date.desc())
+            .first()
+        )
+
+        last_deworming = (
+            db.query(ClinicalEvent)
+            .filter(ClinicalEvent.patient_id == p.id)
+            .filter(ClinicalEvent.event_type == 'Desparasitación')
+            .order_by(ClinicalEvent.event_date.desc())
+            .first()
+        )
+
+        vaccine_due = last_vaccine is None or not last_vaccine.event_date or last_vaccine.event_date.date() < preventive_cutoff
+        deworming_due = last_deworming is None or not last_deworming.event_date or last_deworming.event_date.date() < preventive_cutoff
+
+        if vaccine_due:
+            overdue_vaccines.append({'patient': p, 'last_event': last_vaccine})
+
+        if deworming_due:
+            overdue_dewormings.append({'patient': p, 'last_event': last_deworming})
+
+        if vaccine_due or deworming_due:
+            preventive_due.append({
+                'patient': p,
+                'last_vaccine': last_vaccine,
+                'last_deworming': last_deworming,
+                'vaccine_due': vaccine_due,
+                'deworming_due': deworming_due
+            })
+
+    preventive_due = preventive_due[:10]    
+    preventive_cutoff = today - timedelta(days=365)
+
+    overdue_vaccines = []
+    overdue_dewormings = []
 
     for p in db.query(Patient).all():
         last_vaccine = (
@@ -816,6 +858,7 @@ def home(request: Request, db: Session = Depends(get_db), user: User = Depends(r
             'inactive_patients': inactive_patients,
             'overdue_vaccines': overdue_vaccines,
             'overdue_dewormings': overdue_dewormings,
+            'preventive_due': preventive_due,
             'today': today
             
         }
