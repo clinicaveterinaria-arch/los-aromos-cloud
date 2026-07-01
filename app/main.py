@@ -1590,7 +1590,13 @@ def patient_detail(request: Request, patient_id: int, db: Session = Depends(get_
     )
 
     today = argentina_now().date()
-
+    pending_actions = (
+        db.query(ClinicalEvent)
+        .filter(ClinicalEvent.patient_id == patient.id)
+        .filter(ClinicalEvent.description.ilike(f'%{DUE_ACTIVE_MARKER}%'))
+        .order_by(ClinicalEvent.event_date.desc())
+        .all()
+    )
     upcoming_events = (
         db.query(ClinicalEvent)
         .filter(
@@ -1690,6 +1696,7 @@ def patient_detail(request: Request, patient_id: int, db: Session = Depends(get_
             'clinical_ai': clinical_ai,
             'event_types': EVENT_TYPES,
             'upcoming_events': upcoming_events,
+            'pending_actions': pending_actions,
             'timedelta': timedelta,
             'last_anesthesia': last_anesthesia,
             'anesthesia_history': anesthesia_history,
