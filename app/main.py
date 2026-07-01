@@ -2842,7 +2842,8 @@ def event_create(
     db.add(event)
     db.commit()
     db.refresh(event)
-
+    close_managed_due_events(db, patient, event, user)
+    db.commit()
     if weight and str(weight).strip():
         try:
             patient.weight = float(str(weight).replace(',', '.'))
