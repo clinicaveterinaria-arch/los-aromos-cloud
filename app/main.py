@@ -8,7 +8,7 @@ from typing import Optional
 from io import BytesIO
 from openpyxl import load_workbook
 from fastapi import FastAPI, Request, Form, Depends, HTTPException, UploadFile, File
-from fastapi.responses import RedirectResponse, HTMLResponse, JSONResponse
+from fastapi.responses import RedirectResponse, HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
@@ -5708,6 +5708,23 @@ def vademecum_delete(
     db.commit()
 
     return RedirectResponse('/vademecum', status_code=303)
+@app.get('/vademecum/import/template')
+def vademecum_import_template(
+    user: User = Depends(require_user)
+):
+    csv_content = (
+        "Principio activo,Nombre comercial,Laboratorio,Presentación,Concentración,Especie,Categoría,Vía,Indicaciones\n"
+        "Meloxicam,Metacam,Boehringer,Suspensión oral,1.5 mg/ml,Canino,AINE,VO,Dolor e inflamación\n"
+        "Amoxicilina + Clavulánico,Clavamox,Zoetis,Comprimidos,250 mg,Canino y felino,Antibiótico,VO,Infecciones bacterianas\n"
+    )
+
+    return Response(
+        content=csv_content,
+        media_type="text/csv",
+        headers={
+            "Content-Disposition": "attachment; filename=plantilla_vademecum.csv"
+        }
+    )
 @app.post('/vademecum/import')
 async def vademecum_import(
     file: UploadFile = File(...),
