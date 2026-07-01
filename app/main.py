@@ -2717,7 +2717,14 @@ def event_create(
                 rd = datetime.strptime(reminder_date.strip(), '%Y-%m-%d').date()
             except ValueError:
                 rd = None
-    
+    managed_reminder_date = None
+
+    if reminder_type and reminder_date and reminder_date.strip():
+        try:
+            managed_reminder_date = datetime.strptime(reminder_date.strip(), '%Y-%m-%d').date()
+            rd = None
+        except ValueError:
+            managed_reminder_date = None    
     event_created_at = argentina_now()
     event_date = event_date or ""
     
