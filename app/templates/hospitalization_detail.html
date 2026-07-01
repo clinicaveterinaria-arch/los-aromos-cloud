@@ -904,6 +904,7 @@ async function runHospitalizationAI() {
 
         return String(x);
     }
+
     const box = document.getElementById("hospitalization_ai_result");
     box.style.display = "block";
     box.innerHTML = "🧠 Analizando internación con IA clínica...";
@@ -927,25 +928,25 @@ async function runHospitalizationAI() {
 
         if (data.differentials && data.differentials.length) {
             html += "<b>Diferenciales:</b><ul>";
-            data.recommended_tests.forEach(x => html += "<li>" + formatAIItem(x) + "</li>");
+            data.differentials.forEach(x => html += "<li>" + formatAIItem(x) + "</li>");
             html += "</ul>";
         }
 
         if (data.recommended_tests && data.recommended_tests.length) {
             html += "<b>Estudios sugeridos:</b><ul>";
-            data.treatment.forEach(x => html += "<li>" + formatAIItem(x) + "</li>");
+            data.recommended_tests.forEach(x => html += "<li>" + formatAIItem(x) + "</li>");
             html += "</ul>";
         }
 
         if (data.treatment && data.treatment.length) {
             html += "<b>Conducta / tratamiento:</b><ul>";
-            data.problems.forEach(x => html += "<li>" + formatAIItem(x) + "</li>");
+            data.treatment.forEach(x => html += "<li>" + formatAIItem(x) + "</li>");
             html += "</ul>";
         }
 
         if (data.alerts && data.alerts.length) {
             html += "<b>Alertas:</b><ul>";
-            data.alerts.forEach(x => html += "<li>" + x + "</li>");
+            data.alerts.forEach(x => html += "<li>" + formatAIItem(x) + "</li>");
             html += "</ul>";
         }
 
