@@ -893,6 +893,17 @@
 </div>
 <script>
 async function runHospitalizationAI() {
+    function formatAIItem(x) {
+        if (typeof x === "string") {
+            return x;
+        }
+
+        if (typeof x === "object" && x !== null) {
+            return Object.values(x).join(" — ");
+        }
+
+        return String(x);
+    }
     const box = document.getElementById("hospitalization_ai_result");
     box.style.display = "block";
     box.innerHTML = "🧠 Analizando internación con IA clínica...";
@@ -910,25 +921,25 @@ async function runHospitalizationAI() {
 
         if (data.problems && data.problems.length) {
             html += "<b>Problemas detectados:</b><ul>";
-            data.problems.forEach(x => html += "<li>" + x + "</li>");
+            data.problems.forEach(x => html += "<li>" + formatAIItem(x) + "</li>");
             html += "</ul>";
         }
 
         if (data.differentials && data.differentials.length) {
             html += "<b>Diferenciales:</b><ul>";
-            data.differentials.forEach(x => html += "<li>" + x + "</li>");
+            data.recommended_tests.forEach(x => html += "<li>" + formatAIItem(x) + "</li>");
             html += "</ul>";
         }
 
         if (data.recommended_tests && data.recommended_tests.length) {
             html += "<b>Estudios sugeridos:</b><ul>";
-            data.recommended_tests.forEach(x => html += "<li>" + x + "</li>");
+            data.treatment.forEach(x => html += "<li>" + formatAIItem(x) + "</li>");
             html += "</ul>";
         }
 
         if (data.treatment && data.treatment.length) {
             html += "<b>Conducta / tratamiento:</b><ul>";
-            data.treatment.forEach(x => html += "<li>" + x + "</li>");
+            data.problems.forEach(x => html += "<li>" + formatAIItem(x) + "</li>");
             html += "</ul>";
         }
 
