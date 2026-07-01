@@ -405,12 +405,12 @@
         <div style="padding:12px 0;border-bottom:1px solid #fecaca;">
             <b>{{ p.title }}</b><br>
             <span style="color:#6b7280;">
-                {{ p.due_date.strftime('%d/%m/%Y') if p.due_date else '-' }}
+                {{ p.event_date.strftime('%d/%m/%Y') if p.event_date else '-' }}
             </span>
 
-            {% if p.notes %}
+            {% if p.description %}
             <br>
-            <small>{{ p.notes }}</small>
+            <small>{{ p.description.replace('[DEUDA_ACTIVA]', '')[:220] }}</small>
             {% endif %}
         </div>
         {% endfor %}
