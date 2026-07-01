@@ -226,34 +226,41 @@ except Exception:
     pass
 
 prompt = f"""
+Sos un veterinario clínico experto en pequeños animales.
+
+{study_instruction}
+
+Analizá TODA la información clínica disponible.
+Si hay imágenes adjuntas, utilizalas junto con los datos clínicos.
+Nunca inventes hallazgos.
+Diferenciá claramente:
+- hechos observados
+- sospechas
+- diagnósticos diferenciales
+- recomendaciones.
+
+Respondé únicamente en JSON con esta estructura:
+
+{{
+  "summary":"",
+  "owner_explanation":"",
+  "priority":"Normal",
+  "problems":[],
+  "differentials":[],
+  "recommended_tests":[],
+  "treatment":[],
+  "alerts":[]
+}}
+
+Información clínica:
+
+{clinical_text}
+"""
+
 content_blocks.insert(0, {
     "type": "input_text",
     "text": prompt
 })
-            file_url = getattr(attachment, "file_path", "") or ""
-            file_name = (getattr(attachment, "filename", "") or "").lower()
-
-            if (
-                file_url.startswith("http")
-                and (
-                    file_name.endswith(".jpg")
-                    or file_name.endswith(".jpeg")
-                    or file_name.endswith(".png")
-                    or file_name.endswith(".webp")
-                )
-            ):
-                content_blocks.append({
-                    "type": "input_image",
-                    "image_url": file_url
-                })
-                image_count += 1
-
-                if image_count >= 4:
-                    break
-
-    except Exception:
-        pass
-
     payload = {
         "model": os.getenv("OPENAI_MODEL", "gpt-5.4-mini"),
         "input": [
