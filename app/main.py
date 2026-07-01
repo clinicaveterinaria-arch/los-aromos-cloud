@@ -5747,6 +5747,7 @@ async def vademecum_import(
             f"&updated_active={summary.get('updated_active', 0)}"
             f"&new_brands={summary.get('new_brands', 0)}"
             f"&updated_brands={summary.get('updated_brands', 0)}"
+            f"&skipped={summary.get('skipped', 0)}"
             f"&errors={total_errors}"
         ),
         status_code=303
