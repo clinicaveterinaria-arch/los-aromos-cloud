@@ -195,6 +195,25 @@
         line-height: 1.6;
         margin-top: 6px;
     }
+    .clinical-summary-box {
+        background: #fff8fb;
+        border: 1px solid #f3c6d8;
+        border-radius: 18px;
+        padding: 16px;
+        margin: 18px 0;
+    }
+
+    .clinical-summary-box h3 {
+        margin: 0 0 10px 0;
+        color: #1f2937;
+    }
+
+    .clinical-summary-text {
+        color: #374151;
+        line-height: 1.5;
+        white-space: pre-wrap;
+        font-size: 14px;
+    }   
     .dose-calc-box {
         background: #f8fafc;
         border: 1px solid #e5e7eb;
@@ -435,6 +454,35 @@
         </div>
 
         <hr class="vade-divider">
+        <div class="clinical-summary-box">
+
+            <h3>📌 Resumen clínico para copiar</h3>
+
+            <div id="vadeClinicalSummary" class="clinical-summary-text">
+Principio activo: {{ active.name }}
+Categoría: {{ active.category or '-' }}
+Especie: {{ active.species or '-' }}
+Vía: {{ active.route or '-' }}
+Frecuencia: {{ active.frequency or '-' }}
+
+Dosis perro: {{ active.dog_dose or '-' }}
+Dosis gato: {{ active.cat_dose or '-' }}
+
+Indicaciones: {{ active.indications or '-' }}
+Contraindicaciones: {{ active.contraindications or '-' }}
+Advertencias: {{ active.warnings or '-' }}
+Observaciones: {{ active.observations or '-' }}
+            </div>
+
+            <div class="vade-actions" style="margin-top:12px;">
+                <button type="button" class="vade-btn secondary" onclick="copyVadeClinicalSummary()">
+                    Copiar resumen
+                </button>
+            </div>
+
+        </div>
+
+        <hr class="vade-divider">       
         <div class="dose-calc-box">
 
             <h3>⚖️ Calculador rápido por peso</h3>
@@ -722,6 +770,15 @@
                 "<br><br><b>Nota:</b> no se detectó automáticamente una dosis tipo mg/kg, µg/kg o rango. Revisar manualmente.";
         }
     }
+    function copyVadeClinicalSummary() {
+        const summaryBox = document.getElementById("vadeClinicalSummary");
+
+        if (!summaryBox) {
+            return;
+        }
+
+        navigator.clipboard.writeText(summaryBox.innerText || summaryBox.textContent);
+    }    
     function copyVadeDoseResult() {
         const resultBox = document.getElementById("vadeDoseResult");
 
