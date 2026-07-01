@@ -815,9 +815,7 @@ def home(request: Request, db: Session = Depends(get_db), user: User = Depends(r
                 'last_vaccine': last_vaccine,
                 'last_deworming': last_deworming,
                 'vaccine_due': vaccine_due,
-                'deworming_due': deworming_due,
-                'vaccine_status': sanitary_status(last_vaccine),
-                'deworming_status': sanitary_status(last_deworming)
+                'deworming_due': deworming_due
             })
     preventive_due = preventive_due[:10]
     overdue_vaccines = overdue_vaccines[:20]
