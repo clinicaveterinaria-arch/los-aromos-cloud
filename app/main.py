@@ -33,7 +33,7 @@ from .models import User, Owner, Patient, ClinicalEvent, EventAttachment, Appoin
 ARG_TZ = ZoneInfo("America/Argentina/Buenos_Aires")
 
 def argentina_now():
-    return datetime.now(ARG_TZ)
+    return datetime.now(ARG_TZ).replace(tzinfo=None)
 # ==========================================================
 # IA CLÍNICA
 # ==========================================================
