@@ -277,29 +277,70 @@
         </div>
 
         <hr class="vade-divider">
+        {% set clinical_text = (
+            (active.indications or '') ~ ' ' ~
+            (active.contraindications or '') ~ ' ' ~
+            (active.interactions or '') ~ ' ' ~
+            (active.warnings or '') ~ ' ' ~
+            (active.observations or '')
+        )|lower %}
+
         <div class="clinical-smart-grid">
 
             <div class="clinical-smart-box">
                 <h3>✅ Uso clínico rápido</h3>
                 <p>
-                    Revisar dosis, especie, vía y frecuencia antes de indicar.
-                    Esta ficha resume la información cargada en el vademécum.
+                    {% if active.species or active.route or active.frequency %}
+                        {{ active.species or 'Especie no especificada' }} ·
+                        {{ active.route or 'Vía no especificada' }} ·
+                        {{ active.frequency or 'Frecuencia no especificada' }}
+                    {% else %}
+                        Completar especie, vía y frecuencia para mejorar la ficha inteligente.
+                    {% endif %}
                 </p>
             </div>
 
             <div class="clinical-smart-box">
-                <h3>⚠ Precauciones</h3>
+                <h3>⚠ Alertas clínicas</h3>
                 <p>
-                    Controlar contraindicaciones, interacciones, edad, estado renal,
-                    hepático, gestación y condición clínica del paciente.
+                    {% if 'renal' in clinical_text or 'riñ' in clinical_text %}
+                        ⚠ Revisar función renal antes de indicar.<br>
+                    {% endif %}
+
+                    {% if 'hep' in clinical_text or 'hígado' in clinical_text or 'higado' in clinical_text %}
+                        ⚠ Revisar función hepática antes de indicar.<br>
+                    {% endif %}
+
+                    {% if 'gest' in clinical_text or 'preñez' in clinical_text or 'preñez' in clinical_text or 'lact' in clinical_text %}
+                        ⚠ Revisar seguridad en gestación o lactancia.<br>
+                    {% endif %}
+
+                    {% if 'contraindicado' in clinical_text or 'evitar' in clinical_text %}
+                        ❌ Hay contraindicaciones cargadas en esta ficha.<br>
+                    {% endif %}
+
+                    {% if not (
+                        'renal' in clinical_text or
+                        'riñ' in clinical_text or
+                        'hep' in clinical_text or
+                        'hígado' in clinical_text or
+                        'higado' in clinical_text or
+                        'gest' in clinical_text or
+                        'preñez' in clinical_text or
+                        'lact' in clinical_text or
+                        'contraindicado' in clinical_text or
+                        'evitar' in clinical_text
+                    ) %}
+                        Sin alertas automáticas detectadas con la información cargada.
+                    {% endif %}
                 </p>
             </div>
 
             <div class="clinical-smart-box">
-                <h3>🧠 Próxima IA clínica</h3>
+                <h3>🧠 Estado IA</h3>
                 <p>
-                    En el siguiente bloque esta ficha podrá cruzarse con peso,
-                    especie y antecedentes del paciente.
+                    Ficha preparada para cruzar luego con especie, peso, edad,
+                    antecedentes y evento clínico del paciente.
                 </p>
             </div>
 
