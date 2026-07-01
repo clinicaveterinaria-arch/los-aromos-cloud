@@ -790,7 +790,13 @@
 
             <div class="card">
                 <h2>🤖 IA / Alertas clínicas</h2>
+                <button type="button"
+                        onclick="runHospitalizationAI()"
+                        style="background:#7c3aed;color:white;border:none;border-radius:14px;padding:12px 14px;font-weight:bold;cursor:pointer;width:100%;margin-bottom:12px;">
+                    🧠 Analizar internación con IA real
+                </button>
 
+                <div id="hospitalization_ai_result" class="note" style="display:none;margin-bottom:12px;"></div>
                 {% if hospitalization.status == 'Internado' %}
                     <div class="soft-alert">Paciente internado activo.</div>
                 {% else %}
@@ -885,5 +891,58 @@
     </div>
 
 </div>
+<script>
+async function runHospitalizationAI() {
+    const box = document.getElementById("hospitalization_ai_result");
+    box.style.display = "block";
+    box.innerHTML = "🧠 Analizando internación con IA clínica...";
 
+    try {
+        const response = await fetch("/hospitalizations/{{ hospitalization.id }}/ai", {
+            method: "POST"
+        });
+
+        const data = await response.json();
+
+        let html = "";
+        html += "<b>Prioridad IA:</b> " + (data.priority || "-") + "<br><br>";
+        html += "<b>Resumen clínico:</b><br>" + (data.summary || "-") + "<br><br>";
+
+        if (data.problems && data.problems.length) {
+            html += "<b>Problemas detectados:</b><ul>";
+            data.problems.forEach(x => html += "<li>" + x + "</li>");
+            html += "</ul>";
+        }
+
+        if (data.differentials && data.differentials.length) {
+            html += "<b>Diferenciales:</b><ul>";
+            data.differentials.forEach(x => html += "<li>" + x + "</li>");
+            html += "</ul>";
+        }
+
+        if (data.recommended_tests && data.recommended_tests.length) {
+            html += "<b>Estudios sugeridos:</b><ul>";
+            data.recommended_tests.forEach(x => html += "<li>" + x + "</li>");
+            html += "</ul>";
+        }
+
+        if (data.treatment && data.treatment.length) {
+            html += "<b>Conducta / tratamiento:</b><ul>";
+            data.treatment.forEach(x => html += "<li>" + x + "</li>");
+            html += "</ul>";
+        }
+
+        if (data.alerts && data.alerts.length) {
+            html += "<b>Alertas:</b><ul>";
+            data.alerts.forEach(x => html += "<li>" + x + "</li>");
+            html += "</ul>";
+        }
+
+        box.innerHTML = html;
+
+    } catch (error) {
+        box.innerHTML = "⚠️ No se pudo generar la IA clínica.";
+    }
+}
+</script>
 {% endblock %}
