@@ -1457,6 +1457,71 @@ def patient_cart_send(
         url=f'/sales/{sale.id}',
         status_code=303
     )
+DUE_ACTIVE_MARKER = '[DEUDA_ACTIVA]'
+DUE_CLOSED_MARKER = '[DEUDA_CERRADA]'
+
+
+def is_managed_due_event(event):
+    return event and event.description and DUE_ACTIVE_MARKER in event.description
+
+
+def event_matches_managed_due(real_event, due_event):
+    real_type = (real_event.event_type or '').lower()
+    real_text = f'{real_event.title or ""} {real_event.description or ""} {real_event.vaccine_name or ""} {real_event.dewormer_product or ""}'.lower()
+
+    due_type = (due_event.event_type or '').lower()
+    due_text = f'{due_event.title or ""} {due_event.description or ""}'.lower()
+
+    if due_type == real_type:
+        return True
+
+    if ('vacun' in due_text or 'vacuna' in due_type) and real_type == 'vacuna':
+        return True
+
+    if (
+        'despar' in due_text
+        or 'antiparas' in due_text
+        or 'aprax' in due_text
+        or 'pipeta' in due_text
+        or due_type == 'desparasitación'
+    ) and real_type == 'desparasitación':
+        return True
+
+    if 'control' in due_text and real_type in ['control', 'consulta clínica']:
+        return True
+
+    if 'consulta' in due_text and real_type == 'consulta clínica':
+        return True
+
+    return False
+
+
+def close_managed_due_events(db, patient, real_event, user):
+    active_due_events = (
+        db.query(ClinicalEvent)
+        .filter(ClinicalEvent.patient_id == patient.id)
+        .filter(ClinicalEvent.description.ilike(f'%{DUE_ACTIVE_MARKER}%'))
+        .all()
+    )
+
+    closed_count = 0
+
+    for due_event in active_due_events:
+        if event_matches_managed_due(real_event, due_event):
+            due_event.description = (due_event.description or '').replace(
+                DUE_ACTIVE_MARKER,
+                DUE_CLOSED_MARKER
+            )
+
+            due_event.description += (
+                '\n\n✅ Pendiente cumplido automáticamente al cargar el evento real '
+                f'el {argentina_now().strftime("%d/%m/%Y %H:%M")} por {user.username}.'
+            )
+
+            due_event.reminder_date = None
+            closed_count += 1
+
+    return closed_count
 @app.get('/patients/{patient_id}', response_class=HTMLResponse)
 def patient_detail(request: Request, patient_id: int, db: Session = Depends(get_db), user: User = Depends(require_user)):
     patient = db.get(Patient, patient_id)
