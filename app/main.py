@@ -102,13 +102,6 @@ Tratamiento: {previous.treatment or ''}
     try:
         if patient and getattr(patient, "birth_date", None):
             today = argentina_now().date()
-    pending_actions = (
-        db.query(ClinicalEvent)
-        .filter(ClinicalEvent.patient_id == patient.id)
-        .filter(ClinicalEvent.description.ilike(f'%{DUE_ACTIVE_MARKER}%'))
-        .order_by(ClinicalEvent.event_date.desc())
-        .all()
-    )            
             birth = patient.birth_date
             years = today.year - birth.year - ((today.month, today.day) < (birth.month, birth.day))
             age_text = f"{years} años"
