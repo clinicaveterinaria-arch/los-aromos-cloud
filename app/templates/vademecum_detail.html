@@ -542,25 +542,40 @@
 
 </div>
 <script>
-    function normalizeDoseNumber(text) {
+    function parseVadeDose(text) {
         if (!text) {
             return null;
         }
 
         const cleanText = text
             .toLowerCase()
-            .replace(",", ".");
+            .replaceAll(",", ".")
+            .replaceAll("–", "-")
+            .replaceAll("—", "-");
 
-        const match = cleanText.match(/(\d+(\.\d+)?)\s*(mg|µg|mcg)\s*\/\s*kg/);
+        const rangeMatch = cleanText.match(/(\d+(\.\d+)?)\s*-\s*(\d+(\.\d+)?)\s*(mg|µg|mcg)\s*\/\s*kg/);
 
-        if (!match) {
-            return null;
+        if (rangeMatch) {
+            return {
+                min: parseFloat(rangeMatch[1]),
+                max: parseFloat(rangeMatch[3]),
+                unit: rangeMatch[5],
+                isRange: true
+            };
         }
 
-        return {
-            value: parseFloat(match[1]),
-            unit: match[3]
-        };
+        const singleMatch = cleanText.match(/(\d+(\.\d+)?)\s*(mg|µg|mcg)\s*\/\s*kg/);
+
+        if (singleMatch) {
+            return {
+                min: parseFloat(singleMatch[1]),
+                max: parseFloat(singleMatch[1]),
+                unit: singleMatch[3],
+                isRange: false
+            };
+        }
+
+        return null;
     }
 
     function calculateVadeDose() {
@@ -586,15 +601,33 @@
             doseText = catDose || "No hay dosis cargada para gato.";
         }
 
-        const parsedDose = normalizeDoseNumber(doseText);
+        const parsedDose = parseVadeDose(doseText);
 
         if (parsedDose) {
-            const totalDose = parsedDose.value * weight;
+            const minTotal = parsedDose.min * weight;
+            const maxTotal = parsedDose.max * weight;
+
+            let totalText = "";
+
+            if (parsedDose.isRange) {
+                totalText =
+                    minTotal.toFixed(2) + " - " +
+                    maxTotal.toFixed(2) + " " +
+                    parsedDose.unit;
+            } else {
+                totalText = minTotal.toFixed(2) + " " + parsedDose.unit;
+            }
 
             resultBox.innerHTML =
                 "<b>Peso:</b> " + weight + " kg<br>" +
-                "<b>Dosis detectada:</b> " + parsedDose.value + " " + parsedDose.unit + "/kg<br>" +
-                "<b>Dosis total estimada:</b> " + totalDose.toFixed(2) + " " + parsedDose.unit +
+                "<b>Dosis detectada:</b> " +
+                (
+                    parsedDose.isRange
+                        ? parsedDose.min + " - " + parsedDose.max
+                        : parsedDose.min
+                ) +
+                " " + parsedDose.unit + "/kg<br>" +
+                "<b>Dosis total estimada:</b> " + totalText +
                 "<br><br><b>Dosis cargada en ficha:</b><br>" +
                 doseText +
                 "<br><br><b>Nota:</b> cálculo orientativo basado en el primer valor mg/kg o µg/kg detectado. Verificar siempre concentración, vía, frecuencia y criterio clínico.";
@@ -603,7 +636,7 @@
                 "<b>Peso:</b> " + weight + " kg<br>" +
                 "<b>Dosis cargada:</b><br>" +
                 doseText +
-                "<br><br><b>Nota:</b> no se detectó automáticamente una dosis tipo mg/kg o µg/kg. Revisar manualmente la dosis cargada.";
+                "<br><br><b>Nota:</b> no se detectó automáticamente una dosis tipo mg/kg, µg/kg o rango. Revisar manualmente la dosis cargada.";
         }
     }
 </script>
