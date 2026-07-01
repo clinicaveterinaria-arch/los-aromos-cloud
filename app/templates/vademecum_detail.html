@@ -210,7 +210,7 @@
 
     .dose-calc-row {
         display: grid;
-        grid-template-columns: 1fr 1fr auto;
+        grid-template-columns: 1fr 1fr 1fr auto;
         gap: 10px;
         align-items: end;
     }
@@ -460,6 +460,20 @@
                     >
                 </div>
 
+                <div>
+                    <label>Concentración opcional</label>
+                    <select id="vadeDoseConcentration">
+                        <option value="">Sin concentración</option>
+                        {% for b in brands %}
+                            {% if b.concentration %}
+                                <option value="{{ b.concentration }}">
+                                    {{ b.brand_name }} — {{ b.concentration }}
+                                </option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+
                 <button type="button" class="vade-btn" onclick="calculateVadeDose()">
                     Calcular
                 </button>
@@ -578,9 +592,31 @@
         return null;
     }
 
+    function parseVadeConcentration(text) {
+        if (!text) {
+            return null;
+        }
+
+        const cleanText = text
+            .toLowerCase()
+            .replaceAll(",", ".");
+
+        const match = cleanText.match(/(\d+(\.\d+)?)\s*(mg|µg|mcg)\s*\/\s*ml/);
+
+        if (!match) {
+            return null;
+        }
+
+        return {
+            value: parseFloat(match[1]),
+            unit: match[3]
+        };
+    }
+
     function calculateVadeDose() {
         const species = document.getElementById("vadeDoseSpecies").value;
         const weightInput = document.getElementById("vadeDoseWeight");
+        const concentrationInput = document.getElementById("vadeDoseConcentration");
         const resultBox = document.getElementById("vadeDoseResult");
 
         const weight = parseFloat(weightInput.value);
@@ -602,6 +638,7 @@
         }
 
         const parsedDose = parseVadeDose(doseText);
+        const parsedConcentration = parseVadeConcentration(concentrationInput.value);
 
         if (parsedDose) {
             const minTotal = parsedDose.min * weight;
@@ -618,6 +655,30 @@
                 totalText = minTotal.toFixed(2) + " " + parsedDose.unit;
             }
 
+            let mlText = "";
+
+            if (
+                parsedConcentration &&
+                parsedConcentration.unit === parsedDose.unit
+            ) {
+                const minMl = minTotal / parsedConcentration.value;
+                const maxMl = maxTotal / parsedConcentration.value;
+
+                if (parsedDose.isRange) {
+                    mlText =
+                        "<br><b>Volumen estimado:</b> " +
+                        minMl.toFixed(2) + " - " +
+                        maxMl.toFixed(2) + " ml";
+                } else {
+                    mlText =
+                        "<br><b>Volumen estimado:</b> " +
+                        minMl.toFixed(2) + " ml";
+                }
+            } else if (concentrationInput.value) {
+                mlText =
+                    "<br><b>Volumen:</b> no calculado porque la unidad de dosis y concentración no coinciden.";
+            }
+
             resultBox.innerHTML =
                 "<b>Peso:</b> " + weight + " kg<br>" +
                 "<b>Dosis detectada:</b> " +
@@ -628,15 +689,16 @@
                 ) +
                 " " + parsedDose.unit + "/kg<br>" +
                 "<b>Dosis total estimada:</b> " + totalText +
+                mlText +
                 "<br><br><b>Dosis cargada en ficha:</b><br>" +
                 doseText +
-                "<br><br><b>Nota:</b> cálculo orientativo basado en el primer valor mg/kg o µg/kg detectado. Verificar siempre concentración, vía, frecuencia y criterio clínico.";
+                "<br><br><b>Nota:</b> cálculo orientativo. Verificar siempre concentración, vía, frecuencia y criterio clínico.";
         } else {
             resultBox.innerHTML =
                 "<b>Peso:</b> " + weight + " kg<br>" +
                 "<b>Dosis cargada:</b><br>" +
                 doseText +
-                "<br><br><b>Nota:</b> no se detectó automáticamente una dosis tipo mg/kg, µg/kg o rango. Revisar manualmente la dosis cargada.";
+                "<br><br><b>Nota:</b> no se detectó automáticamente una dosis tipo mg/kg, µg/kg o rango. Revisar manualmente.";
         }
     }
 </script>
