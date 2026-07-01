@@ -592,6 +592,14 @@
         return null;
     }
 
+    function normalizeVadeUnit(unit) {
+        if (unit === "mcg") {
+            return "µg";
+        }
+
+        return unit;
+    }
+
     function parseVadeConcentration(text) {
         if (!text) {
             return null;
@@ -609,7 +617,7 @@
 
         return {
             value: parseFloat(match[1]),
-            unit: match[3]
+            unit: normalizeVadeUnit(match[3])
         };
     }
 
@@ -625,7 +633,7 @@
         const catDose = {{ (active.cat_dose or '')|tojson }};
 
         if (!weight || weight <= 0) {
-            resultBox.innerHTML = "⚠ Ingresá un peso válido para calcular.";
+            resultBox.innerHTML = "Ingresá especie, peso y opcionalmente concentración para calcular.";
             return;
         }
 
@@ -638,6 +646,11 @@
         }
 
         const parsedDose = parseVadeDose(doseText);
+
+        if (parsedDose) {
+            parsedDose.unit = normalizeVadeUnit(parsedDose.unit);
+        }
+
         const parsedConcentration = parseVadeConcentration(concentrationInput.value);
 
         if (parsedDose) {
@@ -701,5 +714,29 @@
                 "<br><br><b>Nota:</b> no se detectó automáticamente una dosis tipo mg/kg, µg/kg o rango. Revisar manualmente.";
         }
     }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const speciesInput = document.getElementById("vadeDoseSpecies");
+        const weightInput = document.getElementById("vadeDoseWeight");
+        const concentrationInput = document.getElementById("vadeDoseConcentration");
+
+        if (speciesInput) {
+            speciesInput.addEventListener("change", calculateVadeDose);
+        }
+
+        if (weightInput) {
+            weightInput.addEventListener("input", calculateVadeDose);
+            weightInput.addEventListener("keydown", function (event) {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    calculateVadeDose();
+                }
+            });
+        }
+
+        if (concentrationInput) {
+            concentrationInput.addEventListener("change", calculateVadeDose);
+        }
+    });
 </script>
 {% endblock %}
