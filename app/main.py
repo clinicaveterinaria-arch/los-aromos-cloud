@@ -25,6 +25,8 @@ print("SUPABASE_KEY cargada =", bool(SUPABASE_KEY))
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY) if SUPABASE_URL and SUPABASE_KEY else None
 from .database import Base, engine, get_db
 from .models import User, Owner, Patient, ClinicalEvent, EventAttachment, Appointment, Product, Sale, SaleItem, SalePayment, WaitingListEntry, Hospitalization, HospitalizationMedication, HospitalizationFluid
+from .vademecum_parser import read_rows_from_upload, parse_vademecum_rows
+from .vademecum_importer import import_vademecum
 # Base.metadata.create_all(bind=engine)
 # =====================================
 # Zona horaria Argentina
@@ -5706,6 +5708,32 @@ def vademecum_delete(
     db.commit()
 
     return RedirectResponse('/vademecum', status_code=303)
+@app.post('/vademecum/import')
+async def vademecum_import(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    content = await file.read()
+
+    rows = read_rows_from_upload(file.filename, content)
+    records, parse_errors = parse_vademecum_rows(rows)
+    summary = import_vademecum(db, records)
+
+    total_errors = len(parse_errors) + len(summary.get("errors", []))
+
+    return RedirectResponse(
+        url=(
+            "/vademecum?"
+            f"imported=1"
+            f"&new_active={summary.get('new_active', 0)}"
+            f"&updated_active={summary.get('updated_active', 0)}"
+            f"&new_brands={summary.get('new_brands', 0)}"
+            f"&updated_brands={summary.get('updated_brands', 0)}"
+            f"&errors={total_errors}"
+        ),
+        status_code=303
+    )
 @app.post('/vademecum/active-ingredient')
 def vademecum_active_ingredient_create(
     name: str = Form(''),
