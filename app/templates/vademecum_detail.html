@@ -210,7 +210,7 @@
 
     .dose-calc-row {
         display: grid;
-        grid-template-columns: 1fr 1fr 1fr auto;
+        grid-template-columns: 1fr 1fr 1fr auto auto auto;
         gap: 10px;
         align-items: end;
     }
@@ -478,6 +478,14 @@
                     Calcular
                 </button>
 
+                <button type="button" class="vade-btn secondary" onclick="copyVadeDoseResult()">
+                    Copiar
+                </button>
+
+                <button type="button" class="vade-btn secondary" onclick="clearVadeDose()">
+                    Limpiar
+                </button>
+
             </div>
 
             <div id="vadeDoseResult" class="dose-result">
@@ -714,7 +722,37 @@
                 "<br><br><b>Nota:</b> no se detectó automáticamente una dosis tipo mg/kg, µg/kg o rango. Revisar manualmente.";
         }
     }
+    function copyVadeDoseResult() {
+        const resultBox = document.getElementById("vadeDoseResult");
 
+        if (!resultBox) {
+            return;
+        }
+
+        const textToCopy = resultBox.innerText || resultBox.textContent;
+
+        navigator.clipboard.writeText(textToCopy);
+
+        resultBox.innerHTML = resultBox.innerHTML + "<br><br>✅ Resultado copiado.";
+    }
+
+    function clearVadeDose() {
+        const weightInput = document.getElementById("vadeDoseWeight");
+        const concentrationInput = document.getElementById("vadeDoseConcentration");
+        const resultBox = document.getElementById("vadeDoseResult");
+
+        if (weightInput) {
+            weightInput.value = "";
+        }
+
+        if (concentrationInput) {
+            concentrationInput.value = "";
+        }
+
+        if (resultBox) {
+            resultBox.innerHTML = "Ingresá especie, peso y opcionalmente concentración para calcular.";
+        }
+    }
     document.addEventListener("DOMContentLoaded", function () {
         const speciesInput = document.getElementById("vadeDoseSpecies");
         const weightInput = document.getElementById("vadeDoseWeight");
