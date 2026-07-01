@@ -194,72 +194,42 @@ Este evento corresponde a LABORATORIO.
 Interpretá alteraciones hematológicas y bioquímicas en contexto clínico.
 Indicá patrones compatibles, diferenciales y estudios complementarios si faltan datos.
 """
-    image_count = 0
-    prompt = f"""
-Sos un médico veterinario especialista en clínica de pequeños animales, medicina interna, cardiología, diagnóstico por imágenes y urgencias.
+image_count = 0
 
-Tu función es asistir al veterinario tratante. Nunca reemplazás su criterio clínico.
+content_blocks = []
 
-Reglas obligatorias:
+try:
+    for attachment in getattr(event, "attachments", []) or []:
+        file_url = getattr(attachment, "file_path", "") or ""
+        file_name = (getattr(attachment, "filename", "") or "").lower()
 
-- Basate EXCLUSIVAMENTE en la información recibida.
-- Nunca inventes datos.
-- Diferenciá claramente:
-    • Hallazgos objetivos.
-    • Hipótesis diagnósticas.
-    • Diagnósticos diferenciales.
-- Ordená los diagnósticos diferenciales desde el más probable al menos probable.
-- Para cada diagnóstico diferencial, agregá una justificación clínica de una o dos oraciones basada únicamente en los hallazgos disponibles.
-- Indicá el grado de confianza (Alta, Media o Baja) para cada hipótesis diagnóstica.
-- Si alguno representa un riesgo vital aunque sea poco probable, incluilo igualmente.
-- Si el cuadro no permite priorizar, decilo explícitamente.
-    • Recomendaciones.
-- Si faltan datos importantes, decilo explícitamente.
-- Nunca afirmes un diagnóstico definitivo sin evidencia suficiente.
-- Priorizá medicina basada en evidencia.
-- Utilizá terminología veterinaria.
-- Respondé siempre en español.
-- Considerá primero la especie, edad, sexo, antecedentes, examen físico, estudios complementarios y evolución clínica.
-- Si detectás una urgencia potencial, indicalo claramente.
-- Si el tratamiento propuesto depende de confirmar un diagnóstico, aclaralo.
-- Si existen diagnósticos diferenciales graves aunque poco probables, mencionarlos.
-- Evitá repetir información innecesaria.
-- Sé concreto y clínicamente útil.
+        if (
+            file_url.startswith("http")
+            and (
+                file_name.endswith(".jpg")
+                or file_name.endswith(".jpeg")
+                or file_name.endswith(".png")
+                or file_name.endswith(".webp")
+            )
+        ):
+            content_blocks.append({
+                "type": "input_image",
+                "image_url": file_url
+            })
 
-Generá únicamente un JSON válido con exactamente esta estructura:
+            image_count += 1
 
-{{
-"summary":"",
-"owner_explanation":"",
-"priority":"Normal",
-"problems":[],
-"differentials":[],
-"recommended_tests":[],
-"treatment":[],
-"alerts":[]
-}}
+            if image_count >= 4:
+                break
 
-Instrucción específica según tipo de evento:
+except Exception:
+    pass
 
-{study_instruction}
-
-Información clínica:
-
-{clinical_text}
-
-Cantidad de imágenes adjuntas enviadas para análisis:
-{image_count}
-"""
-    content_blocks = [
-        {
-            "type": "input_text",
-            "text": prompt
-        }
-    ]
-
-    try:
-        
-        for attachment in getattr(event, "attachments", []) or []:
+prompt = f"""
+content_blocks.insert(0, {
+    "type": "input_text",
+    "text": prompt
+})
             file_url = getattr(attachment, "file_path", "") or ""
             file_name = (getattr(attachment, "filename", "") or "").lower()
 
