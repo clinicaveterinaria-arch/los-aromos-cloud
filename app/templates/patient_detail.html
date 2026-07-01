@@ -609,8 +609,30 @@
 
                 <div class="soft-box">
                     <h4>📌 Próxima visita / recordatorio</h4>
-                    <input type="date" name="reminder_date">
-                    <div class="quick-buttons"><button type="button" onclick="setReminderDays(3)">+3 días</button><button type="button" onclick="setReminderDays(7)">+7 días</button><button type="button" onclick="setReminderDays(10)">+10 días</button><button type="button" onclick="setReminderDays(15)">+15 días</button><button type="button" onclick="setReminderDays(21)">+21 días</button><button type="button" onclick="setReminderDays(30)">+30 días</button></div>
+
+                    <select name="reminder_type">
+                        <option value="">Tipo de recordatorio</option>
+                        <option>Vacuna</option>
+                        <option>Desparasitación</option>
+                        <option>Control clínico</option>
+                    </select>
+
+                    <input name="reminder_vaccine_name" list="vaccines_list" placeholder="Vacuna a aplicar / recordar" style="margin-top:10px;">
+
+                    <input name="reminder_dewormer_name" list="dewormers_list" placeholder="Desparasitación a aplicar / recordar" style="margin-top:10px;">
+
+                    <textarea name="reminder_notes" placeholder="Notas del control / aclaraciones" style="margin-top:10px;"></textarea>
+
+                    <input type="date" name="reminder_date" style="margin-top:10px;">
+
+                    <div class="quick-buttons">
+                        <button type="button" onclick="setReminderDays(3)">+3 días</button>
+                        <button type="button" onclick="setReminderDays(7)">+7 días</button>
+                        <button type="button" onclick="setReminderDays(10)">+10 días</button>
+                        <button type="button" onclick="setReminderDays(15)">+15 días</button>
+                        <button type="button" onclick="setReminderDays(21)">+21 días</button>
+                        <button type="button" onclick="setReminderDays(30)">+30 días</button>
+                    </div>
                 </div>
 
                 <div class="soft-box">
