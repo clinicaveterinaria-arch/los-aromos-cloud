@@ -194,38 +194,38 @@ Este evento corresponde a LABORATORIO.
 Interpretá alteraciones hematológicas y bioquímicas en contexto clínico.
 Indicá patrones compatibles, diferenciales y estudios complementarios si faltan datos.
 """
-image_count = 0
+    image_count = 0
 
-content_blocks = []
+    content_blocks = []
 
-try:
-    for attachment in getattr(event, "attachments", []) or []:
-        file_url = getattr(attachment, "file_path", "") or ""
-        file_name = (getattr(attachment, "filename", "") or "").lower()
+    try:
+        for attachment in getattr(event, "attachments", []) or []:
+            file_url = getattr(attachment, "file_path", "") or ""
+            file_name = (getattr(attachment, "filename", "") or "").lower()
 
-        if (
-            file_url.startswith("http")
-            and (
-                file_name.endswith(".jpg")
-                or file_name.endswith(".jpeg")
-                or file_name.endswith(".png")
-                or file_name.endswith(".webp")
-            )
-        ):
-            content_blocks.append({
-                "type": "input_image",
-                "image_url": file_url
-            })
+            if (
+                file_url.startswith("http")
+                and (
+                    file_name.endswith(".jpg")
+                    or file_name.endswith(".jpeg")
+                    or file_name.endswith(".png")
+                    or file_name.endswith(".webp")
+                )
+            ):
+                content_blocks.append({
+                    "type": "input_image",
+                    "image_url": file_url
+                })
 
-            image_count += 1
+                image_count += 1
 
-            if image_count >= 4:
-                break
+                if image_count >= 4:
+                    break
 
-except Exception:
-    pass
+    except Exception:
+        pass
 
-prompt = f"""
+    prompt = f"""
 Sos un veterinario clínico experto en pequeños animales.
 
 {study_instruction}
@@ -233,11 +233,6 @@ Sos un veterinario clínico experto en pequeños animales.
 Analizá TODA la información clínica disponible.
 Si hay imágenes adjuntas, utilizalas junto con los datos clínicos.
 Nunca inventes hallazgos.
-Diferenciá claramente:
-- hechos observados
-- sospechas
-- diagnósticos diferenciales
-- recomendaciones.
 
 Respondé únicamente en JSON con esta estructura:
 
@@ -255,12 +250,15 @@ Respondé únicamente en JSON con esta estructura:
 Información clínica:
 
 {clinical_text}
+
+Cantidad de imágenes adjuntas enviadas para análisis:
+{image_count}
 """
 
-content_blocks.insert(0, {
-    "type": "input_text",
-    "text": prompt
-})
+    content_blocks.insert(0, {
+        "type": "input_text",
+        "text": prompt
+    })
     payload = {
         "model": os.getenv("OPENAI_MODEL", "gpt-5.4-mini"),
         "input": [
