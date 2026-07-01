@@ -6307,7 +6307,80 @@ def build_hospitalization_ai(hospitalization, patient, related_events, medicatio
         'active_fluids_count': len(active_fluids)
     }
 
+@app.post('/hospitalizations/{hospitalization_id}/ai')
+def hospitalization_ai_real(
+    hospitalization_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    hospitalization = db.get(Hospitalization, hospitalization_id)
 
+    if not hospitalization:
+        raise HTTPException(status_code=404, detail='Internación no encontrada')
+
+    patient = hospitalization.patient
+
+    related_events = (
+        db.query(ClinicalEvent)
+        .filter(ClinicalEvent.patient_id == patient.id)
+        .order_by(ClinicalEvent.event_date.desc())
+        .limit(12)
+        .all()
+    )
+
+    medications = (
+        db.query(HospitalizationMedication)
+        .filter(HospitalizationMedication.hospitalization_id == hospitalization.id)
+        .order_by(HospitalizationMedication.scheduled_time.asc())
+        .all()
+    )
+
+    fluids = (
+        db.query(HospitalizationFluid)
+        .filter(HospitalizationFluid.hospitalization_id == hospitalization.id)
+        .order_by(HospitalizationFluid.created_at.desc())
+        .all()
+    )
+
+    fake_event = ClinicalEvent(
+        patient_id=patient.id,
+        patient=patient,
+        event_type='Internación',
+        title='Análisis IA de internación',
+        description=f"""
+Motivo de internación:
+{hospitalization.reason or ''}
+
+Diagnóstico inicial:
+{hospitalization.diagnosis or ''}
+
+Plan terapéutico:
+{hospitalization.treatment_plan or ''}
+
+Notas:
+{hospitalization.notes or ''}
+
+Medicación:
+{chr(10).join([(m.scheduled_time or '-') + ' · ' + (m.medication_name or '-') + ' · ' + (m.dose or '-') + ' · ' + (m.route or '-') + ' · ' + (m.status or '-') for m in medications])}
+
+Fluidoterapia:
+{chr(10).join([(f.fluid_type or '-') + ' · ' + (f.fluid_rate or '-') + ' ml/h · ' + (f.status or '-') for f in fluids])}
+""",
+        diagnosis=hospitalization.diagnosis or '',
+        treatment=hospitalization.treatment_plan or '',
+        weight=hospitalization.initial_weight or patient.weight,
+        temperature=hospitalization.initial_temperature,
+        heart_rate=hospitalization.initial_heart_rate,
+        respiratory_rate=hospitalization.initial_respiratory_rate,
+        mucous_membranes=hospitalization.initial_mucous_membranes or '',
+        crt=hospitalization.initial_crt or '',
+        hydration=hospitalization.initial_hydration or '',
+        event_date=argentina_now()
+    )
+
+    result = ai_clinical_summary(fake_event)
+
+    return JSONResponse(result)
 @app.get('/nursing', response_class=HTMLResponse)
 def nursing_view(
     request: Request,
