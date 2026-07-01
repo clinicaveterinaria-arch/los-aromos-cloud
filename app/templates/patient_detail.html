@@ -392,9 +392,32 @@
                     </div>
                 </div>
             </a>
-        </div>
+</div>
     </div>
-        <details class="hc-form-section" id="nuevo-evento" open>
+
+    {% if pending_actions %}
+    <div class="hc-card" style="border:2px solid #fecaca;background:#fff7f7;">
+        <div class="hc-card-head">
+            <h2 style="color:#b91c1c;">⚠ Pendientes gestionados no cumplidos</h2>
+        </div>
+
+        {% for p in pending_actions %}
+        <div style="padding:12px 0;border-bottom:1px solid #fecaca;">
+            <b>{{ p.title }}</b><br>
+            <span style="color:#6b7280;">
+                {{ p.due_date.strftime('%d/%m/%Y') if p.due_date else '-' }}
+            </span>
+
+            {% if p.notes %}
+            <br>
+            <small>{{ p.notes }}</small>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <details class="hc-form-section" id="nuevo-evento" open>
         <summary>🩺 Nuevo evento clínico</summary>
         <div class="hc-section-body">
             <form method="post" action="/patients/{{ patient.id }}/events" enctype="multipart/form-data" class="form-grid">
