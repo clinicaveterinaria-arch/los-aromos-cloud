@@ -2725,16 +2725,16 @@ def event_create(
             rd = None
         except ValueError:
             managed_reminder_date = None    
-event_created_at = argentina_now()
-event_date = event_date or ""
-
-if event_date.strip():
-    try:
-        selected_date = datetime.strptime(event_date.strip(), "%Y-%m-%d").date()
-        current_time = argentina_now().time()
-        event_created_at = datetime.combine(selected_date, current_time)
-    except ValueError:
-        pass
+    event_created_at = argentina_now()
+    event_date = event_date or ""
+    
+    if event_date.strip():
+        try:
+            selected_date = datetime.strptime(event_date.strip(), "%Y-%m-%d").date()
+            current_time = argentina_now().time()
+            event_created_at = datetime.combine(selected_date, current_time)
+        except ValueError:
+            pass
 
     event = ClinicalEvent(
         patient_id=patient_id,
