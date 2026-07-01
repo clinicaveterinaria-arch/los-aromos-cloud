@@ -770,7 +770,19 @@ def home(request: Request, db: Session = Depends(get_db), user: User = Depends(r
     overdue_vaccines = []
     overdue_dewormings = []
     preventive_due = []
+    def sanitary_status(last_event):
+        if last_event is None or not last_event.event_date:
+            return "Nunca registrado"
 
+        days = (today - last_event.event_date.date()).days
+
+        if days >= 365:
+            return f"Vencido hace {days - 365} días"
+
+        if days >= 330:
+            return "Próximo a vencer"
+
+        return "Al día"
     for p in db.query(Patient).all():
         last_vaccine = (
             db.query(ClinicalEvent)
@@ -807,56 +819,9 @@ def home(request: Request, db: Session = Depends(get_db), user: User = Depends(r
                 'vaccine_status': sanitary_status(last_vaccine),
                 'deworming_status': sanitary_status(last_deworming)
             })
-    def sanitary_status(last_event):
-        if last_event is None or not last_event.event_date:
-            return "Nunca registrado"
-
-        days = (today - last_event.event_date.date()).days
-
-        if days >= 365:
-            return f"Vencido hace {days - 365} días"
-
-        if days >= 330:
-            return "Próximo a vencer"
-
-        return "Al día"
-    preventive_due = preventive_due[:10]    
-    preventive_cutoff = today - timedelta(days=365)
-
-    overdue_vaccines = []
-    overdue_dewormings = []
-
-    for p in db.query(Patient).all():
-        last_vaccine = (
-            db.query(ClinicalEvent)
-            .filter(ClinicalEvent.patient_id == p.id)
-            .filter(ClinicalEvent.event_type == 'Vacuna')
-            .order_by(ClinicalEvent.event_date.desc())
-            .first()
-        )
-
-        last_deworming = (
-            db.query(ClinicalEvent)
-            .filter(ClinicalEvent.patient_id == p.id)
-            .filter(ClinicalEvent.event_type == 'Desparasitación')
-            .order_by(ClinicalEvent.event_date.desc())
-            .first()
-        )
-
-        if last_vaccine is None or last_vaccine.event_date.date() < preventive_cutoff:
-            overdue_vaccines.append({
-                'patient': p,
-                'last_event': last_vaccine
-            })
-
-        if last_deworming is None or last_deworming.event_date.date() < preventive_cutoff:
-            overdue_dewormings.append({
-                'patient': p,
-                'last_event': last_deworming
-            })
-
+    preventive_due = preventive_due[:10]
     overdue_vaccines = overdue_vaccines[:20]
-    overdue_dewormings = overdue_dewormings[:20]    
+    overdue_dewormings = overdue_dewormings[:20] 
     return templates.TemplateResponse(
         'home.html',
         {
