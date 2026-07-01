@@ -102,6 +102,13 @@ Tratamiento: {previous.treatment or ''}
     try:
         if patient and getattr(patient, "birth_date", None):
             today = argentina_now().date()
+    pending_actions = (
+        db.query(ClinicalEvent)
+        .filter(ClinicalEvent.patient_id == patient.id)
+        .filter(ClinicalEvent.description.ilike(f'%{DUE_ACTIVE_MARKER}%'))
+        .order_by(ClinicalEvent.event_date.desc())
+        .all()
+    )            
             birth = patient.birth_date
             years = today.year - birth.year - ((today.month, today.day) < (birth.month, birth.day))
             age_text = f"{years} años"
@@ -357,7 +364,52 @@ templates.env.globals['get_pending_count'] = get_pending_count
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 
 EVENT_TYPES = ['Consulta clínica','Control','Vacuna','Desparasitación','Radiografía','ECG','Ecocardiografía','Ecografía','Laboratorio','Cirugía','Anestesia','Internación','Alta','Otro procedimiento']
+DUE_ACTIVE_MARKER = '[DEUDA_ACTIVA]'
+DUE_CLOSED_MARKER = '[DEUDA_CERRADA]'
 
+
+def pending_action_matches_event(pending_event, real_event):
+    pending_type = (pending_event.event_type or '').lower()
+    real_type = (real_event.event_type or '').lower()
+
+    pending_text = f'{pending_event.title or ""} {pending_event.description or ""}'.lower()
+    real_text = f'{real_event.title or ""} {real_event.description or ""} {real_event.vaccine_name or ""} {real_event.dewormer_product or ""}'.lower()
+
+    if pending_type == real_type:
+        return True
+
+    if 'vacun' in pending_text and real_type == 'vacuna':
+        return True
+
+    if (
+        'despar' in pending_text
+        or 'antiparas' in pending_text
+        or 'aprax' in pending_text
+        or 'pipeta' in pending_text
+    ) and real_type == 'desparasitación':
+        return True
+
+    if 'control' in pending_text and real_type in ['control', 'consulta clínica']:
+        return True
+
+    return False
+
+
+def close_pending_actions_after_real_event(db, patient, real_event):
+    pending_actions = (
+        db.query(ClinicalEvent)
+        .filter(ClinicalEvent.patient_id == patient.id)
+        .filter(ClinicalEvent.description.ilike(f'%{DUE_ACTIVE_MARKER}%'))
+        .all()
+    )
+
+    for pending_event in pending_actions:
+        if pending_action_matches_event(pending_event, real_event):
+            pending_event.description = (pending_event.description or '').replace(
+                DUE_ACTIVE_MARKER,
+                DUE_CLOSED_MARKER
+            )
+            pending_event.reminder_date = None
 def init_db():
     # Base.metadata.create_all(bind=engine)
     db = next(get_db())
