@@ -392,6 +392,24 @@
             </div>
             <div class="watermark">⚠️</div>
         </a>
+        <a href="/pendientes?tipo=preventivos" class="home-stat-card card-pendientes" style="text-decoration:none;color:inherit;">
+            <h3>💉 Preventivos</h3>
+        
+            <div class="big-number">
+                {{ vacunas_proximas|length + desparas_proximas|length }}
+            </div>
+        
+            <div class="label">
+                Vacunas + Desparasitaciones
+            </div>
+        
+            <div class="mini-row">
+                <span>{{ vacunas_proximas|length }} Vacunas</span>
+                <span>{{ desparas_proximas|length }} Despar.</span>
+            </div>
+        
+            <div class="watermark">💉</div>
+        </a>        
     </div>
 
     <div class="home-main-grid">
