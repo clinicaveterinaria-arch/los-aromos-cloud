@@ -204,6 +204,7 @@
                 <b>Principios activos actualizados:</b> {{ request.query_params.get('updated_active', 0) }}<br>
                 <b>Marcas nuevas:</b> {{ request.query_params.get('new_brands', 0) }}<br>
                 <b>Marcas actualizadas:</b> {{ request.query_params.get('updated_brands', 0) }}<br>
+                <b>Filas omitidas:</b> {{ request.query_params.get('skipped', 0) }}<br>
                 <b>Errores:</b> {{ request.query_params.get('errors', 0) }}
             </div>
         </div>
