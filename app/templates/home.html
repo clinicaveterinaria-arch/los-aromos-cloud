@@ -396,7 +396,7 @@
             <h3>💉 Preventivos</h3>
         
             <div class="big-number">
-                {{ vacunas_proximas|length + desparas_proximas|length }}
+                {{ overdue_vaccines|length + overdue_dewormings|length }}
             </div>
         
             <div class="label">
@@ -404,8 +404,8 @@
             </div>
         
             <div class="mini-row">
-                <span>{{ vacunas_proximas|length }} Vacunas</span>
-                <span>{{ desparas_proximas|length }} Despar.</span>
+                <span>{{ overdue_vaccines|length }} Vacunas</span>
+                <span>{{ overdue_dewormings|length }} Despar.</span>
             </div>
         
             <div class="watermark">💉</div>
