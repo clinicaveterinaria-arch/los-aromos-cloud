@@ -5440,11 +5440,23 @@ def vademecum_page(
                     OR b.brand_name ILIKE :like
                     OR b.laboratory ILIKE :like
                 )
+                AND (
+                    :category = ''
+                    OR a.category ILIKE :category_like
+                )
+                AND (
+                    :species = ''
+                    OR a.species ILIKE :species_like
+                )
                 ORDER BY a.name
             """),
             {
                 "q": q,
-                "like": f"%{q}%"
+                "like": f"%{q}%",
+                "category": category,
+                "category_like": f"%{category}%",
+                "species": species,
+                "species_like": f"%{species}%"
             }
         ).mappings().all()
     
