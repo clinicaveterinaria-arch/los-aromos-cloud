@@ -195,7 +195,55 @@
         line-height: 1.6;
         margin-top: 6px;
     }
+    .dose-calc-box {
+        background: #f8fafc;
+        border: 1px solid #e5e7eb;
+        border-radius: 18px;
+        padding: 16px;
+        margin: 18px 0;
+    }
 
+    .dose-calc-box h3 {
+        margin: 0 0 10px 0;
+        color: #1f2937;
+    }
+
+    .dose-calc-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr auto;
+        gap: 10px;
+        align-items: end;
+    }
+
+    .dose-calc-row label {
+        display: block;
+        font-size: 13px;
+        font-weight: bold;
+        color: #374151;
+        margin-bottom: 5px;
+    }
+
+    .dose-calc-row input,
+    .dose-calc-row select {
+        width: 100%;
+        box-sizing: border-box;
+        border: 1px solid #d1d5db;
+        border-radius: 10px;
+        padding: 10px;
+    }
+
+    .dose-result {
+        margin-top: 12px;
+        color: #374151;
+        font-size: 14px;
+        line-height: 1.5;
+    }
+
+    @media (max-width: 900px) {
+        .dose-calc-row {
+            grid-template-columns: 1fr;
+        }
+    }
     .empty-box {
         background: #f8fafc;
         border: 1px dashed #cbd5e1;
@@ -387,7 +435,44 @@
         </div>
 
         <hr class="vade-divider">
+        <div class="dose-calc-box">
 
+            <h3>⚖️ Calculador rápido por peso</h3>
+
+            <div class="dose-calc-row">
+
+                <div>
+                    <label>Especie</label>
+                    <select id="vadeDoseSpecies">
+                        <option value="dog">Perro</option>
+                        <option value="cat">Gato</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label>Peso del paciente (kg)</label>
+                    <input
+                        type="number"
+                        id="vadeDoseWeight"
+                        min="0"
+                        step="0.1"
+                        placeholder="Ej: 12.5"
+                    >
+                </div>
+
+                <button type="button" class="vade-btn" onclick="calculateVadeDose()">
+                    Calcular
+                </button>
+
+            </div>
+
+            <div id="vadeDoseResult" class="dose-result">
+                Ingresá especie y peso para revisar la dosis cargada en la ficha.
+            </div>
+
+        </div>
+
+        <hr class="vade-divider">
         <h2>🏷 Marcas comerciales</h2>
 
         <form method="post" action="/vademecum/brand" class="brand-form">
@@ -456,5 +541,35 @@
     </div>
 
 </div>
+<script>
+    function calculateVadeDose() {
+        const species = document.getElementById("vadeDoseSpecies").value;
+        const weightInput = document.getElementById("vadeDoseWeight");
+        const resultBox = document.getElementById("vadeDoseResult");
 
+        const weight = parseFloat(weightInput.value);
+
+        const dogDose = {{ (active.dog_dose or '')|tojson }};
+        const catDose = {{ (active.cat_dose or '')|tojson }};
+
+        if (!weight || weight <= 0) {
+            resultBox.innerHTML = "⚠ Ingresá un peso válido para calcular.";
+            return;
+        }
+
+        let doseText = "";
+
+        if (species === "dog") {
+            doseText = dogDose || "No hay dosis cargada para perro.";
+        } else {
+            doseText = catDose || "No hay dosis cargada para gato.";
+        }
+
+        resultBox.innerHTML =
+            "<b>Peso:</b> " + weight + " kg<br>" +
+            "<b>Dosis cargada:</b><br>" +
+            doseText +
+            "<br><br><b>Nota:</b> este calculador muestra la dosis textual cargada. En el próximo bloque vamos a detectar mg/kg automáticamente cuando el formato lo permita.";
+    }
+</script>
 {% endblock %}
