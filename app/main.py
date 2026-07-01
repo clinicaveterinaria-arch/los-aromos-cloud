@@ -803,9 +803,23 @@ def home(request: Request, db: Session = Depends(get_db), user: User = Depends(r
                 'last_vaccine': last_vaccine,
                 'last_deworming': last_deworming,
                 'vaccine_due': vaccine_due,
-                'deworming_due': deworming_due
+                'deworming_due': deworming_due,
+                'vaccine_status': sanitary_status(last_vaccine),
+                'deworming_status': sanitary_status(last_deworming)
             })
+    def sanitary_status(last_event):
+        if last_event is None or not last_event.event_date:
+            return "Nunca registrado"
 
+        days = (today - last_event.event_date.date()).days
+
+        if days >= 365:
+            return f"Vencido hace {days - 365} días"
+
+        if days >= 330:
+            return "Próximo a vencer"
+
+        return "Al día"
     preventive_due = preventive_due[:10]    
     preventive_cutoff = today - timedelta(days=365)
 
