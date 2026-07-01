@@ -213,6 +213,13 @@
         <div>
             <div class="vade-card">
                 <h2>📥 Importar base</h2>
+                <p style="color:#6b7280;margin-top:-6px;">
+                    Subí un Excel o CSV con principios activos y marcas comerciales.
+                </p>
+
+                <a href="/vademecum/import/template" class="vade-btn secondary" style="margin-bottom:12px;">
+                    📄 Descargar plantilla CSV
+                </a>                
                 <form method="post" action="/vademecum/import" enctype="multipart/form-data">
                     <label>Archivo Excel o CSV</label>
                     <input type="file" name="file" accept=".xlsx,.csv" required>
