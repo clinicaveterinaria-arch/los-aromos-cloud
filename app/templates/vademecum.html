@@ -196,11 +196,32 @@
         <h1>💊 Vademécum inteligente</h1>
         <p>Organizado por principio activo, con marcas comerciales asociadas.</p>
     </div>
-
+    {% if request.query_params.get('imported') %}
+        <div class="vade-card" style="border-color:#bbf7d0;background:#f0fdf4;">
+            <h2>✅ Importación finalizada</h2>
+            <div class="vade-section">
+                <b>Principios activos nuevos:</b> {{ request.query_params.get('new_active', 0) }}<br>
+                <b>Principios activos actualizados:</b> {{ request.query_params.get('updated_active', 0) }}<br>
+                <b>Marcas nuevas:</b> {{ request.query_params.get('new_brands', 0) }}<br>
+                <b>Marcas actualizadas:</b> {{ request.query_params.get('updated_brands', 0) }}<br>
+                <b>Errores:</b> {{ request.query_params.get('errors', 0) }}
+            </div>
+        </div>
+    {% endif %}
     <div class="vade-grid">
 
         <div>
+            <div class="vade-card">
+                <h2>📥 Importar base</h2>
+                <form method="post" action="/vademecum/import" enctype="multipart/form-data">
+                    <label>Archivo Excel o CSV</label>
+                    <input type="file" name="file" accept=".xlsx,.csv" required>
 
+                    <div class="vade-actions">
+                        <button type="submit" class="vade-btn">📥 Importar vademécum</button>
+                    </div>
+                </form>
+            </div>
             <div class="vade-card">
                 <h2>🧬 Nuevo principio activo</h2>
 
