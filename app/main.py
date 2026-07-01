@@ -4503,7 +4503,23 @@ def event_done(
     if not event:
         raise HTTPException(status_code=404, detail="Evento no encontrado")
 
+    original_date = event.reminder_date
+
     event.reminder_date = None
+
+    if DUE_ACTIVE_MARKER not in (event.description or ''):
+        event.description = (
+            (event.description or '').strip()
+            + '\n\n'
+            + DUE_ACTIVE_MARKER
+            + '\n'
+            + '⚠ Pendiente gestionado administrativamente.\n'
+            + 'Esto NO significa que el acto clínico se haya realizado.\n'
+            + f'Gestionado por: {user.username}\n'
+            + f'Fecha de gestión: {argentina_now().strftime("%d/%m/%Y %H:%M")}\n'
+            + f'Fecha pendiente original: {original_date.strftime("%d/%m/%Y") if original_date else "-"}'
+        ).strip()
+
     db.commit()
 
     return RedirectResponse('/pendientes', status_code=303)
