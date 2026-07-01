@@ -194,6 +194,7 @@ Este evento corresponde a LABORATORIO.
 Interpretá alteraciones hematológicas y bioquímicas en contexto clínico.
 Indicá patrones compatibles, diferenciales y estudios complementarios si faltan datos.
 """
+    image_count = 0
     prompt = f"""
 Sos un médico veterinario especialista en clínica de pequeños animales, medicina interna, cardiología, diagnóstico por imágenes y urgencias.
 
@@ -249,7 +250,6 @@ Información clínica:
 Cantidad de imágenes adjuntas enviadas para análisis:
 {image_count}
 """
-    image_count = 0
     content_blocks = [
         {
             "type": "input_text",
