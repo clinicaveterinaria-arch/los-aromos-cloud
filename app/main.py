@@ -1577,6 +1577,8 @@ def patient_detail(request: Request, patient_id: int, db: Session = Depends(get_
     events = (
         db.query(ClinicalEvent)
         .filter(ClinicalEvent.patient_id == patient.id)
+        .filter(~ClinicalEvent.description.ilike(f'%{DUE_ACTIVE_MARKER}%'))
+        .filter(~ClinicalEvent.description.ilike(f'%{DUE_CLOSED_MARKER}%'))
         .order_by(ClinicalEvent.event_date.desc())
         .limit(20)
         .all()
