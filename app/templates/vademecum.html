@@ -319,7 +319,21 @@
 
                 <h2>📚 Principios activos</h2>
                 <form method="get" action="/vademecum" style="margin:18px 0 22px 0;">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+                        <input
+                            type="text"
+                            name="category"
+                            value="{{ category }}"
+                            placeholder="Filtrar por categoría: AINE, antibiótico..."
+                        >
 
+                        <input
+                            type="text"
+                            name="species"
+                            value="{{ species }}"
+                            placeholder="Filtrar por especie: canino, felino..."
+                        >
+                    </div>
                     <input
                         type="text"
                         name="q"
