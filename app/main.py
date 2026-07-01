@@ -2830,6 +2830,42 @@ def event_create(
     db.refresh(event)
     close_managed_due_events(db, patient, event, user)
     db.commit()
+    if managed_reminder_date:
+        reminder_title = 'Recordatorio pendiente'
+        reminder_event_type = 'Control'
+
+        if reminder_type == 'Vacuna':
+            reminder_event_type = 'Vacuna'
+            reminder_title = f'Vacuna pendiente: {reminder_vaccine_name or "Vacuna"}'
+
+        elif reminder_type == 'Desparasitación':
+            reminder_event_type = 'Desparasitación'
+            reminder_title = f'Desparasitación pendiente: {reminder_dewormer_name or "Desparasitación"}'
+
+        elif reminder_type == 'Control clínico':
+            reminder_event_type = 'Control'
+            reminder_title = 'Control clínico pendiente'
+
+        reminder_description = (
+            f'{DUE_ACTIVE_MARKER}\n'
+            f'Tipo de recordatorio: {reminder_type}\n'
+            f'Vacuna: {reminder_vaccine_name or "-"}\n'
+            f'Desparasitación: {reminder_dewormer_name or "-"}\n'
+            f'Notas: {reminder_notes or "-"}'
+        )
+
+        pending_event = ClinicalEvent(
+            patient_id=patient.id,
+            event_date=argentina_now(),
+            event_type=reminder_event_type,
+            title=reminder_title,
+            description=reminder_description,
+            reminder_date=managed_reminder_date,
+            created_by=user.username
+        )
+
+        db.add(pending_event)
+        db.commit()    
     if weight and str(weight).strip():
         try:
             patient.weight = float(str(weight).replace(',', '.'))
