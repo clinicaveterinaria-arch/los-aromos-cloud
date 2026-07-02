@@ -857,6 +857,8 @@ function setEventType(type) {
 function openVademecumModal() {
     const modal = document.getElementById('vademecum_modal');
     if (modal) modal.style.display = 'flex';
+
+    loadVademecumModal('');
 }
 
 function closeVademecumModal() {
@@ -864,21 +866,105 @@ function closeVademecumModal() {
     if (modal) modal.style.display = 'none';
 }
 
-function filterVademecumModal() {
-    const search = document.getElementById('vade_modal_search');
-    const list = document.getElementById('vade_modal_list');
-
-    if (!search || !list) return;
-
-    const q = search.value.trim().toLowerCase();
-    const items = list.querySelectorAll('.vade-modal-item');
-
-    items.forEach(item => {
-        const text = item.innerText.toLowerCase();
-        item.style.display = text.includes(q) ? 'block' : 'none';
-    });
+function escapeHtml(text) {
+    return String(text || '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
 }
 
+async function loadVademecumModal(query) {
+    const list = document.getElementById('vade_modal_list');
+
+    if (!list) return;
+
+    list.innerHTML = `
+        <div class="vade-modal-item">
+            <p>Buscando en Vademécum...</p>
+        </div>
+    `;
+
+    try {
+        const response = await fetch('/vademecum/api/search?q=' + encodeURIComponent(query || ''));
+        const data = await response.json();
+
+        if (!data.length) {
+            list.innerHTML = `
+                <div class="vade-modal-item">
+                    <p>No se encontraron medicamentos cargados en el Vademécum.</p>
+                </div>
+            `;
+            return;
+        }
+
+        list.innerHTML = '';
+
+        data.forEach(item => {
+            const brandsText = item.brands && item.brands.length
+                ? item.brands.map(b => {
+                    let txt = b.brand_name || '';
+                    if (b.concentration) txt += ' — ' + b.concentration;
+                    return txt;
+                }).join(', ')
+                : 'Sin marcas cargadas';
+
+            const dose = item.dog_dose || item.cat_dose || 'Dosis a revisar';
+            const frequency = item.frequency || 'Frecuencia a revisar';
+            const observations = item.observations || item.warnings || item.contraindications || '';
+
+            const div = document.createElement('div');
+            div.className = 'vade-modal-item';
+
+            div.innerHTML = `
+                <h4>${escapeHtml(item.name)}</h4>
+                <p><b>Categoría:</b> ${escapeHtml(item.category || '-')}</p>
+                <p><b>Especie:</b> ${escapeHtml(item.species || '-')}</p>
+                <p><b>Marcas:</b> ${escapeHtml(brandsText)}</p>
+                <p><b>Dosis perro:</b> ${escapeHtml(item.dog_dose || '-')}</p>
+                <p><b>Dosis gato:</b> ${escapeHtml(item.cat_dose || '-')}</p>
+                <p><b>Vía/Frecuencia:</b> ${escapeHtml(item.route || '-')} · ${escapeHtml(item.frequency || '-')}</p>
+                <p><b>Indicaciones:</b> ${escapeHtml((item.indications || '-').slice(0, 220))}</p>
+                <button type="button" class="vade-insert-btn">
+                    Insertar en tratamiento
+                </button>
+                <a href="/vademecum/${item.id}" target="_blank" class="small-btn" style="margin-left:8px;">
+                    Abrir ficha
+                </a>
+            `;
+
+            const button = div.querySelector('.vade-insert-btn');
+
+            button.addEventListener('click', function () {
+                insertDrugTreatment(
+                    item.name,
+                    item.name,
+                    dose,
+                    frequency,
+                    observations
+                );
+            });
+
+            list.appendChild(div);
+        });
+
+    } catch (error) {
+        list.innerHTML = `
+            <div class="vade-modal-item">
+                <p>No se pudo consultar el Vademécum.</p>
+            </div>
+        `;
+    }
+}
+
+function filterVademecumModal() {
+    const search = document.getElementById('vade_modal_search');
+
+    if (!search) return;
+
+    loadVademecumModal(search.value.trim());
+}
 function insertDrugTreatment(name, active, dose, frequency, observations) {
     const textarea = document.getElementById('treatment_textarea');
 
