@@ -556,7 +556,48 @@ Observaciones: {{ active.observations or '-' }}
 
         </div>
 
-        <hr class="vade-divider">       
+        <hr class="vade-divider"> 
+        <div class="patient-flags-box">
+
+            <h3>🐾 Datos clínicos rápidos del paciente</h3>
+
+            <div class="patient-flags-grid">
+
+                <label class="patient-flag">
+                    <input type="checkbox" id="flagRenal">
+                    Renal
+                </label>
+
+                <label class="patient-flag">
+                    <input type="checkbox" id="flagHepatic">
+                    Hepático
+                </label>
+
+                <label class="patient-flag">
+                    <input type="checkbox" id="flagPregnant">
+                    Gestación / lactancia
+                </label>
+
+                <label class="patient-flag">
+                    <input type="checkbox" id="flagPuppy">
+                    Cachorro / pediátrico
+                </label>
+
+                <label class="patient-flag">
+                    <input type="checkbox" id="flagGeriatric">
+                    Geronte
+                </label>
+
+                <label class="patient-flag">
+                    <input type="checkbox" id="flagCritical">
+                    Crítico / internado
+                </label>
+
+            </div>
+
+        </div>
+
+        <hr class="vade-divider">            
         <div class="dose-calc-box">
 
             <h3>⚖️ Calculador rápido por peso</h3>
@@ -869,7 +910,36 @@ Observaciones: {{ active.observations or '-' }}
         let speciesText = species === "dog" ? "perro" : "gato";
 
         let alerts = "";
+        const flagRenal = document.getElementById("flagRenal")?.checked;
+        const flagHepatic = document.getElementById("flagHepatic")?.checked;
+        const flagPregnant = document.getElementById("flagPregnant")?.checked;
+        const flagPuppy = document.getElementById("flagPuppy")?.checked;
+        const flagGeriatric = document.getElementById("flagGeriatric")?.checked;
+        const flagCritical = document.getElementById("flagCritical")?.checked;
 
+        if (flagRenal) {
+            alerts += "⚠ Paciente marcado como renal: revisar dosis, hidratación, AINEs y nefrotóxicos.<br>";
+        }
+
+        if (flagHepatic) {
+            alerts += "⚠ Paciente marcado como hepático: revisar metabolismo hepático y margen de seguridad.<br>";
+        }
+
+        if (flagPregnant) {
+            alerts += "⚠ Gestación/lactancia: revisar seguridad reproductiva antes de indicar.<br>";
+        }
+
+        if (flagPuppy) {
+            alerts += "⚠ Paciente pediátrico: revisar edad mínima, maduración renal/hepática y margen terapéutico.<br>";
+        }
+
+        if (flagGeriatric) {
+            alerts += "⚠ Paciente geronte: considerar comorbilidades, función renal/hepática y tolerancia.<br>";
+        }
+
+        if (flagCritical) {
+            alerts += "⚠ Paciente crítico/internado: individualizar dosis, vía, monitoreo y estabilidad hemodinámica.<br>";
+        }
         if (species === "cat" && clinicalText.includes("gato") && clinicalText.includes("precauc")) {
             alerts += "⚠ En gato: revisar precauciones específicas cargadas en la ficha.<br>";
         }
@@ -1027,6 +1097,22 @@ Observaciones: {{ active.observations or '-' }}
         if (concentrationInput) {
             concentrationInput.addEventListener("change", calculateVadeDose);
         }
+        const patientFlags = [
+            "flagRenal",
+            "flagHepatic",
+            "flagPregnant",
+            "flagPuppy",
+            "flagGeriatric",
+            "flagCritical"
+        ];
+
+        patientFlags.forEach(function (flagId) {
+            const flagInput = document.getElementById(flagId);
+
+            if (flagInput) {
+                flagInput.addEventListener("change", calculateVadeDose);
+            }
+        });        
     });
 </script>
 {% endblock %}
