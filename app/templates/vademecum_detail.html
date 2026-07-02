@@ -1338,7 +1338,66 @@ Observaciones: {{ active.observations or '-' }}
                 alternatives = "• Revisar alternativas terapéuticas según diagnóstico, especie, edad, peso, comorbilidades y criterio clínico.<br>";
             }
         }
+        if (diagnosis){
 
+            message +=
+                "<br><b>Interpretación según diagnóstico:</b><br>";
+
+            if (diagnosis.includes("otitis")){
+
+                message +=
+                    "• Compatible con tratamiento de otitis si el principio activo posee indicación para ese uso.<br>" +
+                    "• Confirmar integridad timpánica y vía de administración.<br>";
+
+            }
+
+            else if (
+                diagnosis.includes("pioder")
+            ){
+
+                message +=
+                    "• Compatible con infecciones cutáneas si la indicación lo permite.<br>" +
+                    "• Considerar cultivo en casos recurrentes o profundos.<br>";
+
+            }
+
+            else if (
+                diagnosis.includes("osteo") ||
+                diagnosis.includes("artrosis")
+            ){
+
+                message +=
+                    "• Puede formar parte del tratamiento del dolor osteoarticular según indicación clínica.<br>";
+
+            }
+
+            else if (
+                diagnosis.includes("gastr")
+            ){
+
+                message +=
+                    "• Corroborar que el principio activo esté indicado para enfermedad gastrointestinal.<br>";
+
+            }
+
+            else if (
+                diagnosis.includes("card")
+            ){
+
+                message +=
+                    "• Revisar cuidadosamente efectos cardiovasculares antes de indicar.<br>";
+
+            }
+
+            else{
+
+                message +=
+                    "• No existe todavía una interpretación específica para este diagnóstico.<br>" +
+                    "• Utilizar criterio clínico.<br>";
+
+            }
+
+        }
         message += "<br><b>Conclusión IA terapéutica:</b><br>" + finalStatus;
 
         if (alternatives) {
