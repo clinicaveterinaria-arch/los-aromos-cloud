@@ -1286,7 +1286,39 @@ Observaciones: {{ active.observations or '-' }}
             finalStatus = "🔴 No usar sin revisar contraindicación o alternativa terapéutica.";
         }
 
+        let alternatives = "";
+
+        if (riskLevel === "red" || riskLevel === "yellow") {
+            if (intent === "analgesia" || intent === "antiinflamatorio") {
+                alternatives += "• Considerar analgesia multimodal según el caso: opioide, gabapentinoide, dipirona/metamizol u otra opción compatible.<br>";
+            }
+
+            if (intent === "antibiotico") {
+                alternatives += "• Considerar elección antibiótica según foco, citología/cultivo, espectro, especie y función renal/hepática.<br>";
+            }
+
+            if (intent === "sedacion") {
+                alternatives += "• Considerar sedación ajustada al riesgo ASA, estado cardiovascular, edad y estado hemodinámico.<br>";
+            }
+
+            if (intent === "gastroproteccion") {
+                alternatives += "• Considerar gastroprotección según sospecha clínica: antiácido, protector de mucosa, antiemético o procinético según corresponda.<br>";
+            }
+
+            if (intent === "antiparasitario") {
+                alternatives += "• Considerar antiparasitario según especie, edad, peso, carga parasitaria y seguridad del principio activo.<br>";
+            }
+
+            if (!alternatives) {
+                alternatives = "• Revisar alternativas terapéuticas según diagnóstico, especie, edad, peso, comorbilidades y criterio clínico.<br>";
+            }
+        }
+
         message += "<br><b>Conclusión IA terapéutica:</b><br>" + finalStatus;
+
+        if (alternatives) {
+            message += "<br><br><b>Alternativas a considerar:</b><br>" + alternatives;
+        }
 
         box.innerHTML = message;
     }
