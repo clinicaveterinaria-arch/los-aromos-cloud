@@ -1004,7 +1004,11 @@ Observaciones: {{ active.observations or '-' }}
         const flagPuppy = document.getElementById("flagPuppy")?.checked;
         const flagGeriatric = document.getElementById("flagGeriatric")?.checked;
         const flagCritical = document.getElementById("flagCritical")?.checked;
+        const clinicalIntent = document.getElementById("clinicalIntent")?.value;
 
+        if (clinicalIntent) {
+            alerts += "🎯 Intención clínica seleccionada: " + clinicalIntent + ". Verificar que coincida con las indicaciones cargadas en la ficha.<br>";
+        }
         if (flagRenal) {
             alerts += "⚠ Paciente marcado como renal: revisar dosis, hidratación, AINEs y nefrotóxicos.<br>";
         }
@@ -1137,7 +1141,11 @@ Observaciones: {{ active.observations or '-' }}
         if (concentrationInput) {
             concentrationInput.addEventListener("change", calculateVadeDose);
         }
+        const clinicalIntentInput = document.getElementById("clinicalIntent");
 
+        if (clinicalIntentInput) {
+            clinicalIntentInput.addEventListener("change", calculateVadeDose);
+        }
         const patientFlags = [
             "flagRenal",
             "flagHepatic",
