@@ -1220,7 +1220,12 @@ Observaciones: {{ active.observations or '-' }}
 
         const species = document.getElementById("vadeDoseSpecies")?.value;
         const intent = document.getElementById("clinicalIntent")?.value;
-
+        const diagnosis =
+            document
+            .getElementById("clinicalDiagnosis")
+            ?.value
+            .toLowerCase()
+            .trim();
         const flagRenal = document.getElementById("flagRenal")?.checked;
         const flagHepatic = document.getElementById("flagHepatic")?.checked;
         const flagPregnant = document.getElementById("flagPregnant")?.checked;
