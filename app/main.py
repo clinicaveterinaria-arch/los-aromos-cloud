@@ -5484,6 +5484,89 @@ def vademecum_page(
                 "species": species
             }
         )
+@app.get('/vademecum/api/search')
+def vademecum_api_search(
+    q: str = '',
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    like = f"%{q.strip()}%"
+
+    rows = db.execute(
+        text("""
+            SELECT
+                a.id,
+                a.name,
+                a.category,
+                a.species,
+                a.dog_dose,
+                a.cat_dose,
+                a.route,
+                a.frequency,
+                a.indications,
+                a.contraindications,
+                a.warnings,
+                a.observations,
+                b.brand_name,
+                b.laboratory,
+                b.presentation,
+                b.concentration
+            FROM vademecum_active_ingredients a
+            LEFT JOIN vademecum_brands b
+                ON b.active_ingredient_id = a.id
+                AND b.active = TRUE
+            WHERE a.active = TRUE
+            AND (
+                :q = ''
+                OR a.name ILIKE :like
+                OR a.category ILIKE :like
+                OR a.species ILIKE :like
+                OR a.indications ILIKE :like
+                OR a.contraindications ILIKE :like
+                OR a.observations ILIKE :like
+                OR b.brand_name ILIKE :like
+                OR b.laboratory ILIKE :like
+            )
+            ORDER BY a.name, b.brand_name
+            LIMIT 80
+        """),
+        {
+            "q": q.strip(),
+            "like": like
+        }
+    ).mappings().all()
+
+    results = {}
+
+    for row in rows:
+        active_id = row["id"]
+
+        if active_id not in results:
+            results[active_id] = {
+                "id": active_id,
+                "name": row["name"] or "",
+                "category": row["category"] or "",
+                "species": row["species"] or "",
+                "dog_dose": row["dog_dose"] or "",
+                "cat_dose": row["cat_dose"] or "",
+                "route": row["route"] or "",
+                "frequency": row["frequency"] or "",
+                "indications": row["indications"] or "",
+                "contraindications": row["contraindications"] or "",
+                "warnings": row["warnings"] or "",
+                "observations": row["observations"] or "",
+                "brands": []
+            }
+
+        if row["brand_name"]:
+            results[active_id]["brands"].append({
+                "brand_name": row["brand_name"] or "",
+                "laboratory": row["laboratory"] or "",
+                "presentation": row["presentation"] or "",
+                "concentration": row["concentration"] or ""
+            })
+
+    return JSONResponse(list(results.values())[:20])
 @app.get('/vademecum/{active_id}', response_class=HTMLResponse)
 def vademecum_detail(
     active_id: int,
