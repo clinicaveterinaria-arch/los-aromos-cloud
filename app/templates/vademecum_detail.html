@@ -474,10 +474,18 @@
         <hr class="vade-divider">
         <div class="ai-dose-box">
 
+        <div class="ai-dose-box">
+
             <h3>🧠 IA de dosis</h3>
 
             <div id="vadeAiDoseResult" class="ai-dose-result">
                 Ingresá peso, especie y concentración en el calculador para obtener una interpretación clínica inicial.
+            </div>
+
+            <div class="vade-actions" style="margin-top:12px;">
+                <button type="button" class="vade-btn secondary" onclick="copyVadeAiDose()">
+                    Copiar interpretación IA
+                </button>
             </div>
 
         </div>
@@ -909,6 +917,17 @@ Observaciones: {{ active.observations or '-' }}
 
         aiBox.innerHTML = message;
     } 
+    function copyVadeAiDose() {
+        const aiBox = document.getElementById("vadeAiDoseResult");
+
+        if (!aiBox) {
+            return;
+        }
+
+        navigator.clipboard.writeText(aiBox.innerText || aiBox.textContent);
+
+        aiBox.innerHTML = aiBox.innerHTML + "<br><br>✅ Interpretación IA copiada.";
+    }   
     function copyVadeClinicalSummary() {
         const summaryBox = document.getElementById("vadeClinicalSummary");
 
