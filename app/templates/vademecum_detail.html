@@ -621,7 +621,27 @@ Observaciones: {{ active.observations or '-' }}
                 <option value="antiparasitario">Antiparasitario</option>
                 <option value="otro">Otro uso clínico</option>
             </select>
+            <div style="margin-top:14px;">
 
+                <label style="font-weight:bold;">
+                    Diagnóstico / sospecha clínica
+                </label>
+
+                <input
+                    type="text"
+                    id="clinicalDiagnosis"
+                    placeholder="Ej: Otitis, Piodermia, Osteoartritis..."
+                    style="
+                        width:100%;
+                        box-sizing:border-box;
+                        margin-top:6px;
+                        padding:10px;
+                        border:1px solid #d1d5db;
+                        border-radius:10px;
+                    "
+                >
+
+            </div>
         </div>
 
         <hr class="vade-divider">       
