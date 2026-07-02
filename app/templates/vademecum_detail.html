@@ -1396,7 +1396,8 @@ Observaciones: {{ active.observations or '-' }}
         const weightInput = document.getElementById("vadeDoseWeight");
         const concentrationInput = document.getElementById("vadeDoseConcentration");
         const clinicalIntentInput = document.getElementById("clinicalIntent");
-
+        const diagnosisInput =
+            document.getElementById("clinicalDiagnosis");
         if (speciesInput) speciesInput.addEventListener("change", calculateVadeDose);
 
         if (weightInput) {
@@ -1412,6 +1413,12 @@ Observaciones: {{ active.observations or '-' }}
         if (concentrationInput) concentrationInput.addEventListener("change", calculateVadeDose);
         if (clinicalIntentInput) clinicalIntentInput.addEventListener("change", calculateVadeDose);
         if (clinicalIntentInput) clinicalIntentInput.addEventListener("change", updateVadeTherapeuticAi);
+        if (diagnosisInput){
+            diagnosisInput.addEventListener(
+                "input",
+                updateVadeTherapeuticAi
+            );
+        }        
         const patientFlags = [
             "flagRenal",
             "flagHepatic",
