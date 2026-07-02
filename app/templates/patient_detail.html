@@ -873,12 +873,11 @@ function escapeHtml(text) {
 
 async function loadVademecumModal(query) {
     const list = document.getElementById('vade_modal_list');
-
     if (!list) return;
 
     list.innerHTML = `
         <div class="vade-modal-item">
-            <p>Buscando en Vademécum...</p>
+            <p>Buscando en Vademécum real...</p>
         </div>
     `;
 
@@ -889,7 +888,7 @@ async function loadVademecumModal(query) {
         if (!data.length) {
             list.innerHTML = `
                 <div class="vade-modal-item">
-                    <p>No se encontraron medicamentos cargados en el Vademécum.</p>
+                    <p>No se encontraron medicamentos cargados.</p>
                 </div>
             `;
             return;
@@ -897,18 +896,28 @@ async function loadVademecumModal(query) {
 
         list.innerHTML = '';
 
+        const patientSpecies = "{{ patient.species or '' }}".toLowerCase();
+        const patientWeight = "{{ patient.weight or '' }}";
+
         data.forEach(item => {
             const brandsText = item.brands && item.brands.length
                 ? item.brands.map(b => {
                     let txt = b.brand_name || '';
                     if (b.concentration) txt += ' — ' + b.concentration;
+                    if (b.laboratory) txt += ' · ' + b.laboratory;
                     return txt;
                 }).join(', ')
                 : 'Sin marcas cargadas';
 
-            const dose = item.dog_dose || item.cat_dose || 'Dosis a revisar';
-            const frequency = item.frequency || 'Frecuencia a revisar';
-            const observations = item.observations || item.warnings || item.contraindications || '';
+            let dose = item.dog_dose || item.cat_dose || 'Dosis a revisar';
+
+            if (patientSpecies.includes('fel') || patientSpecies.includes('gat')) {
+                dose = item.cat_dose || item.dog_dose || 'Dosis a revisar';
+            }
+
+            if (patientSpecies.includes('can') || patientSpecies.includes('per')) {
+                dose = item.dog_dose || item.cat_dose || 'Dosis a revisar';
+            }
 
             const div = document.createElement('div');
             div.className = 'vade-modal-item';
@@ -916,29 +925,31 @@ async function loadVademecumModal(query) {
             div.innerHTML = `
                 <h4>${escapeHtml(item.name)}</h4>
                 <p><b>Categoría:</b> ${escapeHtml(item.category || '-')}</p>
-                <p><b>Especie:</b> ${escapeHtml(item.species || '-')}</p>
+                <p><b>Especie ficha:</b> ${escapeHtml(item.species || '-')}</p>
+                <p><b>Paciente:</b> ${escapeHtml(patientSpecies || '-')} · ${escapeHtml(patientWeight || '-')} kg</p>
                 <p><b>Marcas:</b> ${escapeHtml(brandsText)}</p>
                 <p><b>Dosis perro:</b> ${escapeHtml(item.dog_dose || '-')}</p>
                 <p><b>Dosis gato:</b> ${escapeHtml(item.cat_dose || '-')}</p>
                 <p><b>Vía/Frecuencia:</b> ${escapeHtml(item.route || '-')} · ${escapeHtml(item.frequency || '-')}</p>
                 <p><b>Indicaciones:</b> ${escapeHtml((item.indications || '-').slice(0, 220))}</p>
+
                 <button type="button" class="vade-insert-btn">
-                    Insertar en tratamiento
+                    Insertar tratamiento
                 </button>
+
                 <a href="/vademecum/${item.id}" target="_blank" class="small-btn" style="margin-left:8px;">
                     Abrir ficha
                 </a>
             `;
 
-            const button = div.querySelector('.vade-insert-btn');
-
-            button.addEventListener('click', function () {
+            div.querySelector('.vade-insert-btn').addEventListener('click', function () {
                 insertDrugTreatment(
                     item.name,
-                    item.name,
+                    brandsText,
                     dose,
-                    frequency,
-                    observations
+                    item.route || '',
+                    item.frequency || '',
+                    item.observations || item.warnings || item.contraindications || ''
                 );
             });
 
@@ -956,22 +967,21 @@ async function loadVademecumModal(query) {
 
 function filterVademecumModal() {
     const search = document.getElementById('vade_modal_search');
-
     if (!search) return;
-
     loadVademecumModal(search.value.trim());
 }
-function insertDrugTreatment(name, active, dose, frequency, observations) {
-    const textarea = document.getElementById('treatment_textarea');
 
+function insertDrugTreatment(name, brands, dose, route, frequency, observations) {
+    const textarea = document.getElementById('treatment_textarea');
     if (!textarea) return;
 
     const block = `
 ${name}
-Principio activo: ${active}
-Dosis: ${dose}
-Frecuencia: ${frequency}
-Observaciones: ${observations}
+Marca/s: ${brands || '-'}
+Dosis: ${dose || 'A revisar'}
+Vía: ${route || 'A revisar'}
+Frecuencia: ${frequency || 'A revisar'}
+Observaciones: ${observations || '-'}
 `;
 
     textarea.value = (textarea.value || '').trim();
@@ -985,7 +995,6 @@ Observaciones: ${observations}
     textarea.focus();
     closeVademecumModal();
 }
-
 function addDewormerOption(targetInputId) {
     const input = document.getElementById(targetInputId);
     const list = document.getElementById('dewormers_list');
