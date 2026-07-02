@@ -1059,7 +1059,9 @@ Observaciones: {{ active.observations or '-' }}
         } else {
             message += "<br>ℹ No se estimó volumen en ml.";
         }
-
+        if (dailyText) {
+            message += "<br><b>Dosis diaria estimada:</b> " + dailyText;
+        }
         message +=
             "<br><br><b>Texto listo para Historia Clínica:</b><br>" +
             treatmentText +
