@@ -1188,6 +1188,7 @@ Observaciones: {{ active.observations or '-' }}
             "<br><br><b>Nota:</b> cálculo orientativo. Verificar siempre concentración, vía, frecuencia y criterio clínico.";
 
         updateVadeAiDose(weight, species, parsedDose, parsedConcentration, doseText, totals.text, mlText);
+        updateVadeTherapeuticAi();       
     }
     function updateVadeTherapeuticAi() {
         const box = document.getElementById("vadeTherapeuticAiResult");
@@ -1295,7 +1296,7 @@ Observaciones: {{ active.observations or '-' }}
 
         if (concentrationInput) concentrationInput.addEventListener("change", calculateVadeDose);
         if (clinicalIntentInput) clinicalIntentInput.addEventListener("change", calculateVadeDose);
-
+        if (clinicalIntentInput) clinicalIntentInput.addEventListener("change", updateVadeTherapeuticAi);
         const patientFlags = [
             "flagRenal",
             "flagHepatic",
