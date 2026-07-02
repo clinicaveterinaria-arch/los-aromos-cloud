@@ -195,6 +195,24 @@
         line-height: 1.6;
         margin-top: 6px;
     }
+     .ai-dose-box {
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+        border-radius: 18px;
+        padding: 16px;
+        margin: 18px 0;
+    }
+
+    .ai-dose-box h3 {
+        margin: 0 0 10px 0;
+        color: #166534;
+    }
+
+    .ai-dose-result {
+        color: #374151;
+        line-height: 1.5;
+        font-size: 14px;
+    } 
     .clinical-summary-box {
         background: #fff8fb;
         border: 1px solid #f3c6d8;
@@ -454,6 +472,17 @@
         </div>
 
         <hr class="vade-divider">
+        <div class="ai-dose-box">
+
+            <h3>🧠 IA de dosis</h3>
+
+            <div id="vadeAiDoseResult" class="ai-dose-result">
+                Ingresá peso, especie y concentración en el calculador para obtener una interpretación clínica inicial.
+            </div>
+
+        </div>
+
+        <hr class="vade-divider">        
         <div class="clinical-summary-box">
 
             <h3>📌 Resumen clínico para copiar</h3>
@@ -763,6 +792,12 @@ Observaciones: {{ active.observations or '-' }}
                 doseText +
                 "<br><br><b>Nota:</b> cálculo orientativo. Verificar siempre concentración, vía, frecuencia y criterio clínico.";
         } else {
+            const aiBox = document.getElementById("vadeAiDoseResult");
+
+            if (aiBox) {
+                aiBox.innerHTML =
+                    "No se pudo interpretar automáticamente la dosis cargada. Revisar manualmente el texto de dosis, especie, vía y frecuencia.";
+            }            
             resultBox.innerHTML =
                 "<b>Peso:</b> " + weight + " kg<br>" +
                 "<b>Dosis cargada:</b><br>" +
@@ -770,6 +805,38 @@ Observaciones: {{ active.observations or '-' }}
                 "<br><br><b>Nota:</b> no se detectó automáticamente una dosis tipo mg/kg, µg/kg o rango. Revisar manualmente.";
         }
     }
+     function updateVadeAiDose(weight, species, parsedDose, parsedConcentration, doseText, totalText, mlText) {
+        const aiBox = document.getElementById("vadeAiDoseResult");
+
+        if (!aiBox) {
+            return;
+        }
+
+        let speciesText = species === "dog" ? "perro" : "gato";
+
+        let message =
+            "<b>Interpretación inicial:</b><br>" +
+            "Para un " + speciesText + " de " + weight + " kg, la ficha permite estimar una dosis total de <b>" +
+            totalText + "</b>.";
+
+        if (mlText) {
+            message += "<br>También se pudo estimar volumen en ml según la concentración seleccionada.";
+        } else if (parsedConcentration) {
+            message += "<br>Hay concentración seleccionada, pero no se pudo calcular volumen por diferencia de unidades.";
+        } else {
+            message += "<br>No se seleccionó concentración, por lo que no se estima volumen en ml.";
+        }
+
+        message +=
+            "<br><br><b>Revisión clínica sugerida:</b><br>" +
+            "Antes de indicar, revisar especie, vía, frecuencia, contraindicaciones, interacciones, función renal/hepática y estado clínico del paciente.";
+
+        message +=
+            "<br><br><b>Dosis textual cargada:</b><br>" +
+            doseText;
+
+        aiBox.innerHTML = message;
+    } 
     function copyVadeClinicalSummary() {
         const summaryBox = document.getElementById("vadeClinicalSummary");
 
