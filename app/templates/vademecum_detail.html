@@ -1189,6 +1189,43 @@ Observaciones: {{ active.observations or '-' }}
 
         updateVadeAiDose(weight, species, parsedDose, parsedConcentration, doseText, totals.text, mlText);
     }
+    function updateVadeTherapeuticAi() {
+        const box = document.getElementById("vadeTherapeuticAiResult");
+        if (!box) return;
+
+        const activeName = {{ (active.name or '')|tojson }};
+        const category = {{ (active.category or '')|tojson }}.toLowerCase();
+        const clinicalText = getClinicalText();
+        const species = document.getElementById("vadeDoseSpecies")?.value;
+        const intent = document.getElementById("clinicalIntent")?.value;
+
+        let speciesText = species === "cat" ? "gato" : "perro";
+        let message = "<b>" + activeName + "</b><br>";
+
+        if (!intent) {
+            box.innerHTML = "Seleccioná una intención clínica para que la IA terapéutica pueda orientar mejor.";
+            return;
+        }
+
+        message += "<b>Paciente:</b> " + speciesText + "<br>";
+        message += "<b>Intención clínica:</b> " + intent + "<br><br>";
+
+        if (intent === "analgesia" && (category.includes("aine") || clinicalText.includes("dolor") || clinicalText.includes("analg"))) {
+            message += "✅ La intención analgésica parece compatible con la ficha cargada.<br>";
+        } else if (intent === "antiinflamatorio" && category.includes("aine")) {
+            message += "✅ La intención antiinflamatoria coincide con la categoría cargada.<br>";
+        } else if (intent === "antibiotico" && (category.includes("antib") || clinicalText.includes("infecc"))) {
+            message += "✅ La intención antibiótica parece compatible con la ficha cargada.<br>";
+        } else {
+            message += "⚠ La intención clínica no coincide claramente con categoría/indicaciones cargadas. Revisar criterio clínico.<br>";
+        }
+
+        if (clinicalText.includes("contraindicado") || clinicalText.includes("evitar")) {
+            message += "<br>❌ La ficha contiene contraindicaciones o advertencias fuertes. Revisar antes de usar.";
+        }
+
+        box.innerHTML = message;
+    }  
     function copyVadeTreatmentText() {
         if (!window.vadeLastTreatmentText) {
             return;
