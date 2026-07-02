@@ -1060,9 +1060,6 @@ Observaciones: {{ active.observations or '-' }}
             message += "<br>⚠ Hay concentración seleccionada, pero no se pudo calcular volumen. Revisar si la unidad coincide con la dosis.";
         } else {
             message += "<br>ℹ No se seleccionó concentración, por lo que no se estimó volumen en ml.";
-        }
-        if (dailyText) {
-            message += "<br><b>Dosis diaria estimada:</b> " + dailyText;
         }    
         if (dailyText) {
             message += "<br><b>Dosis diaria estimada:</b> " + dailyText;
