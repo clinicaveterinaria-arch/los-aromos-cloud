@@ -1197,36 +1197,99 @@ Observaciones: {{ active.observations or '-' }}
         const activeName = {{ (active.name or '')|tojson }};
         const category = {{ (active.category or '')|tojson }}.toLowerCase();
         const clinicalText = getClinicalText();
+
         const species = document.getElementById("vadeDoseSpecies")?.value;
         const intent = document.getElementById("clinicalIntent")?.value;
 
-        let speciesText = species === "cat" ? "gato" : "perro";
-        let message = "<b>" + activeName + "</b><br>";
+        const flagRenal = document.getElementById("flagRenal")?.checked;
+        const flagHepatic = document.getElementById("flagHepatic")?.checked;
+        const flagPregnant = document.getElementById("flagPregnant")?.checked;
+        const flagPuppy = document.getElementById("flagPuppy")?.checked;
+        const flagGeriatric = document.getElementById("flagGeriatric")?.checked;
+        const flagCritical = document.getElementById("flagCritical")?.checked;
+
+        const speciesText = species === "cat" ? "gato" : "perro";
 
         if (!intent) {
             box.innerHTML = "Seleccioná una intención clínica para que la IA terapéutica pueda orientar mejor.";
             return;
         }
 
+        let riskLevel = "green";
+        let message = "<b>" + activeName + "</b><br>";
         message += "<b>Paciente:</b> " + speciesText + "<br>";
         message += "<b>Intención clínica:</b> " + intent + "<br><br>";
 
+        let matchText = "";
+
         if (intent === "analgesia" && (category.includes("aine") || clinicalText.includes("dolor") || clinicalText.includes("analg"))) {
-            message += "✅ La intención analgésica parece compatible con la ficha cargada.<br>";
+            matchText = "✅ La intención analgésica parece compatible con la ficha cargada.<br>";
         } else if (intent === "antiinflamatorio" && category.includes("aine")) {
-            message += "✅ La intención antiinflamatoria coincide con la categoría cargada.<br>";
+            matchText = "✅ La intención antiinflamatoria coincide con la categoría cargada.<br>";
         } else if (intent === "antibiotico" && (category.includes("antib") || clinicalText.includes("infecc"))) {
-            message += "✅ La intención antibiótica parece compatible con la ficha cargada.<br>";
+            matchText = "✅ La intención antibiótica parece compatible con la ficha cargada.<br>";
+        } else if (intent === "sedacion" && (category.includes("sed") || clinicalText.includes("sed") || clinicalText.includes("tranquil"))) {
+            matchText = "✅ La intención de sedación parece compatible con la ficha cargada.<br>";
+        } else if (intent === "gastroproteccion" && (category.includes("gastro") || clinicalText.includes("gastro") || clinicalText.includes("ácido") || clinicalText.includes("acido"))) {
+            matchText = "✅ La intención de gastroprotección parece compatible con la ficha cargada.<br>";
+        } else if (intent === "antiparasitario" && (category.includes("paras") || clinicalText.includes("paras"))) {
+            matchText = "✅ La intención antiparasitaria parece compatible con la ficha cargada.<br>";
         } else {
-            message += "⚠ La intención clínica no coincide claramente con categoría/indicaciones cargadas. Revisar criterio clínico.<br>";
+            matchText = "⚠ La intención clínica no coincide claramente con categoría/indicaciones cargadas. Revisar criterio clínico.<br>";
+            riskLevel = "yellow";
+        }
+
+        message += matchText;
+
+        if (flagRenal) {
+            message += "⚠ Paciente renal: priorizar fármacos con margen renal seguro y evitar nefrotóxicos si corresponde.<br>";
+            riskLevel = "yellow";
+        }
+
+        if (flagHepatic) {
+            message += "⚠ Paciente hepático: revisar metabolismo, dosis, intervalo y margen de seguridad.<br>";
+            riskLevel = "yellow";
+        }
+
+        if (flagPregnant) {
+            message += "⚠ Gestación/lactancia: confirmar seguridad reproductiva antes de usar.<br>";
+            riskLevel = "yellow";
+        }
+
+        if (flagPuppy) {
+            message += "⚠ Paciente pediátrico: verificar edad mínima y seguridad por especie/edad.<br>";
+            riskLevel = "yellow";
+        }
+
+        if (flagGeriatric) {
+            message += "⚠ Geronte: considerar comorbilidades, laboratorio y tolerancia.<br>";
+            riskLevel = "yellow";
+        }
+
+        if (flagCritical) {
+            message += "⚠ Paciente crítico/internado: individualizar tratamiento y monitoreo.<br>";
+            riskLevel = "yellow";
         }
 
         if (clinicalText.includes("contraindicado") || clinicalText.includes("evitar")) {
-            message += "<br>❌ La ficha contiene contraindicaciones o advertencias fuertes. Revisar antes de usar.";
+            message += "❌ La ficha contiene contraindicaciones o advertencias fuertes. Revisar antes de usar.<br>";
+            riskLevel = "red";
         }
 
+        let finalStatus = "🟢 Orientación terapéutica compatible con los datos cargados.";
+
+        if (riskLevel === "yellow") {
+            finalStatus = "🟡 Usar con precaución y revisar datos del paciente.";
+        }
+
+        if (riskLevel === "red") {
+            finalStatus = "🔴 No usar sin revisar contraindicación o alternativa terapéutica.";
+        }
+
+        message += "<br><b>Conclusión IA terapéutica:</b><br>" + finalStatus;
+
         box.innerHTML = message;
-    }  
+    }
     function copyVadeTreatmentText() {
         if (!window.vadeLastTreatmentText) {
             return;
