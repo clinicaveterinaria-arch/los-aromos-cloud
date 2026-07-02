@@ -899,6 +899,7 @@ Observaciones: {{ active.observations or '-' }}
 
     function getVadeAiAlerts(species, clinicalText) {
         let alerts = "";
+        let riskLevel = "green";
 
         const flagRenal = document.getElementById("flagRenal")?.checked;
         const flagHepatic = document.getElementById("flagHepatic")?.checked;
@@ -909,34 +910,79 @@ Observaciones: {{ active.observations or '-' }}
         const clinicalIntent = document.getElementById("clinicalIntent")?.value;
 
         if (clinicalIntent) {
-            alerts += "🎯 Intención clínica: " + clinicalIntent + ". Verificar que coincida con indicaciones y categoría del medicamento.<br>";
+            alerts += "🎯 Intención clínica: " + clinicalIntent + ". Verificar coincidencia con indicaciones.<br>";
         }
 
-        if (flagRenal) alerts += "⚠ Paciente renal: revisar nefrotoxicidad, hidratación, AINEs, aminoglucósidos y necesidad de ajuste.<br>";
-        if (flagHepatic) alerts += "⚠ Paciente hepático: revisar metabolismo hepático, margen de seguridad y acumulación.<br>";
-        if (flagPregnant) alerts += "⚠ Gestación/lactancia: confirmar seguridad reproductiva antes de indicar.<br>";
-        if (flagPuppy) alerts += "⚠ Pediátrico: revisar edad mínima, maduración renal/hepática y margen terapéutico.<br>";
-        if (flagGeriatric) alerts += "⚠ Geronte: considerar comorbilidades, función renal/hepática y tolerancia.<br>";
-        if (flagCritical) alerts += "⚠ Crítico/internado: individualizar dosis, vía, monitoreo y estabilidad hemodinámica.<br>";
+        if (flagRenal) {
+            alerts += "⚠ Paciente renal: revisar nefrotoxicidad, hidratación y necesidad de ajuste.<br>";
+            riskLevel = "yellow";
+        }
 
-        if (species === "cat" && clinicalText.includes("gato") && clinicalText.includes("precauc")) {
-            alerts += "⚠ En gato: revisar precauciones específicas cargadas en la ficha.<br>";
+        if (flagHepatic) {
+            alerts += "⚠ Paciente hepático: revisar metabolismo hepático y margen de seguridad.<br>";
+            riskLevel = "yellow";
+        }
+
+        if (flagPregnant) {
+            alerts += "⚠ Gestación/lactancia: confirmar seguridad reproductiva antes de indicar.<br>";
+            riskLevel = "yellow";
+        }
+
+        if (flagPuppy) {
+            alerts += "⚠ Pediátrico: revisar edad mínima y margen terapéutico.<br>";
+            riskLevel = "yellow";
+        }
+
+        if (flagGeriatric) {
+            alerts += "⚠ Geronte: considerar comorbilidades y función renal/hepática.<br>";
+            riskLevel = "yellow";
+        }
+
+        if (flagCritical) {
+            alerts += "⚠ Crítico/internado: individualizar dosis, vía y monitoreo.<br>";
+            riskLevel = "yellow";
+        }
+
+        if (clinicalText.includes("renal") || clinicalText.includes("riñ")) {
+            alerts += "⚠ La ficha menciona renal/riñón: revisar función renal.<br>";
+            riskLevel = "yellow";
+        }
+
+        if (clinicalText.includes("hep") || clinicalText.includes("hígado") || clinicalText.includes("higado")) {
+            alerts += "⚠ La ficha menciona hepático/hígado: revisar función hepática.<br>";
+            riskLevel = "yellow";
+        }
+
+        if (clinicalText.includes("gest") || clinicalText.includes("preñez") || clinicalText.includes("lact")) {
+            alerts += "⚠ La ficha menciona gestación/lactancia: revisar seguridad.<br>";
+            riskLevel = "yellow";
         }
 
         if (species === "cat" && clinicalText.includes("felino") && clinicalText.includes("evitar")) {
             alerts += "❌ En felino: la ficha menciona evitar o restringir uso.<br>";
+            riskLevel = "red";
         }
 
-        if (clinicalText.includes("renal") || clinicalText.includes("riñ")) alerts += "⚠ La ficha menciona riñón/renal: revisar función renal.<br>";
-        if (clinicalText.includes("hep") || clinicalText.includes("hígado") || clinicalText.includes("higado")) alerts += "⚠ La ficha menciona hígado/hepático: revisar función hepática.<br>";
-        if (clinicalText.includes("gest") || clinicalText.includes("preñez") || clinicalText.includes("lact")) alerts += "⚠ La ficha menciona gestación/lactancia: revisar seguridad.<br>";
-        if (clinicalText.includes("contraindicado") || clinicalText.includes("evitar")) alerts += "❌ Hay contraindicaciones o advertencias fuertes cargadas.<br>";
+        if (clinicalText.includes("contraindicado") || clinicalText.includes("evitar")) {
+            alerts += "❌ Hay contraindicaciones o advertencias fuertes cargadas.<br>";
+            riskLevel = "red";
+        }
 
         if (!alerts) {
             alerts = "Sin alertas automáticas detectadas con la información cargada.<br>";
         }
 
-        return alerts;
+        let statusText = "🟢 Compatible según datos cargados";
+
+        if (riskLevel === "yellow") {
+            statusText = "🟡 Usar con precaución / revisar paciente";
+        }
+
+        if (riskLevel === "red") {
+            statusText = "🔴 Evitar o revisar contraindicación";
+        }
+
+        return "<b>Estado IA:</b> " + statusText + "<br><br>" + alerts;
     }
 
     function updateVadeAiDose(weight, species, parsedDose, parsedConcentration, doseText, totalText, mlText) {
