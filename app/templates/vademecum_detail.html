@@ -1468,6 +1468,35 @@ Observaciones: {{ active.observations or '-' }}
         const clinicalIntentInput = document.getElementById("clinicalIntent");
         const diagnosisInput =
             document.getElementById("clinicalDiagnosis");
+        const urlParams = new URLSearchParams(window.location.search);
+        const patientSpeciesParam = (urlParams.get("species") || "").toLowerCase();
+        const patientWeightParam = urlParams.get("weight") || "";
+
+        if (speciesInput && patientSpeciesParam) {
+            if (
+                patientSpeciesParam.includes("fel") ||
+                patientSpeciesParam.includes("gat")
+            ) {
+                speciesInput.value = "cat";
+            }
+
+            if (
+                patientSpeciesParam.includes("can") ||
+                patientSpeciesParam.includes("per")
+            ) {
+                speciesInput.value = "dog";
+            }
+        }
+
+        if (weightInput && patientWeightParam) {
+            weightInput.value = patientWeightParam;
+        }
+
+        if (patientWeightParam) {
+            setTimeout(function () {
+                calculateVadeDose();
+            }, 150);
+        }        
         if (speciesInput) {
             speciesInput.addEventListener("change", calculateVadeDose);
             speciesInput.addEventListener("change", updateVadeTherapeuticAi);
