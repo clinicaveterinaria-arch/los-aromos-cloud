@@ -1468,7 +1468,10 @@ Observaciones: {{ active.observations or '-' }}
         const clinicalIntentInput = document.getElementById("clinicalIntent");
         const diagnosisInput =
             document.getElementById("clinicalDiagnosis");
-        if (speciesInput) speciesInput.addEventListener("change", calculateVadeDose);
+        if (speciesInput) {
+            speciesInput.addEventListener("change", calculateVadeDose);
+            speciesInput.addEventListener("change", updateVadeTherapeuticAi);
+        }
 
         if (weightInput) {
             weightInput.addEventListener("input", calculateVadeDose);
