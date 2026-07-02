@@ -995,6 +995,8 @@ Observaciones: {{ active.observations or '-' }}
         const alerts = getVadeAiAlerts(species, clinicalText);
 
         let detectedExtra = "";
+        let routeText = parsedDose.route || {{ (active.route or '')|tojson }} || "vía a confirmar";
+        let frequencyText = parsedDose.frequency || {{ (active.frequency or '')|tojson }} || "frecuencia a confirmar";
 
         if (parsedDose.route) {
             detectedExtra += "<br><b>Vía detectada:</b> " + parsedDose.route;
@@ -1002,6 +1004,19 @@ Observaciones: {{ active.observations or '-' }}
 
         if (parsedDose.frequency) {
             detectedExtra += "<br><b>Frecuencia detectada:</b> " + parsedDose.frequency;
+        }
+
+        let treatmentText =
+            activeName + ": " +
+            totalText +
+            " totales, " +
+            routeText +
+            ", " +
+            frequencyText +
+            ".";
+
+        if (mlText) {
+            treatmentText += " " + mlText.replaceAll("<br>", "").replaceAll("<b>", "").replaceAll("</b>", "");
         }
 
         let message =
@@ -1014,12 +1029,14 @@ Observaciones: {{ active.observations or '-' }}
             "<b>Dosis total estimada:</b> " + totalText;
 
         if (mlText) {
-            message += mlText.replace("<br>", "<br>");
+            message += mlText;
         } else {
             message += "<br>ℹ No se estimó volumen en ml.";
         }
 
         message +=
+            "<br><br><b>Texto listo para Historia Clínica:</b><br>" +
+            treatmentText +
             "<br><br><b>Alertas IA:</b><br>" +
             alerts +
             "<br><b>Validación clínica:</b><br>" +
@@ -1029,7 +1046,6 @@ Observaciones: {{ active.observations or '-' }}
 
         aiBox.innerHTML = message;
     }
-
     function updateVadeAiDoseNoCalc(weight, species, doseText) {
         const aiBox = document.getElementById("vadeAiDoseResult");
         if (!aiBox) return;
