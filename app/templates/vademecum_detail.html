@@ -1009,6 +1009,29 @@ Observaciones: {{ active.observations or '-' }}
             detectedExtra += "<br><b>Frecuencia detectada:</b> " + parsedDose.frequency;
         }
         window.vadeLastTreatmentText = "";
+        let dailyText = "";
+
+        if (parsedDose.frequency === "SID" || parsedDose.frequency === "Cada 24 h") {
+            dailyText = totalText;
+        }
+        else if (parsedDose.frequency === "BID") {
+            dailyText = "≈ " + (
+                parsedDose.isRange
+                    ? (parsedDose.min * weight * 2).toFixed(2) +
+                      " - " +
+                      (parsedDose.max * weight * 2).toFixed(2)
+                    : (parsedDose.min * weight * 2).toFixed(2)
+            ) + " " + parsedDose.unit + "/día";
+        }
+        else if (parsedDose.frequency === "TID") {
+            dailyText = "≈ " + (
+                parsedDose.isRange
+                    ? (parsedDose.min * weight * 3).toFixed(2) +
+                      " - " +
+                      (parsedDose.max * weight * 3).toFixed(2)
+                    : (parsedDose.min * weight * 3).toFixed(2)
+            ) + " " + parsedDose.unit + "/día";
+        }        
         let treatmentText =
             activeName + ": " +
             totalText +
