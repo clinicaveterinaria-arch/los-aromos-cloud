@@ -1243,7 +1243,13 @@ Observaciones: {{ active.observations or '-' }}
         let riskLevel = "green";
         let message = "<b>" + activeName + "</b><br>";
         message += "<b>Paciente:</b> " + speciesText + "<br>";
-        message += "<b>Intención clínica:</b> " + intent + "<br><br>";
+        message += "<b>Intención clínica:</b> " + intent + "<br>";
+
+        if (diagnosis) {
+            message += "<b>Diagnóstico:</b> " + diagnosis + "<br>";
+        }
+
+        message += "<br>";
 
         let matchText = "";
 
