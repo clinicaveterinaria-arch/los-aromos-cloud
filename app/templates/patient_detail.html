@@ -896,8 +896,9 @@ async function loadVademecumModal(query) {
 
         list.innerHTML = '';
 
-        const patientSpecies = "{{ patient.species or '' }}".toLowerCase();
-        const patientWeight = "{{ patient.weight or '' }}";
+        const patientSpecies = {{ (patient.species or '')|tojson }}.toLowerCase();
+        const patientWeight = {{ (patient.weight|string if patient.weight else '')|tojson }};
+        const patientId = "{{ patient.id }}";
 
         data.forEach(item => {
             const brandsText = item.brands && item.brands.length
@@ -937,10 +938,9 @@ async function loadVademecumModal(query) {
                     Insertar tratamiento
                 </button>
 
-                <a href="/vademecum/${item.id}" target="_blank" class="small-btn" style="margin-left:8px;">
+                <a href="/vademecum/${item.id}?species=${encodeURIComponent(patientSpecies)}&weight=${encodeURIComponent(patientWeight)}&from_patient=${encodeURIComponent(patientId)}" target="_blank" class="small-btn" style="margin-left:8px;">
                     Abrir ficha
                 </a>
-            `;
 
             div.querySelector('.vade-insert-btn').addEventListener('click', function () {
                 insertDrugTreatment(
