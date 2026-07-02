@@ -764,27 +764,81 @@ Observaciones: {{ active.observations or '-' }}
 
 </div>
 <script>
-    function parseVadeDose(text) {
-        if (!text) {
-            return null;
+function parseVadeDose(text) {
+
+    if (!text) {
+        return null;
+    }
+
+    const clean = text
+        .toLowerCase()
+        .replaceAll(",", ".")
+        .replaceAll("–", "-")
+        .replaceAll("—", "-")
+        .replace(/\s+/g, " ");
+
+    const regex =
+        /(\d+(\.\d+)?)\s*(?:-\s*(\d+(\.\d+)?))?\s*(mg|µg|mcg)\s*\/\s*kg/;
+
+    const match = clean.match(regex);
+
+    if (!match) {
+        return null;
+    }
+
+    let minDose = parseFloat(match[1]);
+    let maxDose = minDose;
+
+    if (match[3]) {
+        maxDose = parseFloat(match[3]);
+    }
+
+    let route = "";
+
+    if (clean.includes(" iv")) route = "IV";
+    else if (clean.includes(" im")) route = "IM";
+    else if (clean.includes(" sc")) route = "SC";
+    else if (clean.includes(" vo")) route = "VO";
+    else if (clean.includes(" ev")) route = "EV";
+
+    let frequency = "";
+
+    if (clean.includes("bid")) frequency = "BID";
+    else if (clean.includes("tid")) frequency = "TID";
+    else if (clean.includes("qid")) frequency = "QID";
+    else if (clean.includes("sid")) frequency = "SID";
+    else {
+
+        const hourMatch = clean.match(/c\/?\s*(\d+)\s*h/);
+
+        if (hourMatch) {
+            frequency = "Cada " + hourMatch[1] + " h";
         }
 
-        const cleanText = text
-            .toLowerCase()
-            .replaceAll(",", ".")
-            .replaceAll("–", "-")
-            .replaceAll("—", "-");
+        const everyMatch = clean.match(/cada\s*(\d+)\s*hora/);
 
-        const rangeMatch = cleanText.match(/(\d+(\.\d+)?)\s*-\s*(\d+(\.\d+)?)\s*(mg|µg|mcg)\s*\/\s*kg/);
-
-        if (rangeMatch) {
-            return {
-                min: parseFloat(rangeMatch[1]),
-                max: parseFloat(rangeMatch[3]),
-                unit: normalizeVadeUnit(rangeMatch[5]),
-                isRange: true
-            };
+        if (everyMatch) {
+            frequency = "Cada " + everyMatch[1] + " h";
         }
+    }
+
+    return {
+
+        min: minDose,
+
+        max: maxDose,
+
+        unit: normalizeVadeUnit(match[5]),
+
+        isRange: minDose !== maxDose,
+
+        route: route,
+
+        frequency: frequency
+
+    };
+
+}
 
         const singleMatch = cleanText.match(/(\d+(\.\d+)?)\s*(mg|µg|mcg)\s*\/\s*kg/);
 
