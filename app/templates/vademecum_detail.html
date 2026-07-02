@@ -1008,30 +1008,40 @@ Observaciones: {{ active.observations or '-' }}
         if (parsedDose.frequency) {
             detectedExtra += "<br><b>Frecuencia detectada:</b> " + parsedDose.frequency;
         }
-        window.vadeLastTreatmentText = "";
+
         let dailyText = "";
+        let dosesPerDay = null;
 
         if (parsedDose.frequency === "SID" || parsedDose.frequency === "Cada 24 h") {
-            dailyText = totalText;
+            dosesPerDay = 1;
+        } else if (parsedDose.frequency === "BID" || parsedDose.frequency === "Cada 12 h") {
+            dosesPerDay = 2;
+        } else if (parsedDose.frequency === "TID" || parsedDose.frequency === "Cada 8 h") {
+            dosesPerDay = 3;
+        } else if (parsedDose.frequency === "QID" || parsedDose.frequency === "Cada 6 h") {
+            dosesPerDay = 4;
         }
-        else if (parsedDose.frequency === "BID") {
-            dailyText = "≈ " + (
+
+        if (dosesPerDay) {
+            dailyText = (
                 parsedDose.isRange
-                    ? (parsedDose.min * weight * 2).toFixed(2) +
+                    ? (parsedDose.min * weight * dosesPerDay).toFixed(2) +
                       " - " +
-                      (parsedDose.max * weight * 2).toFixed(2)
-                    : (parsedDose.min * weight * 2).toFixed(2)
+                      (parsedDose.max * weight * dosesPerDay).toFixed(2)
+                    : (parsedDose.min * weight * dosesPerDay).toFixed(2)
             ) + " " + parsedDose.unit + "/día";
         }
-        else if (parsedDose.frequency === "TID") {
-            dailyText = "≈ " + (
-                parsedDose.isRange
-                    ? (parsedDose.min * weight * 3).toFixed(2) +
-                      " - " +
-                      (parsedDose.max * weight * 3).toFixed(2)
-                    : (parsedDose.min * weight * 3).toFixed(2)
-            ) + " " + parsedDose.unit + "/día";
-        }        
+
+        let cleanMlText = "";
+
+        if (mlText && mlText.includes("Volumen estimado")) {
+            cleanMlText = " " +
+                mlText
+                    .replaceAll("<br>", "")
+                    .replaceAll("<b>", "")
+                    .replaceAll("</b>", "");
+        }
+
         let treatmentText =
             activeName + ": " +
             totalText +
@@ -1039,12 +1049,11 @@ Observaciones: {{ active.observations or '-' }}
             routeText +
             ", " +
             frequencyText +
-            ".";
+            "." +
+            cleanMlText;
 
-        if (mlText) {
-            treatmentText += " " + mlText.replaceAll("<br>", "").replaceAll("<b>", "").replaceAll("</b>", "");
-        }
         window.vadeLastTreatmentText = treatmentText;
+
         let message =
             "<b>" + activeName + "</b><br>" +
             "<b>Paciente:</b> " + speciesText + " de " + weight + " kg<br>" +
@@ -1060,10 +1069,12 @@ Observaciones: {{ active.observations or '-' }}
             message += "<br>⚠ Hay concentración seleccionada, pero no se pudo calcular volumen. Revisar si la unidad coincide con la dosis.";
         } else {
             message += "<br>ℹ No se seleccionó concentración, por lo que no se estimó volumen en ml.";
-        }    
+        }
+
         if (dailyText) {
             message += "<br><b>Dosis diaria estimada:</b> " + dailyText;
         }
+
         message +=
             "<br><br><b>Texto listo para Historia Clínica:</b><br>" +
             treatmentText +
