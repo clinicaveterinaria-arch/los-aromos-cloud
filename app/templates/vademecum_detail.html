@@ -542,6 +542,9 @@
                 <button type="button" class="vade-btn secondary" onclick="copyVadeAiDose()">
                     Copiar interpretación IA
                 </button>
+                <button type="button" class="vade-btn secondary" onclick="copyVadeTreatmentText()">
+                    Copiar tratamiento HC
+                </button>                
             </div>
 
         </div>
@@ -1005,7 +1008,7 @@ Observaciones: {{ active.observations or '-' }}
         if (parsedDose.frequency) {
             detectedExtra += "<br><b>Frecuencia detectada:</b> " + parsedDose.frequency;
         }
-
+        window.vadeLastTreatmentText = "";
         let treatmentText =
             activeName + ": " +
             totalText +
@@ -1018,7 +1021,7 @@ Observaciones: {{ active.observations or '-' }}
         if (mlText) {
             treatmentText += " " + mlText.replaceAll("<br>", "").replaceAll("<b>", "").replaceAll("</b>", "");
         }
-
+        window.vadeLastTreatmentText = treatmentText;
         let message =
             "<b>" + activeName + "</b><br>" +
             "<b>Paciente:</b> " + speciesText + " de " + weight + " kg<br>" +
@@ -1120,7 +1123,13 @@ Observaciones: {{ active.observations or '-' }}
 
         updateVadeAiDose(weight, species, parsedDose, parsedConcentration, doseText, totals.text, mlText);
     }
-
+    function copyVadeTreatmentText() {
+        if (!window.vadeLastTreatmentText) {
+            return;
+        }
+    
+        navigator.clipboard.writeText(window.vadeLastTreatmentText);
+    }
     function copyVadeAiDose() {
         const aiBox = document.getElementById("vadeAiDoseResult");
         if (!aiBox) return;
