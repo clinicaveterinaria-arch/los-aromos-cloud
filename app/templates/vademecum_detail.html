@@ -805,7 +805,79 @@ Observaciones: {{ active.observations or '-' }}
                 "<br><br><b>Nota:</b> no se detectó automáticamente una dosis tipo mg/kg, µg/kg o rango. Revisar manualmente.";
         }
     }
-     function updateVadeAiDose(weight, species, parsedDose, parsedConcentration, doseText, totalText, mlText) {
+    function updateVadeAiDose(weight, species, parsedDose, parsedConcentration, doseText, totalText, mlText) {
+        const aiBox = document.getElementById("vadeAiDoseResult");
+
+        if (!aiBox) {
+            return;
+        }
+
+        const activeName = {{ (active.name or '')|tojson }};
+        const clinicalText = {{ (
+            (active.indications or '') ~ ' ' ~
+            (active.contraindications or '') ~ ' ' ~
+            (active.interactions or '') ~ ' ' ~
+            (active.warnings or '') ~ ' ' ~
+            (active.observations or '')
+        )|tojson }}.toLowerCase();
+
+        let speciesText = species === "dog" ? "perro" : "gato";
+
+        let alerts = "";
+
+        if (species === "cat" && clinicalText.includes("gato") && clinicalText.includes("precauc")) {
+            alerts += "⚠ En gato: revisar precauciones específicas cargadas en la ficha.<br>";
+        }
+
+        if (species === "cat" && clinicalText.includes("felino") && clinicalText.includes("evitar")) {
+            alerts += "❌ En felino: la ficha menciona evitar o restringir uso.<br>";
+        }
+
+        if (clinicalText.includes("renal") || clinicalText.includes("riñ")) {
+            alerts += "⚠ Revisar función renal antes de indicar.<br>";
+        }
+
+        if (clinicalText.includes("hep") || clinicalText.includes("hígado") || clinicalText.includes("higado")) {
+            alerts += "⚠ Revisar función hepática antes de indicar.<br>";
+        }
+
+        if (clinicalText.includes("gest") || clinicalText.includes("preñez") || clinicalText.includes("lact")) {
+            alerts += "⚠ Revisar seguridad en gestación o lactancia.<br>";
+        }
+
+        if (clinicalText.includes("contraindicado") || clinicalText.includes("evitar")) {
+            alerts += "❌ Hay contraindicaciones o advertencias fuertes cargadas en la ficha.<br>";
+        }
+
+        if (!alerts) {
+            alerts = "Sin alertas automáticas detectadas con la información cargada.<br>";
+        }
+
+        let message =
+            "<b>" + activeName + "</b><br>" +
+            "<b>Paciente:</b> " + speciesText + " de " + weight + " kg<br>" +
+            "<b>Dosis total estimada:</b> " + totalText + "<br>";
+
+        if (mlText) {
+            message += "💉 Se pudo estimar volumen en ml según concentración seleccionada.<br>";
+        } else if (parsedConcentration) {
+            message += "⚠ Hay concentración seleccionada, pero no se pudo calcular volumen por diferencia de unidades.<br>";
+        } else {
+            message += "ℹ No se seleccionó concentración, por lo que no se estima volumen en ml.<br>";
+        }
+
+        message +=
+            "<br><b>Alertas IA:</b><br>" +
+            alerts +
+            "<br><b>Revisión clínica obligatoria:</b><br>" +
+            "Verificar vía, frecuencia, presentación, concentración, especie, edad, estado renal/hepático, gestación/lactancia, antecedentes y criterio clínico.";
+
+        message +=
+            "<br><br><b>Dosis textual cargada:</b><br>" +
+            doseText;
+
+        aiBox.innerHTML = message;
+    }
         const aiBox = document.getElementById("vadeAiDoseResult");
 
         if (!aiBox) {
