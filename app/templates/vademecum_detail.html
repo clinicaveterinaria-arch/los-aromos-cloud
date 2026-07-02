@@ -232,6 +232,43 @@
         white-space: pre-wrap;
         font-size: 14px;
     }   
+    .patient-flags-box {
+        background: #fff7ed;
+        border: 1px solid #fed7aa;
+        border-radius: 18px;
+        padding: 16px;
+        margin: 18px 0;
+    }
+
+    .patient-flags-box h3 {
+        margin: 0 0 10px 0;
+        color: #9a3412;
+    }
+
+    .patient-flags-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+    }
+
+    .patient-flag {
+        background: white;
+        border: 1px solid #fed7aa;
+        border-radius: 12px;
+        padding: 9px 10px;
+        font-size: 13px;
+        color: #374151;
+    }
+
+    .patient-flag input {
+        margin-right: 6px;
+    }
+
+    @media (max-width: 900px) {
+        .patient-flags-grid {
+            grid-template-columns: 1fr;
+        }
+    } 
     .dose-calc-box {
         background: #f8fafc;
         border: 1px solid #e5e7eb;
