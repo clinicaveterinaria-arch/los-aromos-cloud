@@ -744,7 +744,7 @@ Observaciones: {{ active.observations or '-' }}
             return {
                 min: parseFloat(rangeMatch[1]),
                 max: parseFloat(rangeMatch[3]),
-                unit: rangeMatch[5],
+                unit: normalizeVadeUnit(rangeMatch[5]),
                 isRange: true
             };
         }
@@ -755,7 +755,7 @@ Observaciones: {{ active.observations or '-' }}
             return {
                 min: parseFloat(singleMatch[1]),
                 max: parseFloat(singleMatch[1]),
-                unit: singleMatch[3],
+                unit: normalizeVadeUnit(singleMatch[3]),
                 isRange: false
             };
         }
@@ -817,80 +817,75 @@ Observaciones: {{ active.observations or '-' }}
         }
 
         const parsedDose = parseVadeDose(doseText);
-
-        if (parsedDose) {
-            parsedDose.unit = normalizeVadeUnit(parsedDose.unit);
-        }
-
         const parsedConcentration = parseVadeConcentration(concentrationInput.value);
 
-        if (parsedDose) {
-            const minTotal = parsedDose.min * weight;
-            const maxTotal = parsedDose.max * weight;
-
-            let totalText = "";
-
-            if (parsedDose.isRange) {
-                totalText =
-                    minTotal.toFixed(2) + " - " +
-                    maxTotal.toFixed(2) + " " +
-                    parsedDose.unit;
-            } else {
-                totalText = minTotal.toFixed(2) + " " + parsedDose.unit;
-            }
-
-            let mlText = "";
-
-            if (
-                parsedConcentration &&
-                parsedConcentration.unit === parsedDose.unit
-            ) {
-                const minMl = minTotal / parsedConcentration.value;
-                const maxMl = maxTotal / parsedConcentration.value;
-
-                if (parsedDose.isRange) {
-                    mlText =
-                        "<br><b>Volumen estimado:</b> " +
-                        minMl.toFixed(2) + " - " +
-                        maxMl.toFixed(2) + " ml";
-                } else {
-                    mlText =
-                        "<br><b>Volumen estimado:</b> " +
-                        minMl.toFixed(2) + " ml";
-                }
-            } else if (concentrationInput.value) {
-                mlText =
-                    "<br><b>Volumen:</b> no calculado porque la unidad de dosis y concentración no coinciden.";
-            }
-
-            resultBox.innerHTML =
-                "<b>Peso:</b> " + weight + " kg<br>" +
-                "<b>Dosis detectada:</b> " +
-                (
-                    parsedDose.isRange
-                        ? parsedDose.min + " - " + parsedDose.max
-                        : parsedDose.min
-                ) +
-                " " + parsedDose.unit + "/kg<br>" +
-                "<b>Dosis total estimada:</b> " + totalText +
-                mlText +
-                "<br><br><b>Dosis cargada en ficha:</b><br>" +
-                doseText +
-                "<br><br><b>Nota:</b> cálculo orientativo. Verificar siempre concentración, vía, frecuencia y criterio clínico.";
-        } else {
-            const aiBox = document.getElementById("vadeAiDoseResult");
-
-            if (aiBox) {
-                aiBox.innerHTML =
-                    "No se pudo interpretar automáticamente la dosis cargada. Revisar manualmente el texto de dosis, especie, vía y frecuencia.";
-            }            
+        if (!parsedDose) {
             resultBox.innerHTML =
                 "<b>Peso:</b> " + weight + " kg<br>" +
                 "<b>Dosis cargada:</b><br>" +
                 doseText +
                 "<br><br><b>Nota:</b> no se detectó automáticamente una dosis tipo mg/kg, µg/kg o rango. Revisar manualmente.";
+
+            updateVadeAiDoseNoCalc(weight, species, doseText);
+            return;
         }
+
+        const minTotal = parsedDose.min * weight;
+        const maxTotal = parsedDose.max * weight;
+
+        let totalText = "";
+
+        if (parsedDose.isRange) {
+            totalText =
+                minTotal.toFixed(2) + " - " +
+                maxTotal.toFixed(2) + " " +
+                parsedDose.unit;
+        } else {
+            totalText = minTotal.toFixed(2) + " " + parsedDose.unit;
+        }
+
+        let mlText = "";
+
+        if (
+            parsedConcentration &&
+            parsedConcentration.unit === parsedDose.unit
+        ) {
+            const minMl = minTotal / parsedConcentration.value;
+            const maxMl = maxTotal / parsedConcentration.value;
+
+            if (parsedDose.isRange) {
+                mlText =
+                    "<br><b>Volumen estimado:</b> " +
+                    minMl.toFixed(2) + " - " +
+                    maxMl.toFixed(2) + " ml";
+            } else {
+                mlText =
+                    "<br><b>Volumen estimado:</b> " +
+                    minMl.toFixed(2) + " ml";
+            }
+        } else if (concentrationInput.value) {
+            mlText =
+                "<br><b>Volumen:</b> no calculado porque la unidad de dosis y concentración no coinciden.";
+        }
+
+        resultBox.innerHTML =
+            "<b>Peso:</b> " + weight + " kg<br>" +
+            "<b>Dosis detectada:</b> " +
+            (
+                parsedDose.isRange
+                    ? parsedDose.min + " - " + parsedDose.max
+                    : parsedDose.min
+            ) +
+            " " + parsedDose.unit + "/kg<br>" +
+            "<b>Dosis total estimada:</b> " + totalText +
+            mlText +
+            "<br><br><b>Dosis cargada en ficha:</b><br>" +
+            doseText +
+            "<br><br><b>Nota:</b> cálculo orientativo. Verificar siempre concentración, vía, frecuencia y criterio clínico.";
+
+        updateVadeAiDose(weight, species, parsedDose, parsedConcentration, doseText, totalText, mlText);
     }
+
     function updateVadeAiDose(weight, species, parsedDose, parsedConcentration, doseText, totalText, mlText) {
         const aiBox = document.getElementById("vadeAiDoseResult");
 
@@ -907,9 +902,65 @@ Observaciones: {{ active.observations or '-' }}
             (active.observations or '')
         )|tojson }}.toLowerCase();
 
-        let speciesText = species === "dog" ? "perro" : "gato";
+        const speciesText = species === "dog" ? "perro" : "gato";
+        let alerts = getVadeAiAlerts(species, clinicalText);
 
+        let message =
+            "<b>" + activeName + "</b><br>" +
+            "<b>Paciente:</b> " + speciesText + " de " + weight + " kg<br>" +
+            "<b>Dosis total estimada:</b> " + totalText + "<br>";
+
+        if (mlText) {
+            message += "💉 Se pudo estimar volumen en ml según concentración seleccionada.<br>";
+        } else if (parsedConcentration) {
+            message += "⚠ Hay concentración seleccionada, pero no se pudo calcular volumen por diferencia de unidades.<br>";
+        } else {
+            message += "ℹ No se seleccionó concentración, por lo que no se estima volumen en ml.<br>";
+        }
+
+        message +=
+            "<br><b>Alertas IA:</b><br>" +
+            alerts +
+            "<br><b>Revisión clínica obligatoria:</b><br>" +
+            "Verificar vía, frecuencia, presentación, concentración, especie, edad, estado renal/hepático, gestación/lactancia, antecedentes y criterio clínico." +
+            "<br><br><b>Dosis textual cargada:</b><br>" +
+            doseText;
+
+        aiBox.innerHTML = message;
+    }
+
+    function updateVadeAiDoseNoCalc(weight, species, doseText) {
+        const aiBox = document.getElementById("vadeAiDoseResult");
+
+        if (!aiBox) {
+            return;
+        }
+
+        const activeName = {{ (active.name or '')|tojson }};
+        const clinicalText = {{ (
+            (active.indications or '') ~ ' ' ~
+            (active.contraindications or '') ~ ' ' ~
+            (active.interactions or '') ~ ' ' ~
+            (active.warnings or '') ~ ' ' ~
+            (active.observations or '')
+        )|tojson }}.toLowerCase();
+
+        const speciesText = species === "dog" ? "perro" : "gato";
+        const alerts = getVadeAiAlerts(species, clinicalText);
+
+        aiBox.innerHTML =
+            "<b>" + activeName + "</b><br>" +
+            "<b>Paciente:</b> " + speciesText + " de " + weight + " kg<br>" +
+            "No se pudo calcular automáticamente porque la dosis cargada no tiene formato mg/kg, µg/kg o rango detectable." +
+            "<br><br><b>Alertas IA:</b><br>" +
+            alerts +
+            "<br><b>Dosis textual cargada:</b><br>" +
+            doseText;
+    }
+
+    function getVadeAiAlerts(species, clinicalText) {
         let alerts = "";
+
         const flagRenal = document.getElementById("flagRenal")?.checked;
         const flagHepatic = document.getElementById("flagHepatic")?.checked;
         const flagPregnant = document.getElementById("flagPregnant")?.checked;
@@ -940,6 +991,7 @@ Observaciones: {{ active.observations or '-' }}
         if (flagCritical) {
             alerts += "⚠ Paciente crítico/internado: individualizar dosis, vía, monitoreo y estabilidad hemodinámica.<br>";
         }
+
         if (species === "cat" && clinicalText.includes("gato") && clinicalText.includes("precauc")) {
             alerts += "⚠ En gato: revisar precauciones específicas cargadas en la ficha.<br>";
         }
@@ -968,62 +1020,9 @@ Observaciones: {{ active.observations or '-' }}
             alerts = "Sin alertas automáticas detectadas con la información cargada.<br>";
         }
 
-        let message =
-            "<b>" + activeName + "</b><br>" +
-            "<b>Paciente:</b> " + speciesText + " de " + weight + " kg<br>" +
-            "<b>Dosis total estimada:</b> " + totalText + "<br>";
-
-        if (mlText) {
-            message += "💉 Se pudo estimar volumen en ml según concentración seleccionada.<br>";
-        } else if (parsedConcentration) {
-            message += "⚠ Hay concentración seleccionada, pero no se pudo calcular volumen por diferencia de unidades.<br>";
-        } else {
-            message += "ℹ No se seleccionó concentración, por lo que no se estima volumen en ml.<br>";
-        }
-
-        message +=
-            "<br><b>Alertas IA:</b><br>" +
-            alerts +
-            "<br><b>Revisión clínica obligatoria:</b><br>" +
-            "Verificar vía, frecuencia, presentación, concentración, especie, edad, estado renal/hepático, gestación/lactancia, antecedentes y criterio clínico.";
-
-        message +=
-            "<br><br><b>Dosis textual cargada:</b><br>" +
-            doseText;
-
-        aiBox.innerHTML = message;
+        return alerts;
     }
-        const aiBox = document.getElementById("vadeAiDoseResult");
 
-        if (!aiBox) {
-            return;
-        }
-
-        let speciesText = species === "dog" ? "perro" : "gato";
-
-        let message =
-            "<b>Interpretación inicial:</b><br>" +
-            "Para un " + speciesText + " de " + weight + " kg, la ficha permite estimar una dosis total de <b>" +
-            totalText + "</b>.";
-
-        if (mlText) {
-            message += "<br>También se pudo estimar volumen en ml según la concentración seleccionada.";
-        } else if (parsedConcentration) {
-            message += "<br>Hay concentración seleccionada, pero no se pudo calcular volumen por diferencia de unidades.";
-        } else {
-            message += "<br>No se seleccionó concentración, por lo que no se estima volumen en ml.";
-        }
-
-        message +=
-            "<br><br><b>Revisión clínica sugerida:</b><br>" +
-            "Antes de indicar, revisar especie, vía, frecuencia, contraindicaciones, interacciones, función renal/hepática y estado clínico del paciente.";
-
-        message +=
-            "<br><br><b>Dosis textual cargada:</b><br>" +
-            doseText;
-
-        aiBox.innerHTML = message;
-    } 
     function copyVadeAiDose() {
         const aiBox = document.getElementById("vadeAiDoseResult");
 
@@ -1032,9 +1031,9 @@ Observaciones: {{ active.observations or '-' }}
         }
 
         navigator.clipboard.writeText(aiBox.innerText || aiBox.textContent);
-
         aiBox.innerHTML = aiBox.innerHTML + "<br><br>✅ Interpretación IA copiada.";
-    }   
+    }
+
     function copyVadeClinicalSummary() {
         const summaryBox = document.getElementById("vadeClinicalSummary");
 
@@ -1043,7 +1042,8 @@ Observaciones: {{ active.observations or '-' }}
         }
 
         navigator.clipboard.writeText(summaryBox.innerText || summaryBox.textContent);
-    }    
+    }
+
     function copyVadeDoseResult() {
         const resultBox = document.getElementById("vadeDoseResult");
 
@@ -1051,10 +1051,7 @@ Observaciones: {{ active.observations or '-' }}
             return;
         }
 
-        const textToCopy = resultBox.innerText || resultBox.textContent;
-
-        navigator.clipboard.writeText(textToCopy);
-
+        navigator.clipboard.writeText(resultBox.innerText || resultBox.textContent);
         resultBox.innerHTML = resultBox.innerHTML + "<br><br>✅ Resultado copiado.";
     }
 
@@ -1062,6 +1059,7 @@ Observaciones: {{ active.observations or '-' }}
         const weightInput = document.getElementById("vadeDoseWeight");
         const concentrationInput = document.getElementById("vadeDoseConcentration");
         const resultBox = document.getElementById("vadeDoseResult");
+        const aiBox = document.getElementById("vadeAiDoseResult");
 
         if (weightInput) {
             weightInput.value = "";
@@ -1074,7 +1072,12 @@ Observaciones: {{ active.observations or '-' }}
         if (resultBox) {
             resultBox.innerHTML = "Ingresá especie, peso y opcionalmente concentración para calcular.";
         }
+
+        if (aiBox) {
+            aiBox.innerHTML = "Ingresá peso, especie y concentración en el calculador para obtener una interpretación clínica inicial.";
+        }
     }
+
     document.addEventListener("DOMContentLoaded", function () {
         const speciesInput = document.getElementById("vadeDoseSpecies");
         const weightInput = document.getElementById("vadeDoseWeight");
@@ -1097,6 +1100,7 @@ Observaciones: {{ active.observations or '-' }}
         if (concentrationInput) {
             concentrationInput.addEventListener("change", calculateVadeDose);
         }
+
         const patientFlags = [
             "flagRenal",
             "flagHepatic",
@@ -1112,7 +1116,7 @@ Observaciones: {{ active.observations or '-' }}
             if (flagInput) {
                 flagInput.addEventListener("change", calculateVadeDose);
             }
-        });        
+        });
     });
 </script>
 {% endblock %}
