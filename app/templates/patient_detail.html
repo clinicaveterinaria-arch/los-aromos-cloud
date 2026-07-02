@@ -941,7 +941,7 @@ async function loadVademecumModal(query) {
                 <a href="/vademecum/${item.id}?species=${encodeURIComponent(patientSpecies)}&weight=${encodeURIComponent(patientWeight)}&from_patient=${encodeURIComponent(patientId)}" target="_blank" class="small-btn" style="margin-left:8px;">
                     Abrir ficha
                 </a>
-
+            `;
             div.querySelector('.vade-insert-btn').addEventListener('click', function () {
                 insertDrugTreatment(
                     item.name,
