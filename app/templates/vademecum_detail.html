@@ -576,6 +576,10 @@
 
                 <button type="button" class="vade-btn secondary" onclick="sendVadeTreatmentToHistory()">
                     Insertar en HC abierta
+                </button>
+
+                <button type="button" class="vade-btn secondary" onclick="sendVadeTreatmentToHistory()">
+                    Insertar en HC abierta
                 </button>               
             </div>
 
@@ -1416,13 +1420,6 @@ Observaciones: {{ active.observations or '-' }}
 
         box.innerHTML = message;
     }
-    function copyVadeTreatmentText() {
-        if (!window.vadeLastTreatmentText) {
-            return;
-        }
-    
-        navigator.clipboard.writeText(window.vadeLastTreatmentText);
-    }
     function sendVadeTreatmentToHistory() {
         if (!window.vadeLastTreatmentText) {
             alert("Primero calculá la dosis para generar el texto de tratamiento.");
@@ -1451,7 +1448,7 @@ Observaciones: {{ active.observations or '-' }}
 
         textarea.focus();
         alert("Tratamiento insertado en la Historia Clínica abierta.");
-    }    
+    }
     function copyVadeAiDose() {
         const aiBox = document.getElementById("vadeAiDoseResult");
         if (!aiBox) return;
