@@ -707,6 +707,7 @@ def update_from_senasa(
                 time.sleep(sleep_seconds)
 
         except Exception as exc:
+            db.rollback()
             summary.details_error += 1
             if len(summary.errors) < 30:
                 summary.errors.append(f"Producto {href}: {exc}")
