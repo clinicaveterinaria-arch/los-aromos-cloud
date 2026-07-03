@@ -1095,15 +1095,27 @@ Observaciones: {{ active.observations or '-' }}
                     .replaceAll("</b>", "");
         }
 
+        const selectedBrandText =
+            document
+                .getElementById("vadeDoseConcentration")
+                ?.selectedOptions?.[0]?.textContent
+                ?.trim() || "";
+
+        const brandLine =
+            selectedBrandText && selectedBrandText !== "Sin concentración"
+                ? "Marca/concentración: " + selectedBrandText + "\n"
+                : "";
+
         let treatmentText =
-            activeName + ": " +
-            totalText +
-            " totales, " +
-            routeText +
-            ", " +
-            frequencyText +
-            "." +
-            cleanMlText;
+            "💊 " + activeName + "\n" +
+            brandLine +
+            "Dosis calculada: " + totalText + " totales\n" +
+            "Vía: " + routeText + "\n" +
+            "Frecuencia: " + frequencyText + "\n" +
+            (cleanMlText ? cleanMlText.trim() + "\n" : "") +
+            "Validación: confirmar especie, peso actualizado, concentración, presentación, contraindicaciones, interacciones y criterio clínico.";
+
+        window.vadeLastTreatmentText = treatmentText;
 
         window.vadeLastTreatmentText = treatmentText;
 
