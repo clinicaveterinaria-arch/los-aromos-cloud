@@ -1424,35 +1424,20 @@ Observaciones: {{ active.observations or '-' }}
 
         navigator.clipboard.writeText(window.vadeLastTreatmentText);
     }    
+
     function sendVadeTreatmentToHistory() {
-        if (!window.vadeLastTreatmentText) {
-            alert("Primero calculá la dosis para generar el texto de tratamiento.");
-            return;
-        }
-
-        if (!window.opener || window.opener.closed) {
-            alert("No se encontró la Historia Clínica abierta. Usá Copiar tratamiento HC.");
-            return;
-        }
-
-        const textarea = window.opener.document.getElementById("treatment_textarea");
-
-        if (!textarea) {
-            alert("No se encontró el campo Tratamiento en la Historia Clínica.");
-            return;
-        }
-
-        textarea.value = (textarea.value || "").trim();
-
-        if (textarea.value) {
-            textarea.value += "\n\n" + window.vadeLastTreatmentText;
-        } else {
-            textarea.value = window.vadeLastTreatmentText;
-        }
-
-        textarea.focus();
-        alert("Tratamiento insertado en la Historia Clínica abierta.");
+    if (!window.vadeLastTreatmentText) {
+        alert("Primero calculá la dosis para generar el texto de tratamiento.");
+        return;
     }
+
+    localStorage.setItem(
+        "aromos_pending_treatment",
+        window.vadeLastTreatmentText
+    );
+
+    alert("Tratamiento enviado a la Historia Clínica. Volvé a la pestaña del paciente.");
+}
     function copyVadeAiDose() {
         const aiBox = document.getElementById("vadeAiDoseResult");
         if (!aiBox) return;
