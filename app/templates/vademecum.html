@@ -229,6 +229,13 @@
                         <button type="submit" class="vade-btn">📥 Importar vademécum</button>
                     </div>
                 </form>
+                <form method="post" action="/vademecum/clear" onsubmit="return confirm('¿Seguro que querés vaciar toda la base del Vademécum? No toca pacientes, historias clínicas, ventas ni productos.');">
+                    <div class="vade-actions">
+                        <button type="submit" class="vade-btn secondary">
+                            🗑 Vaciar base del Vademécum
+                        </button>
+                    </div>
+                </form>               
             </div>
             <div class="vade-card">
                 <h2>🧬 Nuevo principio activo</h2>
