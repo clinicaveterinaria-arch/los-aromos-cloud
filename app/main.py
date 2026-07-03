@@ -27,6 +27,7 @@ from .database import Base, engine, get_db
 from .models import User, Owner, Patient, ClinicalEvent, EventAttachment, Appointment, Product, Sale, SaleItem, SalePayment, WaitingListEntry, Hospitalization, HospitalizationMedication, HospitalizationFluid
 from .vademecum_parser import read_rows_from_upload, parse_vademecum_rows
 from .vademecum_importer import import_vademecum
+from .senasa_sync import update_from_senasa
 # Base.metadata.create_all(bind=engine)
 # =====================================
 # Zona horaria Argentina
@@ -5821,12 +5822,32 @@ def vademecum_import_template(
         }
     )
 @app.post("/vademecum/update-senasa")
-async def update_senasa(
-    file: UploadFile = File(...),
+def update_senasa(
     db: Session = Depends(get_db),
     user: User = Depends(require_user)
 ):
-    return await vademecum_import(file, db, user)
+    try:
+        summary = update_from_senasa(db, limit=10)
+
+        return RedirectResponse(
+            url=(
+                "/vademecum?"
+                f"imported=1"
+                f"&new_active={summary.get('new_active', 0)}"
+                f"&updated_active={summary.get('updated_active', 0)}"
+                f"&new_brands={summary.get('new_brands', 0)}"
+                f"&updated_brands={summary.get('updated_brands', 0)}"
+                f"&skipped={summary.get('skipped', 0)}"
+                f"&errors={summary.get('details_error', 0) + len(summary.get('errors', []))}"
+            ),
+            status_code=303
+        )
+
+    except Exception as e:
+        return RedirectResponse(
+            url=f"/vademecum?imported=1&errors=1",
+            status_code=303
+        )
 @app.post('/vademecum/import')
 async def vademecum_import(
     file: UploadFile = File(...),
