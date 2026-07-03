@@ -226,7 +226,14 @@
                     <input type="file" name="file" accept=".xlsx,.csv" required>
 
                     <div class="vade-actions">
-                        <button type="submit" class="vade-btn">📥 Importar vademécum</button>
+                        <button type="submit" class="vade-btn">
+                            🇦🇷 Actualizar desde SENASA
+                        </button>
+                        
+                        <div style="margin-top:10px;font-size:12px;color:#6b7280;">
+                            Seleccioná el archivo oficial del SENASA (Excel o CSV).<br>
+                            Aromos Cloud actualizará automáticamente la base sin perder la información clínica propia.
+                        </div>
                     </div>
                 </form>
                 <form method="post" action="/vademecum/clear" onsubmit="return confirm('¿Seguro que querés vaciar toda la base del Vademécum? No toca pacientes, historias clínicas, ventas ni productos.');">
