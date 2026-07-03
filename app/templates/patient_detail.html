@@ -824,7 +824,14 @@ function setEventType(type) {
 
 function openVademecumModal() {
     const modal = document.getElementById('vademecum_modal');
+    const search = document.getElementById('vade_modal_search');
+
     if (modal) modal.style.display = 'flex';
+
+    if (search) {
+        search.value = '';
+        setTimeout(() => search.focus(), 100);
+    }
 
     loadVademecumModal('');
 }
@@ -843,24 +850,68 @@ function escapeHtml(text) {
         .replaceAll("'", '&#039;');
 }
 
+function normalizeSpeciesText(text) {
+    const value = String(text || '').toLowerCase();
+
+    if (value.includes('fel') || value.includes('gat')) return 'Gato';
+    if (value.includes('can') || value.includes('per')) return 'Perro';
+
+    return text || '-';
+}
+
+function selectDoseForPatient(item) {
+    const patientSpecies = {{ (patient.species or '')|tojson }}.toLowerCase();
+
+    if (patientSpecies.includes('fel') || patientSpecies.includes('gat')) {
+        return item.cat_dose || item.dog_dose || 'Dosis a revisar';
+    }
+
+    if (patientSpecies.includes('can') || patientSpecies.includes('per')) {
+        return item.dog_dose || item.cat_dose || 'Dosis a revisar';
+    }
+
+    return item.dog_dose || item.cat_dose || 'Dosis a revisar';
+}
+
+function buildBrandsText(item) {
+    if (!item.brands || !item.brands.length) {
+        return 'Sin marcas comerciales cargadas';
+    }
+
+    return item.brands.map(b => {
+        let txt = b.brand_name || '';
+
+        if (b.concentration) txt += ' — ' + b.concentration;
+        if (b.presentation) txt += ' · ' + b.presentation;
+        if (b.laboratory) txt += ' · ' + b.laboratory;
+
+        return txt;
+    }).join(', ');
+}
+
 async function loadVademecumModal(query) {
     const list = document.getElementById('vade_modal_list');
     if (!list) return;
 
     list.innerHTML = `
         <div class="vade-modal-item">
-            <p>Buscando en Vademécum real...</p>
+            <p>Buscando en Vademécum SENASA...</p>
         </div>
     `;
 
     try {
         const response = await fetch('/vademecum/api/search?q=' + encodeURIComponent(query || ''));
+
+        if (!response.ok) {
+            throw new Error('Error consultando Vademécum');
+        }
+
         const data = await response.json();
 
         if (!data.length) {
             list.innerHTML = `
                 <div class="vade-modal-item">
-                    <p>No se encontraron medicamentos cargados.</p>
+                    <p>No se encontraron medicamentos con esa búsqueda.</p>
                 </div>
             `;
             return;
@@ -868,60 +919,63 @@ async function loadVademecumModal(query) {
 
         list.innerHTML = '';
 
-        const patientSpecies = {{ (patient.species or '')|tojson }}.toLowerCase();
+        const patientSpeciesRaw = {{ (patient.species or '')|tojson }};
+        const patientSpecies = normalizeSpeciesText(patientSpeciesRaw);
         const patientWeight = {{ (patient.weight|string if patient.weight else '')|tojson }};
         const patientId = "{{ patient.id }}";
 
         data.forEach(item => {
-            const brandsText = item.brands && item.brands.length
-                ? item.brands.map(b => {
-                    let txt = b.brand_name || '';
-                    if (b.concentration) txt += ' — ' + b.concentration;
-                    if (b.laboratory) txt += ' · ' + b.laboratory;
-                    return txt;
-                }).join(', ')
-                : 'Sin marcas cargadas';
+            const brandsText = buildBrandsText(item);
+            const selectedDose = selectDoseForPatient(item);
 
-            let dose = item.dog_dose || item.cat_dose || 'Dosis a revisar';
-
-            if (patientSpecies.includes('fel') || patientSpecies.includes('gat')) {
-                dose = item.cat_dose || item.dog_dose || 'Dosis a revisar';
-            }
-
-            if (patientSpecies.includes('can') || patientSpecies.includes('per')) {
-                dose = item.dog_dose || item.cat_dose || 'Dosis a revisar';
-            }
+            const alertText = [
+                item.contraindications ? 'Contraindicaciones: ' + item.contraindications : '',
+                item.warnings ? 'Advertencias: ' + item.warnings : '',
+                item.observations ? 'Observaciones: ' + item.observations : ''
+            ].filter(Boolean).join(' | ');
 
             const div = document.createElement('div');
             div.className = 'vade-modal-item';
 
             div.innerHTML = `
                 <h4>${escapeHtml(item.name)}</h4>
+
                 <p><b>Categoría:</b> ${escapeHtml(item.category || '-')}</p>
                 <p><b>Especie ficha:</b> ${escapeHtml(item.species || '-')}</p>
                 <p><b>Paciente:</b> ${escapeHtml(patientSpecies || '-')} · ${escapeHtml(patientWeight || '-')} kg</p>
-                <p><b>Marcas:</b> ${escapeHtml(brandsText)}</p>
+
+                <p><b>Marcas comerciales:</b> ${escapeHtml(brandsText)}</p>
+
+                <p><b>Dosis sugerida según especie:</b> ${escapeHtml(selectedDose || 'A revisar')}</p>
                 <p><b>Dosis perro:</b> ${escapeHtml(item.dog_dose || '-')}</p>
                 <p><b>Dosis gato:</b> ${escapeHtml(item.cat_dose || '-')}</p>
-                <p><b>Vía/Frecuencia:</b> ${escapeHtml(item.route || '-')} · ${escapeHtml(item.frequency || '-')}</p>
-                <p><b>Indicaciones:</b> ${escapeHtml((item.indications || '-').slice(0, 220))}</p>
+
+                <p><b>Vía / frecuencia:</b> ${escapeHtml(item.route || '-')} · ${escapeHtml(item.frequency || '-')}</p>
+                <p><b>Indicaciones:</b> ${escapeHtml((item.indications || '-').slice(0, 260))}</p>
+
+                ${
+                    alertText
+                        ? `<p style="color:#991b1b;"><b>Alertas:</b> ${escapeHtml(alertText.slice(0, 260))}</p>`
+                        : ''
+                }
 
                 <button type="button" class="vade-insert-btn">
                     Insertar tratamiento
                 </button>
 
                 <a href="/vademecum/${item.id}?species=${encodeURIComponent(patientSpecies)}&weight=${encodeURIComponent(patientWeight)}&from_patient=${encodeURIComponent(patientId)}" target="_blank" class="small-btn" style="margin-left:8px;">
-                    Abrir ficha
+                    Abrir ficha completa
                 </a>
             `;
+
             div.querySelector('.vade-insert-btn').addEventListener('click', function () {
                 insertDrugTreatment(
                     item.name,
                     brandsText,
-                    dose,
+                    selectedDose,
                     item.route || '',
                     item.frequency || '',
-                    item.observations || item.warnings || item.contraindications || ''
+                    alertText || ''
                 );
             });
 
@@ -931,7 +985,7 @@ async function loadVademecumModal(query) {
     } catch (error) {
         list.innerHTML = `
             <div class="vade-modal-item">
-                <p>No se pudo consultar el Vademécum.</p>
+                <p>No se pudo consultar el Vademécum SENASA.</p>
             </div>
         `;
     }
@@ -940,6 +994,7 @@ async function loadVademecumModal(query) {
 function filterVademecumModal() {
     const search = document.getElementById('vade_modal_search');
     if (!search) return;
+
     loadVademecumModal(search.value.trim());
 }
 
@@ -953,7 +1008,7 @@ Marca/s: ${brands || '-'}
 Dosis: ${dose || 'A revisar'}
 Vía: ${route || 'A revisar'}
 Frecuencia: ${frequency || 'A revisar'}
-Observaciones: ${observations || '-'}
+Observaciones / alertas: ${observations || '-'}
 `;
 
     textarea.value = (textarea.value || '').trim();
@@ -967,6 +1022,19 @@ Observaciones: ${observations || '-'}
     textarea.focus();
     closeVademecumModal();
 }
+
+document.addEventListener('DOMContentLoaded', function () {
+    const search = document.getElementById('vade_modal_search');
+
+    if (search) {
+        search.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                filterVademecumModal();
+            }
+        });
+    }
+});
 function addDewormerOption(targetInputId) {
     const input = document.getElementById(targetInputId);
     const list = document.getElementById('dewormers_list');
