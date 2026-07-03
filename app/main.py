@@ -1140,16 +1140,17 @@ def agenda_patient_arrived(
     )
 
     if not existing:
-        entry = WaitingListEntry(
-            appointment_id=appointment.id,
-            owner_id=appointment.owner_id,
-            patient_id=appointment.patient_id,
-            reason=appointment.service or appointment.title or 'Turno agendado',
-            notes=appointment.notes or '',
-            priority='Normal',
-            status='Esperando',
-            created_by=user.username
-        )
+    entry = WaitingListEntry(
+        appointment_id=appointment.id,
+        owner_id=appointment.owner_id,
+        patient_id=appointment.patient_id,
+        reason=appointment.service or appointment.title or 'Turno agendado',
+        notes=appointment.notes or '',
+        priority='Normal',
+        status='Esperando',
+        arrival_time=argentina_now(),
+        created_by=user.username
+    )
 
         db.add(entry)
 
@@ -1239,6 +1240,7 @@ def waitlist_create(
         priority=priority or 'Normal',
         notes=notes or '',
         status='Esperando',
+        arrival_time=argentina_now(),
         created_by=user.username
     )
 
