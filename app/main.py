@@ -5828,7 +5828,7 @@ def update_senasa(
 ):
     try:
         summary = update_from_senasa(db, limit=10)
-
+        print(summary)
         return RedirectResponse(
             url=(
                 "/vademecum?"
