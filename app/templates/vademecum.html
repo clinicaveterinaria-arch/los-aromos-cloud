@@ -221,20 +221,31 @@
                 <a href="/vademecum/import/template" class="vade-btn secondary" style="margin-bottom:12px;">
                     📄 Descargar plantilla CSV
                 </a>                
-                <form method="post" action="/vademecum/update-senasa" enctype="multipart/form-data">            
+                <form method="post" action="/vademecum/import" enctype="multipart/form-data">
+                
                     <label>Archivo Excel o CSV</label>
                     <input type="file" name="file" accept=".xlsx,.csv" required>
-
+                
+                    <div class="vade-actions">
+                        <button type="submit" class="vade-btn">
+                            📥 Importar Vademécum
+                        </button>
+                    </div>
+                
+                </form>
+                
+                <form method="post" action="/vademecum/update-senasa">
+                
                     <div class="vade-actions">
                         <button type="submit" class="vade-btn">
                             🇦🇷 Actualizar desde SENASA
                         </button>
-                        
-                        <div style="margin-top:10px;font-size:12px;color:#6b7280;">
-                            Seleccioná el archivo oficial del SENASA (Excel o CSV).<br>
-                            Aromos Cloud actualizará automáticamente la base sin perder la información clínica propia.
-                        </div>
                     </div>
+                
+                    <div style="margin-top:10px;font-size:12px;color:#6b7280;">
+                        Descarga automáticamente la base oficial del SENASA y actualiza el Vademécum sin perder los datos clínicos propios.
+                    </div>
+                
                 </form>
                 <form method="post" action="/vademecum/clear" onsubmit="return confirm('¿Seguro que querés vaciar toda la base del Vademécum? No toca pacientes, historias clínicas, ventas ni productos.');">
                     <div class="vade-actions">
