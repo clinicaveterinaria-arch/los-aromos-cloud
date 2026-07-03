@@ -1147,6 +1147,28 @@ document.addEventListener('DOMContentLoaded', function() {
             localStorage.removeItem("aromos_pending_treatment");
         }
     }
+    window.addEventListener("focus", function () {
+
+        const pendingTreatment = localStorage.getItem("aromos_pending_treatment");
+
+        if (!pendingTreatment) return;
+
+        const textarea = document.getElementById("treatment_textarea");
+
+        if (!textarea) return;
+
+        textarea.value = textarea.value.trim();
+
+        if (textarea.value) {
+            textarea.value += "\n\n" + pendingTreatment;
+        } else {
+            textarea.value = pendingTreatment;
+        }
+
+        localStorage.removeItem("aromos_pending_treatment");
+
+        textarea.focus();
+    });    
     actualizarCampos();
 });
 </script>
