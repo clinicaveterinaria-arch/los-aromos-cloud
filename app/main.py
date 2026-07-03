@@ -5820,6 +5820,13 @@ def vademecum_import_template(
             "Content-Disposition": "attachment; filename=plantilla_vademecum.csv"
         }
     )
+@app.post("/vademecum/update-senasa")
+async def update_senasa(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    return await vademecum_import(file, db, user)
 @app.post('/vademecum/import')
 async def vademecum_import(
     file: UploadFile = File(...),
