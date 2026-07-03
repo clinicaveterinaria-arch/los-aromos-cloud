@@ -5847,6 +5847,21 @@ async def vademecum_import(
         ),
         status_code=303
     )
+@app.post('/vademecum/clear')
+def vademecum_clear(
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    db.execute(text("DELETE FROM vademecum_brands"))
+    db.execute(text("DELETE FROM vademecum_active_ingredients"))
+    db.execute(text("DELETE FROM vademecum_drugs"))
+
+    db.commit()
+
+    return RedirectResponse(
+        "/vademecum?cleared=1",
+        status_code=303
+    )
 @app.post('/vademecum/active-ingredient')
 def vademecum_active_ingredient_create(
     name: str = Form(''),
