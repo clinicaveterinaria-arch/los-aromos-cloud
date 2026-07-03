@@ -5827,7 +5827,7 @@ def update_senasa(
     user: User = Depends(require_user)
 ):
     try:
-        summary = update_from_senasa(db, limit=10)
+        summary = update_from_senasa(db, limit=None)
         print(summary)
         return RedirectResponse(
             url=(
