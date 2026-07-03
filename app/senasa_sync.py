@@ -701,6 +701,7 @@ def update_from_senasa(
                 continue
 
             save_record(db, record, summary)
+            db.commit()
             summary.details_ok += 1
 
             if sleep_seconds:
@@ -713,5 +714,4 @@ def update_from_senasa(
                 summary.errors.append(f"Producto {href}: {exc}")
             continue
 
-    db.commit()
     return summary.as_dict()
