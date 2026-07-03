@@ -1437,7 +1437,7 @@ Observaciones: {{ active.observations or '-' }}
         navigator.clipboard.writeText(window.vadeLastTreatmentText);
     }    
 
-    function sendVadeTreatmentToHistory() {
+function sendVadeTreatmentToHistory() {
     if (!window.vadeLastTreatmentText) {
         alert("Primero calculá la dosis para generar el texto de tratamiento.");
         return;
@@ -1448,7 +1448,15 @@ Observaciones: {{ active.observations or '-' }}
         window.vadeLastTreatmentText
     );
 
-    alert("Tratamiento enviado a la Historia Clínica. Volvé a la pestaña del paciente.");
+    if (window.opener && !window.opener.closed) {
+        window.opener.focus();
+    }
+
+    alert("Tratamiento enviado a la Historia Clínica.");
+
+    try {
+        window.close();
+    } catch (e) {}
 }
     function copyVadeAiDose() {
         const aiBox = document.getElementById("vadeAiDoseResult");
