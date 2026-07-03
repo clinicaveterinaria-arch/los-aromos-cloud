@@ -1000,15 +1000,20 @@ function filterVademecumModal() {
 
 function insertDrugTreatment(name, brands, dose, route, frequency, observations) {
     const textarea = document.getElementById('treatment_textarea');
+    const details = document.getElementById('nuevo-evento');
+
     if (!textarea) return;
 
+    if (details) details.open = true;
+
     const block = `
-${name}
-Marca/s: ${brands || '-'}
-Dosis: ${dose || 'A revisar'}
+💊 ${name}
+Marca/s comercial/es: ${brands || '-'}
+Dosis orientativa: ${dose || 'A revisar'}
 Vía: ${route || 'A revisar'}
 Frecuencia: ${frequency || 'A revisar'}
 Observaciones / alertas: ${observations || '-'}
+Validación: confirmar especie, peso actualizado, concentración, presentación, contraindicaciones, interacciones y criterio clínico.
 `;
 
     textarea.value = (textarea.value || '').trim();
@@ -1022,7 +1027,6 @@ Observaciones / alertas: ${observations || '-'}
     textarea.focus();
     closeVademecumModal();
 }
-
 document.addEventListener('DOMContentLoaded', function () {
     const search = document.getElementById('vade_modal_search');
 
