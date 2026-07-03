@@ -139,23 +139,22 @@ def parse_vademecum_rows(rows):
             })
             continue
 
-        active_names = split_active_ingredients(active_raw)
+        active_name = clean_text(active_raw)
 
-        if not active_names and brand_name:
-            active_names = ["Sin principio activo"]
+        if not active_name and brand_name:
+            active_name = "Sin principio activo"
 
-        for active_name in active_names:
-            parsed.append({
-                "active_name": title_name(active_name),
-                "brand_name": title_name(brand_name),
-                "laboratory": normalize_laboratory(laboratory),
-                "presentation": clean_text(presentation),
-                "concentration": clean_text(concentration),
-                "species": normalize_species(species),
-                "category": normalize_category(category),
-                "route": normalize_route(route),
-                "indications": clean_text(indications),
-                "source_row": index,
+        parsed.append({
+            "active_name": title_name(active_name),
+            "brand_name": title_name(brand_name),
+            "laboratory": normalize_laboratory(laboratory),
+            "presentation": clean_text(presentation),
+            "concentration": clean_text(concentration),
+            "species": normalize_species(species),
+            "category": normalize_category(category),
+            "route": normalize_route(route),
+            "indications": clean_text(indications),
+            "source_row": index,
             })
 
     return parsed, errors
