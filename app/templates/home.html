@@ -382,14 +382,22 @@
 
         <a href="/products" class="home-stat-card card-stock" style="text-decoration:none;color:inherit;">
             <h3>📦 Stock</h3>
-            <div class="big-number">-</div>
-            <div class="label">Productos críticos</div>
-            <div class="mini-row">
-                <span>Controlar stock</span>
+        
+            <div class="big-number">
+                {{ critical_stock_count }}
             </div>
+        
+            <div class="label">
+                Productos críticos
+            </div>
+        
+            <div class="mini-row">
+                <span>Ver productos</span>
+                <span>Stock mínimo</span>
+            </div>
+        
             <div class="watermark">📦</div>
         </a>
-
         <a href="/pendientes" class="home-stat-card card-alertas" style="text-decoration:none;color:inherit;">
             <h3>⚠️ Alertas</h3>
             <div class="big-number">{{ stats.overdue }}</div>
