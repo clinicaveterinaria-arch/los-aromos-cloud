@@ -3417,6 +3417,8 @@ def sales_page(
     sales = (
         db.query(Sale)
         .filter(Sale.date >= day_start, Sale.date <= day_end)
+        .filter(Sale.status != 'quote')
+        .filter(Sale.status != 'cancelled')
         .order_by(Sale.date.desc())
         .all()
     )
