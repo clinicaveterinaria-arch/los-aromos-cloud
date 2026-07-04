@@ -5272,234 +5272,165 @@ Velocidad: {fluid_rate} ml/kg/h
 def stats_page(
     request: Request,
     period: str = 'month',
-    start: str = '',
-    end: str = '',
     db: Session = Depends(get_db),
     user: User = Depends(require_user)
 ):
     from collections import defaultdict
-    import calendar
 
     today = argentina_now().date()
 
-    if start and end:
-        try:
-            start_date = datetime.strptime(start, '%Y-%m-%d').date()
-            end_date = datetime.strptime(end, '%Y-%m-%d').date()
-            period = 'custom'
-        except ValueError:
-            start_date = today.replace(day=1)
-            end_date = today
-            period = 'month'
-    elif period == 'today':
+    if period == 'today':
         start_date = today
         end_date = today
+        period_label = 'Hoy'
     elif period == 'week':
         start_date = today - timedelta(days=today.weekday())
         end_date = today
-    elif period == 'year':
-        start_date = today.replace(month=1, day=1)
-        end_date = today
+        period_label = 'Esta semana'
     else:
         start_date = today.replace(day=1)
         end_date = today
         period = 'month'
+        period_label = 'Este mes'
 
     start_dt = datetime.combine(start_date, datetime.min.time())
     end_dt = datetime.combine(end_date, datetime.max.time())
 
     sales = (
         db.query(Sale)
-        .filter(Sale.date >= start_dt, Sale.date <= end_dt)
+        .filter(Sale.date >= start_dt)
+        .filter(Sale.date <= end_dt)
+        .filter(Sale.status != 'cancelled')
+        .filter(Sale.status != 'quote')
         .all()
     )
 
-    sales_total = sum(s.total or 0 for s in sales if s.status != 'cancelled')
-    sales_count = len([s for s in sales if s.status != 'cancelled'])
-    profit_total = sum(s.profit_amount or 0 for s in sales if s.status != 'cancelled')
+    sale_ids = [s.id for s in sales]
+
+    sales_total = sum(s.total or 0 for s in sales)
+    sales_count = len(sales)
+    profit_total = sum(s.profit_amount or 0 for s in sales)
     ticket_average = (sales_total / sales_count) if sales_count else 0
+    patients_seen = len(set(s.patient_id for s in sales if s.patient_id))
 
-    sale_ids = [s.id for s in sales if s.status != 'cancelled']
-
-    payments_by_method = defaultdict(float)
-    account_pending = 0
-    clients_with_debt = set()
+    payments_by_method = {}
 
     if sale_ids:
-        payments = db.query(SalePayment).filter(SalePayment.sale_id.in_(sale_ids)).all()
+        payments = (
+            db.query(SalePayment)
+            .filter(SalePayment.sale_id.in_(sale_ids))
+            .all()
+        )
+
+        payment_stats = defaultdict(lambda: {'count': 0, 'total': 0})
+
         for payment in payments:
             method = payment.method or 'Sin método'
-            payments_by_method[method] += payment.amount or 0
+            payment_stats[method]['count'] += 1
+            payment_stats[method]['total'] += payment.amount or 0
 
-        for sale in sales:
-            paid = sum(
-                p.amount or 0
-                for p in db.query(SalePayment).filter(SalePayment.sale_id == sale.id).all()
-                if 'cuenta' not in (p.method or '').lower()
-            )
-            balance = (sale.total or 0) - paid
-            if balance > 0:
-                account_pending += balance
-                if sale.owner_id:
-                    clients_with_debt.add(sale.owner_id)
+        payments_by_method = dict(payment_stats)
 
-    top_products = []
-    top_profit_products = []
-    product_stats = {}
+    def classify_department(product):
+        text = f"{product.rubro or ''} {product.tipo or ''} {product.name or ''}".lower()
+
+        medicine_words = [
+            'medicina', 'farmacia', 'farmaco', 'fármaco', 'medicamento',
+            'antibiotico', 'antibiótico', 'analgesico', 'analgésico',
+            'antiinflamatorio', 'aine', 'inyectable', 'comprimido',
+            'pipeta', 'antiparasitario', 'desparasitante', 'vacuna',
+            'meloxicam', 'amoxicilina', 'cefalexina', 'enrofloxacina',
+            'dexametasona', 'prednisolona', 'bravecto', 'nexgard'
+        ]
+
+        service_words = [
+            'servicio', 'consulta', 'control', 'ecg', 'rx', 'radiografia',
+            'radiografía', 'ecografia', 'ecografía', 'cirugia', 'cirugía',
+            'internacion', 'internación', 'anestesia', 'curacion', 'curación',
+            'laboratorio', 'iny cons', 'int cons'
+        ]
+
+        if any(word in text for word in medicine_words):
+            return 'medicine'
+
+        if any(word in text for word in service_words):
+            return 'clinical'
+
+        return 'clinical'
+
+    clinical_stats = defaultdict(lambda: {
+        'qty': 0,
+        'total': 0,
+        'profit': 0
+    })
+
+    medicine_stats = defaultdict(lambda: {
+        'qty': 0,
+        'total': 0,
+        'profit': 0
+    })
 
     if sale_ids:
-        items = db.query(SaleItem).filter(SaleItem.sale_id.in_(sale_ids)).all()
+        items = (
+            db.query(SaleItem)
+            .filter(SaleItem.sale_id.in_(sale_ids))
+            .all()
+        )
 
         for item in items:
             product = db.get(Product, item.product_id)
-            name = product.name if product else 'Producto eliminado'
-            cost = product.cost_price or 0 if product else 0
+
+            if not product:
+                continue
+
+            name = product.name or 'Sin nombre'
             qty = item.quantity or 0
             subtotal = item.subtotal or 0
-            profit = subtotal - (qty * cost)
+            cost = (product.cost_price or 0) * qty
+            profit = subtotal - cost
 
-            if name not in product_stats:
-                product_stats[name] = {'qty': 0, 'profit': 0}
+            department = classify_department(product)
 
-            product_stats[name]['qty'] += qty
-            product_stats[name]['profit'] += profit
+            target = medicine_stats if department == 'medicine' else clinical_stats
 
-        top_products = sorted(
-            [{'name': k, 'qty': v['qty']} for k, v in product_stats.items()],
-            key=lambda x: x['qty'],
-            reverse=True
-        )[:10]
+            target[name]['qty'] += qty
+            target[name]['total'] += subtotal
+            target[name]['profit'] += profit
 
-        top_profit_products = sorted(
-            [{'name': k, 'profit': v['profit']} for k, v in product_stats.items()],
-            key=lambda x: x['profit'],
-            reverse=True
-        )[:10]
-
-    events = (
-        db.query(ClinicalEvent)
-        .filter(ClinicalEvent.event_date >= start_dt, ClinicalEvent.event_date <= end_dt)
-        .all()
-    )
-
-    event_counts = defaultdict(int)
-    patient_visit_counts = defaultdict(int)
-    owner_visit_counts = defaultdict(int)
-
-    for event in events:
-        event_counts[event.event_type or 'Sin tipo'] += 1
-        if event.patient:
-            patient_visit_counts[event.patient.name] += 1
-            if event.patient.owner:
-                owner_visit_counts[event.patient.owner.name] += 1
-
-    event_type_cards = [
-        {'label': 'Consultas', 'value': event_counts.get('Consulta clínica', 0) + event_counts.get('Control', 0), 'icon': '🩺'},
-        {'label': 'Vacunas', 'value': event_counts.get('Vacuna', 0), 'icon': '💉'},
-        {'label': 'Desparasitaciones', 'value': event_counts.get('Desparasitación', 0), 'icon': '🪱'},
-        {'label': 'ECG', 'value': event_counts.get('ECG', 0), 'icon': '💗'},
-        {'label': 'Radiografías', 'value': event_counts.get('Radiografía', 0), 'icon': '📷'},
-        {'label': 'Ecografías', 'value': event_counts.get('Ecografía', 0) + event_counts.get('Ecocardiografía', 0), 'icon': '🖥️'},
-        {'label': 'Cirugías', 'value': event_counts.get('Cirugía', 0), 'icon': '🔪'},
-    ]
-
-    top_patients = sorted(
-        [{'name': k, 'visits': v} for k, v in patient_visit_counts.items()],
-        key=lambda x: x['visits'],
+    top_clinical_services = sorted(
+        [
+            {
+                'name': name,
+                'qty': data['qty'],
+                'total': data['total'],
+                'profit': data['profit']
+            }
+            for name, data in clinical_stats.items()
+        ],
+        key=lambda x: x['qty'],
         reverse=True
-    )[:5]
+    )[:10]
 
-    top_owners = sorted(
-        [{'name': k, 'visits': v} for k, v in owner_visit_counts.items()],
-        key=lambda x: x['visits'],
+    top_medicine_products = sorted(
+        [
+            {
+                'name': name,
+                'qty': data['qty'],
+                'total': data['total'],
+                'profit': data['profit']
+            }
+            for name, data in medicine_stats.items()
+        ],
+        key=lambda x: x['qty'],
         reverse=True
-    )[:5]
-
-    products = db.query(Product).filter(Product.active == True).all()
-
-    critical_stock = []
-    negative_stock = []
-    expiring_products = []
-    stock_value_sale = 0
-    stock_value_cost = 0
-
-    soon = today + timedelta(days=60)
-
-    for product in products:
-        stock = product.stock or 0
-        stock_value_sale += stock * (product.sale_price or 0)
-        stock_value_cost += stock * (product.cost_price or 0)
-
-        if product.stock is not None and product.stock < 0:
-            negative_stock.append(product)
-
-        if (
-            product.stock is not None and
-            product.min_stock is not None and
-            product.min_stock > 0 and
-            product.stock <= product.min_stock
-        ):
-            critical_stock.append(product)
-
-        if product.expiration_date and product.expiration_date <= soon:
-            expiring_products.append(product)
-
-    appointments = (
-        db.query(Appointment)
-        .filter(Appointment.appointment_date >= start_dt, Appointment.appointment_date <= end_dt)
-        .all()
-    )
-
-    appointment_stats = {
-        'total': len(appointments),
-        'confirmed': len([a for a in appointments if a.status == 'Confirmado']),
-        'done': len([a for a in appointments if a.status == 'Realizado']),
-        'cancelled': len([a for a in appointments if a.status == 'Cancelado']),
-        'pending': len([a for a in appointments if a.status == 'Pendiente']),
-    }
-
-    waiting_active = db.query(WaitingListEntry).filter(
-        WaitingListEntry.status.in_(['Esperando', 'En consulta'])
-    ).count()
-
-    new_patients_estimated = len(set(e.patient_id for e in events if e.patient_id))
-    patients_seen = len(set(e.patient_id for e in events if e.patient_id))
-
-    alerts = []
-    if critical_stock:
-        alerts.append(f'Tenés {len(critical_stock)} productos en stock crítico.')
-    if expiring_products:
-        alerts.append(f'Hay {len(expiring_products)} productos próximos a vencer.')
-    if account_pending > 0:
-        alerts.append(f'La cuenta corriente pendiente suma ${account_pending:,.0f}.')
-    if waiting_active > 0:
-        alerts.append(f'Hay {waiting_active} pacientes activos en lista de espera.')
-    if not alerts:
-        alerts.append('Todo se ve ordenado para el período seleccionado.')
-
-    chart_days = []
-    current = start_date
-    while current <= end_date:
-        day_start = datetime.combine(current, datetime.min.time())
-        day_end = datetime.combine(current, datetime.max.time())
-        day_total = sum(
-            s.total or 0
-            for s in sales
-            if s.date and day_start <= s.date <= day_end and s.status != 'cancelled'
-        )
-        chart_days.append({
-            'label': current.strftime('%d/%m'),
-            'value': day_total
-        })
-        current += timedelta(days=1)
-
-    max_chart_value = max([d['value'] for d in chart_days], default=1) or 1
+    )[:10]
 
     return templates.TemplateResponse(
         'stats.html',
         {
             'request': request,
             'period': period,
+            'period_label': period_label,
             'start_date': start_date,
             'end_date': end_date,
             'sales_total': sales_total,
@@ -5507,27 +5438,9 @@ def stats_page(
             'profit_total': profit_total,
             'ticket_average': ticket_average,
             'patients_seen': patients_seen,
-            'new_patients_estimated': new_patients_estimated,
-            'payments_by_method': dict(payments_by_method),
-            'account_pending': account_pending,
-            'clients_with_debt': len(clients_with_debt),
-            'top_products': top_products,
-            'top_profit_products': top_profit_products,
-            'event_type_cards': event_type_cards,
-            'critical_stock': critical_stock[:5],
-            'negative_stock_count': len(negative_stock),
-            'critical_stock_count': len(critical_stock),
-            'expiring_products': sorted(expiring_products, key=lambda p: p.expiration_date or today)[:5],
-            'expiring_count': len(expiring_products),
-            'stock_value_sale': stock_value_sale,
-            'stock_value_cost': stock_value_cost,
-            'appointment_stats': appointment_stats,
-            'waiting_active': waiting_active,
-            'top_patients': top_patients,
-            'top_owners': top_owners,
-            'alerts': alerts,
-            'chart_days': chart_days,
-            'max_chart_value': max_chart_value,
+            'payments_by_method': payments_by_method,
+            'top_clinical_services': top_clinical_services,
+            'top_medicine_products': top_medicine_products
         }
     )
 # ===== VADEMÉCUM =====
