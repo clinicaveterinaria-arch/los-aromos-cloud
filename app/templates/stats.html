@@ -169,13 +169,36 @@
         </div>
     </div>
 
-    <div class="summary-panel">
-        <div class="summary-alerts">
-            <b>💡 Resumen inteligente</b>
-            {% for alert in alerts %}<span>• {{ alert }}</span>{% endfor %}
-        </div>
-        <div style="color:#d85b9a; font-weight:bold;">Los Aromos Cloud ❤</div>
+<div class="summary-panel">
+
+    <div class="summary-alerts">
+
+        <b>🧠 IA Gerencial</b>
+
+        {% for alert in alerts %}
+            <span>• {{ alert }}</span>
+        {% endfor %}
+
+        <span>• Ventas del período: <b>$ {{ "{:,.0f}".format(sales_total).replace(",", ".") }}</b></span>
+
+        <span>• Ticket promedio: <b>$ {{ "{:,.0f}".format(ticket_average).replace(",", ".") }}</b></span>
+
+        <span>• Ganancia estimada: <b>$ {{ "{:,.0f}".format(profit_total).replace(",", ".") }}</b></span>
+
+        <span>• Productos críticos: <b>{{ critical_stock_count }}</b></span>
+
+        <span>• Pacientes frecuentes: <b>{{ top_patients|length }}</b></span>
+
     </div>
+
+    <div style="text-align:right;">
+        <div style="font-size:42px;">📊</div>
+        <div style="font-weight:bold;color:#d85b9a;">
+            Dashboard Ejecutivo
+        </div>
+    </div>
+
+</div>
 
 </div>
 
