@@ -453,49 +453,7 @@
                 <h2>🐾 Próximos turnos</h2>
                 <a href="/agenda" class="home-link-btn">Abrir agenda</a>
             </div>
-    <div class="home-panel" id="plan-sanitario-pendiente" style="margin-bottom:18px;">
-        <div class="home-panel-head">
-            <h2>💉 Plan sanitario pendiente</h2>
-            <span class="home-badge badge-red">{{ preventive_due|length }} pacientes</span>
-        </div>
 
-        <div class="home-list">
-            {% for item in preventive_due[:6] %}
-                <a href="/patients/{{ item.patient.id }}" class="home-list-item">
-                    <div class="home-item-left">
-                        <div class="home-avatar">
-                            {% if item.vaccine_due and item.deworming_due %}💉{% elif item.vaccine_due %}💉{% else %}🪱{% endif %}
-                        </div>
-                        <div>
-                            <div class="home-item-title">
-                                {{ item.patient.name }}
-                                {% if item.patient.owner %} · {{ item.patient.owner.name }}{% endif %}
-                            </div>
-                            <div class="home-item-subtitle">
-                                {% if item.vaccine_due %}
-                                    Vacuna: {% if item.last_vaccine %}{{ item.last_vaccine.event_date.strftime('%d/%m/%Y') }}{% else %}Nunca registrada{% endif %}
-                                {% endif %}
-                                {% if item.vaccine_due and item.deworming_due %} · {% endif %}
-                                {% if item.deworming_due %}
-                                    Desparasitación: {% if item.last_deworming %}{{ item.last_deworming.event_date.strftime('%d/%m/%Y') }}{% else %}Nunca registrada{% endif %}
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-
-                    {% if item.vaccine_due and item.deworming_due %}
-                        <span class="home-badge badge-red">Ambas</span>
-                    {% elif item.vaccine_due %}
-                        <span class="home-badge badge-yellow">Vacuna</span>
-                    {% else %}
-                        <span class="home-badge badge-yellow">Desparas.</span>
-                    {% endif %}
-                </a>
-            {% else %}
-                <p class="home-item-subtitle">No hay pacientes con plan sanitario pendiente.</p>
-            {% endfor %}
-        </div>
-    </div>
             <div class="home-list">
                 {% for a in upcoming_appointments[:5] %}
                     <a href="/agenda?date={{ a.appointment_date.strftime('%Y-%m-%d') }}" class="home-list-item">
