@@ -386,6 +386,7 @@ def init_db():
     db = next(get_db())
 
     with engine.begin() as conn:
+        conn.execute(text("ALTER TABLE patients ADD COLUMN IF NOT EXISTS photo_url TEXT DEFAULT ''"))
         conn.execute(text("ALTER TABLE clinical_events ADD COLUMN IF NOT EXISTS weight FLOAT"))
         conn.execute(text("ALTER TABLE clinical_events ADD COLUMN IF NOT EXISTS temperature FLOAT"))
         conn.execute(text("ALTER TABLE clinical_events ADD COLUMN IF NOT EXISTS heart_rate INTEGER"))
