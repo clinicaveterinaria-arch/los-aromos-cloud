@@ -51,7 +51,7 @@ class Patient(Base):
     microchip: Mapped[str] = mapped_column(String(100), default='')
     alerts: Mapped[str] = mapped_column(Text, default='')
     notes: Mapped[str] = mapped_column(Text, default='')
-
+    photo_url: Mapped[str] = mapped_column(String(500), default='')
     owner_id: Mapped[int] = mapped_column(ForeignKey('owners.id'))
     owner: Mapped['Owner'] = relationship(back_populates='patients')
     events: Mapped[list['ClinicalEvent']] = relationship(
