@@ -1,0 +1,810 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<style>
+.sales-v2 {
+    padding:24px 28px;
+}
+
+.sales-header {
+    background:white;
+    border:1px solid #f3c6d8;
+    border-radius:22px;
+    padding:20px;
+    margin-bottom:18px;
+    box-shadow:0 8px 24px rgba(0,0,0,0.04);
+}
+
+.sales-header h1 {
+    margin:0;
+    font-size:30px;
+}
+
+.sales-header p {
+    margin:6px 0 0 0;
+    color:#6b7280;
+}
+
+.sales-grid {
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 360px;
+    gap:18px;
+    align-items:start;
+}
+
+.card {
+    background:white;
+    border:1px solid #f3c6d8;
+    border-radius:22px;
+    padding:18px;
+    box-shadow:0 8px 24px rgba(0,0,0,0.04);
+    margin-bottom:16px;
+}
+
+.card h2,
+.card h3 {
+    margin:0 0 14px 0;
+}
+
+.client-grid {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+}
+
+label {
+    display:block;
+    font-weight:bold;
+    margin-bottom:6px;
+    color:#374151;
+}
+
+select,
+input,
+textarea {
+    width:100%;
+    border:1px solid #e5e7eb;
+    border-radius:12px;
+    padding:10px;
+}
+
+.search-box {
+    position:relative;
+}
+
+.search-results {
+    display:none;
+    position:absolute;
+    z-index:20;
+    top:48px;
+    left:0;
+    right:0;
+    background:white;
+    border:1px solid #f3c6d8;
+    border-radius:16px;
+    box-shadow:0 10px 26px rgba(0,0,0,0.12);
+    max-height:280px;
+    overflow:auto;
+}
+
+.search-result {
+    padding:11px 13px;
+    cursor:pointer;
+    border-bottom:1px solid #f9e2ec;
+}
+
+.search-result:hover,
+.search-result.active {
+    background:#fff0f7;
+}
+
+.search-result b {
+    display:block;
+}
+
+.search-result small {
+    color:#6b7280;
+}
+
+.command-table {
+    width:100%;
+    border-collapse:collapse;
+    margin-top:14px;
+}
+
+.command-table th {
+    text-align:left;
+    color:#6b7280;
+    font-size:13px;
+    padding:8px;
+    border-bottom:1px solid #f3c6d8;
+}
+
+.command-table td {
+    padding:8px;
+    border-bottom:1px solid #f9e2ec;
+    vertical-align:middle;
+}
+
+.command-table input {
+    padding:7px;
+}
+
+.remove-btn {
+    background:#fff1f2;
+    color:#991b1b;
+    border:1px solid #fecdd3;
+    border-radius:10px;
+    padding:7px 10px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.empty-command {
+    color:#6b7280;
+    background:#fffafd;
+    border:1px dashed #f3c6d8;
+    border-radius:16px;
+    padding:18px;
+    text-align:center;
+    margin-top:14px;
+}
+
+.side {
+    position:sticky;
+    top:18px;
+}
+
+.total-line {
+    display:flex;
+    justify-content:space-between;
+    margin:10px 0;
+    color:#374151;
+}
+
+.total-line.big {
+    border-top:1px solid #f3c6d8;
+    padding-top:14px;
+    font-size:22px;
+    font-weight:bold;
+    color:#111827;
+}
+
+.payment-grid {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+}
+
+.pay-btn {
+    border:1px solid #f3c6d8;
+    background:#fff8fb;
+    border-radius:14px;
+    padding:10px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.action-btn {
+    width:100%;
+    border:none;
+    border-radius:14px;
+    padding:14px;
+    font-weight:bold;
+    cursor:pointer;
+    margin-top:10px;
+}
+
+.pay-main {
+    background:#d85b9a;
+    color:white;
+}
+
+.quote-main {
+    background:#eff6ff;
+    color:#1d4ed8;
+    border:1px solid #bfdbfe;
+}
+
+.quote-card,
+.sale-card {
+    border:1px solid #f1d6e2;
+    border-radius:16px;
+    padding:13px;
+    margin-bottom:10px;
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:10px;
+    align-items:center;
+}
+
+.mini-btn {
+    border:1px solid #f3c6d8;
+    background:white;
+    border-radius:10px;
+    padding:7px 10px;
+    font-size:12px;
+    font-weight:bold;
+    cursor:pointer;
+    text-decoration:none;
+    color:#374151;
+}
+
+.mini-btn.primary {
+    color:#d85b9a;
+}
+
+.mini-btn.danger {
+    background:#fff1f2;
+    color:#991b1b;
+    border-color:#fecdd3;
+}
+
+@media(max-width:1000px) {
+    .sales-grid {
+        grid-template-columns:1fr;
+    }
+
+    .side {
+        position:static;
+    }
+
+    .client-grid {
+        grid-template-columns:1fr;
+    }
+}
+</style>
+<div class="sales-v2">
+
+    <div class="sales-header">
+        <h1>🛒 Ventas V2</h1>
+        <p>Buscador rápido tipo MyVete, comanda simple y presupuestos separados.</p>
+    </div>
+
+    <form method="post" action="/sales" id="sales-form">
+
+        <div class="sales-grid">
+
+            <main>
+
+                <div class="card">
+                    <h2>👤 Cliente</h2>
+
+                    <div class="client-grid">
+                        <div>
+                            <label>Paciente</label>
+                            <select name="patient_id" onchange="autoSelectOwner(this.value)">
+                                <option value="">Seleccionar paciente</option>
+                                {% for patient in patients %}
+                                    <option value="{{ patient.id }}" data-owner="{{ patient.owner_id or '' }}">
+                                        {{ patient.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label>Propietario</label>
+                            <select name="owner_id" onchange="autoSelectPatient(this.value)">
+                                <option value="">Seleccionar propietario</option>
+                                {% for owner in owners %}
+                                    <option value="{{ owner.id }}">{{ owner.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>🔍 Buscar producto o servicio</h2>
+
+                    <div class="search-box">
+                        <input
+                            type="text"
+                            id="product-search"
+                            placeholder="Buscar producto o servicio..."
+                            autocomplete="off"
+                            oninput="searchProducts()"
+                            onkeydown="handleSearchKey(event)"
+                        >
+
+                        <div id="search-results" class="search-results"></div>
+                    </div>
+
+                    <div id="empty-command" class="empty-command">
+                        Escribí una palabra para buscar. Click o Enter agrega el producto a la comanda.
+                    </div>
+
+                    <table class="command-table" id="command-table" style="display:none;">
+                        <thead>
+                            <tr>
+                                <th>Producto / Servicio</th>
+                                <th style="width:90px;">Cant.</th>
+                                <th style="width:120px;">Precio</th>
+                                <th style="width:120px;">Subtotal</th>
+                                <th style="width:50px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="command-body"></tbody>
+                    </table>
+
+                    <div style="margin-top:14px;">
+                        <label>Notas</label>
+                        <textarea name="notes" rows="3" placeholder="Observaciones de venta o presupuesto..."></textarea>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>📄 Presupuestos pendientes</h2>
+
+                    {% if quote_sales %}
+                        {% for quote in quote_sales %}
+                            <div class="quote-card">
+                                <div>
+                                    <b>
+                                        {% if quote.patient_name %}
+                                            🐾 {{ quote.patient_name }}
+                                        {% elif quote.owner_name %}
+                                            👤 {{ quote.owner_name }}
+                                        {% else %}
+                                            Presupuesto sin cliente
+                                        {% endif %}
+                                    </b>
+
+                                    <div style="color:#6b7280; font-size:13px; margin-top:4px;">
+                                        {{ quote.date.strftime("%d/%m/%Y %H:%M") if quote.date else "" }}
+                                        · $ {{ "%.2f"|format(quote.total or 0) }}
+                                    </div>
+
+                                    {% if quote.items_detail %}
+                                        <div style="color:#6b7280; font-size:13px; margin-top:4px;">
+                                            {% for item in quote.items_detail[:3] %}
+                                                {{ item.product_name }} x {{ item.quantity }}{% if not loop.last %} · {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div style="display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end;">
+                                    <a href="/sales/{{ quote.id }}" class="mini-btn primary">Abrir</a>
+
+                                    <form method="post" action="/sales/{{ quote.id }}/convert" style="margin:0;">
+                                        <button type="submit" class="mini-btn primary">Generar venta</button>
+                                    </form>
+
+                                    <form method="post" action="/sales/{{ quote.id }}/cancel" style="margin:0;">
+                                        <button type="submit" class="mini-btn danger"
+                                                onclick="return confirm('¿Cancelar este presupuesto?');">
+                                            Cancelar
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p style="color:#6b7280;">No hay presupuestos pendientes.</p>
+                    {% endif %}
+                </div>
+                <div class="card">
+                    <h2>💰 Últimas ventas</h2>
+
+                    {% if sales %}
+                        {% for sale in sales %}
+                            <div class="sale-card">
+                                <div>
+                                    <b>
+                                        {% if sale.patient_name %}
+                                            🐾 {{ sale.patient_name }}
+                                        {% elif sale.owner_name %}
+                                            👤 {{ sale.owner_name }}
+                                        {% else %}
+                                            Venta sin cliente
+                                        {% endif %}
+                                    </b>
+
+                                    <div style="color:#6b7280; font-size:13px; margin-top:4px;">
+                                        {{ sale.date.strftime("%d/%m/%Y %H:%M") if sale.date else "" }}
+                                        · {{ sale.items_count }} producto{% if sale.items_count != 1 %}s{% endif %}
+                                        · $ {{ "%.2f"|format(sale.total or 0) }}
+                                    </div>
+
+                                    {% if sale.items_detail %}
+                                        <div style="color:#6b7280; font-size:13px; margin-top:4px;">
+                                            {% for item in sale.items_detail[:3] %}
+                                                {{ item.product_name }} x {{ item.quantity }}{% if not loop.last %} · {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div style="display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end;">
+                                    <a href="/sales/{{ sale.id }}" class="mini-btn primary">Ver</a>
+
+                                    {% if sale.status != 'cancelled' %}
+                                        <form method="post" action="/sales/{{ sale.id }}/cancel" style="margin:0;">
+                                            <button type="submit" class="mini-btn danger"
+                                                    onclick="return confirm('¿Cancelar esta venta y devolver stock?');">
+                                                Cancelar
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p style="color:#6b7280;">No hay ventas registradas.</p>
+                    {% endif %}
+                </div>
+
+            </main>
+
+            <aside class="side">
+
+                <div class="card">
+                    <h3>📌 Resumen</h3>
+
+                    <div class="total-line">
+                        <span>Subtotal</span>
+                        <b id="subtotal-display">$ 0.00</b>
+                    </div>
+
+                    <div class="total-line">
+                        <span>Descuento</span>
+                        <input type="number" id="discount-percent" value="0" min="0" max="100" oninput="calculateTotal()" style="width:80px;">
+                    </div>
+
+                    <div class="total-line">
+                        <span>Recargo crédito</span>
+                        <input type="number" id="credit-surcharge-percent" value="26" min="0" max="100" style="width:80px;">
+                    </div>
+
+                    <div class="total-line big">
+                        <span>Total</span>
+                        <span id="total-display">$ 0.00</span>
+                    </div>
+
+                    <input type="hidden" name="discount_percent" id="discount-percent-hidden" value="0">
+                    <input type="hidden" name="discount_amount" id="discount-amount-hidden" value="0">
+                    <input type="hidden" name="credit_surcharge_percent" id="credit-surcharge-percent-hidden" value="0">
+                    <input type="hidden" name="credit_surcharge_amount" id="credit-surcharge-amount-hidden" value="0">
+                </div>
+
+                <div class="card">
+                    <h3>💳 Cobro</h3>
+
+                    <div class="payment-grid">
+                        <button type="button" class="pay-btn" onclick="quickPay('pay_efectivo')">💵 Efectivo</button>
+                        <button type="button" class="pay-btn" onclick="quickPay('pay_debito')">💳 Débito</button>
+                        <button type="button" class="pay-btn" onclick="quickPay('pay_credito')">💳 Crédito</button>
+                        <button type="button" class="pay-btn" onclick="quickPay('pay_transferencia')">🏦 Transferencia</button>
+                    </div>
+
+                    <div style="display:grid; gap:8px; margin-top:12px;">
+                        <label>Efectivo</label>
+                        <input type="number" step="0.01" name="pay_efectivo" value="0" oninput="calculatePayments()">
+
+                        <label>Débito</label>
+                        <input type="number" step="0.01" name="pay_debito" value="0" oninput="calculatePayments()">
+
+                        <label>Crédito</label>
+                        <input type="number" step="0.01" name="pay_credito" value="0" oninput="calculatePayments()">
+
+                        <label>Transferencia</label>
+                        <input type="number" step="0.01" name="pay_transferencia" value="0" oninput="calculatePayments()">
+
+                        <label>Cuenta corriente</label>
+                        <input type="number" step="0.01" name="pay_cuenta_corriente" value="0" oninput="calculatePayments()">
+                    </div>
+
+                    <div style="margin-top:12px; color:#6b7280; font-size:13px;">
+                        Pagos: $ <span id="payments-display">0.00</span><br>
+                        Saldo: $ <span id="balance-display">0.00</span>
+                    </div>
+
+                    <button type="submit" class="action-btn pay-main">💳 Pagar</button>
+                    <button type="submit" name="save_as_quote" value="1" class="action-btn quote-main">📄 Guardar presupuesto</button>
+                </div>
+
+            </aside>
+
+        </div>
+
+    </form>
+</div>
+
+<script>
+const PRODUCTS = [
+    {% for product in products %}
+        {
+            id: "{{ product.id }}",
+            name: "{{ product.name|e }}",
+            price: {{ product.sale_price or 0 }},
+            cost: {{ product.cost_price or 0 }},
+            stock: {{ product.stock or 0 }}
+        }{% if not loop.last %},{% endif %}
+    {% endfor %}
+];
+
+const patientOwnerMap = {{ patient_owner_map | tojson }};
+let activeSearchIndex = -1;
+let currentResults = [];
+
+function normalizeText(text) {
+    return (text || "").toString().toLowerCase();
+}
+
+function searchProducts() {
+    const input = document.getElementById("product-search");
+    const box = document.getElementById("search-results");
+    const q = normalizeText(input.value).trim();
+
+    activeSearchIndex = -1;
+    currentResults = [];
+
+    if (!q) {
+        box.style.display = "none";
+        box.innerHTML = "";
+        return;
+    }
+
+    currentResults = PRODUCTS.filter(p => normalizeText(p.name).includes(q)).slice(0, 12);
+
+    if (!currentResults.length) {
+        box.innerHTML = '<div class="search-result"><small>No se encontraron productos.</small></div>';
+        box.style.display = "block";
+        return;
+    }
+
+    box.innerHTML = currentResults.map((p, index) => `
+        <div class="search-result" onclick="addProductByIndex(${index})">
+            <b>${p.name}</b>
+            <small>Stock: ${p.stock} · $ ${Number(p.price || 0).toFixed(2)}</small>
+        </div>
+    `).join("");
+
+    box.style.display = "block";
+}
+
+function handleSearchKey(event) {
+    const box = document.getElementById("search-results");
+    const items = box.querySelectorAll(".search-result");
+
+    if (event.key === "ArrowDown") {
+        event.preventDefault();
+        activeSearchIndex = Math.min(activeSearchIndex + 1, items.length - 1);
+        updateActiveSearch(items);
+    }
+
+    if (event.key === "ArrowUp") {
+        event.preventDefault();
+        activeSearchIndex = Math.max(activeSearchIndex - 1, 0);
+        updateActiveSearch(items);
+    }
+
+    if (event.key === "Enter") {
+        event.preventDefault();
+
+        if (currentResults.length) {
+            const index = activeSearchIndex >= 0 ? activeSearchIndex : 0;
+            addProductByIndex(index);
+        }
+    }
+}
+
+function updateActiveSearch(items) {
+    items.forEach(item => item.classList.remove("active"));
+
+    if (items[activeSearchIndex]) {
+        items[activeSearchIndex].classList.add("active");
+    }
+}
+
+function addProductByIndex(index) {
+    const product = currentResults[index];
+
+    if (!product) {
+        return;
+    }
+
+    addProductToCommand(product);
+
+    const input = document.getElementById("product-search");
+    const box = document.getElementById("search-results");
+
+    input.value = "";
+    box.innerHTML = "";
+    box.style.display = "none";
+    input.focus();
+}
+
+function addProductToCommand(product) {
+    const tbody = document.getElementById("command-body");
+    const existing = tbody.querySelector(`tr[data-product-id="${product.id}"]`);
+
+    if (existing) {
+        const qty = existing.querySelector(".qty-input");
+        qty.value = (parseFloat(qty.value || "0") + 1).toString();
+        calculateTotal();
+        return;
+    }
+
+    const row = document.createElement("tr");
+    row.setAttribute("data-product-id", product.id);
+
+    row.innerHTML = `
+        <td>
+            <b>${product.name}</b>
+            <input type="hidden" name="product_id" value="${product.id}">
+        </td>
+        <td>
+            <input type="number" step="0.01" name="quantity" class="qty-input" value="1" oninput="calculateTotal()">
+        </td>
+        <td>
+            <input type="number" step="0.01" name="unit_price" class="price-input" value="${Number(product.price || 0).toFixed(2)}" oninput="calculateTotal()">
+            <input type="hidden" class="cost-input" value="${Number(product.cost || 0).toFixed(2)}">
+        </td>
+        <td class="row-subtotal">$ 0.00</td>
+        <td>
+            <button type="button" class="remove-btn" onclick="removeCommandRow(this)">×</button>
+        </td>
+    `;
+
+    tbody.appendChild(row);
+    updateCommandVisibility();
+    calculateTotal();
+}
+
+function removeCommandRow(button) {
+    button.closest("tr").remove();
+    updateCommandVisibility();
+    calculateTotal();
+}
+
+function updateCommandVisibility() {
+    const hasRows = document.querySelectorAll("#command-body tr").length > 0;
+
+    document.getElementById("command-table").style.display = hasRows ? "table" : "none";
+    document.getElementById("empty-command").style.display = hasRows ? "none" : "block";
+}
+
+function calculateTotal() {
+    let subtotal = 0;
+    let costTotal = 0;
+
+    document.querySelectorAll("#command-body tr").forEach(row => {
+        const qty = parseFloat(row.querySelector(".qty-input").value) || 0;
+        const price = parseFloat(row.querySelector(".price-input").value) || 0;
+        const cost = parseFloat(row.querySelector(".cost-input").value) || 0;
+        const rowTotal = qty * price;
+
+        row.querySelector(".row-subtotal").innerText = "$ " + rowTotal.toFixed(2);
+
+        subtotal += rowTotal;
+        costTotal += qty * cost;
+    });
+
+    const discountPercent = parseFloat(document.getElementById("discount-percent").value) || 0;
+    let discountAmount = subtotal * (discountPercent / 100);
+
+    if (discountAmount > subtotal) {
+        discountAmount = subtotal;
+    }
+
+    let total = subtotal - discountAmount;
+
+    const credito = parseFloat(document.querySelector('[name="pay_credito"]').value) || 0;
+    const surchargePercent = parseFloat(document.getElementById("credit-surcharge-percent").value) || 0;
+    let surchargeAmount = 0;
+
+    if (credito > 0) {
+        surchargeAmount = total * (surchargePercent / 100);
+        total += surchargeAmount;
+    }
+
+    document.getElementById("subtotal-display").innerText = "$ " + subtotal.toFixed(2);
+    document.getElementById("total-display").innerText = "$ " + total.toFixed(2);
+
+    document.getElementById("discount-percent-hidden").value = discountPercent.toFixed(2);
+    document.getElementById("discount-amount-hidden").value = discountAmount.toFixed(2);
+    document.getElementById("credit-surcharge-percent-hidden").value = surchargePercent.toFixed(2);
+    document.getElementById("credit-surcharge-amount-hidden").value = surchargeAmount.toFixed(2);
+
+    calculatePayments(total);
+}
+
+function calculatePayments(totalOverride = null) {
+    const totalText = document.getElementById("total-display").innerText.replace("$", "").trim();
+    const total = totalOverride !== null ? totalOverride : (parseFloat(totalText) || 0);
+
+    const efectivo = parseFloat(document.querySelector('[name="pay_efectivo"]').value) || 0;
+    const debito = parseFloat(document.querySelector('[name="pay_debito"]').value) || 0;
+    const credito = parseFloat(document.querySelector('[name="pay_credito"]').value) || 0;
+    const transferencia = parseFloat(document.querySelector('[name="pay_transferencia"]').value) || 0;
+    const cuenta = parseFloat(document.querySelector('[name="pay_cuenta_corriente"]').value) || 0;
+
+    const payments = efectivo + debito + credito + transferencia + cuenta;
+    const balance = total - payments;
+
+    document.getElementById("payments-display").innerText = payments.toFixed(2);
+    document.getElementById("balance-display").innerText = balance.toFixed(2);
+}
+
+function quickPay(fieldName) {
+    document.querySelectorAll('[name="pay_efectivo"], [name="pay_debito"], [name="pay_credito"], [name="pay_transferencia"], [name="pay_cuenta_corriente"]').forEach(input => {
+        input.value = 0;
+    });
+
+    calculateTotal();
+
+    const totalText = document.getElementById("total-display").innerText.replace("$", "").trim();
+    const total = parseFloat(totalText) || 0;
+
+    const input = document.querySelector(`[name="${fieldName}"]`);
+
+    if (input) {
+        input.value = total.toFixed(2);
+    }
+
+    calculateTotal();
+}
+
+function filterPatientsByOwner(ownerId, keepPatientId = "") {
+    const patientSelect = document.querySelector('select[name="patient_id"]');
+
+    if (!patientSelect) {
+        return;
+    }
+
+    let matches = [];
+
+    for (const option of patientSelect.options) {
+        if (option.value === "") {
+            option.hidden = false;
+            continue;
+        }
+
+        const optionOwner = patientOwnerMap[option.value];
+        const isMatch = !ownerId || optionOwner == ownerId;
+
+        option.hidden = !isMatch;
+
+        if (isMatch) {
+            matches.push(option.value);
+        }
+    }
+
+    if (keepPatientId && matches.includes(String(keepPatientId))) {
+        patientSelect.value = keepPatientId;
+        return;
+    }
+
+    if (ownerId && matches.length === 1) {
+        patientSelect.value = matches[0];
+    } else if (ownerId) {
+        patientSelect.value = "";
+    }
+}
+
+function autoSelectOwner(patientId) {
+    const ownerId = patientOwnerMap[patientId];
+    const ownerSelect = document.querySelector('select[name="owner_id"]');
+
+    if (ownerSelect && ownerId !== undefined) {
+        ownerSelect.value = ownerId;
+        filterPatientsByOwner(ownerId, patientId);
+    }
+}
+
+function autoSelectPatient(ownerId) {
+    filterPatientsByOwner(ownerId);
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    filterPatientsByOwner(document.querySelector('select[name="owner_id"]')?.value || "");
+    updateCommandVisibility();
+    calculateTotal();
+});
+</script>
+
+{% endblock %}  
