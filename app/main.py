@@ -669,6 +669,8 @@ def logout(request: Request):
 @app.get('/', response_class=HTMLResponse)
 def home(request: Request, db: Session = Depends(get_db), user: User = Depends(require_user)):
     today = argentina_now().date()
+    day_start = datetime.combine(today, datetime.min.time())
+    day_end = datetime.combine(today, datetime.max.time())
 
     stats = {
         'owners': db.query(Owner).count(),
@@ -687,11 +689,9 @@ def home(request: Request, db: Session = Depends(get_db), user: User = Depends(r
         'vaccines': db.query(ClinicalEvent).filter(
             ClinicalEvent.event_type == 'Vacuna'
         ).count(),
-
         'rx': db.query(ClinicalEvent).filter(
             ClinicalEvent.event_type == 'Radiografía'
         ).count(),
-
         'ecg': db.query(ClinicalEvent).filter(
             ClinicalEvent.event_type == 'ECG'
         ).count(),
@@ -730,21 +730,31 @@ def home(request: Request, db: Session = Depends(get_db), user: User = Depends(r
         .limit(5)
         .all()
     )
+
     upcoming_appointments = (
         db.query(Appointment)
-        .filter(Appointment.appointment_date >= datetime.combine(today, datetime.min.time()))
+        .filter(Appointment.appointment_date >= day_start)
         .filter(Appointment.status.in_(['Pendiente', 'Confirmado']))
         .order_by(Appointment.appointment_date.asc(), Appointment.start_time.asc())
         .limit(8)
         .all()
     )
+
+    today_appointments = (
+        db.query(Appointment)
+        .filter(Appointment.appointment_date >= day_start)
+        .filter(Appointment.appointment_date <= day_end)
+        .filter(Appointment.status.in_(['Pendiente', 'Confirmado']))
+        .order_by(Appointment.start_time.asc())
+        .all()
+    )
+
     recent_patients = (
         db.query(Patient)
         .order_by(Patient.id.desc())
         .limit(8)
         .all()
     )
-
 
     try:
         inactive_cutoff = today.replace(year=today.year - 1)
@@ -768,24 +778,13 @@ def home(request: Request, db: Session = Depends(get_db), user: User = Depends(r
             })
 
     inactive_patients = inactive_patients[:8]
+
     preventive_cutoff = today - timedelta(days=365)
 
     overdue_vaccines = []
     overdue_dewormings = []
     preventive_due = []
-    def sanitary_status(last_event):
-        if last_event is None or not last_event.event_date:
-            return "Nunca registrado"
 
-        days = (today - last_event.event_date.date()).days
-
-        if days >= 365:
-            return f"Vencido hace {days - 365} días"
-
-        if days >= 330:
-            return "Próximo a vencer"
-
-        return "Al día"
     for p in db.query(Patient).all():
         last_vaccine = (
             db.query(ClinicalEvent)
@@ -820,9 +819,76 @@ def home(request: Request, db: Session = Depends(get_db), user: User = Depends(r
                 'vaccine_due': vaccine_due,
                 'deworming_due': deworming_due
             })
+
     preventive_due = preventive_due[:10]
     overdue_vaccines = overdue_vaccines[:20]
-    overdue_dewormings = overdue_dewormings[:20] 
+    overdue_dewormings = overdue_dewormings[:20]
+
+    today_sales = (
+        db.query(Sale)
+        .filter(Sale.date >= day_start)
+        .filter(Sale.date <= day_end)
+        .filter(Sale.status != 'cancelled')
+        .filter(Sale.status != 'quote')
+        .all()
+    )
+
+    today_sales_total = sum(s.total or 0 for s in today_sales)
+    today_sales_count = len(today_sales)
+
+    critical_stock_count = (
+        db.query(Product)
+        .filter(Product.active == True)
+        .filter(Product.stock != None)
+        .filter(Product.min_stock != None)
+        .filter(Product.min_stock > 0)
+        .filter(Product.stock <= Product.min_stock)
+        .count()
+    )
+
+    week_start = today - timedelta(days=today.weekday())
+    weekly_activity = []
+
+    for i in range(7):
+        current_day = week_start + timedelta(days=i)
+        current_start = datetime.combine(current_day, datetime.min.time())
+        current_end = datetime.combine(current_day, datetime.max.time())
+
+        events_count = (
+            db.query(ClinicalEvent)
+            .filter(ClinicalEvent.event_date >= current_start)
+            .filter(ClinicalEvent.event_date <= current_end)
+            .count()
+        )
+
+        appointments_count = (
+            db.query(Appointment)
+            .filter(Appointment.appointment_date >= current_start)
+            .filter(Appointment.appointment_date <= current_end)
+            .count()
+        )
+
+        weekly_activity.append({
+            'label': current_day.strftime('%a'),
+            'count': events_count + appointments_count
+        })
+
+    max_weekly_activity = max([d['count'] for d in weekly_activity], default=1) or 1
+
+    dashboard_alerts = []
+
+    if stats['overdue'] > 0:
+        dashboard_alerts.append(f"Hay {stats['overdue']} recordatorios vencidos.")
+
+    if critical_stock_count > 0:
+        dashboard_alerts.append(f"Hay {critical_stock_count} productos con stock crítico.")
+
+    if inactive_patients:
+        dashboard_alerts.append(f"Hay {len(inactive_patients)} pacientes sin visitas recientes.")
+
+    if not dashboard_alerts:
+        dashboard_alerts.append("Todo se ve ordenado para hoy.")
+
     return templates.TemplateResponse(
         'home.html',
         {
@@ -834,13 +900,19 @@ def home(request: Request, db: Session = Depends(get_db), user: User = Depends(r
             'overdue_events': overdue_events,
             'today_events': today_events,
             'upcoming_appointments': upcoming_appointments,
+            'today_appointments': today_appointments,
             'recent_patients': recent_patients,
             'inactive_patients': inactive_patients,
             'overdue_vaccines': overdue_vaccines,
             'overdue_dewormings': overdue_dewormings,
             'preventive_due': preventive_due,
+            'today_sales_total': today_sales_total,
+            'today_sales_count': today_sales_count,
+            'critical_stock_count': critical_stock_count,
+            'weekly_activity': weekly_activity,
+            'max_weekly_activity': max_weekly_activity,
+            'dashboard_alerts': dashboard_alerts,
             'today': today
-            
         }
     )
 @app.get('/quick/rx')
