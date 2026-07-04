@@ -435,12 +435,14 @@ textarea {
                                     <a href="/sales/{{ sale.id }}" class="mini-btn primary">Ver</a>
 
                                     {% if sale.status != 'cancelled' %}
-                                        <form method="post" action="/sales/{{ sale.id }}/cancel" style="margin:0;">
-                                            <button type="submit" class="mini-btn danger"
-                                                    onclick="return confirm('¿Cancelar esta venta y devolver stock?');">
-                                                Cancelar
-                                            </button>
-                                        </form>
+                                        <button
+                                            type="submit"
+                                            class="mini-btn danger"
+                                            formmethod="post"
+                                            formaction="/sales/{{ sale.id }}/cancel"
+                                            onclick="return confirm('¿Cancelar esta venta y devolver stock?');">
+                                            Cancelar
+                                        </button>
                                     {% endif %}
                                 </div>
                             </div>
