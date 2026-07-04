@@ -363,12 +363,20 @@
 
         <a href="/sales" class="home-stat-card card-ventas" style="text-decoration:none;color:inherit;">
             <h3>💰 Ventas</h3>
-            <div class="big-number">$ -</div>
-            <div class="label">Ventas del día</div>
+        
+            <div class="big-number">
+                $ {{ "{:,.0f}".format(today_sales_total).replace(",", ".") }}
+            </div>
+        
+            <div class="label">
+                {{ today_sales_count }} ventas hoy
+            </div>
+        
             <div class="mini-row">
                 <span>Ver ventas</span>
                 <span>Comanda</span>
             </div>
+        
             <div class="watermark">💰</div>
         </a>
 
