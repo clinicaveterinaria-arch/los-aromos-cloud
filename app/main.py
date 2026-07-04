@@ -3533,6 +3533,47 @@ def sales_page(
     if product_stats:
         top_product_name = max(product_stats, key=product_stats.get)
         top_product_qty = product_stats[top_product_name]
+    quote_sales = (
+        db.query(Sale)
+        .filter(Sale.status == 'quote')
+        .order_by(Sale.date.desc())
+        .all()
+    )
+
+    for quote in quote_sales:
+        quote.items_count = (
+            db.query(SaleItem)
+            .filter(SaleItem.sale_id == quote.id)
+            .count()
+        )
+        quote.patient_name = ''
+        quote.owner_name = ''
+        quote.items_detail = []
+
+        items = (
+            db.query(SaleItem)
+            .filter(SaleItem.sale_id == quote.id)
+            .all()
+        )
+
+        for item in items:
+            product = db.get(Product, item.product_id)
+            quote.items_detail.append({
+                'product_name': product.name if product else 'Producto eliminado',
+                'quantity': item.quantity,
+                'unit_price': item.unit_price,
+                'subtotal': item.subtotal
+            })
+
+        if quote.patient_id:
+            patient = db.get(Patient, quote.patient_id)
+            if patient:
+                quote.patient_name = patient.name
+
+        if quote.owner_id:
+            owner = db.get(Owner, quote.owner_id)
+            if owner:
+                quote.owner_name = owner.name    
     return templates.TemplateResponse(
         'sales_v2.html',
         {
@@ -3542,6 +3583,7 @@ def sales_page(
             'patient_owner_map': patient_owner_map,
             'owners': owners,
             'sales': sales,
+            'quote_sales': quote_sales,            
             'selected_date': selected_date,
             'today_sales_total': today_sales_total,
             'month_sales_total': month_sales_total,
