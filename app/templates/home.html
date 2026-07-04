@@ -643,7 +643,38 @@
         <div class="home-panel-head">
             <h2>⚡ Accesos rápidos</h2>
         </div>
+<div class="home-panel" style="margin-bottom:18px;">
 
+    <div class="home-panel-head">
+        <h2>🧠 IA Gerencial</h2>
+        <span class="home-badge badge-blue">Resumen del día</span>
+    </div>
+
+    <div class="home-list">
+
+        {% for alert in dashboard_alerts %}
+
+        <div class="home-list-item">
+            <div class="home-item-left">
+                <div class="home-avatar">💡</div>
+
+                <div>
+                    <div class="home-item-title">
+                        {{ alert }}
+                    </div>
+
+                    <div class="home-item-subtitle">
+                        Generado automáticamente según la actividad de la clínica.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+</div>
         <div class="quick-grid">
             <a href="/search" class="quick-card">🩺 Historia clínica</a>
             <a href="/agenda" class="quick-card">📅 Agenda</a>
