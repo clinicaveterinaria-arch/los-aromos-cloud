@@ -539,13 +539,11 @@
             </div>
 
             <div class="home-chart-box">
-                <div class="fake-bar" style="height:45%;"><span>Lun</span></div>
-                <div class="fake-bar" style="height:62%;"><span>Mar</span></div>
-                <div class="fake-bar" style="height:50%;"><span>Mié</span></div>
-                <div class="fake-bar" style="height:72%;"><span>Jue</span></div>
-                <div class="fake-bar" style="height:58%;"><span>Vie</span></div>
-                <div class="fake-bar" style="height:68%;"><span>Sáb</span></div>
-                <div class="fake-bar" style="height:82%;"><span>Dom</span></div>
+                {% for day in weekly_activity %}
+                    <div class="fake-bar" style="height:{{ ((day.count / max_weekly_activity) * 85)|int + 10 }}%;">
+                        <span>{{ day.label }}</span>
+                    </div>
+                {% endfor %}
             </div>
         </div>
 
