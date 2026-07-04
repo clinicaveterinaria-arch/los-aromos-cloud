@@ -29,11 +29,61 @@
     }
 
     .patient-profile { display:flex; gap:18px; align-items:center; }
+    .patient-avatar-wrap {
+        position:relative;
+        width:112px;
+        height:112px;
+        flex:0 0 auto;
+    }
+
     .patient-avatar {
-        width:112px; height:112px; border-radius:50%; background:#fff0f7;
-        border:3px solid #f3c6d8; color:#d85b9a; display:flex;
-        align-items:center; justify-content:center; font-size:42px; font-weight:bold;
-        flex:0 0 auto; text-transform:uppercase;
+        width:112px;
+        height:112px;
+        border-radius:50%;
+        background:#fff0f7;
+        border:3px solid #f3c6d8;
+        color:#d85b9a;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-size:42px;
+        font-weight:bold;
+        text-transform:uppercase;
+        overflow:hidden;
+    }
+
+    .patient-avatar img {
+        width:100%;
+        height:100%;
+        object-fit:cover;
+        display:block;
+    }
+
+    .patient-photo-plus {
+        position:absolute;
+        right:2px;
+        bottom:2px;
+        width:34px;
+        height:34px;
+        border-radius:50%;
+        border:2px solid white;
+        background:#d85b9a;
+        color:white;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-size:22px;
+        font-weight:bold;
+        cursor:pointer;
+        box-shadow:0 4px 12px rgba(0,0,0,.18);
+    }
+
+    .patient-photo-plus:hover {
+        background:#c74386;
+    }
+
+    .patient-photo-form {
+        display:none;
     }
 
     .patient-name-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
