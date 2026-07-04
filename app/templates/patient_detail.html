@@ -391,7 +391,42 @@
     <div class="hc-hero">
         <div class="hc-hero-top">
             <div class="patient-profile">
-                <div class="patient-avatar">{{ patient.name[:1] if patient.name else '?' }}</div>
+<div class="patient-avatar-wrap">
+
+    <div class="patient-avatar">
+
+        {% if patient.photo_url %}
+
+            <img src="{{ patient.photo_url }}" alt="{{ patient.name }}">
+
+        {% else %}
+
+            {{ patient.name[:1] if patient.name else '?' }}
+
+        {% endif %}
+
+    </div>
+
+    <label for="patient-photo" class="patient-photo-plus">
+        +
+    </label>
+
+    <form
+        class="patient-photo-form"
+        action="/patients/{{ patient.id }}/photo"
+        method="post"
+        enctype="multipart/form-data">
+
+        <input
+            id="patient-photo"
+            type="file"
+            name="photo"
+            accept="image/*"
+            onchange="this.form.submit()">
+
+    </form>
+
+</div>
                 <div>
                     <div class="patient-name-row">
                         <h1>{{ patient.name }}</h1>
