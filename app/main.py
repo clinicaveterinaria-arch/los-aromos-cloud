@@ -3532,7 +3532,7 @@ def sales_page(
         top_product_name = max(product_stats, key=product_stats.get)
         top_product_qty = product_stats[top_product_name]
     return templates.TemplateResponse(
-        'sales.html',
+        'sales_v2.html',
         {
             'request': request,
             'products': products,
