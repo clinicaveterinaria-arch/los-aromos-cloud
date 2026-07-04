@@ -1677,6 +1677,62 @@ def close_managed_due_events(db, patient, real_event, user):
             closed_count += 1
 
     return closed_count
+@app.post('/patients/{patient_id}/photo')
+async def patient_upload_photo(
+    patient_id: int,
+    photo: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    patient = db.get(Patient, patient_id)
+
+    if not patient:
+        raise HTTPException(status_code=404)
+
+    if not photo or not photo.filename:
+        return RedirectResponse(f'/patients/{patient_id}', status_code=303)
+
+    if supabase is None:
+        raise HTTPException(
+            status_code=500,
+            detail="Supabase Storage no configurado."
+        )
+
+    original_name = os.path.basename(photo.filename)
+    safe_name = original_name.replace(" ", "_")
+    unique_name = f"{uuid.uuid4().hex}_{safe_name}"
+
+    content = await photo.read()
+
+    if not content:
+        return RedirectResponse(f'/patients/{patient_id}', status_code=303)
+
+    content_type = photo.content_type or mimetypes.guess_type(original_name)[0] or "application/octet-stream"
+
+    storage_path = f"patient_{patient_id}/profile/{unique_name}"
+
+    try:
+        supabase.storage.from_("adjuntos").upload(
+            path=storage_path,
+            file=content,
+            file_options={
+                "content-type": content_type,
+                "upsert": "true"
+            }
+        )
+
+        public_url = supabase.storage.from_("adjuntos").get_public_url(storage_path)
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+
+    patient.photo_url = public_url
+    db.commit()
+
+    return RedirectResponse(f'/patients/{patient_id}', status_code=303)
 @app.get('/patients/{patient_id}', response_class=HTMLResponse)
 def patient_detail(request: Request, patient_id: int, db: Session = Depends(get_db), user: User = Depends(require_user)):
     patient = db.get(Patient, patient_id)
