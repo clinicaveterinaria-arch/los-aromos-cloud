@@ -448,15 +448,128 @@
         }
     }
 
-    @media (max-width:800px) {
-        .client-grid,
-        .sale-item {
+    @media (max-width:900px){
+    
+        .sales-page{
+            padding:12px;
+        }
+    
+        .sales-hero{
+            padding:16px;
+            border-radius:18px;
+        }
+    
+        .sales-hero h1{
+            font-size:28px;
+        }
+    
+        .sales-hero>div:last-child{
+            width:100%;
+            display:flex;
+            flex-wrap:wrap;
+            gap:8px;
+        }
+    
+        .sales-date-badge{
+            margin-left:0;
+        }
+    
+        .sales-stat-grid{
+            grid-template-columns:1fr 1fr;
+        }
+    
+        .sales-layout{
             grid-template-columns:1fr;
         }
-
-        .payment-mini {
+    
+        .sales-side{
+            position:static;
+        }
+    
+        .sales-main,
+        .sales-side,
+        .sales-panel{
+            padding:16px;
+            border-radius:18px;
+        }
+    
+        .client-grid{
             grid-template-columns:1fr;
         }
+    
+        .sale-item{
+            grid-template-columns:1fr;
+            gap:10px;
+        }
+    
+        .remove-btn{
+            width:100%;
+        }
+    
+        .discount-row{
+            grid-template-columns:1fr;
+        }
+    
+        .payment-grid{
+            grid-template-columns:1fr 1fr;
+        }
+    
+        .payment-mini{
+            grid-template-columns:1fr;
+        }
+    
+        .sales-filter{
+            display:grid;
+            grid-template-columns:1fr;
+        }
+    
+        .sale-row-card,
+        .debt-card{
+            grid-template-columns:1fr;
+        }
+    
+        .sale-actions{
+            justify-content:flex-start;
+        }
+    
+        .top-product-row{
+            grid-template-columns:34px 1fr auto;
+        }
+    
+    }
+    
+    @media (max-width:520px){
+    
+        .sales-page{
+            padding:8px;
+        }
+    
+        .sales-hero h1{
+            font-size:24px;
+        }
+    
+        .sales-stat-grid{
+            grid-template-columns:1fr;
+        }
+    
+        .payment-grid{
+            grid-template-columns:1fr;
+        }
+    
+        .save-actions{
+            grid-template-columns:1fr;
+        }
+    
+        .sales-date-badge{
+            width:100%;
+            text-align:center;
+        }
+    
+        .section-title{
+            flex-direction:column;
+            align-items:flex-start;
+        }
+    
     }
 </style>
 
