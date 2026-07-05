@@ -3180,7 +3180,24 @@ def products_page(
 
     today = argentina_now().date()
     soon = today + timedelta(days=60)
-    products = query.order_by(Product.name).limit(300).all()
+    per_page = 50
+
+    if page < 1:
+        page = 1
+
+    total_filtered = query.count()
+    total_pages = max(1, (total_filtered + per_page - 1) // per_page)
+
+    if page > total_pages:
+        page = total_pages
+
+    products = (
+        query
+        .order_by(Product.name)
+        .offset((page - 1) * per_page)
+        .limit(per_page)
+        .all()
+    )
     for p in products:
         p.row_color = ''
 
