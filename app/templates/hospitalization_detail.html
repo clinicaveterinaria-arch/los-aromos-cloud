@@ -694,11 +694,25 @@
                                     ⚠ Medicación vencida
                                     </small>
                                     
+                                    {% if overdue %}
+                                    <br>
+                                    <small style="color:#dc2626;font-weight:bold;">
+                                    ⚠ Medicación vencida
+                                    </small>
+                                    
                                     {% elif is_next %}
                                     <br>
                                     <small style="color:#b45309;font-weight:bold;">
                                     ⏰ Próxima dosis
                                     </small>
+                                    
+                                    {% if m.scheduled_time %}
+                                    <br>
+                                    <small style="color:#6b7280;">
+                                    Programada: {{ m.scheduled_time }}
+                                    </small>
+                                    {% endif %}
+                                    
                                     {% endif %}
                                 </td>
 
