@@ -7262,7 +7262,70 @@ def hospitalization_detail(
             'current_time_hhmm': argentina_now().strftime('%H:%M')
         }
     )
+@app.get('/hospitalizations/{hospitalization_id}/print', response_class=HTMLResponse)
+def hospitalization_print(
+    hospitalization_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    hospitalization = db.get(Hospitalization, hospitalization_id)
 
+    if not hospitalization:
+        raise HTTPException(
+            status_code=404,
+            detail='Internación no encontrada'
+        )
+
+    patient = hospitalization.patient
+    owner = patient.owner if patient else None
+
+    related_events = (
+        db.query(ClinicalEvent)
+        .filter(ClinicalEvent.patient_id == patient.id)
+        .filter(
+            ClinicalEvent.event_type.in_(
+                ['Internación', 'Control', 'Consulta clínica', 'Alta']
+            )
+        )
+        .order_by(ClinicalEvent.event_date.asc())
+        .all()
+    )
+
+    medications = (
+        db.query(HospitalizationMedication)
+        .filter(
+            HospitalizationMedication.hospitalization_id == hospitalization.id
+        )
+        .order_by(
+            HospitalizationMedication.scheduled_time.asc(),
+            HospitalizationMedication.created_at.asc()
+        )
+        .all()
+    )
+
+    fluids = (
+        db.query(HospitalizationFluid)
+        .filter(
+            HospitalizationFluid.hospitalization_id == hospitalization.id
+        )
+        .order_by(HospitalizationFluid.created_at.asc())
+        .all()
+    )
+
+    return templates.TemplateResponse(
+        "hospitalization_print.html",
+        {
+            "request": request,
+            "hospitalization": hospitalization,
+            "patient": patient,
+            "owner": owner,
+            "related_events": related_events,
+            "medications": medications,
+            "fluids": fluids,
+            "today": argentina_now().date()
+        }
+    )
 @app.post('/hospitalizations/{hospitalization_id}/evolution')
 def hospitalization_add_evolution(
     hospitalization_id: int,
