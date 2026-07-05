@@ -665,17 +665,26 @@
                                 <td style="padding:9px;border:1px solid #f1d6e2;">{{ m.route or '-' }}</td>
 
                                 <td style="padding:9px;border:1px solid #f1d6e2;">
-                                    {% if m.status == 'Aplicada' %}
-                                        🟢 Aplicada<br>
-                                        <small>
-                                            {{ m.applied_at.strftime('%d/%m %H:%M') if m.applied_at else '' }}
-                                            {% if m.applied_by %} · {{ m.applied_by }}{% endif %}
-                                        </small>
-                                    {% elif m.status == 'Finalizada' %}
-                                        ⚪ Finalizada
-                                    {% else %}
-                                        🟡 Pendiente
+                                
+                                    {% if m.status == "Pendiente" %}
+                                        <span style="color:#b45309;font-weight:bold;">
+                                            🟡 Esperando aplicación
+                                        </span>
+                                
+                                    {% elif m.status == "Aplicada" %}
+                                        <span style="color:#15803d;font-weight:bold;">
+                                            🟢 Aplicada
+                                        </span>
+                                
+                                        {% if m.applied_at %}
+                                            <br>
+                                            <small>
+                                                {{ m.applied_at.strftime('%d/%m %H:%M') }}
+                                            </small>
+                                        {% endif %}
+                                
                                     {% endif %}
+                                
                                 </td>
 
                                 <td style="padding:9px;border:1px solid #f1d6e2;">
