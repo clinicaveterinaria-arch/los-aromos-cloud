@@ -5656,6 +5656,184 @@ def vademecum_api_search(
             })
 
     return JSONResponse(list(results.values())[:20])
+def extract_numbers(text_value):
+    text_value = str(text_value or '').replace(',', '.')
+    return [float(x) for x in re.findall(r'\d+(?:\.\d+)?', text_value)]
+
+
+def extract_mgkg_range(dose_text):
+    text_value = str(dose_text or '').lower().replace(',', '.')
+
+    if 'mg/kg' not in text_value and 'mg / kg' not in text_value:
+        return None, None
+
+    numbers = extract_numbers(text_value)
+
+    if not numbers:
+        return None, None
+
+    if len(numbers) >= 2 and ('-' in text_value or ' a ' in text_value):
+        return numbers[0], numbers[1]
+
+    return numbers[0], numbers[0]
+
+
+def extract_concentration(concentration_text, presentation_text=''):
+    text_value = str(concentration_text or '').lower().replace(',', '.')
+    presentation = str(presentation_text or '').lower()
+
+    match = re.search(r'(\d+(?:\.\d+)?)\s*mg\s*/\s*ml', text_value)
+    if match:
+        return float(match.group(1)), 'mg/ml'
+
+    match = re.search(r'(\d+(?:\.\d+)?)\s*mg', text_value)
+    if match:
+        value = float(match.group(1))
+
+        if any(word in presentation for word in ['comp', 'comprim', 'tablet', 'tab']):
+            return value, 'mg/comprimido'
+
+        if any(word in text_value for word in ['comp', 'comprim', 'tablet', 'tab']):
+            return value, 'mg/comprimido'
+
+        return value, 'mg/unidad'
+
+    return None, ''
+
+
+@app.get('/hospitalizations/{hospitalization_id}/vademecum-dose')
+def hospitalization_vademecum_dose(
+    hospitalization_id: int,
+    active_id: int,
+    brand_index: int = 0,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    hospitalization = db.get(Hospitalization, hospitalization_id)
+
+    if not hospitalization:
+        raise HTTPException(status_code=404, detail='Internación no encontrada')
+
+    patient = hospitalization.patient
+    weight = hospitalization.initial_weight or patient.weight or 0
+
+    try:
+        weight = float(weight)
+    except Exception:
+        weight = 0
+
+    active = db.execute(
+        text("""
+            SELECT *
+            FROM vademecum_active_ingredients
+            WHERE id = :active_id
+            AND active = TRUE
+        """),
+        {"active_id": active_id}
+    ).mappings().first()
+
+    if not active:
+        raise HTTPException(status_code=404, detail='Principio activo no encontrado')
+
+    brands = db.execute(
+        text("""
+            SELECT *
+            FROM vademecum_brands
+            WHERE active_ingredient_id = :active_id
+            AND active = TRUE
+            ORDER BY brand_name
+        """),
+        {"active_id": active_id}
+    ).mappings().all()
+
+    species_text = str(patient.species or '').lower()
+
+    if 'fel' in species_text or 'gato' in species_text:
+        dose_text = active.get('cat_dose') or active.get('dog_dose') or ''
+    else:
+        dose_text = active.get('dog_dose') or active.get('cat_dose') or ''
+
+    mgkg_min, mgkg_max = extract_mgkg_range(dose_text)
+
+    selected_brand = None
+    if brands:
+        if brand_index < 0:
+            brand_index = 0
+        if brand_index >= len(brands):
+            brand_index = 0
+        selected_brand = brands[brand_index]
+
+    concentration_text = selected_brand.get('concentration') if selected_brand else ''
+    presentation_text = selected_brand.get('presentation') if selected_brand else ''
+    concentration_value, concentration_unit = extract_concentration(concentration_text, presentation_text)
+
+    mg_total_min = round(weight * mgkg_min, 2) if mgkg_min else None
+    mg_total_max = round(weight * mgkg_max, 2) if mgkg_max else None
+
+    amount_text = ''
+
+    if mg_total_min and concentration_value:
+        amount_min = round(mg_total_min / concentration_value, 2)
+        amount_max = round(mg_total_max / concentration_value, 2) if mg_total_max else amount_min
+
+        if concentration_unit == 'mg/ml':
+            if amount_min == amount_max:
+                amount_text = f'{amount_min:g} ml'
+            else:
+                amount_text = f'{amount_min:g} a {amount_max:g} ml'
+
+        elif concentration_unit == 'mg/comprimido':
+            if amount_min == amount_max:
+                amount_text = f'{amount_min:g} comprimido(s)'
+            else:
+                amount_text = f'{amount_min:g} a {amount_max:g} comprimido(s)'
+
+        else:
+            if amount_min == amount_max:
+                amount_text = f'{amount_min:g} unidad(es)'
+            else:
+                amount_text = f'{amount_min:g} a {amount_max:g} unidad(es)'
+
+    dose_result = ''
+
+    if mg_total_min:
+        if mg_total_min == mg_total_max:
+            dose_result = f'{mg_total_min:g} mg'
+        else:
+            dose_result = f'{mg_total_min:g} a {mg_total_max:g} mg'
+
+        if amount_text:
+            dose_result += f' = {amount_text}'
+
+    return JSONResponse({
+        'ok': True,
+        'patient_weight': weight,
+        'active_id': active_id,
+        'drug_name': active.get('name') or '',
+        'brand_name': selected_brand.get('brand_name') if selected_brand else '',
+        'dose_text': dose_text,
+        'mgkg_min': mgkg_min,
+        'mgkg_max': mgkg_max,
+        'mg_total_min': mg_total_min,
+        'mg_total_max': mg_total_max,
+        'concentration': concentration_text or '',
+        'presentation': presentation_text or '',
+        'amount_text': amount_text,
+        'dose_result': dose_result,
+        'route': active.get('route') or '',
+        'frequency': active.get('frequency') or '',
+        'observations': active.get('observations') or '',
+        'warnings': active.get('warnings') or '',
+        'brands': [
+            {
+                'brand_name': b.get('brand_name') or '',
+                'laboratory': b.get('laboratory') or '',
+                'presentation': b.get('presentation') or '',
+                'concentration': b.get('concentration') or ''
+            }
+            for b in brands
+        ]
+    })
 @app.get('/vademecum/{active_id}', response_class=HTMLResponse)
 def vademecum_detail(
     active_id: int,
