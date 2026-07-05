@@ -667,7 +667,12 @@
 
                                 <td style="padding:9px;border:1px solid #f1d6e2;">
                                     <b>{{ m.medication_name or '-' }}</b><br>
-                                    <small>{{ m.frequency or '-' }}</small>
+                                    <small>
+                                    {{ m.frequency or '-' }}
+                                    {% if m.notes %}
+                                        · {{ m.notes }}
+                                    {% endif %}
+                                </small>
                                 </td>
 
                                 <td style="padding:9px;border:1px solid #f1d6e2;">{{ m.dose or '-' }}</td>
