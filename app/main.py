@@ -3239,6 +3239,111 @@ def products_page(
             'today': today
         }
     )
+@app.get('/products/export/csv')
+def export_products_csv(
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    products = (
+        db.query(Product)
+        .filter(Product.active == True)
+        .order_by(Product.name)
+        .all()
+    )
+
+    output = StringIO()
+    writer = csv.writer(output, delimiter=';')
+
+    writer.writerow([
+        'Nombre', 'Rubro', 'Tipo', 'Código', 'Código de barras',
+        'Costo', 'Precio venta', 'Margen %', 'Stock', 'Stock mínimo',
+        'Vencimiento', 'Proveedor', 'Laboratorio', 'Observaciones'
+    ])
+
+    for p in products:
+        writer.writerow([
+            p.name or '',
+            p.rubro or '',
+            p.tipo or '',
+            p.code or '',
+            p.barcode or '',
+            p.cost_price if p.cost_price is not None else '',
+            p.sale_price if p.sale_price is not None else '',
+            p.margin_percent if p.margin_percent is not None else '',
+            p.stock if p.stock is not None else '',
+            p.min_stock if p.min_stock is not None else '',
+            p.expiration_date.strftime('%d/%m/%Y') if p.expiration_date else '',
+            p.provider or '',
+            p.manufacturer or '',
+            p.notes or ''
+        ])
+
+    filename = f"productos_{argentina_now().strftime('%Y-%m-%d')}.csv"
+
+    return Response(
+        content=output.getvalue().encode('utf-8-sig'),
+        media_type='text/csv; charset=utf-8',
+        headers={
+            'Content-Disposition': f'attachment; filename="{filename}"'
+        }
+    )
+
+
+@app.get('/products/export/excel')
+def export_products_excel(
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    products = (
+        db.query(Product)
+        .filter(Product.active == True)
+        .order_by(Product.name)
+        .all()
+    )
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Productos"
+
+    headers = [
+        'Nombre', 'Rubro', 'Tipo', 'Código', 'Código de barras',
+        'Costo', 'Precio venta', 'Margen %', 'Stock', 'Stock mínimo',
+        'Vencimiento', 'Proveedor', 'Laboratorio', 'Observaciones'
+    ]
+
+    ws.append(headers)
+
+    for p in products:
+        ws.append([
+            p.name or '',
+            p.rubro or '',
+            p.tipo or '',
+            p.code or '',
+            p.barcode or '',
+            p.cost_price if p.cost_price is not None else '',
+            p.sale_price if p.sale_price is not None else '',
+            p.margin_percent if p.margin_percent is not None else '',
+            p.stock if p.stock is not None else '',
+            p.min_stock if p.min_stock is not None else '',
+            p.expiration_date.strftime('%d/%m/%Y') if p.expiration_date else '',
+            p.provider or '',
+            p.manufacturer or '',
+            p.notes or ''
+        ])
+
+    stream = BytesIO()
+    wb.save(stream)
+    stream.seek(0)
+
+    filename = f"productos_{argentina_now().strftime('%Y-%m-%d')}.xlsx"
+
+    return Response(
+        content=stream.getvalue(),
+        media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        headers={
+            'Content-Disposition': f'attachment; filename="{filename}"'
+        }
+    )    
 @app.post('/products/import')
 async def import_products(
     file: UploadFile = File(...),
