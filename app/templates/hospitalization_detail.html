@@ -1386,7 +1386,7 @@ function calculateMedicationDose() {
     const totalMg = weight * mgKg;
     const totalMl = totalMg / concentration;
 
-    doseInput.value = totalMl.toFixed(2) + " ml";
+    doseInput.value = totalMl.toFixed(2) + " ml (" + totalMg.toFixed(1) + " mg)";
 }    
 </script>
 {% endblock %}
