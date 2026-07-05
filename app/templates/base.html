@@ -361,5 +361,29 @@
         </header>
     {% block content %}{% endblock %}
   </main>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const btn = document.getElementById('mobileMenuBtn');
+  const overlay = document.getElementById('sidebarOverlay');
+
+  function closeSidebar() {
+    document.body.classList.remove('sidebar-open');
+  }
+
+  if (btn) {
+    btn.addEventListener('click', function () {
+      document.body.classList.toggle('sidebar-open');
+    });
+  }
+
+  if (overlay) {
+    overlay.addEventListener('click', closeSidebar);
+  }
+
+  document.querySelectorAll('.sidebar a').forEach(function (link) {
+    link.addEventListener('click', closeSidebar);
+  });
+});
+</scr  
 </body>
 </html>
