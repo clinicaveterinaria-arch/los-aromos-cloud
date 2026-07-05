@@ -670,7 +670,10 @@
                             {% set overdue = m.status == "Pendiente" and m.scheduled_time and m.scheduled_time < current_time %}
                             {% set is_next = loop.first and not overdue and m.status == "Pendiente" %}
                             <tr style="
-                            {% if is_next %}
+                            {% if overdue %}
+                            background:#fee2e2;
+                            border:2px solid #ef4444;
+                            {% elif is_next %}
                             background:#fef9c3;
                             border:2px solid #facc15;
                             {% elif m.status == 'Aplicada' %}
