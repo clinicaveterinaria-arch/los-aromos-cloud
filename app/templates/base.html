@@ -149,12 +149,12 @@
       overflow-x:hidden;
     }
 
-    @media (max-width:900px){
-      .sidebar{
-        transform:translateX(-100%);
-        transition:.22s ease;
-        z-index:10000;
-      }
+    .sidebar{
+      transform:translateX(-100%);
+      transition:.22s ease;
+      z-index:10002;
+      pointer-events:auto;
+    }
 
       body.sidebar-open .sidebar{
         transform:translateX(0);
