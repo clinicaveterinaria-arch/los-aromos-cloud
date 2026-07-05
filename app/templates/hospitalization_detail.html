@@ -1234,5 +1234,68 @@ async function searchHospitalDrug(){
     }
 
 }
+async function calculateHospitalDrug(activeId){
+
+    const resultBox = document.getElementById("hospital_drug_results");
+
+    resultBox.innerHTML += "<div class='soft-alert'>⚖ Calculando dosis...</div>";
+
+    try{
+
+        const response = await fetch(
+            "/hospitalizations/{{ hospitalization.id }}/vademecum-dose?active_id=" + activeId
+        );
+
+        const data = await response.json();
+
+        if(!data.ok){
+            resultBox.innerHTML += "<div class='alert'>No se pudo calcular la dosis.</div>";
+            return;
+        }
+
+        const medInput = document.querySelector("input[name='medication_name']");
+        const doseInput = document.querySelector("input[name='dose']");
+        const routeSelect = document.querySelector("select[name='route']");
+        const freqSelect = document.querySelector("select[name='frequency']");
+        const notesInput = document.querySelector("textarea[name='notes']");
+
+        medInput.value = data.brand_name || data.drug_name || "";
+        doseInput.value = data.dose_result || data.dose_text || "";
+
+        if(data.route){
+            routeSelect.value = data.route;
+        }
+
+        if(data.frequency){
+            freqSelect.value = data.frequency;
+        }
+
+        notesInput.value =
+            "Vademécum: " + (data.drug_name || "-") + "\n" +
+            "Peso: " + (data.patient_weight || "-") + " kg\n" +
+            "Dosis base: " + (data.dose_text || "-") + "\n" +
+            "Concentración: " + (data.concentration || "-") + "\n" +
+            "Cálculo: " + (data.dose_result || "-") + "\n" +
+            "Observaciones: " + (data.observations || "-") + "\n" +
+            "Advertencias: " + (data.warnings || "-");
+
+        resultBox.innerHTML += `
+            <div class="soft-alert">
+                <b>✅ Cálculo aplicado al formulario</b><br>
+                Medicamento: ${data.brand_name || data.drug_name || "-"}<br>
+                Peso: ${data.patient_weight || "-"} kg<br>
+                Dosis: ${data.dose_result || data.dose_text || "-"}<br>
+                Vía: ${data.route || "-"}<br>
+                Frecuencia: ${data.frequency || "-"}<br>
+                Ahora solo elegí hora inicial y tocá <b>💊 Programar tratamiento inteligente</b>.
+            </div>
+        `;
+
+    }catch(e){
+
+        resultBox.innerHTML += "<div class='alert'>Error calculando dosis.</div>";
+
+    }
+}
 </script>
 {% endblock %}
