@@ -666,7 +666,9 @@
 
                         <tbody>
                             {% for m in active_meds %}{% for m in active_meds %}
-                            {% set is_next = loop.first and m.status == "Pendiente" %}
+                            {% set current_time = now().strftime('%H:%M') %}
+                            {% set overdue = m.status == "Pendiente" and m.scheduled_time and m.scheduled_time < current_time %}
+                            {% set is_next = loop.first and not overdue and m.status == "Pendiente" %}
                             <tr style="
                             {% if is_next %}
                             background:#fef9c3;
