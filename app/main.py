@@ -3436,8 +3436,15 @@ async def import_products(
         if existing is None:
             existing = db.query(Product).filter(Product.name == name).first()
         
+        rubro_value = str(get_value(row, "Rubro") or "").strip()
+        tipo_value = str(get_value(row, "Tipo") or "").strip()
+        provider_value = str(get_value(row, "Proveedor", "Proveedores") or "").strip()
+        manufacturer_value = str(get_value(row, "Laboratorio", "Elaborador", "Manufacturer") or "").strip()
+        notes_value = str(get_value(row, "Observaciones", "Notas", "Nota") or "").strip()
+
         if existing:
-            existing.rubro = str(get_value(row, "Rubro") or "").strip()
+            existing.rubro = rubro_value
+            existing.tipo = tipo_value
             existing.name = name
             existing.code = code
             existing.barcode = barcode
@@ -3445,15 +3452,16 @@ async def import_products(
             existing.cost_price = cost
             existing.margin_percent = margin
             existing.stock = to_float(get_value(row, "Stock"))
-            existing.min_stock = to_float(get_value(row, "Stock Min"))
+            existing.min_stock = to_float(get_value(row, "Stock Min", "Stock mínimo"))
             existing.expiration_date = to_date(get_value(row, "Vencimiento"))
-            existing.manufacturer = str(get_value(row, "Elaborador") or "").strip()
-            existing.provider = str(get_value(row, "Proveedores") or "").strip()
-            existing.notes = str(get_value(row, "Nota") or "").strip()
+            existing.manufacturer = manufacturer_value
+            existing.provider = provider_value
+            existing.notes = notes_value
             existing.active = True
         else:
             product = Product(
-                rubro=str(get_value(row, "Rubro") or "").strip(),
+                rubro=rubro_value,
+                tipo=tipo_value,
                 name=name,
                 code=code,
                 barcode=barcode,
@@ -3461,15 +3469,14 @@ async def import_products(
                 cost_price=cost,
                 margin_percent=margin,
                 stock=to_float(get_value(row, "Stock")),
-                min_stock=to_float(get_value(row, "Stock Min")),
+                min_stock=to_float(get_value(row, "Stock Min", "Stock mínimo")),
                 expiration_date=to_date(get_value(row, "Vencimiento")),
-                manufacturer=str(get_value(row, "Elaborador") or "").strip(),
-                provider=str(get_value(row, "Proveedores") or "").strip(),
-                notes=str(get_value(row, "Nota") or "").strip()
+                manufacturer=manufacturer_value,
+                provider=provider_value,
+                notes=notes_value
             )
-        
+
             db.add(product)
-        
         imported += 1
 
     db.commit()
