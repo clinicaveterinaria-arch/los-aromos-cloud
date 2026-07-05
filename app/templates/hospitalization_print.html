@@ -1,497 +1,334 @@
-{% extends "base.html" %}
-
-{% block content %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Informe de Internación</title>
 
 <style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#e5e7eb;color:#1f2937}
+@page{size:A4;margin:13mm}
+
+@media screen{
+.sheet{width:210mm;min-height:297mm;margin:18px auto;background:white;padding:14mm;box-shadow:0 0 18px rgba(0,0,0,.18)}
+}
 
 @media print{
-
-    .no-print{
-        display:none !important;
-    }
-
-    body{
-        background:white;
-    }
-
-    .print-page{
-        box-shadow:none;
-        margin:0;
-        padding:0;
-    }
-
+body{background:white}
+.sheet{margin:0;padding:0;box-shadow:none}
+.no-print{display:none!important}
+.section,.event,.summary-card{page-break-inside:avoid}
 }
 
-.print-page{
-    max-width:980px;
-    margin:30px auto;
-    background:white;
-    padding:40px;
-    border-radius:14px;
-    box-shadow:0 0 18px rgba(0,0,0,.08);
-    font-family:Arial,Helvetica,sans-serif;
-    color:#222;
-}
+.print-btn{position:fixed;top:16px;right:16px;background:#d85b9a;color:white;border:none;border-radius:10px;padding:11px 18px;font-weight:bold;cursor:pointer;z-index:999}
 
-.header{
-    display:flex;
-    justify-content:space-between;
-    align-items:flex-start;
-    border-bottom:2px solid #d85b9a;
-    padding-bottom:16px;
-    margin-bottom:25px;
-}
+.header{display:flex;justify-content:space-between;gap:20px;border-bottom:3px solid #d85b9a;padding-bottom:14px;margin-bottom:18px}
+.brand{display:flex;gap:12px;align-items:center}
+.logo{width:58px;height:58px;border-radius:50%;border:2px solid #f3c6d8;display:flex;align-items:center;justify-content:center;font-size:28px;background:#fff0f7}
+.brand h1{margin:0;color:#d85b9a;font-size:25px}
+.brand h2{margin:3px 0 0;font-size:17px;font-weight:normal}
+.brand p{margin:3px 0;color:#6b7280;font-size:12px}
+.right{text-align:right;font-size:12px;color:#4b5563}
 
-.header h1{
-    margin:0;
-    color:#d85b9a;
-    font-size:30px;
-}
+.title-box{background:#fff8fb;border:1px solid #f3c6d8;border-radius:12px;padding:12px;margin-bottom:18px}
+.title-box h2{margin:0;color:#1f2937;font-size:20px}
+.title-box p{margin:5px 0 0;color:#6b7280;font-size:13px}
 
-.subtitle{
-    color:#666;
-    margin-top:6px;
-}
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:18px}
+.summary-card{border:1px solid #e5e7eb;border-radius:10px;padding:9px;background:#fafafa}
+.summary-card span{display:block;color:#6b7280;font-size:11px}
+.summary-card b{font-size:16px;color:#111827}
 
-.section{
-    margin-top:28px;
-}
+.section{margin-top:20px}
+.section-title{font-size:17px;color:#d85b9a;border-bottom:2px solid #f3c6d8;padding-bottom:5px;margin-bottom:10px;font-weight:bold}
 
-.section h2{
-    margin:0 0 12px 0;
-    color:#d85b9a;
-    border-bottom:1px solid #f3c6d8;
-    padding-bottom:6px;
-    font-size:21px;
-}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+.box{border:1px solid #d1d5db;border-radius:9px;padding:9px;background:#fcfcfc}
+.box label{display:block;font-size:11px;color:#6b7280;margin-bottom:3px}
+.box b{font-size:14px;color:#111827}
+.text-box{border:1px solid #d1d5db;border-radius:9px;padding:10px;background:#fcfcfc;white-space:pre-wrap;line-height:1.35}
 
-.grid{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:14px;
-}
+table{width:100%;border-collapse:collapse;margin-top:7px;font-size:12px}
+th{background:#f8e7ef;border:1px solid #d1d5db;padding:7px;color:#374151}
+td{border:1px solid #d1d5db;padding:7px;vertical-align:top}
+.ok{color:#15803d;font-weight:bold}
+.pending{color:#92400e;font-weight:bold}
+.closed{color:#6b7280;font-weight:bold}
 
-.box{
-    border:1px solid #e5e7eb;
-    border-radius:10px;
-    padding:12px;
-    background:#fafafa;
-}
+.event{border-left:4px solid #d85b9a;padding-left:11px;margin-bottom:14px}
+.event-date{font-size:11px;color:#6b7280;margin-bottom:3px}
+.event-title{font-weight:bold;font-size:14px}
+.event-body{white-space:pre-wrap;line-height:1.35;margin-top:5px;font-size:13px}
 
-.box b{
-    display:block;
-    color:#555;
-    margin-bottom:5px;
-}
-
-table{
-    width:100%;
-    border-collapse:collapse;
-    margin-top:10px;
-}
-
-th{
-    background:#fff0f7;
-    color:#444;
-    padding:9px;
-    border:1px solid #e5e7eb;
-}
-
-td{
-    padding:9px;
-    border:1px solid #e5e7eb;
-    vertical-align:top;
-}
-
-.ok{
-    color:#16a34a;
-    font-weight:bold;
-}
-
-.pending{
-    color:#d97706;
-    font-weight:bold;
-}
-
-.event{
-    margin-bottom:16px;
-    border-left:4px solid #d85b9a;
-    padding-left:14px;
-}
-
-.event-date{
-    color:#888;
-    font-size:13px;
-}
-
-.print-btn{
-    margin-bottom:20px;
-}
-
+.footer{margin-top:45px;display:flex;justify-content:space-between;align-items:flex-end;font-size:12px}
+.signature{width:250px;text-align:center;border-top:1px solid #111827;padding-top:8px}
 </style>
+</head>
 
-<div class="print-page">
+<body>
 
-<div class="no-print print-btn">
+<button class="print-btn no-print" onclick="window.print()">🖨️ Imprimir / PDF</button>
 
-<button
-onclick="window.print();"
-style="
-background:#d85b9a;
-color:white;
-border:none;
-padding:10px 18px;
-border-radius:8px;
-cursor:pointer;
-font-weight:bold;
-">
-
-🖨️ Imprimir
-
-</button>
-
-</div>
+<div class="sheet">
 
 <div class="header">
+    <div class="brand">
+        <div class="logo">🏥</div>
+        <div>
+            <h1>Clínica Veterinaria Los Aromos</h1>
+            <h2>Informe Hospitalario de Internación</h2>
+            <p>Dra. Carolina Villani · MP 1525</p>
+        </div>
+    </div>
 
-<div>
-
-<h1>🏥 Informe de Internación</h1>
-
-<div class="subtitle">
-
-Clínica Veterinaria Los Aromos
-
+    <div class="right">
+        <b>Fecha de impresión</b><br>
+        {{ today.strftime("%d/%m/%Y") }}<br><br>
+        <b>Internación Nº</b><br>
+        {{ hospitalization.id }}<br><br>
+        <b>Estado</b><br>
+        {{ hospitalization.status }}
+    </div>
+</div>
+<div class="title-box">
+    <h2>Paciente: {{ patient.name or "-" }}</h2>
+    <p>
+        {{ patient.species or "-" }}
+        {% if patient.breed %} · {{ patient.breed }}{% endif %}
+        {% if owner %} · Propietario: {{ owner.name }}{% endif %}
+    </p>
 </div>
 
-</div>
-
-<div style="text-align:right;">
-
-<b>Fecha impresión</b><br>
-
-{{ today.strftime('%d/%m/%Y') }}
-
-</div>
-
+<div class="summary">
+    <div class="summary-card">
+        <span>Ingreso</span>
+        <b>{{ hospitalization.admission_date.strftime("%d/%m %H:%M") if hospitalization.admission_date else "-" }}</b>
+    </div>
+    <div class="summary-card">
+        <span>Alta</span>
+        <b>{{ hospitalization.discharge_date.strftime("%d/%m %H:%M") if hospitalization.discharge_date else "-" }}</b>
+    </div>
+    <div class="summary-card">
+        <span>Medicación</span>
+        <b>{{ medications|length }}</b>
+    </div>
+    <div class="summary-card">
+        <span>Evoluciones</span>
+        <b>{{ related_events|length }}</b>
+    </div>
 </div>
 
 <div class="section">
-
-<h2>Paciente</h2>
+<div class="section-title">Datos del paciente y propietario</div>
 
 <div class="grid">
-
-<div class="box">
-
-<b>Paciente</b>
-
-{{ patient.name }}
-
+    <div class="box"><label>Paciente</label><b>{{ patient.name or "-" }}</b></div>
+    <div class="box"><label>Propietario</label><b>{{ owner.name if owner else "-" }}</b></div>
+    <div class="box"><label>Teléfono / WhatsApp</label><b>{{ owner.whatsapp or owner.phone or "-" if owner else "-" }}</b></div>
+    <div class="box"><label>Especie</label><b>{{ patient.species or "-" }}</b></div>
+    <div class="box"><label>Raza</label><b>{{ patient.breed or "-" }}</b></div>
+    <div class="box"><label>Sexo</label><b>{{ patient.sex or "-" }}</b></div>
+    <div class="box"><label>Peso</label><b>{{ hospitalization.initial_weight or patient.weight or "-" }} kg</b></div>
+    <div class="box"><label>Jaula / ubicación</label><b>{{ hospitalization.cage or "-" }}</b></div>
+    <div class="box"><label>Veterinario responsable</label><b>{{ hospitalization.responsible_vet or "-" }}</b></div>
+    <div class="box"><label>Fecha de ingreso</label><b>{{ hospitalization.admission_date.strftime("%d/%m/%Y %H:%M") if hospitalization.admission_date else "-" }}</b></div>
 </div>
-
-<div class="box">
-
-<b>Propietario</b>
-
-{{ owner.name if owner else "-" }}
-
-</div>
-
-<div class="box">
-
-<b>Especie</b>
-
-{{ patient.species or "-" }}
-
-</div>
-
-<div class="box">
-
-<b>Raza</b>
-
-{{ patient.breed or "-" }}
-
-</div>
-
-<div class="box">
-
-<b>Sexo</b>
-
-{{ patient.sex or "-" }}
-
-</div>
-
-<div class="box">
-
-<b>Peso</b>
-
-{{ hospitalization.initial_weight or patient.weight or "-" }} kg
-
-</div>
-
-<div class="box">
-
-<b>Ingreso</b>
-
-{{ hospitalization.admission_date.strftime("%d/%m/%Y %H:%M") if hospitalization.admission_date else "-" }}
-
-</div>
-
-<div class="box">
-
-<b>Estado</b>
-
-{{ hospitalization.status }}
-
-</div>
-
-</div>
-
 </div>
 
 <div class="section">
-
-<h2>Motivo de internación</h2>
-
-<div class="box">
-
-{{ hospitalization.reason or "-" }}
-
-</div>
-
+<div class="section-title">Motivo de internación</div>
+<div class="text-box">{{ hospitalization.reason or "-" }}</div>
 </div>
 
 <div class="section">
-
-<h2>Diagnóstico</h2>
-
-<div class="box">
-
-{{ hospitalization.diagnosis or "-" }}
-
-</div>
-
+<div class="section-title">Diagnóstico inicial</div>
+<div class="text-box">{{ hospitalization.diagnosis or "-" }}</div>
 </div>
 
 <div class="section">
+<div class="section-title">Plan terapéutico</div>
+<div class="text-box">{{ hospitalization.treatment_plan or "-" }}</div>
+</div>
 
-<h2>Signos iniciales</h2>
+<div class="section">
+<div class="section-title">Signos vitales iniciales</div>
 
 <table>
-
 <tr>
-
 <th>Temperatura</th>
-
 <th>FC</th>
-
 <th>FR</th>
-
 <th>Mucosas</th>
-
 <th>TRC</th>
-
 <th>Hidratación</th>
-
 </tr>
-
 <tr>
-
 <td>{{ hospitalization.initial_temperature or "-" }}</td>
-
 <td>{{ hospitalization.initial_heart_rate or "-" }}</td>
-
 <td>{{ hospitalization.initial_respiratory_rate or "-" }}</td>
-
 <td>{{ hospitalization.initial_mucous_membranes or "-" }}</td>
-
 <td>{{ hospitalization.initial_crt or "-" }}</td>
-
 <td>{{ hospitalization.initial_hydration or "-" }}</td>
-
 </tr>
-
 </table>
-
 </div>
 
 <div class="section">
+<div class="section-title">Medicación administrada / programada</div>
 
-<h2>💊 Medicación</h2>
-
+{% if medications %}
 <table>
-
 <tr>
-
 <th>Hora</th>
-
 <th>Medicamento</th>
-
 <th>Dosis</th>
-
 <th>Vía</th>
-
+<th>Frecuencia</th>
 <th>Estado</th>
-
+<th>Aplicación</th>
 </tr>
 
 {% for m in medications %}
-
 <tr>
-
 <td>{{ m.scheduled_time or "-" }}</td>
-
-<td>{{ m.medication_name or "-" }}</td>
-
+<td><b>{{ m.medication_name or "-" }}</b></td>
 <td>{{ m.dose or "-" }}</td>
-
 <td>{{ m.route or "-" }}</td>
-
+<td>{{ m.frequency or "-" }}</td>
 <td>
-
-{% if m.status=="Aplicada" %}
-
+{% if m.status == "Aplicada" %}
 <span class="ok">✔ Aplicada</span>
-
+{% elif m.status == "Finalizada" %}
+<span class="closed">Finalizada</span>
 {% else %}
-
-<span class="pending">{{ m.status }}</span>
-
+<span class="pending">{{ m.status or "-" }}</span>
 {% endif %}
-
 </td>
-
+<td>
+{% if m.applied_at %}
+{{ m.applied_at.strftime("%d/%m/%Y %H:%M") }}
+{% if m.applied_by %}<br>{{ m.applied_by }}{% endif %}
+{% else %}
+-
+{% endif %}
+</td>
 </tr>
-
 {% endfor %}
 </table>
-
-{% if not medications %}
-<div class="box">No hay medicación cargada.</div>
+{% else %}
+<div class="text-box">No hay medicación cargada.</div>
 {% endif %}
-
 </div>
-
 <div class="section">
+<div class="section-title">Fluidoterapia</div>
 
-<h2>💧 Fluidoterapia</h2>
-
+{% if fluids %}
 <table>
-
 <tr>
 <th>Fluido</th>
 <th>Velocidad</th>
 <th>ml/kg/h</th>
 <th>Equipo</th>
 <th>Estado</th>
+<th>Finalización</th>
+<th>Observaciones</th>
 </tr>
 
 {% for f in fluids %}
-
 <tr>
-<td>{{ f.fluid_type or "-" }}</td>
+<td><b>{{ f.fluid_type or "-" }}</b></td>
 <td>{{ f.fluid_rate or "-" }}</td>
 <td>{{ f.ml_kg_h or "-" }}</td>
 <td>{{ f.drip_set or "-" }}</td>
 <td>{{ f.status or "-" }}</td>
-</tr>
-
-{% endfor %}
-
-</table>
-
-{% if not fluids %}
-<div class="box">No hay fluidoterapia cargada.</div>
+<td>
+{% if f.finished_at %}
+{{ f.finished_at.strftime("%d/%m/%Y %H:%M") }}
+{% if f.finished_by %}<br>{{ f.finished_by }}{% endif %}
+{% else %}
+-
 {% endif %}
-
+</td>
+<td>{{ f.notes or "-" }}</td>
+</tr>
+{% endfor %}
+</table>
+{% else %}
+<div class="text-box">No hay fluidoterapia cargada.</div>
+{% endif %}
 </div>
 
 <div class="section">
+<div class="section-title">Línea de tiempo / evolución clínica</div>
 
-<h2>Plan terapéutico</h2>
-
-<div class="box">
-{{ hospitalization.treatment_plan or "-" }}
-</div>
-
-</div>
-
-<div class="section">
-
-<h2>Evolución clínica</h2>
-
+{% if related_events %}
 {% for e in related_events %}
-
 <div class="event">
     <div class="event-date">
         {{ e.event_date.strftime("%d/%m/%Y %H:%M") if e.event_date else "-" }}
     </div>
 
-    <b>{{ e.event_type }}{% if e.title %} · {{ e.title }}{% endif %}</b>
+    <div class="event-title">
+        {{ e.event_type }}
+        {% if e.title %} · {{ e.title }}{% endif %}
+    </div>
 
-    <div style="white-space:pre-wrap;margin-top:6px;">
-        {% if e.description %}
-            {{ e.description }}
-        {% elif e.diagnosis %}
-            {{ e.diagnosis }}
-        {% elif e.treatment %}
-            {{ e.treatment }}
-        {% else %}
-            Sin detalle cargado.
-        {% endif %}
+    <div class="event-body">
+{% if e.description %}
+{{ e.description }}
+{% elif e.diagnosis %}
+{{ e.diagnosis }}
+{% elif e.treatment %}
+{{ e.treatment }}
+{% else %}
+Sin detalle registrado.
+{% endif %}
     </div>
 </div>
-
 {% endfor %}
-
-{% if not related_events %}
-<div class="box">No hay evoluciones cargadas.</div>
+{% else %}
+<div class="text-box">No existen evoluciones registradas.</div>
 {% endif %}
+</div>
 
+<div class="section">
+<div class="section-title">Observaciones generales</div>
+<div class="text-box">{{ hospitalization.notes or "Sin observaciones." }}</div>
 </div>
 
 {% if hospitalization.status != "Internado" %}
-
 <div class="section">
+<div class="section-title">Alta médica</div>
 
-<h2>Alta</h2>
-
-<div class="box">
-<b>Fecha de alta</b>
+<div class="text-box">
+<b>Fecha de alta:</b>
 {{ hospitalization.discharge_date.strftime("%d/%m/%Y %H:%M") if hospitalization.discharge_date else "-" }}
-</div>
 
-<br>
-
-<div class="box">
-<b>Resumen de alta</b>
+<br><br>
+<b>Resumen de alta:</b><br>
 {{ hospitalization.discharge_summary or "-" }}
-</div>
 
-<br>
-
-<div class="box">
-<b>Indicaciones domiciliarias</b>
+<br><br>
+<b>Indicaciones domiciliarias:</b><br>
 {{ hospitalization.discharge_indications or "-" }}
 </div>
-
 </div>
-
 {% endif %}
 
-<div class="section" style="margin-top:60px;">
+<div class="footer">
+    <div>
+        <b>Clínica Veterinaria Los Aromos</b><br>
+        Dra. Carolina Villani<br>
+        MP 1525
+    </div>
 
-<div style="display:flex;justify-content:flex-end;">
-
-<div style="text-align:center;width:260px;border-top:1px solid #333;padding-top:8px;">
-Firma y sello veterinario
+    <div class="signature">
+        Firma y sello veterinario
+    </div>
 </div>
 
 </div>
 
-</div>
+</body>
+</html>    
 
-</div>
-
-{% endblock %}  
