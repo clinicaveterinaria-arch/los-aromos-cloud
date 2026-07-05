@@ -744,16 +744,16 @@
                     <div class="dash-card">
                         <span>💊 Próxima medicación</span>
                 
-                        {% if medications %}
-                            {% set next_med = medications|selectattr("status","equalto","Pendiente")|list|first %}
-                
-                            {% if next_med %}
-                                <b>{{ next_med.medication_name }}</b>
-                                <small>{{ next_med.scheduled_time }}</small>
-                            {% else %}
-                                <b>Sin pendientes</b>
-                                <small>✔</small>
-                            {% endif %}
+                        {% set pending_meds = medications|selectattr("status","equalto","Pendiente")|list %}
+                        
+                        {% if pending_meds %}
+                            {% set next_med = pending_meds|first %}
+                            <b>{{ next_med.medication_name }}</b>
+                            <small>{{ next_med.scheduled_time or '-' }} · {{ next_med.dose or '-' }}</small>
+                        {% else %}
+                            <b>Sin pendientes</b>
+                            <small>✔</small>
+                        {% endif %}
                 
                         {% else %}
                             <b>—</b>
