@@ -3254,7 +3254,11 @@ def products_page(
             'total_cost': total_cost,
             'total_sale': total_sale,
             'avg_margin': avg_margin,
-            'today': today
+            'today': today,
+            'page': page,
+            'total_pages': total_pages,
+            'total_filtered': total_filtered,
+            'per_page': per_page
         }
     )
 @app.get('/products/export/csv')
