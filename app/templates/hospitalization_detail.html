@@ -634,8 +634,9 @@
                     | rejectattr("status","equalto","Finalizada")
                     | list %}
                 
-                {% if active_meds %}
-                <div style="overflow-x:auto;">
+                    {% if active_meds %}
+                    <h3>🟡 Tratamientos activos / dosis pendientes</h3>
+                    <div style="overflow-x:auto;">
                     <table style="width:100%;border-collapse:collapse;font-size:13px;">
                         <thead>
                             <tr style="background:#fff8fb;color:#374151;">
