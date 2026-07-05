@@ -133,8 +133,137 @@
     }
 
     .sidebar-whatsapp .nav-icon{
-      background:rgba(223,106,160,.25);
+      background:rgba(223,106,160,.25);      
     }
+    .mobile-menu-btn,
+    .sidebar-overlay{
+      display:none;
+    }
+
+    *{
+      box-sizing:border-box;
+    }
+
+    html, body{
+      max-width:100%;
+      overflow-x:hidden;
+    }
+
+    @media (max-width:900px){
+      .sidebar{
+        transform:translateX(-100%);
+        transition:.22s ease;
+        z-index:10000;
+      }
+
+      body.sidebar-open .sidebar{
+        transform:translateX(0);
+      }
+
+      .sidebar-overlay{
+        display:none;
+        position:fixed;
+        inset:0;
+        background:rgba(15,23,42,.45);
+        z-index:9998;
+      }
+
+      body.sidebar-open .sidebar-overlay{
+        display:block;
+      }
+
+      .content{
+        margin-left:0;
+        width:100%;
+        padding-top:56px;
+      }
+
+      .topbar{
+        position:fixed;
+        top:0;
+        left:0;
+        right:0;
+        z-index:9997;
+        min-height:56px;
+        display:flex;
+        align-items:center;
+        gap:10px;
+        background:white;
+        border-bottom:1px solid #f3c6d8;
+        padding:10px 14px;
+        box-shadow:0 4px 16px rgba(0,0,0,.06);
+      }
+
+      .mobile-menu-btn{
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        width:40px;
+        height:40px;
+        border-radius:12px;
+        border:1px solid #f3c6d8;
+        background:#fff0f7;
+        color:#d85b9a;
+        font-size:22px;
+        font-weight:bold;
+        cursor:pointer;
+      }
+
+      .brand{
+        padding:16px;
+      }
+
+      .brand img{
+        width:54px;
+        height:54px;
+      }
+
+      .brand b{
+        font-size:17px;
+      }
+
+      .sidebar nav{
+        padding:12px;
+      }
+
+      .sidebar nav a{
+        padding:11px 12px;
+        font-size:14px;
+        border-radius:14px;
+      }
+
+      .nav-icon{
+        width:34px;
+        height:34px;
+        font-size:18px;
+      }
+
+      table{
+        display:block;
+        width:100%;
+        overflow-x:auto;
+        white-space:nowrap;
+      }
+
+      input,
+      select,
+      textarea,
+      button{
+        max-width:100%;
+      }
+    }
+
+    @media (max-width:520px){
+      .sidebar{
+        width:86vw;
+        max-width:320px;
+      }
+
+      .topbar span{
+        font-size:15px;
+        font-weight:bold;
+      }
+    }  
   </style>
 </head>
 
