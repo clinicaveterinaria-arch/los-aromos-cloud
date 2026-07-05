@@ -578,14 +578,25 @@
             }
             </script>
             <div class="card">
-                <h2>💊 Medicación programada</h2>
-            
+                <h2>💊 Medicación inteligente</h2>
+
                 {% if hospitalization.status == 'Internado' %}
                 <form method="post" action="/hospitalizations/{{ hospitalization.id }}/medications" class="form-grid">
                     <input name="medication_name" placeholder="Medicamento">
+
                     <input name="dose" placeholder="Dosis">
-                    <input name="route" placeholder="Vía">
-            
+
+                    <select name="route">
+                        <option value="">Vía</option>
+                        <option>EV</option>
+                        <option>IM</option>
+                        <option>SC</option>
+                        <option>VO</option>
+                        <option>Tópica</option>
+                        <option>Oftálmica</option>
+                        <option>Ótica</option>
+                    </select>
+
                     <select name="frequency">
                         <option value="">Frecuencia</option>
                         <option value="SID">SID / cada 24 hs</option>
@@ -596,21 +607,29 @@
                         <option value="q72h">Cada 72 hs</option>
                         <option value="PRN">PRN / según necesidad</option>
                     </select>
-            
+
                     <input type="time" name="scheduled_time" placeholder="Hora inicial">
-            
-                    <textarea name="notes" class="full" placeholder="Observaciones"></textarea>
-            
+
+                    <div class="note full">
+                        ✔ Al guardar, Aromos programa automáticamente las dosis del día según frecuencia.
+                        <br>
+                        ✔ Al aplicar la última dosis pendiente, se vuelve a programar el próximo ciclo.
+                        <br>
+                        ✔ Finalizar corta todo el tratamiento activo.
+                    </div>
+
+                    <textarea name="notes" class="full" placeholder="Observaciones / indicaciones especiales"></textarea>
+
                     <button type="submit" class="save-btn">
-                        💊 Programar tratamiento
+                        💊 Programar tratamiento inteligente
                     </button>
                 </form>
                 {% else %}
                     <div class="alert">Internación cerrada. No se puede programar medicación.</div>
                 {% endif %}
-            
+
                 <br>
-            
+
                 {% if medications %}
                 <div style="overflow-x:auto;">
                     <table style="width:100%;border-collapse:collapse;font-size:13px;">
@@ -624,22 +643,22 @@
                                 <th style="padding:9px;border:1px solid #f1d6e2;">Acción</th>
                             </tr>
                         </thead>
-            
+
                         <tbody>
                             {% for m in medications %}
-                            <tr>
+                            <tr style="{% if m.status == 'Aplicada' %}background:#f0fdf4;{% elif m.status == 'Finalizada' %}background:#f3f4f6;{% else %}background:#fff;{% endif %}">
                                 <td style="padding:9px;border:1px solid #f1d6e2;">
                                     <b>🕘 {{ m.scheduled_time or '-' }}</b>
                                 </td>
-            
+
                                 <td style="padding:9px;border:1px solid #f1d6e2;">
                                     <b>{{ m.medication_name or '-' }}</b><br>
                                     <small>{{ m.frequency or '-' }}</small>
                                 </td>
-            
+
                                 <td style="padding:9px;border:1px solid #f1d6e2;">{{ m.dose or '-' }}</td>
                                 <td style="padding:9px;border:1px solid #f1d6e2;">{{ m.route or '-' }}</td>
-            
+
                                 <td style="padding:9px;border:1px solid #f1d6e2;">
                                     {% if m.status == 'Aplicada' %}
                                         🟢 Aplicada<br>
@@ -653,7 +672,7 @@
                                         🟡 Pendiente
                                     {% endif %}
                                 </td>
-            
+
                                 <td style="padding:9px;border:1px solid #f1d6e2;">
                                     {% if m.status == 'Pendiente' %}
                                     <form method="post" action="/hospitalizations/{{ hospitalization.id }}/medications/{{ m.id }}/done"
@@ -662,7 +681,7 @@
                                             ✔ Aplicar
                                         </button>
                                     </form>
-            
+
                                     <form method="post" action="/hospitalizations/{{ hospitalization.id }}/medications/{{ m.id }}/finish"
                                           onsubmit="return confirm('¿Finalizar este tratamiento completo?');">
                                         <button type="submit" style="background:#d85b9a;color:white;border:none;border-radius:8px;padding:7px 9px;font-weight:bold;cursor:pointer;margin-top:5px;">
@@ -670,7 +689,7 @@
                                         </button>
                                     </form>
                                     {% endif %}
-            
+
                                     <form method="post" action="/hospitalizations/{{ hospitalization.id }}/medications/{{ m.id }}/delete"
                                           onsubmit="return confirm('¿Eliminar esta medicación programada?');">
                                         <button type="submit" style="background:#ef4444;color:white;border:none;border-radius:8px;padding:7px 9px;font-weight:bold;cursor:pointer;margin-top:5px;">
