@@ -848,8 +848,11 @@
                         
                         {% if pending_meds %}
                             {% set next_med = pending_meds|first %}
-                            <b>{{ next_med.medication_name }}</b>
-                            <small>{{ next_med.scheduled_time or '-' }} · {{ next_med.dose or '-' }}</small>
+                            <b>⏰ {{ next_med.medication_name }}</b>
+                            <small>
+                                {{ next_med.scheduled_time or '-' }} · {{ next_med.dose or '-' }}
+                                {% if next_med.route %} · {{ next_med.route }}{% endif %}
+                            </small>
                         {% else %}
                             <b>Sin pendientes</b>
                             <small>✔</small>
