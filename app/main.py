@@ -6926,7 +6926,8 @@ def hospitalization_detail(
             'last_vital': hospital_ai['last_vital'],
             'hours_since_control': hospital_ai['hours_since_control'],
             'clinical_summary': hospital_ai['clinical_summary'],
-            'today': argentina_now().date()
+            'today': argentina_now().date(),
+            'current_time_hhmm': argentina_now().strftime('%H:%M')
         }
     )
 
