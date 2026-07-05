@@ -3359,11 +3359,19 @@ async def import_products(
     for cell in ws[1]:
         headers.append(str(cell.value).strip() if cell.value else "")
 
-    def get_value(row, column_name):
-        if column_name not in headers:
-            return None
-        idx = headers.index(column_name)
-        return row[idx] if idx < len(row) else None
+    def get_value(row, *column_names):
+        normalized = {
+            str(h).strip().lower(): i
+            for i, h in enumerate(headers)
+            if h
+        }
+    
+        for name in column_names:
+            idx = normalized.get(str(name).strip().lower())
+            if idx is not None and idx < len(row):
+                return row[idx]
+    
+        return None
 
     def to_float(value):
         try:
