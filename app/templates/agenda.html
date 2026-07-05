@@ -594,7 +594,198 @@
         flex-wrap:wrap;
         margin-top:16px;
     }
+    @media (max-width:900px) {
+        .agenda-page {
+            padding:14px;
+        }
 
+        .agenda-hero,
+        .agenda-section,
+        .day-panel,
+        .new-turn-panel {
+            border-radius:16px;
+            padding:14px;
+        }
+
+        .agenda-title h1 {
+            font-size:25px;
+        }
+
+        .agenda-nav {
+            width:100%;
+            display:grid;
+            grid-template-columns:1fr;
+        }
+
+        .agenda-btn {
+            text-align:center;
+            width:100%;
+        }
+
+        .month-head {
+            align-items:flex-start;
+            flex-direction:column;
+        }
+
+        .calendar-weekdays,
+        .calendar-grid {
+            gap:4px;
+        }
+
+        .calendar-weekdays {
+            font-size:11px;
+        }
+
+        .calendar-day {
+            min-height:48px;
+            border-radius:10px;
+            padding:6px;
+        }
+
+        .day-number {
+            font-size:13px;
+        }
+
+        .day-count {
+            right:4px;
+            bottom:4px;
+            min-width:18px;
+            height:18px;
+            font-size:10px;
+        }
+
+        .summary-grid {
+            grid-template-columns:1fr 1fr;
+            gap:8px;
+        }
+
+        .summary-card {
+            padding:10px;
+            border-radius:14px;
+        }
+
+        .summary-icon {
+            width:34px;
+            height:34px;
+            font-size:18px;
+        }
+
+        .summary-card b {
+            font-size:19px;
+        }
+
+        .slot-row {
+            grid-template-columns:58px 1fr;
+            min-height:64px;
+        }
+
+        .slot-time {
+            padding:12px 4px;
+            font-size:12px;
+        }
+
+        .slot-body {
+            padding:6px 0 6px 8px;
+            min-height:64px;
+        }
+
+        .appointment-card {
+            padding:10px;
+            border-radius:14px;
+        }
+
+        .appt-top {
+            flex-direction:column;
+            gap:8px;
+        }
+
+        .appt-name {
+            font-size:17px;
+        }
+
+        .appt-status {
+            width:max-content;
+            font-size:11px;
+        }
+
+        .appt-actions {
+            display:grid;
+            grid-template-columns:1fr 1fr;
+            gap:7px;
+        }
+
+        .mini-btn,
+        .mini-form button {
+            width:100%;
+            text-align:center;
+            padding:8px 7px;
+            font-size:11px;
+        }
+
+        .new-turn-panel label {
+            margin-top:10px;
+        }
+
+        .save-turn-btn {
+            padding:13px;
+        }
+
+        .agenda-modal {
+            width:96vw;
+            max-height:88vh;
+            overflow:auto;
+            padding:16px;
+            border-radius:18px;
+        }
+
+        .modal-actions {
+            display:grid;
+            grid-template-columns:1fr;
+        }
+    }
+
+    @media (max-width:520px) {
+        .agenda-page {
+            padding:10px;
+        }
+
+        .agenda-title h1 {
+            font-size:22px;
+        }
+
+        .agenda-title p,
+        .day-head span,
+        .month-head span {
+            font-size:12px !important;
+        }
+
+        .calendar-day {
+            min-height:42px;
+            padding:4px;
+        }
+
+        .summary-grid {
+            grid-template-columns:1fr;
+        }
+
+        .slot-row {
+            grid-template-columns:50px 1fr;
+        }
+
+        .appt-actions {
+            grid-template-columns:1fr;
+        }
+
+        .appt-service,
+        .appt-owner,
+        .appt-meta {
+            font-size:12px;
+        }
+
+        .appt-name {
+            font-size:16px;
+        }
+    }
 </style>
 
 {% set pendientes = appointments|selectattr('status', 'equalto', 'Pendiente')|list|length %}
