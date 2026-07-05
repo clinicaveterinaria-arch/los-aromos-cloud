@@ -665,7 +665,8 @@
                         </thead>
 
                         <tbody>
-                            {% for m in active_meds %}
+                            {% for m in active_meds %}{% for m in active_meds %}
+                            {% set is_next = loop.first and m.status == "Pendiente" %}
                             <tr style="{% if m.status == 'Aplicada' %}background:#f0fdf4;{% elif m.status == 'Finalizada' %}background:#f3f4f6;{% else %}background:#fff;{% endif %}">
                                 <td style="padding:9px;border:1px solid #f1d6e2;">
                                     <b>🕘 {{ m.scheduled_time or '-' }}</b>
