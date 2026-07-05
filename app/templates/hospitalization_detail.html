@@ -667,7 +667,16 @@
                         <tbody>
                             {% for m in active_meds %}{% for m in active_meds %}
                             {% set is_next = loop.first and m.status == "Pendiente" %}
-                            <tr style="{% if m.status == 'Aplicada' %}background:#f0fdf4;{% elif m.status == 'Finalizada' %}background:#f3f4f6;{% else %}background:#fff;{% endif %}">
+                            <tr style="
+                            {% if is_next %}
+                            background:#fef9c3;
+                            border:2px solid #facc15;
+                            {% elif m.status == 'Aplicada' %}
+                            background:#f0fdf4;
+                            {% else %}
+                            background:#fff;
+                            {% endif %}
+                            ">
                                 <td style="padding:9px;border:1px solid #f1d6e2;">
                                     <b>🕘 {{ m.scheduled_time or '-' }}</b>
                                 </td>
