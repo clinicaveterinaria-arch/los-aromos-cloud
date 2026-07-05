@@ -343,12 +343,155 @@
     }
 
     @media (max-width:1100px) { .hc-hero-top, .hc-main-grid { grid-template-columns:1fr; } }
-    @media (max-width:720px) {
-        .timeline-item { grid-template-columns:1fr; }
-        .timeline:before { display:none; }
-        .timeline-actions { justify-content:flex-start; }
-        .hc-toolbar a, .hc-toolbar button { width:100%; justify-content:center; }
-        .vade-search-row { grid-template-columns:1fr; }
+    @media (max-width:900px){
+
+        .hc-page{
+            padding:12px;
+        }
+
+        .hc-toolbar{
+            display:grid;
+            grid-template-columns:1fr;
+        }
+
+        .hc-toolbar a,
+        .hc-toolbar button{
+            width:100%;
+            justify-content:center;
+        }
+
+        .hc-hero{
+            border-radius:18px;
+        }
+
+        .hc-hero-top{
+            grid-template-columns:1fr;
+            padding:16px;
+            gap:18px;
+        }
+
+        .patient-profile{
+            flex-direction:column;
+            text-align:center;
+        }
+
+        .patient-name-row{
+            justify-content:center;
+        }
+
+        .patient-name-row h1{
+            font-size:28px;
+        }
+
+        .patient-avatar,
+        .patient-avatar-wrap{
+            width:90px;
+            height:90px;
+        }
+
+        .patient-avatar{
+            font-size:34px;
+        }
+
+        .hc-summary-strip{
+            grid-template-columns:1fr;
+            padding:14px;
+        }
+
+        .hc-main-grid{
+            grid-template-columns:1fr;
+        }
+
+        .module-row{
+            grid-template-columns:50px 1fr;
+        }
+
+        .module-count{
+            grid-column:2;
+            justify-self:start;
+            margin-top:8px;
+        }
+
+        .form-grid{
+            grid-template-columns:1fr;
+        }
+
+        .soft-box,
+        .form-full,
+        .save-event-btn{
+            grid-column:1;
+        }
+
+        .quick-buttons{
+            display:grid;
+            grid-template-columns:1fr 1fr;
+        }
+
+        .quick-buttons button{
+            width:100%;
+        }
+
+        .timeline{
+            padding-left:0;
+        }
+
+        .timeline:before{
+            display:none;
+        }
+
+        .timeline-item{
+            grid-template-columns:1fr;
+            gap:8px;
+        }
+
+        .timeline-actions{
+            justify-content:flex-start;
+            flex-wrap:wrap;
+        }
+
+        .vade-search-row{
+            grid-template-columns:1fr;
+        }
+
+        .vade-modal{
+            width:96vw;
+            max-height:90vh;
+        }
+
+    }
+
+    @media (max-width:520px){
+
+        .hc-page{
+            padding:8px;
+        }
+
+        .patient-name-row h1{
+            font-size:24px;
+        }
+
+        .patient-data,
+        .owner-data{
+            font-size:14px;
+        }
+
+        .quick-buttons{
+            grid-template-columns:1fr;
+        }
+
+        .module-row{
+            grid-template-columns:1fr;
+            text-align:center;
+        }
+
+        .module-icon{
+            margin:auto;
+        }
+
+        .module-count{
+            justify-self:center;
+        }
+
     }
 </style>
 
