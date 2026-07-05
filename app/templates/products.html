@@ -175,7 +175,7 @@
         <div class="prod-card">
             <div class="prod-list-head">
                 <h2>📋 Listado de productos</h2>
-                <span class="prod-badge">Mostrando {{ products|length }}</span>
+                <span class="prod-badge">Mostrando {{ products|length }} de {{ total_filtered }}</span>
             </div>
 
             {% if products %}
@@ -227,6 +227,27 @@
                         </div>
                     {% endfor %}
                 </div>
+                <div class="tools-row" style="margin-top:16px;justify-content:center;">
+
+                    {% if page > 1 %}
+                        <a class="soft-btn"
+                           href="/products?q={{ q }}&rubro={{ rubro }}&page={{ page - 1 }}">
+                            ◀ Anterior
+                        </a>
+                    {% endif %}
+                
+                    <span class="prod-badge">
+                        Página {{ page }} de {{ total_pages }}
+                    </span>
+                
+                    {% if page < total_pages %}
+                        <a class="soft-btn"
+                           href="/products?q={{ q }}&rubro={{ rubro }}&page={{ page + 1 }}">
+                            Siguiente ▶
+                        </a>
+                    {% endif %}
+                
+                </div>                    
             {% else %}
                 <div class="empty-state">
                     <h2>🔎 No hay productos para mostrar</h2>
