@@ -612,7 +612,11 @@
                     
                     </div>                    
                     <input name="medication_name" placeholder="Medicamento">
-                    <input name="dose" placeholder="Dosis">
+                    <input id="med_mg_kg" name="med_mg_kg" placeholder="mg/kg" oninput="calculateMedicationDose()">
+
+                    <input id="med_concentration" name="med_concentration" placeholder="Concentración mg/ml" oninput="calculateMedicationDose()">
+                    
+                    <input id="med_dose" name="dose" placeholder="Dosis calculada en ml">
 
                     <select name="route">
                         <option value="">Vía</option>
@@ -1369,5 +1373,20 @@ async function calculateHospitalDrug(activeId){
 
     }
 }
+function calculateMedicationDose() {
+    const weight = parseFloat("{{ hospitalization.initial_weight or patient.weight or 0 }}");
+    const mgKg = parseFloat((document.getElementById("med_mg_kg").value || "").replace(",", "."));
+    const concentration = parseFloat((document.getElementById("med_concentration").value || "").replace(",", "."));
+    const doseInput = document.getElementById("med_dose");
+
+    if (!weight || !mgKg || !concentration) {
+        return;
+    }
+
+    const totalMg = weight * mgKg;
+    const totalMl = totalMg / concentration;
+
+    doseInput.value = totalMl.toFixed(2) + " ml";
+}    
 </script>
 {% endblock %}
