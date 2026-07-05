@@ -6530,7 +6530,7 @@ def build_hospitalization_ai(hospitalization, patient, related_events, medicatio
         alerts.append({'level': 'warning', 'icon': '🕓', 'title': 'Control próximo', 'detail': f'Último control hace {int(hours_since_control)} horas.'})
 
     now_minutes = now.hour * 60 + now.minute
-    pending_medications = [m for m in medications if m.status != 'Aplicada']
+    pending_medications = [m for m in medications if m.status == 'Pendiente']
     overdue_medications = []
 
     for m in pending_medications:
