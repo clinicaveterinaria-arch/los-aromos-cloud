@@ -583,7 +583,6 @@
                 {% if hospitalization.status == 'Internado' %}
                 <form method="post" action="/hospitalizations/{{ hospitalization.id }}/medications" class="form-grid">
                     <input name="medication_name" placeholder="Medicamento">
-
                     <input name="dose" placeholder="Dosis">
 
                     <select name="route">
@@ -611,11 +610,9 @@
                     <input type="time" name="scheduled_time" placeholder="Hora inicial">
 
                     <div class="note full">
-                        ✔ Al guardar, Aromos programa automáticamente las dosis del día según frecuencia.
-                        <br>
-                        ✔ Al aplicar la última dosis pendiente, se vuelve a programar el próximo ciclo.
-                        <br>
-                        ✔ Finalizar corta todo el tratamiento activo.
+                        ✔ Programa automáticamente las dosis según frecuencia.<br>
+                        ✔ Permite aplicar, finalizar o eliminar dosis.<br>
+                        ✔ Las dosis vencidas y la próxima dosis se resaltan automáticamente.
                     </div>
 
                     <textarea name="notes" class="full" placeholder="Observaciones / indicaciones especiales"></textarea>
@@ -630,127 +627,82 @@
 
                 <br>
 
-                {% set pending_meds = medications
-                    | selectattr("status","equalto","Pendiente")
-                    | list %}
-                
-                {% set applied_meds = medications
-                    | selectattr("status","equalto","Aplicada")
-                    | list %}
-                
+                {% set pending_meds = medications|selectattr("status","equalto","Pendiente")|list %}
+                {% set applied_meds = medications|selectattr("status","equalto","Aplicada")|list %}
                 {% set active_meds = pending_meds + applied_meds %}
-                
-                    {% if active_meds %}
-                    
-                    {% set pending_count = active_meds|selectattr("status","equalto","Pendiente")|list|length %}
-                    {% set applied_count = active_meds|selectattr("status","equalto","Aplicada")|list|length %}
-                    
-                    <div class="soft-alert">
-                        <b>💊 Medicación activa</b><br>
-                        Dosis pendientes: {{ pending_count }} · Dosis aplicadas: {{ applied_count }}
-                    </div>
-                    
-                    <h3>🟡 Tratamientos activos / dosis pendientes</h3>
-                    <div style="overflow-x:auto;">
+
+                {% if active_meds %}
+                <div class="soft-alert">
+                    <b>💊 Medicación activa</b><br>
+                    Dosis pendientes: {{ pending_meds|length }} · Dosis aplicadas: {{ applied_meds|length }}
+                </div>
+
+                <h3>🟡 Tratamientos activos / dosis pendientes</h3>
+
+                <div style="overflow-x:auto;">
                     <table style="width:100%;border-collapse:collapse;font-size:13px;">
                         <thead>
+                            <tr style="background:#fff8fb;color:#374151;">
                                 <th style="padding:9px;border:1px solid #f1d6e2;">Trat.</th>
                                 <th style="padding:9px;border:1px solid #f1d6e2;">Hora</th>
-                                
                                 <th style="padding:9px;border:1px solid #f1d6e2;">Medicación</th>
                                 <th style="padding:9px;border:1px solid #f1d6e2;">Dosis</th>
                                 <th style="padding:9px;border:1px solid #f1d6e2;">Vía</th>
-                                <th style="padding:9px;border:1px solid #f1d6e2;">Próximo estado</th>
+                                <th style="padding:9px;border:1px solid #f1d6e2;">Estado</th>
                                 <th style="padding:9px;border:1px solid #f1d6e2;">Acción</th>
                             </tr>
                         </thead>
 
                         <tbody>
-                            {% for m in active_meds %}{% for m in active_meds %}
+                            {% for m in active_meds %}
                             {% set current_time = current_time_hhmm %}
                             {% set overdue = m.status == "Pendiente" and m.scheduled_time and m.scheduled_time < current_time %}
                             {% set is_next = loop.first and not overdue and m.status == "Pendiente" %}
+
                             <tr style="
-                            {% if overdue %}
-                            background:#fee2e2;
-                            border:2px solid #ef4444;
-                            {% elif is_next %}
-                            background:#fef9c3;
-                            border:2px solid #facc15;
-                            {% elif m.status == 'Aplicada' %}
-                            background:#f0fdf4;
-                            {% else %}
-                            background:#fff;
-                            {% endif %}
+                                {% if overdue %}
+                                    background:#fee2e2;border:2px solid #ef4444;
+                                {% elif is_next %}
+                                    background:#fef9c3;border:2px solid #facc15;
+                                {% elif m.status == 'Aplicada' %}
+                                    background:#f0fdf4;
+                                {% else %}
+                                    background:#fff;
+                                {% endif %}
                             ">
-                                <td style="padding:9px;border:1px solid #f1d6e2;">
-                                    <b>
-                                    {% if is_next %}⏰{% else %}🕘{% endif %}
-                                    {{ m.scheduled_time or '-' }}
-                                    </b>
-                                    
-                                    {% if overdue %}
-                                    <br>
-                                    <small style="color:#dc2626;font-weight:bold;">
-                                    ⚠ Medicación vencida
-                                    </small>
-                                    
-                                    {% if overdue %}
-                                    <br>
-                                    <small style="color:#dc2626;font-weight:bold;">
-                                    ⚠ Medicación vencida
-                                    </small>
-                                    
-                                    {% elif is_next %}
-                                    <br>
-                                    <small style="color:#b45309;font-weight:bold;">
-                                    ⏰ Próxima dosis
-                                    </small>
-                                    
-                                    {% if m.scheduled_time %}
-                                    <br>
-                                    <small style="color:#6b7280;">
-                                    Programada: {{ m.scheduled_time }}
-                                    </small>
+                                <td style="padding:9px;border:1px solid #f1d6e2;text-align:center;">
+                                    {% if "[TRATAMIENTO_ACTIVO:" in (m.notes or "") %}
+                                        💊
+                                    {% else %}
+                                        •
                                     {% endif %}
-                                    
+                                </td>
+
+                                <td style="padding:9px;border:1px solid #f1d6e2;">
+                                    <b>{% if is_next %}⏰{% else %}🕘{% endif %} {{ m.scheduled_time or '-' }}</b>
+
+                                    {% if overdue %}
+                                        <br><small style="color:#dc2626;font-weight:bold;">⚠ Medicación vencida</small>
+                                    {% elif is_next %}
+                                        <br><small style="color:#b45309;font-weight:bold;">⏰ Próxima dosis</small>
                                     {% endif %}
                                 </td>
 
                                 <td style="padding:9px;border:1px solid #f1d6e2;">
                                     <b>{{ m.medication_name or '-' }}</b><br>
-                                    <small>
-                                    {{ m.frequency or '-' }}
-                                    {% if m.notes %}
-                                        · {{ m.notes }}
-                                    {% endif %}
-                                </small>
+                                    <small>{{ m.frequency or '-' }}</small>
                                 </td>
 
                                 <td style="padding:9px;border:1px solid #f1d6e2;">{{ m.dose or '-' }}</td>
                                 <td style="padding:9px;border:1px solid #f1d6e2;">{{ m.route or '-' }}</td>
 
                                 <td style="padding:9px;border:1px solid #f1d6e2;">
-                                
                                     {% if m.status == "Pendiente" %}
-                                        <span style="color:#b45309;font-weight:bold;">
-                                            🟡 Esperando aplicación
-                                        </span>
-                                
+                                        🟡 Esperando aplicación
                                     {% elif m.status == "Aplicada" %}
-                                        <span style="color:#15803d;font-weight:bold;">
-                                            🟢 Aplicada
-                                        </span>
-                                
-                                        {% if m.applied_at %}
-                                            <br>
-                                            <small>
-                                                {{ m.applied_at.strftime('%d/%m %H:%M') }}
-                                            </small>
-                                        {% endif %}
-                                
+                                        🟢 Aplicada<br>
+                                        <small>{{ m.applied_at.strftime('%d/%m %H:%M') if m.applied_at else '' }}</small>
                                     {% endif %}
-                                
                                 </td>
 
                                 <td style="padding:9px;border:1px solid #f1d6e2;">
@@ -786,9 +738,7 @@
                     <div class="note">Todavía no hay medicación activa.</div>
                 {% endif %}
 
-                {% set finished_meds = medications
-                    | selectattr("status","equalto","Finalizada")
-                    | list %}
+                {% set finished_meds = medications|selectattr("status","equalto","Finalizada")|list %}
 
                 {% if finished_meds %}
                 <br>
@@ -814,9 +764,7 @@
                             <tbody>
                                 {% for m in finished_meds %}
                                 <tr style="background:#f9fafb;">
-                                    <td style="padding:9px;border:1px solid #e5e7eb;">
-                                        {{ m.scheduled_time or '-' }}
-                                    </td>
+                                    <td style="padding:9px;border:1px solid #e5e7eb;">{{ m.scheduled_time or '-' }}</td>
                                     <td style="padding:9px;border:1px solid #e5e7eb;">
                                         <b>{{ m.medication_name or '-' }}</b><br>
                                         <small>{{ m.frequency or '-' }}</small>
