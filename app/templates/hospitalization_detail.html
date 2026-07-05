@@ -637,107 +637,116 @@
                     Dosis pendientes: {{ pending_meds|length }} · Dosis aplicadas: {{ applied_meds|length }}
                 </div>
 
-                <h3>🟡 Tratamientos activos / dosis pendientes</h3>
+                <h3>💊 Tratamientos activos</h3>
 
-                <div style="overflow-x:auto;">
-                    <table style="width:100%;border-collapse:collapse;font-size:13px;">
-                        <thead>
-                            <tr style="background:#fff8fb;color:#374151;">
-                                <th style="padding:9px;border:1px solid #f1d6e2;">Trat.</th>
-                                <th style="padding:9px;border:1px solid #f1d6e2;">Hora</th>
-                                <th style="padding:9px;border:1px solid #f1d6e2;">Medicación</th>
-                                <th style="padding:9px;border:1px solid #f1d6e2;">Dosis</th>
-                                <th style="padding:9px;border:1px solid #f1d6e2;">Vía</th>
-                                <th style="padding:9px;border:1px solid #f1d6e2;">Estado</th>
-                                <th style="padding:9px;border:1px solid #f1d6e2;">Acción</th>
-                            </tr>
-                        </thead>
+                <div style="display:grid;gap:12px;">
+                    {% set ns = namespace(seen=[]) %}
 
-                        <tbody>
-                            {% for m in active_meds %}
-                            {% set current_time = current_time_hhmm %}
-                            {% set overdue = m.status == "Pendiente" and m.scheduled_time and m.scheduled_time < current_time %}
-                            {% set is_next = loop.first and not overdue and m.status == "Pendiente" %}
+                    {% for m in active_meds %}
+                        {% set med_key = (m.medication_name or '') ~ '|' ~ (m.dose or '') ~ '|' ~ (m.route or '') ~ '|' ~ (m.frequency or '') %}
 
-                            <tr style="
-                                {% if overdue %}
-                                    background:#fee2e2;border:2px solid #ef4444;
-                                {% elif is_next %}
-                                    background:#fef9c3;border:2px solid #facc15;
-                                {% elif m.status == 'Aplicada' %}
-                                    background:#f0fdf4;
-                                {% else %}
-                                    background:#fff;
-                                {% endif %}
+                        {% if med_key not in ns.seen %}
+                            {% set ns.seen = ns.seen + [med_key] %}
+
+                            {% set same_pending = pending_meds
+                                | selectattr("medication_name","equalto",m.medication_name)
+                                | selectattr("dose","equalto",m.dose)
+                                | selectattr("route","equalto",m.route)
+                                | selectattr("frequency","equalto",m.frequency)
+                                | list %}
+
+                            {% set same_applied = applied_meds
+                                | selectattr("medication_name","equalto",m.medication_name)
+                                | selectattr("dose","equalto",m.dose)
+                                | selectattr("route","equalto",m.route)
+                                | selectattr("frequency","equalto",m.frequency)
+                                | list %}
+
+                            {% set next_dose = same_pending|first %}
+                            {% set overdue = next_dose and next_dose.scheduled_time and next_dose.scheduled_time < current_time_hhmm %}
+
+                            <div style="
+                                border:1px solid {% if overdue %}#fecaca{% elif next_dose %}#fde68a{% else %}#bbf7d0{% endif %};
+                                background:{% if overdue %}#fff1f2{% elif next_dose %}#fefce8{% else %}#f0fdf4{% endif %};
+                                border-radius:18px;
+                                padding:14px;
                             ">
-                                <td style="padding:9px;border:1px solid #f1d6e2;text-align:center;">
-                                    {% if "[TRATAMIENTO_ACTIVO:" in (m.notes or "") %}
-                                        💊
-                                    {% else %}
-                                        •
-                                    {% endif %}
-                                </td>
+                                <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;">
+                                    <div>
+                                        <b style="font-size:17px;color:#1f2937;">
+                                            💊 {{ m.medication_name or '-' }}
+                                        </b>
 
-                                <td style="padding:9px;border:1px solid #f1d6e2;">
-                                    <b>{% if is_next %}⏰{% else %}🕘{% endif %} {{ m.scheduled_time or '-' }}</b>
+                                        <br>
 
-                                    {% if overdue %}
-                                        <br><small style="color:#dc2626;font-weight:bold;">⚠ Medicación vencida</small>
-                                    {% elif is_next %}
-                                        <br><small style="color:#b45309;font-weight:bold;">⏰ Próxima dosis</small>
-                                    {% endif %}
-                                </td>
+                                        <small style="color:#6b7280;">
+                                            {{ m.dose or '-' }} · {{ m.route or '-' }} · {{ m.frequency or '-' }}
+                                        </small>
+                                    </div>
 
-                                <td style="padding:9px;border:1px solid #f1d6e2;">
-                                    <b>{{ m.medication_name or '-' }}</b><br>
-                                    <small>{{ m.frequency or '-' }}</small>
-                                </td>
+                                    <div style="text-align:right;">
+                                        {% if overdue %}
+                                            <b style="color:#dc2626;">⚠ Vencida</b>
+                                        {% elif next_dose %}
+                                            <b style="color:#b45309;">⏰ Próxima</b>
+                                        {% else %}
+                                            <b style="color:#15803d;">✔ Sin pendientes</b>
+                                        {% endif %}
+                                    </div>
+                                </div>
 
-                                <td style="padding:9px;border:1px solid #f1d6e2;">{{ m.dose or '-' }}</td>
-                                <td style="padding:9px;border:1px solid #f1d6e2;">{{ m.route or '-' }}</td>
+                                <br>
 
-                                <td style="padding:9px;border:1px solid #f1d6e2;">
-                                    {% if m.status == "Pendiente" %}
-                                        🟡 Esperando aplicación
-                                    {% elif m.status == "Aplicada" %}
-                                        🟢 Aplicada<br>
-                                        <small>{{ m.applied_at.strftime('%d/%m %H:%M') if m.applied_at else '' }}</small>
-                                    {% endif %}
-                                </td>
+                                <div class="dashboard" style="margin-bottom:0;">
+                                    <div class="dash-card">
+                                        <span>Próxima dosis</span>
+                                        <b>{{ next_dose.scheduled_time if next_dose else '-' }}</b>
+                                        <small>{% if overdue %}Vencida{% elif next_dose %}Pendiente{% else %}Completo{% endif %}</small>
+                                    </div>
 
-                                <td style="padding:9px;border:1px solid #f1d6e2;">
-                                    {% if m.status == 'Pendiente' %}
-                                    <form method="post" action="/hospitalizations/{{ hospitalization.id }}/medications/{{ m.id }}/done"
-                                          onsubmit="return confirm('¿Marcar esta dosis como aplicada?');">
-                                        <button type="submit" style="background:#22c55e;color:white;border:none;border-radius:8px;padding:7px 9px;font-weight:bold;cursor:pointer;">
-                                            ✔ Aplicar
+                                    <div class="dash-card">
+                                        <span>Pendientes</span>
+                                        <b>{{ same_pending|length }}</b>
+                                        <small>Dosis</small>
+                                    </div>
+
+                                    <div class="dash-card">
+                                        <span>Aplicadas</span>
+                                        <b>{{ same_applied|length }}</b>
+                                        <small>Dosis</small>
+                                    </div>
+                                </div>
+
+                                {% if m.notes %}
+                                <div class="note" style="margin-top:12px;">
+                                    {{ m.notes.replace('[TRATAMIENTO_ACTIVO:', 'Código tratamiento: ').replace(']', '') }}
+                                </div>
+                                {% endif %}
+
+                                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">
+                                    {% if next_dose %}
+                                    <form method="post" action="/hospitalizations/{{ hospitalization.id }}/medications/{{ next_dose.id }}/done"
+                                          onsubmit="return confirm('¿Aplicar la próxima dosis de {{ m.medication_name }}?');">
+                                        <button type="submit" style="background:#22c55e;color:white;border:none;border-radius:10px;padding:9px 11px;font-weight:bold;cursor:pointer;">
+                                            ✔ Aplicar próxima
                                         </button>
                                     </form>
 
-                                    <form method="post" action="/hospitalizations/{{ hospitalization.id }}/medications/{{ m.id }}/finish"
+                                    <form method="post" action="/hospitalizations/{{ hospitalization.id }}/medications/{{ next_dose.id }}/finish"
                                           onsubmit="return confirm('¿Finalizar este tratamiento completo?');">
-                                        <button type="submit" style="background:#d85b9a;color:white;border:none;border-radius:8px;padding:7px 9px;font-weight:bold;cursor:pointer;margin-top:5px;">
-                                            🏁 Finalizar
+                                        <button type="submit" style="background:#d85b9a;color:white;border:none;border-radius:10px;padding:9px 11px;font-weight:bold;cursor:pointer;">
+                                            🏁 Finalizar tratamiento
                                         </button>
                                     </form>
                                     {% endif %}
-
-                                    <form method="post" action="/hospitalizations/{{ hospitalization.id }}/medications/{{ m.id }}/delete"
-                                          onsubmit="return confirm('¿Eliminar esta medicación programada?');">
-                                        <button type="submit" style="background:#ef4444;color:white;border:none;border-radius:8px;padding:7px 9px;font-weight:bold;cursor:pointer;margin-top:5px;">
-                                            🗑
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
                 </div>
                 {% else %}
                     <div class="note">Todavía no hay medicación activa.</div>
                 {% endif %}
-
                 {% set finished_meds = medications|selectattr("status","equalto","Finalizada")|list %}
 
                 {% if finished_meds %}
