@@ -635,6 +635,15 @@
                     | list %}
                 
                     {% if active_meds %}
+                    
+                    {% set pending_count = active_meds|selectattr("status","equalto","Pendiente")|list|length %}
+                    {% set applied_count = active_meds|selectattr("status","equalto","Aplicada")|list|length %}
+                    
+                    <div class="soft-alert">
+                        <b>💊 Medicación activa</b><br>
+                        Dosis pendientes: {{ pending_count }} · Dosis aplicadas: {{ applied_count }}
+                    </div>
+                    
                     <h3>🟡 Tratamientos activos / dosis pendientes</h3>
                     <div style="overflow-x:auto;">
                     <table style="width:100%;border-collapse:collapse;font-size:13px;">
