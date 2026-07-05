@@ -3147,6 +3147,7 @@ def products_page(
     request: Request,
     q: str = '',
     rubro: str = '',
+    page: int = 1,
     db: Session = Depends(get_db),
     user: User = Depends(require_user)
 ):
