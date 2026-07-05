@@ -3404,15 +3404,26 @@ async def import_products(
         if not name:
             continue
 
-        cost = to_float(get_value(row, "Costo"))
-        sale = to_float(get_value(row, "Precio"))
-        margin = to_float(get_value(row, "Margen (%)"))
+        cost = to_float(
+            get_value(row, "Costo", "Precio costo")
+        )
+        
+        sale = to_float(
+            get_value(row, "Precio", "Precio venta")
+        )
+        
+        margin = to_float(
+            get_value(row, "Margen (%)", "Margen %")
+        )
 
         if margin is None and cost and sale:
             margin = ((sale - cost) / cost) * 100
 
         code = str(get_value(row, "Código") or "").strip()
-        barcode = str(get_value(row, "Código de Barras") or "").strip()
+        barcode = str(
+            get_value(row, "Código de Barras", "Código de barras")
+            or ""
+        ).strip()
         
         existing = None
         
