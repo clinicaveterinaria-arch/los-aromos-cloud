@@ -688,10 +688,16 @@
                                     {{ m.scheduled_time or '-' }}
                                     </b>
                                     
-                                    {% if is_next %}
+                                    {% if overdue %}
+                                    <br>
+                                    <small style="color:#dc2626;font-weight:bold;">
+                                    ⚠ Medicación vencida
+                                    </small>
+                                    
+                                    {% elif is_next %}
                                     <br>
                                     <small style="color:#b45309;font-weight:bold;">
-                                    Próxima dosis
+                                    ⏰ Próxima dosis
                                     </small>
                                     {% endif %}
                                 </td>
