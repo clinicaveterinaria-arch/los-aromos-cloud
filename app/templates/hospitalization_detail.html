@@ -724,6 +724,13 @@
                                 {% endif %}
 
                                 <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">
+
+                                <button
+                                    type="button"
+                                    onclick="document.getElementById('treatment_{{ loop.index }}').classList.toggle('hidden')"
+                                    style="background:#6b7280;color:white;border:none;border-radius:10px;padding:9px 11px;font-weight:bold;cursor:pointer;">
+                                    📋 Ver dosis
+                                </button>
                                     {% if next_dose %}
                                     <form method="post" action="/hospitalizations/{{ hospitalization.id }}/medications/{{ next_dose.id }}/done"
                                           onsubmit="return confirm('¿Aplicar la próxima dosis de {{ m.medication_name }}?');">
