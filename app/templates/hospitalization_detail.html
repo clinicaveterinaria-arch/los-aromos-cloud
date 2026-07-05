@@ -707,7 +707,53 @@
                     </table>
                 </div>
                 {% else %}
-                    <div class="note">Todavía no hay medicación programada.</div>
+                    <div class="note">Todavía no hay medicación activa.</div>
+                {% endif %}
+
+                {% set finished_meds = medications
+                    | selectattr("status","equalto","Finalizada")
+                    | list %}
+
+                {% if finished_meds %}
+                <br>
+                <details>
+                    <summary style="cursor:pointer;font-weight:bold;color:#d85b9a;">
+                        📚 Ver tratamientos finalizados
+                    </summary>
+
+                    <br>
+
+                    <div style="overflow-x:auto;">
+                        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                            <thead>
+                                <tr style="background:#f3f4f6;color:#374151;">
+                                    <th style="padding:9px;border:1px solid #e5e7eb;">Hora</th>
+                                    <th style="padding:9px;border:1px solid #e5e7eb;">Medicación</th>
+                                    <th style="padding:9px;border:1px solid #e5e7eb;">Dosis</th>
+                                    <th style="padding:9px;border:1px solid #e5e7eb;">Vía</th>
+                                    <th style="padding:9px;border:1px solid #e5e7eb;">Estado</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                {% for m in finished_meds %}
+                                <tr style="background:#f9fafb;">
+                                    <td style="padding:9px;border:1px solid #e5e7eb;">
+                                        {{ m.scheduled_time or '-' }}
+                                    </td>
+                                    <td style="padding:9px;border:1px solid #e5e7eb;">
+                                        <b>{{ m.medication_name or '-' }}</b><br>
+                                        <small>{{ m.frequency or '-' }}</small>
+                                    </td>
+                                    <td style="padding:9px;border:1px solid #e5e7eb;">{{ m.dose or '-' }}</td>
+                                    <td style="padding:9px;border:1px solid #e5e7eb;">{{ m.route or '-' }}</td>
+                                    <td style="padding:9px;border:1px solid #e5e7eb;">⚪ Finalizada</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </details>
                 {% endif %}
             </div>
             <div class="card">
