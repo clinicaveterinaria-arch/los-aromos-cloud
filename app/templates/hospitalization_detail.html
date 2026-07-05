@@ -678,7 +678,17 @@
                             {% endif %}
                             ">
                                 <td style="padding:9px;border:1px solid #f1d6e2;">
-                                    <b>🕘 {{ m.scheduled_time or '-' }}</b>
+                                    <b>
+                                    {% if is_next %}⏰{% else %}🕘{% endif %}
+                                    {{ m.scheduled_time or '-' }}
+                                    </b>
+                                    
+                                    {% if is_next %}
+                                    <br>
+                                    <small style="color:#b45309;font-weight:bold;">
+                                    Próxima dosis
+                                    </small>
+                                    {% endif %}
                                 </td>
 
                                 <td style="padding:9px;border:1px solid #f1d6e2;">
