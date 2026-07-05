@@ -117,7 +117,60 @@
 .fake-check{
     width:18px;height:18px;border-radius:6px;border:2px solid #f3c6d8;background:#fff8fb;
 }
-@media(max-width:1000px){.layout{grid-template-columns:1fr;}}
+@media (max-width:900px){
+
+    .vade-page{
+        padding:12px;
+    }
+
+    .vade-header{
+        padding:16px;
+        border-radius:18px;
+    }
+
+    .vade-grid{
+        grid-template-columns:1fr;
+    }
+
+    .vade-card{
+        border-radius:18px;
+        padding:16px;
+    }
+
+    .ingredient-title{
+        flex-direction:column;
+    }
+
+    .ingredient-title span{
+        width:max-content;
+    }
+
+    .vade-actions{
+        display:grid;
+        grid-template-columns:1fr;
+    }
+
+    .vade-btn{
+        width:100%;
+    }
+
+    form>div[style*="grid-template-columns"]{
+        grid-template-columns:1fr !important;
+    }
+
+}
+
+@media (max-width:520px){
+
+    .vade-page{
+        padding:8px;
+    }
+
+    .vade-header h1{
+        font-size:24px;
+    }
+
+}
 </style>
 
 <div class="hosp-page">
