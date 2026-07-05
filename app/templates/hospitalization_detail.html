@@ -690,7 +690,7 @@
                                 | selectattr("route","equalto",m.route)
                                 | selectattr("frequency","equalto",m.frequency)
                                 | list %}
-
+                            {% set last_applied = same_applied|last %}
                             {% set next_dose = same_pending|first %}
                             {% set overdue = next_dose and next_dose.scheduled_time and next_dose.scheduled_time < current_time_hhmm %}
                             {% set card_color =
@@ -777,6 +777,17 @@
                                     </span>
                                 
                                 </div>
+                                {% if last_applied and last_applied.applied_at %}
+                                <div class="soft-alert" style="margin-bottom:12px;">
+                                    <b>🕒 Última dosis aplicada</b><br>
+                                
+                                    {{ last_applied.applied_at.strftime('%d/%m/%Y %H:%M') }}
+                                
+                                    {% if last_applied.applied_by %}
+                                        · {{ last_applied.applied_by }}
+                                    {% endif %}
+                                </div>
+                                {% endif %}
                                 <div class="dashboard" style="margin-bottom:0;">
                                     <div class="dash-card">
                                         <span>Próxima dosis</span>
