@@ -630,9 +630,15 @@
 
                 <br>
 
-                {% set active_meds = medications
-                    | rejectattr("status","equalto","Finalizada")
+                {% set pending_meds = medications
+                    | selectattr("status","equalto","Pendiente")
                     | list %}
+                
+                {% set applied_meds = medications
+                    | selectattr("status","equalto","Aplicada")
+                    | list %}
+                
+                {% set active_meds = pending_meds + applied_meds %}
                 
                     {% if active_meds %}
                     
