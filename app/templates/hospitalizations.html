@@ -71,7 +71,22 @@
                 <div class="hosp-card">
                     <div class="hosp-card-top">
                         <div class="hosp-patient">
-                            <div class="hosp-avatar">{{ h.patient.name[:1] if h.patient and h.patient.name else '?' }}</div>
+                            <div class="hosp-avatar">
+
+                                {% if h.patient and h.patient.photo_url %}
+                            
+                                    <img
+                                        src="{{ h.patient.photo_url }}"
+                                        alt="{{ h.patient.name }}"
+                                        style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;">
+                            
+                                {% else %}
+                            
+                                    {{ h.patient.name[:1] if h.patient and h.patient.name else '?' }}
+                            
+                                {% endif %}
+                            
+                            </div>
                             <div>
                                 <h3>{{ h.patient.name if h.patient else 'Sin paciente' }}</h3>
                                 <p>
