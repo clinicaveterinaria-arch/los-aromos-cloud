@@ -7211,6 +7211,63 @@ def hospitalization_fluid_delete(
         f'/hospitalizations/{hospitalization.id}',
         status_code=303
     )
+def medication_interval_hours(frequency: str):
+    freq = (frequency or '').strip().lower()
+
+    freq_map = {
+        'sid': 24,
+        'cada 24 hs': 24,
+        'cada 24h': 24,
+        'q24h': 24,
+        'bid': 12,
+        'cada 12 hs': 12,
+        'cada 12h': 12,
+        'q12h': 12,
+        'tid': 8,
+        'cada 8 hs': 8,
+        'cada 8h': 8,
+        'q8h': 8,
+        'qid': 6,
+        'cada 6 hs': 6,
+        'cada 6h': 6,
+        'q6h': 6,
+        'q48h': 48,
+        'cada 48 hs': 48,
+        'cada 48h': 48,
+        'q72h': 72,
+        'cada 72 hs': 72,
+        'cada 72h': 72,
+    }
+
+    return freq_map.get(freq)
+
+
+def build_medication_times(start_time: str, frequency: str):
+    interval = medication_interval_hours(frequency)
+
+    if not interval:
+        return [start_time] if start_time else []
+
+    if not start_time:
+        return []
+
+    try:
+        start_dt = datetime.strptime(start_time, '%H:%M')
+    except ValueError:
+        return [start_time]
+
+    times = []
+    current = start_dt
+
+    doses_per_day = max(1, int(24 / interval)) if interval <= 24 else 1
+
+    for _ in range(doses_per_day):
+        times.append(current.strftime('%H:%M'))
+        current = current + timedelta(hours=interval)
+
+    return times
+
+
 @app.post('/hospitalizations/{hospitalization_id}/medications')
 def hospitalization_medication_create(
     hospitalization_id: int,
@@ -7228,25 +7285,39 @@ def hospitalization_medication_create(
     if not hospitalization:
         raise HTTPException(status_code=404, detail='Internación no encontrada')
 
-    medication = HospitalizationMedication(
-        hospitalization_id=hospitalization.id,
-        medication_name=medication_name or '',
-        dose=dose or '',
-        route=route or '',
-        frequency=frequency or '',
-        scheduled_time=scheduled_time or '',
-        notes=notes or '',
-        created_by=user.username,
-        status='Pendiente'
-    )
+    schedule_times = build_medication_times(scheduled_time, frequency)
 
-    db.add(medication)
+    if not schedule_times:
+        schedule_times = [scheduled_time or '']
+
+    treatment_code = uuid.uuid4().hex[:10]
+
+    for med_time in schedule_times:
+        medication = HospitalizationMedication(
+            hospitalization_id=hospitalization.id,
+            medication_name=medication_name or '',
+            dose=dose or '',
+            route=route or '',
+            frequency=frequency or '',
+            scheduled_time=med_time or '',
+            notes=(
+                f'[TRATAMIENTO_ACTIVO:{treatment_code}]\n'
+                f'{notes or ""}'
+            ).strip(),
+            created_by=user.username,
+            status='Pendiente'
+        )
+
+        db.add(medication)
+
     db.commit()
 
     return RedirectResponse(
         f'/hospitalizations/{hospitalization.id}',
         status_code=303
     )
+
+
 @app.post('/hospitalizations/{hospitalization_id}/medications/{medication_id}/done')
 def hospitalization_medication_done(
     hospitalization_id: int,
@@ -7275,7 +7346,109 @@ def hospitalization_medication_done(
             f'Medicación aplicada: {medication.medication_name or "-"}\n'
             f'Dosis: {medication.dose or "-"}\n'
             f'Vía: {medication.route or "-"}\n'
-            f'Horario programado: {medication.scheduled_time or "-"}'
+            f'Frecuencia: {medication.frequency or "-"}\n'
+            f'Horario programado: {medication.scheduled_time or "-"}\n'
+            f'Aplicada por: {user.username}'
+        ),
+        created_by=user.username,
+        event_date=argentina_now()
+    )
+
+    db.add(event)
+
+    notes = medication.notes or ''
+    treatment_code = ''
+
+    if '[TRATAMIENTO_ACTIVO:' in notes:
+        treatment_code = notes.split('[TRATAMIENTO_ACTIVO:')[1].split(']')[0]
+
+    if treatment_code:
+        pending_same_treatment = (
+            db.query(HospitalizationMedication)
+            .filter(HospitalizationMedication.hospitalization_id == hospitalization.id)
+            .filter(HospitalizationMedication.notes.ilike(f'%[TRATAMIENTO_ACTIVO:{treatment_code}]%'))
+            .filter(HospitalizationMedication.status == 'Pendiente')
+            .filter(HospitalizationMedication.id != medication.id)
+            .count()
+        )
+
+        if pending_same_treatment == 0:
+            schedule_times = build_medication_times(
+                medication.scheduled_time or '',
+                medication.frequency or ''
+            )
+
+            if schedule_times:
+                for med_time in schedule_times:
+                    new_med = HospitalizationMedication(
+                        hospitalization_id=hospitalization.id,
+                        medication_name=medication.medication_name or '',
+                        dose=medication.dose or '',
+                        route=medication.route or '',
+                        frequency=medication.frequency or '',
+                        scheduled_time=med_time or '',
+                        notes=medication.notes or '',
+                        created_by=user.username,
+                        status='Pendiente'
+                    )
+
+                    db.add(new_med)
+
+    db.commit()
+
+    return RedirectResponse(
+        f'/hospitalizations/{hospitalization.id}',
+        status_code=303
+    )
+
+
+@app.post('/hospitalizations/{hospitalization_id}/medications/{medication_id}/finish')
+def hospitalization_medication_finish(
+    hospitalization_id: int,
+    medication_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    hospitalization = db.get(Hospitalization, hospitalization_id)
+    medication = db.get(HospitalizationMedication, medication_id)
+
+    if not hospitalization or not medication:
+        raise HTTPException(status_code=404, detail='Medicación no encontrada')
+
+    if medication.hospitalization_id != hospitalization.id:
+        raise HTTPException(status_code=404, detail='Medicación no corresponde a esta internación')
+
+    notes = medication.notes or ''
+    treatment_code = ''
+
+    if '[TRATAMIENTO_ACTIVO:' in notes:
+        treatment_code = notes.split('[TRATAMIENTO_ACTIVO:')[1].split(']')[0]
+
+    if treatment_code:
+        meds_to_finish = (
+            db.query(HospitalizationMedication)
+            .filter(HospitalizationMedication.hospitalization_id == hospitalization.id)
+            .filter(HospitalizationMedication.notes.ilike(f'%[TRATAMIENTO_ACTIVO:{treatment_code}]%'))
+            .filter(HospitalizationMedication.status == 'Pendiente')
+            .all()
+        )
+    else:
+        meds_to_finish = [medication]
+
+    for med in meds_to_finish:
+        med.status = 'Finalizada'
+        med.notes = (med.notes or '').replace('[TRATAMIENTO_ACTIVO:', '[TRATAMIENTO_FINALIZADO:')
+
+    event = ClinicalEvent(
+        patient_id=hospitalization.patient_id,
+        event_type='Control',
+        title='Tratamiento finalizado',
+        description=(
+            f'Medicación finalizada: {medication.medication_name or "-"}\n'
+            f'Dosis: {medication.dose or "-"}\n'
+            f'Vía: {medication.route or "-"}\n'
+            f'Frecuencia: {medication.frequency or "-"}\n'
+            f'Finalizado por: {user.username}'
         ),
         created_by=user.username,
         event_date=argentina_now()
@@ -7288,6 +7461,8 @@ def hospitalization_medication_done(
         f'/hospitalizations/{hospitalization.id}',
         status_code=303
     )
+
+
 @app.post('/hospitalizations/{hospitalization_id}/medications/{medication_id}/delete')
 def hospitalization_medication_delete(
     hospitalization_id: int,
