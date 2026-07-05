@@ -1237,7 +1237,6 @@ async function searchHospitalDrug(){
     }
 
     const resultBox = document.getElementById("hospital_drug_results");
-
     resultBox.innerHTML = "🔎 Buscando...";
 
     try{
@@ -1254,18 +1253,25 @@ async function searchHospitalDrug(){
             return;
         }
 
-        let html="";
+        let html = "";
 
-        data.forEach((drug,index)=>{
+        data.forEach(drug=>{
 
             html += `
-            <div style="
-                border:1px solid #f3c6d8;
-                border-radius:14px;
-                padding:12px;
-                margin-top:8px;
-                background:white;
-            ">
+            <div
+                onclick="calculateHospitalDrug(${drug.id})"
+                style="
+                    border:1px solid #f3c6d8;
+                    border-radius:14px;
+                    padding:12px;
+                    margin-top:8px;
+                    background:white;
+                    cursor:pointer;
+                    transition:.15s;
+                "
+                onmouseover="this.style.background='#fff8fb'"
+                onmouseout="this.style.background='white'"
+            >
 
                 <b style="font-size:15px;">
                     💊 ${drug.name}
@@ -1280,31 +1286,20 @@ async function searchHospitalDrug(){
 
                 <br><br>
 
-                <button
-                    type="button"
-                    onclick="calculateHospitalDrug(${drug.id})"
-                    style="
-                        background:#22c55e;
-                        color:white;
-                        border:none;
-                        border-radius:9px;
-                        padding:8px 12px;
-                        cursor:pointer;
-                        font-weight:bold;
-                    ">
-                    ⚖ Calcular dosis
-                </button>
+                <small style="color:#22c55e;font-weight:bold;">
+                    👉 Hacé clic para cargar automáticamente
+                </small>
 
             </div>
             `;
 
         });
 
-        resultBox.innerHTML=html;
+        resultBox.innerHTML = html;
 
     }catch(e){
 
-        resultBox.innerHTML=
+        resultBox.innerHTML =
             "<div class='alert'>Error consultando Vademécum.</div>";
 
     }
