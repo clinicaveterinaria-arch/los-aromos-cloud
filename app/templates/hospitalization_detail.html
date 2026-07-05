@@ -579,23 +579,38 @@
             </script>
             <div class="card">
                 <h2>💊 Medicación programada</h2>
-
+            
                 {% if hospitalization.status == 'Internado' %}
                 <form method="post" action="/hospitalizations/{{ hospitalization.id }}/medications" class="form-grid">
                     <input name="medication_name" placeholder="Medicamento">
                     <input name="dose" placeholder="Dosis">
                     <input name="route" placeholder="Vía">
-                    <input name="frequency" placeholder="Frecuencia">
-                    <input type="time" name="scheduled_time" placeholder="Horario">
+            
+                    <select name="frequency">
+                        <option value="">Frecuencia</option>
+                        <option value="SID">SID / cada 24 hs</option>
+                        <option value="BID">BID / cada 12 hs</option>
+                        <option value="TID">TID / cada 8 hs</option>
+                        <option value="QID">QID / cada 6 hs</option>
+                        <option value="q48h">Cada 48 hs</option>
+                        <option value="q72h">Cada 72 hs</option>
+                        <option value="PRN">PRN / según necesidad</option>
+                    </select>
+            
+                    <input type="time" name="scheduled_time" placeholder="Hora inicial">
+            
                     <textarea name="notes" class="full" placeholder="Observaciones"></textarea>
-                    <button type="submit" class="save-btn">💊 Programar medicación</button>
+            
+                    <button type="submit" class="save-btn">
+                        💊 Programar tratamiento
+                    </button>
                 </form>
                 {% else %}
                     <div class="alert">Internación cerrada. No se puede programar medicación.</div>
                 {% endif %}
-
+            
                 <br>
-
+            
                 {% if medications %}
                 <div style="overflow-x:auto;">
                     <table style="width:100%;border-collapse:collapse;font-size:13px;">
@@ -609,19 +624,22 @@
                                 <th style="padding:9px;border:1px solid #f1d6e2;">Acción</th>
                             </tr>
                         </thead>
-
+            
                         <tbody>
                             {% for m in medications %}
                             <tr>
                                 <td style="padding:9px;border:1px solid #f1d6e2;">
                                     <b>🕘 {{ m.scheduled_time or '-' }}</b>
                                 </td>
+            
                                 <td style="padding:9px;border:1px solid #f1d6e2;">
                                     <b>{{ m.medication_name or '-' }}</b><br>
                                     <small>{{ m.frequency or '-' }}</small>
                                 </td>
+            
                                 <td style="padding:9px;border:1px solid #f1d6e2;">{{ m.dose or '-' }}</td>
                                 <td style="padding:9px;border:1px solid #f1d6e2;">{{ m.route or '-' }}</td>
+            
                                 <td style="padding:9px;border:1px solid #f1d6e2;">
                                     {% if m.status == 'Aplicada' %}
                                         🟢 Aplicada<br>
@@ -629,20 +647,30 @@
                                             {{ m.applied_at.strftime('%d/%m %H:%M') if m.applied_at else '' }}
                                             {% if m.applied_by %} · {{ m.applied_by }}{% endif %}
                                         </small>
+                                    {% elif m.status == 'Finalizada' %}
+                                        ⚪ Finalizada
                                     {% else %}
                                         🟡 Pendiente
                                     {% endif %}
                                 </td>
+            
                                 <td style="padding:9px;border:1px solid #f1d6e2;">
-                                    {% if m.status != 'Aplicada' %}
+                                    {% if m.status == 'Pendiente' %}
                                     <form method="post" action="/hospitalizations/{{ hospitalization.id }}/medications/{{ m.id }}/done"
-                                          onsubmit="return confirm('¿Marcar esta medicación como aplicada?');">
+                                          onsubmit="return confirm('¿Marcar esta dosis como aplicada?');">
                                         <button type="submit" style="background:#22c55e;color:white;border:none;border-radius:8px;padding:7px 9px;font-weight:bold;cursor:pointer;">
                                             ✔ Aplicar
                                         </button>
                                     </form>
+            
+                                    <form method="post" action="/hospitalizations/{{ hospitalization.id }}/medications/{{ m.id }}/finish"
+                                          onsubmit="return confirm('¿Finalizar este tratamiento completo?');">
+                                        <button type="submit" style="background:#d85b9a;color:white;border:none;border-radius:8px;padding:7px 9px;font-weight:bold;cursor:pointer;margin-top:5px;">
+                                            🏁 Finalizar
+                                        </button>
+                                    </form>
                                     {% endif %}
-
+            
                                     <form method="post" action="/hospitalizations/{{ hospitalization.id }}/medications/{{ m.id }}/delete"
                                           onsubmit="return confirm('¿Eliminar esta medicación programada?');">
                                         <button type="submit" style="background:#ef4444;color:white;border:none;border-radius:8px;padding:7px 9px;font-weight:bold;cursor:pointer;margin-top:5px;">
@@ -659,7 +687,6 @@
                     <div class="note">Todavía no hay medicación programada.</div>
                 {% endif %}
             </div>
-
             <div class="card">
                 <h2>🍽️ Enfermería rápida</h2>
 
