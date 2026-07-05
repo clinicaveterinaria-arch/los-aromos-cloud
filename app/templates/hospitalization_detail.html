@@ -630,7 +630,11 @@
 
                 <br>
 
-                {% if medications %}
+                {% set active_meds = medications
+                    | rejectattr("status","equalto","Finalizada")
+                    | list %}
+                
+                {% if active_meds %}
                 <div style="overflow-x:auto;">
                     <table style="width:100%;border-collapse:collapse;font-size:13px;">
                         <thead>
@@ -645,7 +649,7 @@
                         </thead>
 
                         <tbody>
-                            {% for m in medications %}
+                            {% for m in active_meds %}
                             <tr style="{% if m.status == 'Aplicada' %}background:#f0fdf4;{% elif m.status == 'Finalizada' %}background:#f3f4f6;{% else %}background:#fff;{% endif %}">
                                 <td style="padding:9px;border:1px solid #f1d6e2;">
                                     <b>🕘 {{ m.scheduled_time or '-' }}</b>
