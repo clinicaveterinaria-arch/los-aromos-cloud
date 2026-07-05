@@ -747,9 +747,19 @@
                                 </div>
 
                                 {% if m.notes %}
+                                
+                                {% set clean_notes = m.notes %}
+                                
+                                {% if "[TRATAMIENTO_ACTIVO:" in clean_notes %}
+                                    {% set clean_notes = clean_notes.split("]")[-1].strip() %}
+                                {% endif %}
+                                
+                                {% if clean_notes %}
                                 <div class="note" style="margin-top:12px;">
-                                    {{ m.notes.replace('[TRATAMIENTO_ACTIVO:', 'Código tratamiento: ').replace(']', '') }}
+                                    {{ clean_notes }}
                                 </div>
+                                {% endif %}
+                                
                                 {% endif %}
 
                                 <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">
