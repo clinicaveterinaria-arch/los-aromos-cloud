@@ -582,6 +582,35 @@
 
                 {% if hospitalization.status == 'Internado' %}
                 <form method="post" action="/hospitalizations/{{ hospitalization.id }}/medications" class="form-grid">
+                    <div class="full">
+                    
+                        <label style="display:block;font-weight:bold;color:#374151;margin-bottom:6px;">
+                            🔍 Buscar medicamento en el Vademécum
+                        </label>
+                    
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    
+                            <input
+                                type="text"
+                                id="vademecum_search"
+                                placeholder="Ej.: cefalexina, meloxicam, tramadol..."
+                                style="flex:1;">
+                    
+                            <button
+                                type="button"
+                                onclick="searchHospitalDrug()"
+                                style="background:#d85b9a;color:white;border:none;border-radius:10px;padding:10px 14px;font-weight:bold;cursor:pointer;">
+                                Buscar
+                            </button>
+                    
+                        </div>
+                    
+                        <div
+                            id="hospital_drug_results"
+                            style="margin-top:12px;">
+                        </div>
+                    
+                    </div>                    
                     <input name="medication_name" placeholder="Medicamento">
                     <input name="dose" placeholder="Dosis">
 
@@ -1122,6 +1151,88 @@ async function runHospitalizationAI() {
     } catch (error) {
         box.innerHTML = "⚠️ No se pudo generar la IA clínica.";
     }
+}
+async function searchHospitalDrug(){
+
+    const text = document.getElementById("vademecum_search").value.trim();
+
+    if(!text){
+        return;
+    }
+
+    const resultBox = document.getElementById("hospital_drug_results");
+
+    resultBox.innerHTML = "🔎 Buscando...";
+
+    try{
+
+        const response = await fetch(
+            "/vademecum/api/search?q=" + encodeURIComponent(text)
+        );
+
+        const data = await response.json();
+
+        if(!data.length){
+            resultBox.innerHTML =
+                "<div class='alert'>No se encontraron medicamentos.</div>";
+            return;
+        }
+
+        let html="";
+
+        data.forEach((drug,index)=>{
+
+            html += `
+            <div style="
+                border:1px solid #f3c6d8;
+                border-radius:14px;
+                padding:12px;
+                margin-top:8px;
+                background:white;
+            ">
+
+                <b style="font-size:15px;">
+                    💊 ${drug.name}
+                </b>
+
+                <br>
+
+                <small style="color:#6b7280;">
+                    ${drug.laboratory || ""}
+                    ${drug.presentation || ""}
+                </small>
+
+                <br><br>
+
+                <button
+                    type="button"
+                    onclick="calculateHospitalDrug(${drug.id})"
+                    style="
+                        background:#22c55e;
+                        color:white;
+                        border:none;
+                        border-radius:9px;
+                        padding:8px 12px;
+                        cursor:pointer;
+                        font-weight:bold;
+                    ">
+                    ⚖ Calcular dosis
+                </button>
+
+            </div>
+            `;
+
+        });
+
+        resultBox.innerHTML=html;
+
+    }catch(e){
+
+        resultBox.innerHTML=
+            "<div class='alert'>Error consultando Vademécum.</div>";
+
+    }
+
 }
 </script>
 {% endblock %}
