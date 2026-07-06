@@ -7762,7 +7762,21 @@ def hospitalizations_nursing_alias(
 ):
     return RedirectResponse('/nursing', status_code=303)
 
+@app.get('/hospitalizations/new', response_class=HTMLResponse)
+def hospitalization_new_redirect(
+    patient_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    patient = db.get(Patient, patient_id)
 
+    if not patient:
+        raise HTTPException(status_code=404)
+
+    return RedirectResponse(
+        f'/patients/{patient.id}/hospitalization',
+        status_code=303
+    )
 @app.get('/hospitalizations/{hospitalization_id}', response_class=HTMLResponse)
 def hospitalization_detail(
     hospitalization_id: int,
