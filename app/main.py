@@ -1254,7 +1254,100 @@ def agenda_patient_arrived(
 
     return RedirectResponse('/waitlist', status_code=303)
 
+@app.get('/api/waitlist/search')
+def waitlist_search_api(
+    q: str = '',
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    q = (q or '').strip()
 
+    if len(q) < 2:
+        return {
+            'owners': [],
+            'patients': []
+        }
+
+    like = f'%{q}%'
+
+    owners = (
+        db.query(Owner)
+        .filter(
+            or_(
+                Owner.name.ilike(like),
+                Owner.phone.ilike(like),
+                Owner.whatsapp.ilike(like)
+            )
+        )
+        .order_by(Owner.name)
+        .limit(20)
+        .all()
+    )
+
+    patients = (
+        db.query(Patient)
+        .join(Owner, Patient.owner_id == Owner.id, isouter=True)
+        .filter(
+            or_(
+                Patient.name.ilike(like),
+                Owner.name.ilike(like),
+                Owner.phone.ilike(like),
+                Owner.whatsapp.ilike(like)
+            )
+        )
+        .order_by(Patient.name)
+        .limit(20)
+        .all()
+    )
+
+    return {
+        'owners': [
+            {
+                'id': o.id,
+                'name': o.name or '',
+                'phone': o.whatsapp or o.phone or ''
+            }
+            for o in owners
+        ],
+        'patients': [
+            {
+                'id': p.id,
+                'name': p.name or '',
+                'species': p.species or '',
+                'breed': p.breed or '',
+                'owner_id': p.owner.id if p.owner else '',
+                'owner_name': p.owner.name if p.owner else '',
+                'owner_phone': (p.owner.whatsapp or p.owner.phone or '') if p.owner else ''
+            }
+            for p in patients
+        ]
+    }
+
+
+@app.get('/api/waitlist/owner/{owner_id}/patients')
+def waitlist_owner_patients_api(
+    owner_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    patients = (
+        db.query(Patient)
+        .filter(Patient.owner_id == owner_id)
+        .order_by(Patient.name)
+        .all()
+    )
+
+    return {
+        'patients': [
+            {
+                'id': p.id,
+                'name': p.name or '',
+                'species': p.species or '',
+                'breed': p.breed or ''
+            }
+            for p in patients
+        ]
+    }
 @app.get('/waitlist', response_class=HTMLResponse)
 def waitlist_page(
     request: Request,
