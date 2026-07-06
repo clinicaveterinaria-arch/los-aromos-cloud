@@ -502,7 +502,7 @@
 
             <div class="home-list">
                 {% for e in upcoming[:5] %}
-                    <a href="/patients/{{ e.patient.id }}" class="home-list-item">
+                    <a href="/patients/{{ e.patient.id }}/v2" class="home-list-item">
                         <div class="home-item-left">
                             <div class="home-avatar">
                                 {% if e.event_type == 'Vacuna' or e.vaccine_name %}💉{% elif e.event_type == 'Desparasitación' or e.dewormer_product %}🪱{% else %}📌{% endif %}
@@ -589,7 +589,7 @@
 
             <div class="home-list">
                 {% for e in latest_events[:6] %}
-                    <a href="/patients/{{ e.patient.id }}" class="home-list-item">
+                    <a href="/patients/{{ e.patient.id }}/v2" class="home-list-item">
                         <div class="home-item-left">
                             <div class="home-avatar">
                                 {% if e.event_type == 'ECG' %}💗{% elif e.event_type == 'Radiografía' %}📷{% elif e.event_type == 'Vacuna' %}💉{% elif e.event_type == 'Laboratorio' %}🧪{% else %}🩺{% endif %}
