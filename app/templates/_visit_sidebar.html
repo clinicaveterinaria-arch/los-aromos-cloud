@@ -1,0 +1,190 @@
+<div class="hc2-card">
+
+    <h3 class="hc2-title">🧠 Resumen clínico</h3>
+
+    <div class="hc2-tags">
+
+        {% if patient.weight %}
+            <span class="hc2-tag">⚖ {{ patient.weight }} kg</span>
+        {% endif %}
+
+        {% if patient.sex %}
+            <span class="hc2-tag">{{ patient.sex }}</span>
+        {% endif %}
+
+        {% if patient.species %}
+            <span class="hc2-tag">{{ patient.species }}</span>
+        {% endif %}
+
+        {% if patient.breed %}
+            <span class="hc2-tag">{{ patient.breed }}</span>
+        {% endif %}
+
+    </div>
+
+</div>
+
+
+<div class="hc2-card">
+
+    <h3 class="hc2-title">
+        📅 Próximos recordatorios
+    </h3>
+
+    {% if upcoming_events %}
+
+        {% for e in upcoming_events %}
+
+            <div style="padding:10px 0;border-bottom:1px solid #eee;">
+
+                <strong>
+
+                    {{ e.reminder_date.strftime('%d/%m/%Y') }}
+
+                </strong>
+
+                <br>
+
+                {{ e.title or e.event_type }}
+
+            </div>
+
+        {% endfor %}
+
+    {% else %}
+
+        <p class="hc2-muted">
+
+            Sin recordatorios pendientes.
+
+        </p>
+
+    {% endif %}
+
+</div>
+
+
+<div class="hc2-card">
+
+    <h3 class="hc2-title">
+        💉 Vacunas registradas
+    </h3>
+
+    {% if vaccine_names %}
+
+        {% for v in vaccine_names %}
+
+            <div style="padding:5px 0;">
+
+                • {{ v }}
+
+            </div>
+
+        {% endfor %}
+
+    {% else %}
+
+        <p class="hc2-muted">
+
+            No hay vacunas cargadas.
+
+        </p>
+
+    {% endif %}
+
+</div>
+
+
+<div class="hc2-card">
+
+    <h3 class="hc2-title">
+        🪱 Desparasitaciones
+    </h3>
+
+    {% if dewormer_names %}
+
+        {% for d in dewormer_names %}
+
+            <div style="padding:5px 0;">
+
+                • {{ d }}
+
+            </div>
+
+        {% endfor %}
+
+    {% else %}
+
+        <p class="hc2-muted">
+
+            No hay desparasitarios registrados.
+
+        </p>
+
+    {% endif %}
+
+</div>
+
+
+<div class="hc2-card">
+
+    <h3 class="hc2-title">
+        📎 Archivos
+    </h3>
+
+    <button class="hc2-btn" style="width:100%;">
+
+        📂 Ver archivos del paciente
+
+    </button>
+
+</div>
+
+
+<div class="hc2-card">
+
+    <h3 class="hc2-title">
+
+        ⚡ Acciones rápidas
+
+    </h3>
+
+    <div
+        style="display:grid;
+               gap:8px;">
+
+        <a
+            class="hc2-btn"
+            href="/hospitalizations/new?patient_id={{ patient.id }}">
+
+            🏥 Internar
+
+        </a>
+
+        <a
+            class="hc2-btn"
+            href="/sales/new?patient_id={{ patient.id }}">
+
+            🛒 Venta
+
+        </a>
+
+        <a
+            class="hc2-btn"
+            href="/vademecum">
+
+            💊 Vademécum
+
+        </a>
+
+        <button
+            class="hc2-btn"
+            type="button">
+
+            🤖 IA Clínica
+
+        </button>
+
+    </div>
+
+</div>
