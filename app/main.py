@@ -1858,24 +1858,23 @@ async def patient_visit_create(
 
     event_date_value = get('event_date')
     event_datetime = argentina_now()
-
+    
     if event_date_value and event_date_value.strip():
         selected_date = parse_date(event_date_value)
         if selected_date:
             event_datetime = datetime.combine(selected_date, argentina_now().time())
-
-        vaccine_name = get('vaccine_name')
-        vaccine_lot = get('vaccine_lot')
-        vaccine_expiration = get('vaccine_expiration')
-        next_vaccine_name = get('next_vaccine_name')
-        next_vaccine_date = get('next_vaccine_date')
-        
-        dewormer_product = get('dewormer_product')
-        dewormer_drug = get('dewormer_drug')
-        dewormer_dose = get('dewormer_dose')
-        next_dewormer_product = get('next_dewormer_product')
-        next_deworming_date = get('next_deworming_date')
-
+    
+    vaccine_name = get('vaccine_name')
+    vaccine_lot = get('vaccine_lot')
+    vaccine_expiration = get('vaccine_expiration')
+    next_vaccine_name = get('next_vaccine_name')
+    next_vaccine_date = get('next_vaccine_date')
+    
+    dewormer_product = get('dewormer_product')
+    dewormer_drug = get('dewormer_drug')
+    dewormer_dose = get('dewormer_dose')
+    next_dewormer_product = get('next_dewormer_product')
+    next_deworming_date = get('next_deworming_date')
     has_vaccine = any([
         vaccine_name.strip(),
         vaccine_lot.strip(),
