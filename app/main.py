@@ -2066,7 +2066,10 @@ def patient_detail(request: Request, patient_id: int, db: Session = Depends(get_
 
     if not patient:
         raise HTTPException(404)
-
+    return RedirectResponse(
+        f'/patients/{patient.id}/v2',
+        status_code=303
+    )
     events = (
         db.query(ClinicalEvent)
         .filter(ClinicalEvent.patient_id == patient.id)
