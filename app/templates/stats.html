@@ -220,9 +220,41 @@
         <div class="stats-filters">
             <a class="stats-filter {% if period == 'today' %}active{% endif %}" href="/stats?period=today">Hoy</a>
             <a class="stats-filter {% if period == 'week' %}active{% endif %}" href="/stats?period=week">Semana</a>
-            <a class="stats-filter {% if period == 'month' %}active{% endif %}" href="/stats?period=month">Mes</a>
+            <a class="stats-filter {% if period == 'month' %}active{% endif %}" href="/stats?period=month&month={{ month }}&compare_month={{ compare_month }}">Mes</a>
             <a class="export-btn" href="#" onclick="window.print(); return false;">🖨 Imprimir</a>
         </div>
+        
+        <form method="get" action="/stats" class="stats-card" style="margin-top:12px;">
+            <input type="hidden" name="period" value="month">
+        
+            <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end;">
+                <div>
+                    <label style="font-size:12px;color:#6b7280;font-weight:bold;">Mes principal</label>
+                    <select name="month" style="width:100%;padding:10px;border:1px solid #f3c6d8;border-radius:10px;">
+                        {% for m in available_months %}
+                            <option value="{{ m.value }}" {% if m.value == month %}selected{% endif %}>
+                                {{ m.label }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+        
+                <div>
+                    <label style="font-size:12px;color:#6b7280;font-weight:bold;">Comparar con</label>
+                    <select name="compare_month" style="width:100%;padding:10px;border:1px solid #f3c6d8;border-radius:10px;">
+                        {% for m in available_months %}
+                            <option value="{{ m.value }}" {% if m.value == compare_month %}selected{% endif %}>
+                                {{ m.label }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+        
+                <button type="submit" style="background:#d85b9a;color:white;border:none;border-radius:10px;padding:11px 16px;font-weight:bold;cursor:pointer;">
+                    Comparar
+                </button>
+            </div>
+        </form>
     </div>
 
     <div class="kpi-grid">
