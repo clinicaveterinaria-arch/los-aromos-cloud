@@ -681,7 +681,23 @@
                         Abrir Vademécum completo
                     </a>
                 </div>
-
+                <div class="soft-box">
+                    <h4>➕ Acciones en esta misma visita</h4>
+                
+                    <label style="display:block;margin:8px 0;">
+                        <input type="checkbox" id="include_vaccine" onchange="toggleCombinedBoxes()">
+                        💉 Incluir vacuna en esta visita
+                    </label>
+                
+                    <label style="display:block;margin:8px 0;">
+                        <input type="checkbox" id="include_deworming" onchange="toggleCombinedBoxes()">
+                        🪱 Incluir desparasitación en esta visita
+                    </label>
+                
+                    <p class="smart-help">
+                        Podés cargar consulta + vacuna + desparasitación y guardar todo una sola vez.
+                    </p>
+                </div>
                 <div id="vaccine-box" class="soft-box" style="display:none;">
                     <h4>💉 Vacunas inteligentes</h4>
 
@@ -1366,16 +1382,37 @@ document.addEventListener('DOMContentLoaded', function() {
     const dewormingBox = document.getElementById('deworming-box');
     const searchInput = document.getElementById('vade_modal_search');
 
+    function toggleCombinedBoxes() {
+        const includeVaccine = document.getElementById('include_vaccine');
+        const includeDeworming = document.getElementById('include_deworming');
+    
+        const tipo = selector ? selector.value : '';
+    
+        if (vaccineBox) {
+            vaccineBox.style.display =
+                (tipo === 'Vacuna' || (includeVaccine && includeVaccine.checked))
+                ? 'block'
+                : 'none';
+        }
+    
+        if (dewormingBox) {
+            dewormingBox.style.display =
+                (tipo === 'Desparasitación' || (includeDeworming && includeDeworming.checked))
+                ? 'block'
+                : 'none';
+        }
+    }
+    
     function actualizarCampos() {
         if (!selector) return;
-
+    
         const tipo = selector.value;
-
+    
         if (ecgBox) ecgBox.style.display = tipo === 'ECG' ? 'block' : 'none';
         if (ecoBox) ecoBox.style.display = tipo === 'Ecocardiografía' ? 'block' : 'none';
         if (rxCardioBox) rxCardioBox.style.display = tipo === 'Radiografía' ? 'block' : 'none';
-        if (vaccineBox) vaccineBox.style.display = tipo === 'Vacuna' ? 'block' : 'none';
-        if (dewormingBox) dewormingBox.style.display = tipo === 'Desparasitación' ? 'block' : 'none';
+    
+        toggleCombinedBoxes();
     }
 
     const storedType = sessionStorage.getItem('aromos_event_type');
