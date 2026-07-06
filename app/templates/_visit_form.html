@@ -1,0 +1,237 @@
+<div class="hc2-card">
+
+    <h2 class="hc2-title">➕ Nueva visita clínica</h2>
+    <p class="hc2-muted">Cargá todo lo realizado en una sola visita y guardalo una sola vez.</p>
+
+    <form method="post"
+          action="/patients/{{ patient.id }}/visits"
+          enctype="multipart/form-data">
+
+        <details class="hc2-section" open>
+            <summary>📅 Datos básicos</summary>
+            <div class="hc2-section-body">
+                <div class="hc2-form-grid">
+                    <input type="date" name="visit_date" value="{{ today.strftime('%Y-%m-%d') }}">
+                    <input name="weight" placeholder="Peso kg" value="{{ patient.weight or '' }}">
+                    <input name="temperature" placeholder="Temperatura °C">
+                    <input name="heart_rate" placeholder="FC">
+                    <input name="respiratory_rate" placeholder="FR">
+                    <input name="title" placeholder="Motivo / título">
+                </div>
+            </div>
+        </details>
+
+        <details class="hc2-section" open>
+            <summary>🩺 Consulta clínica</summary>
+            <div class="hc2-section-body">
+                <div class="hc2-form-grid">
+                    <textarea class="hc2-full" name="anamnesis" placeholder="Anamnesis / motivo de consulta"></textarea>
+                    <textarea class="hc2-full" name="physical_exam" placeholder="Examen físico"></textarea>
+                    <textarea class="hc2-full" name="diagnosis" placeholder="Diagnóstico / conclusión"></textarea>
+                </div>
+            </div>
+        </details>
+
+        <details class="hc2-section">
+            <summary>💊 Tratamiento</summary>
+            <div class="hc2-section-body">
+                <div class="hc2-form-grid">
+                    <textarea class="hc2-full" name="treatment" placeholder="Tratamiento / indicaciones"></textarea>
+                </div>
+                <div class="hc2-actions">
+                    <a href="/vademecum" target="_blank" class="hc2-btn">💊 Abrir Vademécum</a>
+                </div>
+            </div>
+        </details>
+
+        <details class="hc2-section">
+            <summary>💉 Vacunación</summary>
+            <div class="hc2-section-body">
+                <div class="hc2-form-grid">
+                    <input name="vaccine_name" list="vaccines_list_v2" placeholder="Vacuna aplicada">
+                    <input name="vaccine_lot" placeholder="Lote">
+                    <input name="vaccine_expiration" placeholder="Vencimiento vacuna">
+                    <input type="date" name="next_vaccine_date">
+                </div>
+
+                <datalist id="vaccines_list_v2">
+                    {% for v in vaccine_names %}
+                        <option value="{{ v }}">
+                    {% endfor %}
+                </datalist>
+
+                <div class="hc2-actions">
+                    <button type="button" class="hc2-btn" onclick="addVaccineV2()">＋ Nueva vacuna</button>
+                    <button type="button" class="hc2-btn" onclick="setDateV2('next_vaccine_date', 365)">+1 año</button>
+                    <button type="button" class="hc2-btn" onclick="setDateV2('next_vaccine_date', 180)">+6 meses</button>
+                    <button type="button" class="hc2-btn" onclick="setDateV2('next_vaccine_date', 120)">+4 meses</button>
+                    <button type="button" class="hc2-btn" onclick="setDateV2('next_vaccine_date', 90)">+3 meses</button>
+                </div>
+            </div>
+        </details>
+
+        <details class="hc2-section">
+            <summary>🪱 Desparasitación</summary>
+            <div class="hc2-section-body">
+                <div class="hc2-form-grid">
+                    <input name="dewormer_product" list="dewormers_list_v2" placeholder="Producto">
+                    <input name="dewormer_drug" placeholder="Principio activo">
+                    <input name="dewormer_dose" placeholder="Dosis / indicación">
+                    <input type="date" name="next_deworming_date">
+                </div>
+
+                <datalist id="dewormers_list_v2">
+                    {% for d in dewormer_names %}
+                        <option value="{{ d }}">
+                    {% endfor %}
+                </datalist>
+
+                <div class="hc2-actions">
+                    <button type="button" class="hc2-btn" onclick="addDewormerV2()">＋ Nuevo desparasitario</button>
+                    <button type="button" class="hc2-btn" onclick="setDateV2('next_deworming_date', 21)">+21 días</button>
+                    <button type="button" class="hc2-btn" onclick="setDateV2('next_deworming_date', 30)">+30 días</button>
+                    <button type="button" class="hc2-btn" onclick="setDateV2('next_deworming_date', 90)">+3 meses</button>
+                    <button type="button" class="hc2-btn" onclick="setDateV2('next_deworming_date', 180)">+6 meses</button>
+                </div>
+            </div>
+        </details>
+
+        <details class="hc2-section">
+            <summary>🧪 Estudios realizados</summary>
+            <div class="hc2-section-body">
+                <div class="hc2-form-grid">
+                    <label><input type="checkbox" name="study_rx" value="1"> 🩻 Radiografía</label>
+                    <label><input type="checkbox" name="study_ecg" value="1"> ❤️ ECG</label>
+                    <label><input type="checkbox" name="study_eco" value="1"> 🫀 Ecocardiografía</label>
+                    <label><input type="checkbox" name="study_lab" value="1"> 🧪 Laboratorio</label>
+                    <textarea class="hc2-full" name="study_notes" placeholder="Notas de estudios"></textarea>
+                </div>
+            </div>
+        </details>
+
+        <details class="hc2-section">
+            <summary>📅 Recordatorios múltiples</summary>
+            <div class="hc2-section-body">
+
+                <div id="reminders_v2"></div>
+
+                <button type="button" class="hc2-btn" onclick="addReminderV2()">
+                    ＋ Agregar recordatorio
+                </button>
+
+            </div>
+        </details>
+
+        <details class="hc2-section">
+            <summary>📎 Archivos / fotos / estudios</summary>
+            <div class="hc2-section-body">
+                <input type="file" name="attachments" multiple>
+            </div>
+        </details>
+
+        <div class="hc2-save-bar">
+            <button type="submit" class="hc2-btn green">
+                💾 Guardar visita completa
+            </button>
+        </div>
+
+    </form>
+
+</div>
+
+<script>
+function setDateV2(inputName, days) {
+    const input = document.querySelector(`[name="${inputName}"]`);
+    if (!input) return;
+
+    const date = new Date();
+    date.setDate(date.getDate() + days);
+
+    input.value = date.toISOString().split('T')[0];
+}
+
+function addVaccineV2() {
+    const input = document.querySelector('[name="vaccine_name"]');
+    const list = document.getElementById('vaccines_list_v2');
+
+    let value = prompt('Nombre de la nueva vacuna:');
+    if (!value) return;
+
+    value = value.trim();
+    if (!value) return;
+
+    const option = document.createElement('option');
+    option.value = value;
+    list.appendChild(option);
+
+    input.value = value;
+}
+
+function addDewormerV2() {
+    const input = document.querySelector('[name="dewormer_product"]');
+    const list = document.getElementById('dewormers_list_v2');
+
+    let value = prompt('Nombre del nuevo desparasitario:');
+    if (!value) return;
+
+    value = value.trim();
+    if (!value) return;
+
+    const option = document.createElement('option');
+    option.value = value;
+    list.appendChild(option);
+
+    input.value = value;
+}
+
+function addReminderV2() {
+    const container = document.getElementById('reminders_v2');
+
+    const row = document.createElement('div');
+    row.className = 'hc2-reminder-row';
+
+    row.innerHTML = `
+        <select name="reminder_type[]">
+            <option value="">Tipo</option>
+            <option>Vacuna</option>
+            <option>Desparasitación</option>
+            <option>Control clínico</option>
+            <option>Laboratorio</option>
+            <option>Radiografía</option>
+            <option>ECG</option>
+            <option>Ecografía</option>
+            <option>Cirugía</option>
+            <option>Otro</option>
+        </select>
+
+        <input name="reminder_title[]" placeholder="Detalle">
+
+        <input type="date" name="reminder_date[]">
+
+        <button type="button" class="hc2-btn" onclick="this.parentElement.remove()">✖</button>
+
+        <div class="hc2-actions hc2-full">
+            <button type="button" class="hc2-btn" onclick="setReminderRowDate(this, 7)">+7</button>
+            <button type="button" class="hc2-btn" onclick="setReminderRowDate(this, 10)">+10</button>
+            <button type="button" class="hc2-btn" onclick="setReminderRowDate(this, 21)">+21</button>
+            <button type="button" class="hc2-btn" onclick="setReminderRowDate(this, 30)">+30</button>
+            <button type="button" class="hc2-btn" onclick="setReminderRowDate(this, 90)">+3 meses</button>
+            <button type="button" class="hc2-btn" onclick="setReminderRowDate(this, 120)">+4 meses</button>
+            <button type="button" class="hc2-btn" onclick="setReminderRowDate(this, 180)">+6 meses</button>
+            <button type="button" class="hc2-btn" onclick="setReminderRowDate(this, 365)">+1 año</button>
+        </div>
+    `;
+
+    container.appendChild(row);
+}
+
+function setReminderRowDate(button, days) {
+    const row = button.closest('.hc2-reminder-row');
+    const input = row.querySelector('input[type="date"]');
+
+    const date = new Date();
+    date.setDate(date.getDate() + days);
+
+    input.value = date.toISOString().split('T')[0];
+}
+</script>
