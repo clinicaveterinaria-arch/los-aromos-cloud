@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<style>
+    .hc2-page {
+        padding: 22px 26px;
+        background: #fff7fb;
+    }
+
+    .hc2-shell {
+        max-width: 1500px;
+        margin: 0 auto;
+    }
+
+    .hc2-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.15fr) 380px;
+        gap: 18px;
+        align-items: start;
+    }
+
+    .hc2-card {
+        background: white;
+        border: 1px solid #f3c6d8;
+        border-radius: 24px;
+        box-shadow: 0 10px 28px rgba(0,0,0,.05);
+        padding: 18px;
+        margin-bottom: 18px;
+    }
+
+    .hc2-title {
+        margin: 0;
+        color: #1f2937;
+    }
+
+    .hc2-muted {
+        color: #6b7280;
+        font-size: 13px;
+    }
+
+    .hc2-btn {
+        border: 1px solid #f3c6d8;
+        background: white;
+        color: #d85b9a;
+        border-radius: 13px;
+        padding: 9px 12px;
+        font-weight: bold;
+        text-decoration: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .hc2-btn.primary {
+        background: #d85b9a;
+        color: white;
+        border-color: #d85b9a;
+    }
+
+    .hc2-btn.green {
+        background: #22c55e;
+        color: white;
+        border-color: #22c55e;
+    }
+
+    .hc2-section {
+        border: 1px solid #f3c6d8;
+        border-radius: 18px;
+        margin-bottom: 12px;
+        overflow: hidden;
+        background: #fff;
+    }
+
+    .hc2-section summary {
+        padding: 14px 16px;
+        cursor: pointer;
+        font-weight: bold;
+        color: #1f2937;
+        background: #fff8fb;
+        list-style: none;
+    }
+
+    .hc2-section summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .hc2-section-body {
+        padding: 16px;
+    }
+
+    .hc2-form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+        gap: 10px;
+    }
+
+    .hc2-form-grid input,
+    .hc2-form-grid select,
+    .hc2-form-grid textarea {
+        width: 100%;
+        border: 1px solid #ead7e1;
+        border-radius: 13px;
+        padding: 10px 12px;
+        font-size: 14px;
+        background: white;
+    }
+
+    .hc2-form-grid textarea {
+        min-height: 80px;
+        resize: vertical;
+    }
+
+    .hc2-full {
+        grid-column: 1 / -1;
+    }
+
+    .hc2-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 12px;
+    }
+
+    .hc2-save-bar {
+        display: flex;
+        justify-content: flex-end;
+        padding-top: 12px;
+    }
+
+    .hc2-reminder-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr auto;
+        gap: 8px;
+        margin-bottom: 8px;
+        align-items: center;
+    }
+
+    .hc2-timeline-item {
+        border-left: 5px solid #d85b9a;
+        background: #fff;
+        border-radius: 18px;
+        border: 1px solid #f3c6d8;
+        padding: 14px;
+        margin-bottom: 10px;
+    }
+
+    .hc2-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 8px;
+    }
+
+    .hc2-tag {
+        background: #fff0f7;
+        color: #d85b9a;
+        border: 1px solid #f3c6d8;
+        border-radius: 999px;
+        padding: 4px 8px;
+        font-size: 12px;
+        font-weight: bold;
+    }
+
+    @media (max-width: 1100px) {
+        .hc2-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="hc2-page">
+    <div class="hc2-shell">
+
+        {% include "_visit_header.html" ignore missing %}
+
+        <div class="hc2-grid">
+
+            <main>
+                {% include "_visit_form.html" ignore missing %}
+                {% include "_visit_timeline.html" ignore missing %}
+            </main>
+
+            <aside>
+                {% include "_visit_sidebar.html" ignore missing %}
+            </aside>
+
+        </div>
+
+        {% include "_visit_modals.html" ignore missing %}
+
+    </div>
+</div>
+
+{% endblock %}
