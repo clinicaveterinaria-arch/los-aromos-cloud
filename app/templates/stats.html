@@ -263,35 +263,67 @@
         </p>
     </div>
     <div class="kpi-grid">
+    
         <div class="kpi-card">
             <div class="kpi-icon">💰</div>
             <small>Facturación</small>
             <h2>$ {{ "{:,.0f}".format(sales_total).replace(",", ".") }}</h2>
+            <small>
+                {% if comparison_stats.sales_total.up %}▲{% else %}▼{% endif %}
+                $ {{ "{:,.0f}".format(comparison_stats.sales_total.amount|abs).replace(",", ".") }}
+                · {{ "{:,.1f}".format(comparison_stats.sales_total.percent|abs).replace(",", ".") }}%
+                vs {{ compare_label }}
+            </small>
         </div>
-
+    
         <div class="kpi-card">
             <div class="kpi-icon">💵</div>
             <small>Ganancia</small>
             <h2>$ {{ "{:,.0f}".format(profit_total).replace(",", ".") }}</h2>
+            <small>
+                {% if comparison_stats.profit_total.up %}▲{% else %}▼{% endif %}
+                $ {{ "{:,.0f}".format(comparison_stats.profit_total.amount|abs).replace(",", ".") }}
+                · {{ "{:,.1f}".format(comparison_stats.profit_total.percent|abs).replace(",", ".") }}%
+                vs {{ compare_label }}
+            </small>
         </div>
-
+    
         <div class="kpi-card">
             <div class="kpi-icon">🧾</div>
             <small>Cantidad de ventas</small>
             <h2>{{ sales_count }}</h2>
+            <small>
+                {% if comparison_stats.sales_count.up %}▲{% else %}▼{% endif %}
+                {{ comparison_stats.sales_count.amount|abs|int }}
+                · {{ "{:,.1f}".format(comparison_stats.sales_count.percent|abs).replace(",", ".") }}%
+                vs {{ compare_label }}
+            </small>
         </div>
-
+    
         <div class="kpi-card">
             <div class="kpi-icon">📈</div>
             <small>Ticket promedio</small>
             <h2>$ {{ "{:,.0f}".format(ticket_average).replace(",", ".") }}</h2>
+            <small>
+                {% if comparison_stats.ticket_average.up %}▲{% else %}▼{% endif %}
+                $ {{ "{:,.0f}".format(comparison_stats.ticket_average.amount|abs).replace(",", ".") }}
+                · {{ "{:,.1f}".format(comparison_stats.ticket_average.percent|abs).replace(",", ".") }}%
+                vs {{ compare_label }}
+            </small>
         </div>
-
+    
         <div class="kpi-card">
             <div class="kpi-icon">🐶</div>
             <small>Pacientes atendidos</small>
             <h2>{{ patients_seen }}</h2>
+            <small>
+                {% if comparison_stats.patients_seen.up %}▲{% else %}▼{% endif %}
+                {{ comparison_stats.patients_seen.amount|abs|int }}
+                · {{ "{:,.1f}".format(comparison_stats.patients_seen.percent|abs).replace(",", ".") }}%
+                vs {{ compare_label }}
+            </small>
         </div>
+    
     </div>
 
     <div class="stats-card">
