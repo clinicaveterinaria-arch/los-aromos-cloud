@@ -4890,9 +4890,23 @@ def delete_attachment(
 def pendientes(request: Request, db: Session = Depends(get_db), user: User = Depends(require_user)):
     today = argentina_now().date()
 
-    eventos = (
+    from calendar import monthrange
+    
+    last_day = monthrange(today.year, today.month)[1]
+    end_of_month = today.replace(day=last_day)
+    
+    query = (
         db.query(ClinicalEvent)
         .filter(ClinicalEvent.reminder_date != None)
+    )
+    
+    if not show_all:
+        query = query.filter(
+            ClinicalEvent.reminder_date <= end_of_month
+        )
+    
+    eventos = (
+        query
         .order_by(ClinicalEvent.reminder_date.asc())
         .all()
     )
