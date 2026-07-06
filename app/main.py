@@ -2891,46 +2891,70 @@ def event_create(
 
 
     rd = None
-
+    
+    def parse_date_field(value):
+        if value and value.strip():
+            try:
+                return datetime.strptime(value.strip(), '%Y-%m-%d').date()
+            except ValueError:
+                return None
+        return None
+    
+    extra_vaccine = False
+    extra_deworming = False
+    
+    saved_vaccine_name = vaccine_name
+    saved_vaccine_lot = vaccine_lot
+    saved_vaccine_expiration = vaccine_expiration
+    saved_next_vaccine_date = next_vaccine_date
+    
+    saved_dewormer_product = dewormer_product
+    saved_dewormer_drug = dewormer_drug
+    saved_dewormer_dose = dewormer_dose
+    saved_next_deworming_date = next_deworming_date
+    
     if event_type == 'Vacuna':
-        if next_vaccine_date and next_vaccine_date.strip():
-            try:
-                rd = datetime.strptime(next_vaccine_date.strip(), '%Y-%m-%d').date()
-            except ValueError:
-                rd = None
-
+        rd = parse_date_field(next_vaccine_date)
+    
         dewormer_product = ''
         dewormer_drug = ''
         dewormer_dose = ''
         next_deworming_date = ''
-
+    
     elif event_type == 'Desparasitación':
-        if next_deworming_date and next_deworming_date.strip():
-            try:
-                rd = datetime.strptime(next_deworming_date.strip(), '%Y-%m-%d').date()
-            except ValueError:
-                rd = None
-
+        rd = parse_date_field(next_deworming_date)
+    
         vaccine_name = ''
         vaccine_lot = ''
         vaccine_expiration = ''
         next_vaccine_date = ''
-
+    
     else:
+        extra_vaccine = any([
+            vaccine_name.strip(),
+            vaccine_lot.strip(),
+            vaccine_expiration.strip(),
+            next_vaccine_date.strip()
+        ])
+    
+        extra_deworming = any([
+            dewormer_product.strip(),
+            dewormer_drug.strip(),
+            dewormer_dose.strip(),
+            next_deworming_date.strip()
+        ])
+    
         vaccine_name = ''
         vaccine_lot = ''
         vaccine_expiration = ''
         next_vaccine_date = ''
+    
         dewormer_product = ''
         dewormer_drug = ''
         dewormer_dose = ''
         next_deworming_date = ''
-
-        if reminder_date and reminder_date.strip():
-            try:
-                rd = datetime.strptime(reminder_date.strip(), '%Y-%m-%d').date()
-            except ValueError:
-                rd = None
+    
+        rd = parse_date_field(reminder_date)
     managed_reminder_date = None
 
     if reminder_type and reminder_date and reminder_date.strip():
