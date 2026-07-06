@@ -5453,7 +5453,12 @@ async def migration_myvete_import(
                 raw_files[low] = z.read(name)
     else:
         low = filename
-        if 'product' not in low and 'stock' not in low:
+        blocked_names = [
+            'product', 'stock', 'venta', 'sale', 'precio', 'price',
+            'inventario', 'inventory', 'caja', 'cash'
+        ]
+        
+        if not any(blocked in low for blocked in blocked_names):
             raw_files[low] = content
 
     detected = {
