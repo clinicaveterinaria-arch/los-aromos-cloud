@@ -4934,7 +4934,6 @@ def pendientes(
     'today': today,
     'pending_count': len(eventos),
     'show_all': show_all
-    'show_all': show_all
 }
     )
 @app.get('/patients/{patient_id}/quick-pendiente')
