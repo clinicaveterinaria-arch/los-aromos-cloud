@@ -427,7 +427,7 @@
 
         <div class="home-list">
             {% for item in preventive_due[:6] %}
-                <a href="/patients/{{ item.patient.id }}" class="home-list-item">
+                <a href="/patients/{{ item.patient.id }}/v2" class="home-list-item">
                     <div class="home-item-left">
                         <div class="home-avatar">
                             {% if item.vaccine_due and item.deworming_due %}💉{% elif item.vaccine_due %}💉{% else %}🪱{% endif %}
@@ -555,7 +555,7 @@
 
             <div class="home-list">
                 {% for item in inactive_patients[:5] %}
-                    <a href="/patients/{{ item.patient.id }}" class="home-list-item">
+                    <a href="/patients/{{ item.patient.id }}/v2" class="home-list-item">
                         <div class="home-item-left">
                             <div class="home-avatar">🐾</div>
                             <div>
