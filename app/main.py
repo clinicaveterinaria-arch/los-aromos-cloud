@@ -5437,7 +5437,18 @@ async def migration_myvete_import(
                 low = name.lower()
                 if not low.endswith('.csv'):
                     continue
-                if 'product' in low or 'stock' in low:
+                if (
+                    'product' in low
+                    or 'stock' in low
+                    or 'venta' in low
+                    or 'sale' in low
+                    or 'precio' in low
+                    or 'price' in low
+                    or 'inventario' in low
+                    or 'inventory' in low
+                    or 'caja' in low
+                    or 'cash' in low
+                ):
                     continue
                 raw_files[low] = z.read(name)
     else:
