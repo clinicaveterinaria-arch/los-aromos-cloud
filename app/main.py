@@ -1756,6 +1756,65 @@ async def patient_upload_photo(
     db.commit()
 
     return RedirectResponse(f'/patients/{patient_id}', status_code=303)
+@app.get('/patients/{patient_id}/v2', response_class=HTMLResponse)
+def patient_detail_v2(
+    request: Request,
+    patient_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    patient = db.get(Patient, patient_id)
+
+    if not patient:
+        raise HTTPException(status_code=404)
+
+    today = argentina_now().date()
+
+    events = (
+        db.query(ClinicalEvent)
+        .filter(ClinicalEvent.patient_id == patient.id)
+        .order_by(ClinicalEvent.event_date.desc())
+        .limit(20)
+        .all()
+    )
+
+    upcoming_events = (
+        db.query(ClinicalEvent)
+        .filter(
+            ClinicalEvent.patient_id == patient.id,
+            ClinicalEvent.reminder_date != None,
+            ClinicalEvent.reminder_date >= today
+        )
+        .order_by(ClinicalEvent.reminder_date.asc())
+        .limit(5)
+        .all()
+    )
+
+    vaccine_names = sorted({
+        e.vaccine_name.strip()
+        for e in db.query(ClinicalEvent).all()
+        if e.vaccine_name and e.vaccine_name.strip()
+    })
+
+    dewormer_names = sorted({
+        e.dewormer_product.strip()
+        for e in db.query(ClinicalEvent).all()
+        if e.dewormer_product and e.dewormer_product.strip()
+    })
+
+    return templates.TemplateResponse(
+        'patient_detail_v2.html',
+        {
+            'request': request,
+            'patient': patient,
+            'today': today,
+            'events': events,
+            'upcoming_events': upcoming_events,
+            'vaccine_names': vaccine_names,
+            'dewormer_names': dewormer_names,
+            'user': user
+        }
+    )
 @app.get('/patients/{patient_id}', response_class=HTMLResponse)
 def patient_detail(request: Request, patient_id: int, db: Session = Depends(get_db), user: User = Depends(require_user)):
     patient = db.get(Patient, patient_id)
