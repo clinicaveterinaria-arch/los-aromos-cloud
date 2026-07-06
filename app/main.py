@@ -3148,10 +3148,14 @@ def products_page(
     q: str = '',
     rubro: str = '',
     page: int = 1,
+    alert: str = '',
     db: Session = Depends(get_db),
     user: User = Depends(require_user)
 ):
     query = db.query(Product).filter(Product.active == True)
+
+    today = argentina_now().date()
+    soon = today + timedelta(days=60)
 
     if q:
         like = f"%{q}%"
@@ -3168,18 +3172,43 @@ def products_page(
     if rubro:
         query = query.filter(Product.rubro == rubro)
 
-    
+    if alert == 'critical':
+        query = query.filter(
+            Product.stock != None,
+            Product.min_stock != None,
+            Product.min_stock > 0,
+            Product.stock <= Product.min_stock
+        )
+
+    elif alert == 'expired':
+        query = query.filter(
+            Product.expiration_date != None,
+            Product.expiration_date < today
+        )
+
+    elif alert == 'expires_soon':
+        query = query.filter(
+            Product.expiration_date != None,
+            Product.expiration_date >= today,
+            Product.expiration_date <= soon
+        )
 
     total_products = db.query(Product).filter(Product.active == True).count()
+
     low_stock = db.query(Product).filter(
         Product.active == True,
         Product.stock != None,
         Product.min_stock != None,
+        Product.min_stock > 0,
         Product.stock <= Product.min_stock
     ).count()
 
-    today = argentina_now().date()
-    soon = today + timedelta(days=60)
+    expired_or_soon = db.query(Product).filter(
+        Product.active == True,
+        Product.expiration_date != None,
+        Product.expiration_date <= soon
+    ).count()
+
     per_page = 50
 
     if page < 1:
@@ -3198,6 +3227,7 @@ def products_page(
         .limit(per_page)
         .all()
     )
+
     for p in products:
         p.row_color = ''
 
@@ -3213,12 +3243,7 @@ def products_page(
             p.min_stock > 0 and
             p.stock <= p.min_stock
         ):
-                p.row_color = '#ffe5e5'
-    expired_or_soon = db.query(Product).filter(
-        Product.active == True,
-        Product.expiration_date != None,
-        Product.expiration_date <= soon
-    ).count()
+            p.row_color = '#ffe5e5'
 
     total_cost = 0
     total_sale = 0
@@ -3247,6 +3272,7 @@ def products_page(
             'products': products,
             'q': q,
             'rubro': rubro,
+            'alert': alert,
             'rubros': rubros,
             'total_products': total_products,
             'low_stock': low_stock,
