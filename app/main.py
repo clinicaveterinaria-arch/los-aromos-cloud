@@ -1879,9 +1879,61 @@ def patient_detail_v2(
             ClinicalEvent.reminder_date >= today
         )
         .order_by(ClinicalEvent.reminder_date.asc())
-        .limit(5)
+        .limit(10)
         .all()
     )
+
+    upcoming_appointments = (
+        db.query(Appointment)
+        .filter(Appointment.patient_id == patient.id)
+        .filter(Appointment.appointment_date >= datetime.combine(today, datetime.min.time()))
+        .filter(Appointment.status.in_(['Pendiente', 'Confirmado']))
+        .order_by(Appointment.appointment_date.asc(), Appointment.start_time.asc())
+        .limit(10)
+        .all()
+    )
+
+    upcoming_patient_items = []
+
+    for e in upcoming_events:
+        icon = '📌'
+        if e.event_type == 'Vacuna':
+            icon = '💉'
+        elif e.event_type == 'Desparasitación':
+            icon = '🪱'
+        elif e.event_type == 'Control':
+            icon = '🩺'
+
+        upcoming_patient_items.append({
+            'date': e.reminder_date,
+            'time': '',
+            'icon': icon,
+            'title': e.title or e.event_type or 'Recordatorio',
+            'detail': e.event_type or '',
+            'source': 'Historia clínica'
+        })
+
+    for a in upcoming_appointments:
+        upcoming_patient_items.append({
+            'date': a.appointment_date.date() if a.appointment_date else None,
+            'time': a.start_time or '',
+            'icon': '📅',
+            'title': a.title or a.service or 'Turno agendado',
+            'detail': a.notes or '',
+            'source': 'Agenda'
+        })
+
+    upcoming_patient_items = [
+        item for item in upcoming_patient_items
+        if item.get('date')
+    ]
+
+    upcoming_patient_items = sorted(
+        upcoming_patient_items,
+        key=lambda item: (item['date'], item.get('time') or '')
+    )[:10]
+
+    next_visit = upcoming_patient_items[0] if upcoming_patient_items else None
 
     vaccine_names = sorted({
         e.vaccine_name.strip()
@@ -1903,6 +1955,9 @@ def patient_detail_v2(
             'today': today,
             'events': events,
             'upcoming_events': upcoming_events,
+            'upcoming_appointments': upcoming_appointments,
+            'upcoming_patient_items': upcoming_patient_items,
+            'next_visit': next_visit,
             'vaccine_names': vaccine_names,
             'dewormer_names': dewormer_names,
             'user': user
