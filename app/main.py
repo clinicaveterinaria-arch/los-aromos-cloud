@@ -4887,7 +4887,12 @@ def delete_attachment(
 
     return RedirectResponse(f"/patients/{patient_id}", status_code=303)
 @app.get('/pendientes', response_class=HTMLResponse)
-def pendientes(request: Request, db: Session = Depends(get_db), user: User = Depends(require_user)):
+def pendientes(
+    request: Request,
+    show_all: int = 0,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
     today = argentina_now().date()
 
     from calendar import monthrange
