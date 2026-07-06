@@ -5483,53 +5483,128 @@ Velocidad: {fluid_rate} ml/kg/h
 def stats_page(
     request: Request,
     period: str = 'month',
+    month: str = '',
+    compare_month: str = '',
     db: Session = Depends(get_db),
     user: User = Depends(require_user)
 ):
     from collections import defaultdict
+    import calendar
 
     today = argentina_now().date()
+
+    def month_bounds(month_value):
+        try:
+            base = datetime.strptime(month_value, "%Y-%m").date()
+        except Exception:
+            base = today.replace(day=1)
+
+        start = base.replace(day=1)
+        last_day = calendar.monthrange(start.year, start.month)[1]
+        end = start.replace(day=last_day)
+
+        return start, end
+
+    def previous_month_value(month_value):
+        try:
+            base = datetime.strptime(month_value, "%Y-%m").date()
+        except Exception:
+            base = today.replace(day=1)
+
+        first = base.replace(day=1)
+        prev_last = first - timedelta(days=1)
+        return prev_last.strftime("%Y-%m")
+
+    if not month:
+        month = today.strftime("%Y-%m")
+
+    if not compare_month:
+        compare_month = previous_month_value(month)
+
+    selected_start, selected_end = month_bounds(month)
+    compare_start, compare_end = month_bounds(compare_month)
+
     month_start = today.replace(day=1)
-    
+
     if period == 'today':
         start_date = today
         end_date = today
         period_label = 'Hoy'
-    
     elif period == 'week':
         raw_week_start = today - timedelta(days=today.weekday())
-    
-        # Semana dentro del mes actual:
-        # evita que "Semana" incluya días del mes anterior y sea mayor que "Mes".
         start_date = max(raw_week_start, month_start)
         end_date = today
         period_label = 'Esta semana'
-    
     else:
-        start_date = month_start
-        end_date = today
+        start_date = selected_start
+        end_date = selected_end
         period = 'month'
-        period_label = 'Este mes'
+        period_label = selected_start.strftime('%m/%Y')
 
-    start_dt = datetime.combine(start_date, datetime.min.time())
-    end_dt = datetime.combine(end_date, datetime.max.time())
+    def get_sales_summary(start_date, end_date):
+        start_dt = datetime.combine(start_date, datetime.min.time())
+        end_dt = datetime.combine(end_date, datetime.max.time())
 
-    sales = (
-        db.query(Sale)
-        .filter(Sale.date >= start_dt)
-        .filter(Sale.date <= end_dt)
-        .filter(Sale.status != 'cancelled')
-        .filter(Sale.status != 'quote')
-        .all()
-    )
+        sales = (
+            db.query(Sale)
+            .filter(Sale.date >= start_dt)
+            .filter(Sale.date <= end_dt)
+            .filter(Sale.status != 'cancelled')
+            .filter(Sale.status != 'quote')
+            .all()
+        )
 
-    sale_ids = [s.id for s in sales]
+        sale_ids = [s.id for s in sales]
 
-    sales_total = sum(s.total or 0 for s in sales)
-    sales_count = len(sales)
-    profit_total = sum(s.profit_amount or 0 for s in sales)
-    ticket_average = (sales_total / sales_count) if sales_count else 0
-    patients_seen = len(set(s.patient_id for s in sales if s.patient_id))
+        sales_total = sum(s.total or 0 for s in sales)
+        sales_count = len(sales)
+        profit_total = sum(s.profit_amount or 0 for s in sales)
+        ticket_average = (sales_total / sales_count) if sales_count else 0
+        patients_seen = len(set(s.patient_id for s in sales if s.patient_id))
+
+        return {
+            'sales': sales,
+            'sale_ids': sale_ids,
+            'sales_total': sales_total,
+            'sales_count': sales_count,
+            'profit_total': profit_total,
+            'ticket_average': ticket_average,
+            'patients_seen': patients_seen
+        }
+
+    current = get_sales_summary(start_date, end_date)
+    comparison = get_sales_summary(compare_start, compare_end)
+
+    def diff(current_value, previous_value):
+        amount = (current_value or 0) - (previous_value or 0)
+
+        if previous_value:
+            percent = (amount / previous_value) * 100
+        else:
+            percent = 0
+
+        return {
+            'amount': amount,
+            'percent': percent,
+            'up': amount >= 0
+        }
+
+    comparison_stats = {
+        'sales_total': diff(current['sales_total'], comparison['sales_total']),
+        'profit_total': diff(current['profit_total'], comparison['profit_total']),
+        'sales_count': diff(current['sales_count'], comparison['sales_count']),
+        'ticket_average': diff(current['ticket_average'], comparison['ticket_average']),
+        'patients_seen': diff(current['patients_seen'], comparison['patients_seen'])
+    }
+
+    sales = current['sales']
+    sale_ids = current['sale_ids']
+
+    sales_total = current['sales_total']
+    sales_count = current['sales_count']
+    profit_total = current['profit_total']
+    ticket_average = current['ticket_average']
+    patients_seen = current['patients_seen']
 
     payments_by_method = {}
 
@@ -5576,17 +5651,8 @@ def stats_page(
 
         return 'clinical'
 
-    clinical_stats = defaultdict(lambda: {
-        'qty': 0,
-        'total': 0,
-        'profit': 0
-    })
-
-    medicine_stats = defaultdict(lambda: {
-        'qty': 0,
-        'total': 0,
-        'profit': 0
-    })
+    clinical_stats = defaultdict(lambda: {'qty': 0, 'total': 0, 'profit': 0})
+    medicine_stats = defaultdict(lambda: {'qty': 0, 'total': 0, 'profit': 0})
 
     if sale_ids:
         items = (
@@ -5608,7 +5674,6 @@ def stats_page(
             profit = subtotal - cost
 
             department = classify_department(product)
-
             target = medicine_stats if department == 'medicine' else clinical_stats
 
             target[name]['qty'] += qty
@@ -5643,6 +5708,21 @@ def stats_page(
         reverse=True
     )[:10]
 
+    available_months = []
+    for i in range(24):
+        ref = today.replace(day=1)
+        year = ref.year
+        month_number = ref.month - i
+
+        while month_number <= 0:
+            month_number += 12
+            year -= 1
+
+        available_months.append({
+            'value': f'{year}-{month_number:02d}',
+            'label': f'{month_number:02d}/{year}'
+        })
+
     return templates.TemplateResponse(
         'stats.html',
         {
@@ -5651,6 +5731,14 @@ def stats_page(
             'period_label': period_label,
             'start_date': start_date,
             'end_date': end_date,
+
+            'month': month,
+            'compare_month': compare_month,
+            'available_months': available_months,
+            'compare_label': compare_start.strftime('%m/%Y'),
+            'comparison_stats': comparison_stats,
+            'comparison': comparison,
+
             'sales_total': sales_total,
             'sales_count': sales_count,
             'profit_total': profit_total,
