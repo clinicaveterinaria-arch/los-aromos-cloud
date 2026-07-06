@@ -706,9 +706,16 @@ def home(request: Request, db: Session = Depends(get_db), user: User = Depends(r
         .all()
     )
 
+    from calendar import monthrange
+    
+    last_day = monthrange(today.year, today.month)[1]
+    end_of_month = today.replace(day=last_day)
+    
     upcoming = (
         db.query(ClinicalEvent)
         .filter(ClinicalEvent.reminder_date != None)
+        .filter(ClinicalEvent.reminder_date >= today)
+        .filter(ClinicalEvent.reminder_date <= end_of_month)
         .order_by(ClinicalEvent.reminder_date.asc())
         .limit(8)
         .all()
