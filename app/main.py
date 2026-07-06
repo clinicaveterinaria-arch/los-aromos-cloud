@@ -5586,7 +5586,7 @@ async def migration_myvete_import(
         color = pick(row, 'color')
         birth = parse_date(pick(row, 'fechaNacimiento'))
         comment = pick(row, 'comentario')
-        neutered = pick(row, 'esCastrado')
+       
 
         if not owner_id:
             owner = Owner(
