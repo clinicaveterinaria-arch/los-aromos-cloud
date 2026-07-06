@@ -4910,6 +4910,16 @@ def pendientes(
             ClinicalEvent.reminder_date <= end_of_month
         )
     
+    query = (
+        db.query(ClinicalEvent)
+        .filter(ClinicalEvent.reminder_date != None)
+    )
+    
+    if not show_all:
+        query = query.filter(
+            ClinicalEvent.reminder_date <= end_of_month
+        )
+    
     eventos = (
         query
         .order_by(ClinicalEvent.reminder_date.asc())
