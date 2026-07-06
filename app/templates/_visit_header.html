@@ -1,0 +1,82 @@
+<div class="hc2-card">
+
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap;">
+
+        <div>
+
+            <h2 class="hc2-title">
+                🐾 {{ patient.name }}
+            </h2>
+
+            <div class="hc2-muted" style="margin-top:6px;">
+
+                <strong>Propietario:</strong>
+                {{ patient.owner.name if patient.owner else '-' }}
+
+                &nbsp;&nbsp;•&nbsp;&nbsp;
+
+                <strong>Especie:</strong>
+                {{ patient.species or '-' }}
+
+                &nbsp;&nbsp;•&nbsp;&nbsp;
+
+                <strong>Raza:</strong>
+                {{ patient.breed or '-' }}
+
+            </div>
+
+            <div class="hc2-muted" style="margin-top:6px;">
+
+                <strong>Sexo:</strong>
+                {{ patient.sex or '-' }}
+
+                &nbsp;&nbsp;•&nbsp;&nbsp;
+
+                <strong>Edad:</strong>
+                {{ patient.age or '-' }}
+
+                &nbsp;&nbsp;•&nbsp;&nbsp;
+
+                <strong>Peso:</strong>
+                {{ patient.weight or '-' }} kg
+
+            </div>
+
+        </div>
+
+        <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;">
+
+            <a href="/patients"
+               class="hc2-btn">
+
+                ← Pacientes
+
+            </a>
+
+            <a href="/hospitalizations"
+               class="hc2-btn">
+
+                🏥 Internación
+
+            </a>
+
+            <a href="/sales/new?patient_id={{ patient.id }}"
+               class="hc2-btn">
+
+                🛒 Venta
+
+            </a>
+
+            <button
+                type="button"
+                class="hc2-btn">
+
+                📄 Imprimir
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
