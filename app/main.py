@@ -5619,7 +5619,7 @@ async def migration_myvete_import(
                 sex=sex,
                 birth_date=birth,
                 color=color,
-                neutered=True if neutered == '1' else False,
+ 
                 notes=f'{marker}\nImportado desde MyVete\n{comment}'.strip()
             )
             db.add(patient)
