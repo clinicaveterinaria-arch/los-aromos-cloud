@@ -3065,6 +3065,42 @@ def event_create(
     db.add(event)
     db.commit()
     db.refresh(event)
+    if extra_vaccine:
+        vaccine_event = ClinicalEvent(
+            patient_id=patient_id,
+            event_date=event_created_at,
+            event_type='Vacuna',
+            title=saved_vaccine_name or 'Vacuna',
+            description='Vacuna aplicada dentro de la misma visita clínica.',
+            vaccine_name=saved_vaccine_name or '',
+            vaccine_lot=saved_vaccine_lot or '',
+            vaccine_expiration=saved_vaccine_expiration or '',
+            next_vaccine_date=saved_next_vaccine_date or '',
+            reminder_date=parse_date_field(saved_next_vaccine_date),
+            created_by=user.username
+        )
+    
+        db.add(vaccine_event)
+    
+    if extra_deworming:
+        deworming_event = ClinicalEvent(
+            patient_id=patient_id,
+            event_date=event_created_at,
+            event_type='Desparasitación',
+            title=saved_dewormer_product or 'Desparasitación',
+            description='Desparasitación aplicada dentro de la misma visita clínica.',
+            dewormer_product=saved_dewormer_product or '',
+            dewormer_drug=saved_dewormer_drug or '',
+            dewormer_dose=saved_dewormer_dose or '',
+            next_deworming_date=saved_next_deworming_date or '',
+            reminder_date=parse_date_field(saved_next_deworming_date),
+            created_by=user.username
+        )
+    
+        db.add(deworming_event)
+    
+    if extra_vaccine or extra_deworming:
+        db.commit()    
     close_managed_due_events(db, patient, event, user)
     db.commit()
     if managed_reminder_date:
