@@ -1815,6 +1815,251 @@ def patient_detail_v2(
             'user': user
         }
     )
+@app.post('/patients/{patient_id}/visits')
+async def patient_visit_create(
+    patient_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    patient = db.get(Patient, patient_id)
+
+    if not patient:
+        raise HTTPException(status_code=404)
+
+    form = await request.form()
+
+    def get(name, default=''):
+        value = form.get(name)
+        return value if value is not None else default
+
+    def getlist(name):
+        return form.getlist(name)
+
+    def to_float(value):
+        try:
+            return float(str(value).replace(',', '.')) if value and str(value).strip() else None
+        except ValueError:
+            return None
+
+    def to_int(value):
+        try:
+            return int(float(str(value).replace(',', '.'))) if value and str(value).strip() else None
+        except ValueError:
+            return None
+
+    def parse_date(value):
+        if value and str(value).strip():
+            try:
+                return datetime.strptime(str(value).strip(), '%Y-%m-%d').date()
+            except ValueError:
+                return None
+        return None
+
+    event_date_value = get('event_date')
+    event_datetime = argentina_now()
+
+    if event_date_value and event_date_value.strip():
+        selected_date = parse_date(event_date_value)
+        if selected_date:
+            event_datetime = datetime.combine(selected_date, argentina_now().time())
+
+    vaccine_name = get('vaccine_name')
+    vaccine_lot = get('vaccine_lot')
+    vaccine_expiration = get('vaccine_expiration')
+    next_vaccine_date = get('next_vaccine_date')
+
+    dewormer_product = get('dewormer_product')
+    dewormer_drug = get('dewormer_drug')
+    dewormer_dose = get('dewormer_dose')
+    next_deworming_date = get('next_deworming_date')
+
+    has_vaccine = any([
+        vaccine_name.strip(),
+        vaccine_lot.strip(),
+        vaccine_expiration.strip(),
+        next_vaccine_date.strip()
+    ])
+
+    has_deworming = any([
+        dewormer_product.strip(),
+        dewormer_drug.strip(),
+        dewormer_dose.strip(),
+        next_deworming_date.strip()
+    ])
+
+    description_parts = []
+
+    if get('description').strip():
+        description_parts.append(get('description').strip())
+
+    if has_vaccine:
+        description_parts.append(
+            "Vacunación en esta visita:\n"
+            f"Vacuna: {vaccine_name or '-'}\n"
+            f"Lote: {vaccine_lot or '-'}\n"
+            f"Vencimiento: {vaccine_expiration or '-'}\n"
+            f"Próxima vacuna: {next_vaccine_date or '-'}"
+        )
+
+    if has_deworming:
+        description_parts.append(
+            "Desparasitación en esta visita:\n"
+            f"Producto: {dewormer_product or '-'}\n"
+            f"Droga: {dewormer_drug or '-'}\n"
+            f"Dosis: {dewormer_dose or '-'}\n"
+            f"Próxima desparasitación: {next_deworming_date or '-'}"
+        )
+
+    studies = getlist('studies')
+    studies = [s for s in studies if s and str(s).strip()]
+
+    if studies:
+        description_parts.append(
+            "Estudios solicitados / realizados:\n" + "\n".join(f"- {s}" for s in studies)
+        )
+
+    event = ClinicalEvent(
+        patient_id=patient.id,
+        event_date=event_datetime,
+        event_type=get('event_type') or 'Consulta clínica',
+        title=get('title') or 'Consulta / visita',
+        description="\n\n".join(description_parts),
+        anamnesis=get('anamnesis'),
+        physical_exam=get('physical_exam'),
+        diagnosis=get('diagnosis'),
+        treatment=get('treatment'),
+
+        weight=to_float(get('weight')),
+        temperature=to_float(get('temperature')),
+        heart_rate=to_int(get('heart_rate')),
+        respiratory_rate=to_int(get('respiratory_rate')),
+        mucous_membranes=get('mucous_membranes'),
+        crt=get('crt'),
+        hydration=get('hydration'),
+
+        vaccine_name=vaccine_name if has_vaccine else '',
+        vaccine_lot=vaccine_lot if has_vaccine else '',
+        vaccine_expiration=vaccine_expiration if has_vaccine else '',
+        next_vaccine_date=next_vaccine_date if has_vaccine else '',
+
+        dewormer_product=dewormer_product if has_deworming else '',
+        dewormer_drug=dewormer_drug if has_deworming else '',
+        dewormer_dose=dewormer_dose if has_deworming else '',
+        next_deworming_date=next_deworming_date if has_deworming else '',
+
+        ecg_hr=get('ecg_hr'),
+        ecg_rhythm=get('ecg_rhythm'),
+        ecg_p=get('ecg_p'),
+        ecg_pr=get('ecg_pr'),
+        ecg_qrs=get('ecg_qrs'),
+        ecg_st=get('ecg_st'),
+        ecg_t=get('ecg_t'),
+        ecg_qt=get('ecg_qt'),
+        ecg_axis=get('ecg_axis'),
+        ecg_interpretation=get('ecg_interpretation'),
+
+        eco_aiao=get('eco_aiao'),
+        eco_fs=get('eco_fs'),
+        eco_acvim=get('eco_acvim'),
+        eco_diagnosis=get('eco_diagnosis'),
+        eco_treatment=get('eco_treatment'),
+
+        rx_vhs=get('rx_vhs'),
+        rx_vlas=get('rx_vlas'),
+        rx_lung_pattern=get('rx_lung_pattern'),
+        rx_edema=get('rx_edema'),
+        rx_congestion=get('rx_congestion'),
+        rx_observations=get('rx_observations'),
+
+        created_by=user.username
+    )
+
+    db.add(event)
+    db.flush()
+
+    if get('weight') and str(get('weight')).strip():
+        patient.weight = to_float(get('weight'))
+
+    attachments = getlist('attachments')
+
+    for file in attachments:
+        if not file or not getattr(file, 'filename', ''):
+            continue
+
+        if supabase is None:
+            raise HTTPException(
+                status_code=500,
+                detail="Supabase Storage no configurado."
+            )
+
+        original_name = os.path.basename(file.filename)
+        safe_name = original_name.replace(" ", "_")
+        unique_name = f"{uuid.uuid4().hex}_{safe_name}"
+
+        content = await file.read()
+
+        if not content:
+            continue
+
+        content_type = file.content_type or mimetypes.guess_type(original_name)[0] or "application/octet-stream"
+        storage_path = f"patient_{patient.id}/event_{event.id}/{unique_name}"
+
+        supabase.storage.from_("adjuntos").upload(
+            path=storage_path,
+            file=content,
+            file_options={
+                "content-type": content_type,
+                "upsert": "false"
+            }
+        )
+
+        public_url = supabase.storage.from_("adjuntos").get_public_url(storage_path)
+
+        db.add(EventAttachment(
+            event_id=event.id,
+            filename=original_name,
+            file_path=public_url
+        ))
+
+    reminder_types = getlist('reminder_type[]') or getlist('reminder_type')
+    reminder_titles = getlist('reminder_title[]') or getlist('reminder_title')
+    reminder_dates = getlist('reminder_date[]') or getlist('reminder_date')
+
+    for r_type, r_title, r_date in zip(reminder_types, reminder_titles, reminder_dates):
+        r_date_parsed = parse_date(r_date)
+
+        if not r_date_parsed:
+            continue
+
+        r_type = r_type or 'Control'
+        r_title = r_title or r_type
+
+        reminder_event = ClinicalEvent(
+            patient_id=patient.id,
+            event_date=argentina_now(),
+            event_type=r_type,
+            title=r_title,
+            description=(
+                f"{DUE_ACTIVE_MARKER}\n"
+                f"Recordatorio creado desde visita #{event.id}\n"
+                f"Tipo: {r_type}\n"
+                f"Título: {r_title}"
+            ),
+            reminder_date=r_date_parsed,
+            created_by=user.username
+        )
+
+        db.add(reminder_event)
+
+    close_managed_due_events(db, patient, event, user)
+
+    db.commit()
+
+    return RedirectResponse(
+        f'/patients/{patient.id}/v2',
+        status_code=303
+    )
 @app.get('/patients/{patient_id}', response_class=HTMLResponse)
 def patient_detail(request: Request, patient_id: int, db: Session = Depends(get_db), user: User = Depends(require_user)):
     patient = db.get(Patient, patient_id)
