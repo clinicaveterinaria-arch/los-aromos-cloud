@@ -4917,7 +4917,8 @@ def pendientes(request: Request, db: Session = Depends(get_db), user: User = Dep
     'request': request,
     'eventos': eventos,
     'today': today,
-    'pending_count': len(eventos)
+    'pending_count': len(eventos),
+    'show_all': show_all
 }
     )
 @app.get('/patients/{patient_id}/quick-pendiente')
