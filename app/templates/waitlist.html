@@ -388,17 +388,7 @@
                 <div id="patient_results" class="autocomplete-box"></div>
             </div>
 
-            <div>
-                <label>Paciente</label>
-                <select name="patient_id" id="patient_id">
-                    <option value="">Sin paciente</option>
-                    {% for p in patients %}
-                        <option value="{{ p.id }}" data-owner="{{ p.owner_id if p.owner_id else '' }}">
-                            {{ p.name }}{% if p.owner %} - {{ p.owner.name }}{% endif %}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
+
 
             <div>
                 <label>Motivo</label>
