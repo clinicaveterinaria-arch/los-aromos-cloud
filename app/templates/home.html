@@ -310,7 +310,7 @@
     }
 </style>
 
-{% set turnos_hoy = upcoming_appointments|selectattr('appointment_date', 'equalto', today)|list %}
+{% set turnos_hoy = today_appointments %}
 {% set cirugias_hoy = turnos_hoy|selectattr('service', 'equalto', 'Cirugía')|list|length %}
 {% set ecg_hoy = turnos_hoy|selectattr('service', 'equalto', 'ECG')|list|length %}
 {% set rx_hoy = turnos_hoy|selectattr('service', 'equalto', 'Radiografía')|list|length %}
