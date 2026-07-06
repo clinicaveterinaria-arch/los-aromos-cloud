@@ -1,51 +1,35 @@
 <div class="hc2-card">
 
-    <h3 class="hc2-title">🧠 Resumen clínico</h3>
-
-    <div class="hc2-tags">
-
-        {% if patient.weight %}
-            <span class="hc2-tag">⚖ {{ patient.weight }} kg</span>
-        {% endif %}
-
-        {% if patient.sex %}
-            <span class="hc2-tag">{{ patient.sex }}</span>
-        {% endif %}
-
-        {% if patient.species %}
-            <span class="hc2-tag">{{ patient.species }}</span>
-        {% endif %}
-
-        {% if patient.breed %}
-            <span class="hc2-tag">{{ patient.breed }}</span>
-        {% endif %}
-
-    </div>
-
-</div>
-
-
-<div class="hc2-card">
-
     <h3 class="hc2-title">
         📅 Próximos recordatorios
     </h3>
 
-    {% if upcoming_events %}
+    {% if upcoming_patient_items %}
 
-        {% for e in upcoming_events %}
+        {% for item in upcoming_patient_items %}
 
             <div style="padding:10px 0;border-bottom:1px solid #eee;">
 
                 <strong>
-
-                    {{ e.reminder_date.strftime('%d/%m/%Y') }}
-
+                    {{ item.date.strftime('%d/%m/%Y') }}
+                    {% if item.time %}
+                        · {{ item.time }}
+                    {% endif %}
                 </strong>
 
                 <br>
 
-                {{ e.title or e.event_type }}
+                {{ item.icon }} {{ item.title }}
+
+                {% if item.detail %}
+                    <div class="hc2-muted" style="margin-top:2px;">
+                        {{ item.detail }}
+                    </div>
+                {% endif %}
+
+                <div class="hc2-muted" style="font-size:11px;margin-top:3px;">
+                    {{ item.source }}
+                </div>
 
             </div>
 
@@ -54,206 +38,9 @@
     {% else %}
 
         <p class="hc2-muted">
-
             Sin recordatorios pendientes.
-
         </p>
 
     {% endif %}
-
-</div>
-
-
-<div class="hc2-card">
-
-    <h3 class="hc2-title">
-        💉 Vacunas registradas
-    </h3>
-
-    {% if vaccine_names %}
-
-        {% for v in vaccine_names %}
-
-            <div style="padding:5px 0;">
-
-                • {{ v }}
-
-            </div>
-
-        {% endfor %}
-
-    {% else %}
-
-        <p class="hc2-muted">
-
-            No hay vacunas cargadas.
-
-        </p>
-
-    {% endif %}
-
-</div>
-
-
-<div class="hc2-card">
-
-    <h3 class="hc2-title">
-        🪱 Desparasitaciones
-    </h3>
-
-    {% if dewormer_names %}
-
-        {% for d in dewormer_names %}
-
-            <div style="padding:5px 0;">
-
-                • {{ d }}
-
-            </div>
-
-        {% endfor %}
-
-    {% else %}
-
-        <p class="hc2-muted">
-
-            No hay desparasitarios registrados.
-
-        </p>
-
-    {% endif %}
-
-</div>
-
-
-<div class="hc2-card">
-
-    <h3 class="hc2-title">
-        📎 Archivos
-    </h3>
-
-    {% set ns = namespace(total_files=0) %}
-
-    {% for e in events %}
-        {% if e.attachments %}
-            {% for a in e.attachments %}
-                {% set ns.total_files = ns.total_files + 1 %}
-            {% endfor %}
-        {% endif %}
-    {% endfor %}
-
-    {% if ns.total_files > 0 %}
-
-        <details>
-            <summary class="hc2-btn" style="width:100%;cursor:pointer;">
-                📂 Ver archivos del paciente ({{ ns.total_files }})
-            </summary>
-
-            <div style="margin-top:10px;display:grid;gap:8px;">
-                {% for e in events %}
-                    {% if e.attachments %}
-                        {% for a in e.attachments %}
-                            <a
-                                class="hc2-btn"
-                                href="{{ a.file_path }}"
-                                target="_blank"
-                                style="font-size:13px;text-align:left;">
-                                📎 {{ a.filename }}
-                                <br>
-                                <span class="hc2-muted">
-                                    {{ e.event_date.strftime('%d/%m/%Y') if e.event_date else '' }}
-                                    · {{ e.title or e.event_type or 'Evento' }}
-                                </span>
-                            </a>
-                        {% endfor %}
-                    {% endif %}
-                {% endfor %}
-            </div>
-        </details>
-
-    {% else %}
-
-        <p class="hc2-muted">No hay archivos cargados todavía.</p>
-
-    {% endif %}
-
-</div>
-
-
-<div class="hc2-card">
-
-    <h3 class="hc2-title">
-
-        ⚡ Acciones rápidas
-
-    </h3>
-
-    <div
-        style="display:grid;
-               gap:8px;">
-
-        <form method="post" action="/patients/{{ patient.id }}/hospitalize" style="margin:0;">
-        
-            <input type="hidden" name="cage" value="">
-            <input type="hidden" name="responsible_vet" value="">
-            <input type="hidden" name="reason" value="Internación desde Historia Clínica V2">
-            <input type="hidden" name="diagnosis" value="">
-            <input type="hidden" name="treatment_plan" value="">
-            <input type="hidden" name="notes" value="">
-            <input type="hidden" name="initial_weight" value="{{ patient.weight or '' }}">
-            <input type="hidden" name="initial_temperature" value="">
-            <input type="hidden" name="initial_heart_rate" value="">
-            <input type="hidden" name="initial_respiratory_rate" value="">
-            <input type="hidden" name="initial_mucous_membranes" value="">
-            <input type="hidden" name="initial_crt" value="">
-            <input type="hidden" name="initial_hydration" value="">
-        
-            <button type="submit" class="hc2-btn" style="width:100%;">
-                🏥 Internar
-            </button>
-        
-        </form>
-
-        <a
-            class="hc2-btn"
-            href="/sales?patient_id={{ patient.id }}">
-
-            🛒 Venta
-
-        </a>
-
-        <a
-            class="hc2-btn"
-            href="/vademecum">
-
-            💊 Vademécum
-
-        </a>
-
-        {% if events and events|length > 0 %}
-
-            <a
-                class="hc2-btn"
-                href="/patients/{{ patient.id }}/events/{{ events[0].id }}">
-
-                🤖 IA Clínica del último evento
-
-            </a>
-
-        {% else %}
-
-            <button
-                class="hc2-btn"
-                type="button"
-                disabled
-                style="opacity:.55;cursor:not-allowed;">
-
-                🤖 IA Clínica sin eventos
-
-            </button>
-
-        {% endif %}
-
-    </div>
 
 </div>
