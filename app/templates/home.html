@@ -617,7 +617,7 @@
 
             <div class="home-list">
                 {% for p in recent_patients[:6] %}
-                    <a href="/patients/{{ p.id }}" class="home-list-item">
+                    <a href="/patients/{{ p.id }}/v2" class="home-list-item">
                         <div class="home-item-left">
                             <div class="home-avatar">
                                 {% if p.species and 'fel' in p.species|lower %}🐱{% elif p.species and 'can' in p.species|lower %}🐶{% else %}🐾{% endif %}
