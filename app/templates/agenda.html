@@ -908,7 +908,7 @@
                                                 </div>
 
                                                 {% if a.patient %}
-                                                    <a href="/patients/{{ a.patient.id }}" class="appt-name">{{ a.patient.name }}</a>
+                                                    <a href="/patients/{{ a.patient.id }}/v2" class="appt-name">{{ a.patient.name }}</a>
                                                     {% if a.patient.owner %}
                                                         <div class="appt-owner">👤 {{ a.patient.owner.name }}</div>
                                                     {% endif %}
