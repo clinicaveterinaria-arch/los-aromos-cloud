@@ -5489,17 +5489,24 @@ def stats_page(
     from collections import defaultdict
 
     today = argentina_now().date()
-
+    month_start = today.replace(day=1)
+    
     if period == 'today':
         start_date = today
         end_date = today
         period_label = 'Hoy'
+    
     elif period == 'week':
-        start_date = today - timedelta(days=today.weekday())
+        raw_week_start = today - timedelta(days=today.weekday())
+    
+        # Semana dentro del mes actual:
+        # evita que "Semana" incluya días del mes anterior y sea mayor que "Mes".
+        start_date = max(raw_week_start, month_start)
         end_date = today
         period_label = 'Esta semana'
+    
     else:
-        start_date = today.replace(day=1)
+        start_date = month_start
         end_date = today
         period = 'month'
         period_label = 'Este mes'
