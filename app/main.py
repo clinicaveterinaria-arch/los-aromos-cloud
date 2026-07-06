@@ -5257,6 +5257,677 @@ async def migration_visitas(
             'result': result
         }
     )
+# ==========================================================
+# IMPORTADOR INTELIGENTE MYVETE
+# No importa productos, stock, precios ni inventario
+# ==========================================================
+
+@app.get('/migration/myvete', response_class=HTMLResponse)
+def migration_myvete_form(
+    request: Request,
+    user: User = Depends(require_user)
+):
+    html = """
+    <!doctype html>
+    <html>
+    <head>
+        <title>Importar MyVete</title>
+        <style>
+            body { font-family: Arial; background:#fff7fb; margin:0; padding:35px; color:#1f2937; }
+            .box { max-width:760px; margin:auto; background:white; border:1px solid #f3c6d8; border-radius:22px; padding:28px; box-shadow:0 8px 24px rgba(0,0,0,.06); }
+            h1 { margin-top:0; }
+            .btn { background:#d85b9a; color:white; border:none; border-radius:14px; padding:13px 18px; font-weight:bold; cursor:pointer; }
+            .muted { color:#6b7280; }
+            .warn { background:#fff1f2; border:1px solid #fecdd3; padding:14px; border-radius:14px; margin:18px 0; }
+            input[type=file] { padding:12px; border:1px solid #f3c6d8; border-radius:12px; width:100%; margin:16px 0; }
+            a { color:#d85b9a; font-weight:bold; text-decoration:none; }
+        </style>
+    </head>
+    <body>
+        <div class="box">
+            <h1>📥 Importador Inteligente MyVete</h1>
+            <p class="muted">Subí el ZIP o los CSV exportados de MyVete.</p>
+
+            <div class="warn">
+                Este importador <b>NO importa productos, stock, precios, ventas ni inventario</b>.
+                Solo importa propietarios, pacientes, historia clínica, vacunas, desparasitaciones,
+                exámenes, cirugías, patologías y agenda.
+            </div>
+
+            <form action="/migration/myvete" method="post" enctype="multipart/form-data">
+                <input type="file" name="file" accept=".zip,.csv" required>
+                <button class="btn" type="submit">📥 Importar base MyVete</button>
+            </form>
+
+            <p style="margin-top:22px;">
+                <a href="/migration">← Volver a migración</a>
+            </p>
+        </div>
+    </body>
+    </html>
+    """
+    return HTMLResponse(html)
+
+
+@app.post('/migration/myvete', response_class=HTMLResponse)
+async def migration_myvete_import(
+    request: Request,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    import csv
+    import io
+    import zipfile
+
+    def clean(value):
+        if value is None:
+            return ''
+        value = str(value).strip()
+        if value.lower() in ['nan', 'none', 'null']:
+            return ''
+        return value
+
+    def normalize_name(value):
+        return clean(value).lower().replace(' ', '').replace('-', '').replace('_', '')
+
+    def read_csv_bytes(content):
+        text = None
+        for enc in ['utf-8-sig', 'latin1']:
+            try:
+                text = content.decode(enc)
+                break
+            except Exception:
+                pass
+
+        if text is None:
+            text = content.decode('utf-8', errors='replace')
+
+        sample = text[:2000]
+        delimiter = ';' if sample.count(';') >= sample.count(',') else ','
+
+        reader = csv.DictReader(io.StringIO(text), delimiter=delimiter)
+        return [
+            {clean(k): clean(v) for k, v in row.items()}
+            for row in reader
+        ]
+
+    def parse_date(value):
+        value = clean(value)
+
+        if not value:
+            return None
+
+        for fmt in [
+            '%Y-%m-%d %H:%M:%S',
+            '%Y-%m-%d',
+            '%d/%m/%Y %H:%M',
+            '%d/%m/%Y',
+            '%d-%m-%Y',
+            '%d/%m/%y'
+        ]:
+            try:
+                dt = datetime.strptime(value, fmt)
+                return dt.date()
+            except Exception:
+                pass
+
+        return None
+
+    def parse_datetime(value):
+        value = clean(value)
+
+        if not value:
+            return None
+
+        for fmt in [
+            '%Y-%m-%d %H:%M:%S',
+            '%Y-%m-%d %H:%M',
+            '%Y-%m-%d',
+            '%d/%m/%Y %H:%M',
+            '%d/%m/%Y',
+            '%d-%m-%Y',
+            '%d/%m/%y'
+        ]:
+            try:
+                dt = datetime.strptime(value, fmt)
+                if fmt in ['%Y-%m-%d', '%d/%m/%Y', '%d-%m-%Y', '%d/%m/%y']:
+                    return datetime.combine(dt.date(), datetime.min.time())
+                return dt
+            except Exception:
+                pass
+
+        return None
+
+    def to_float(value):
+        try:
+            value = clean(value).replace(',', '.')
+            return float(value) if value else None
+        except Exception:
+            return None
+
+    def pick(row, *names):
+        normalized = {
+            normalize_name(k): clean(v)
+            for k, v in row.items()
+        }
+
+        for name in names:
+            key = normalize_name(name)
+            if key in normalized:
+                return normalized[key]
+
+        return ''
+
+    def marker_exists(model, field, marker):
+        return (
+            db.query(model)
+            .filter(field.ilike(f'%{marker}%'))
+            .first()
+        )
+
+    content = await file.read()
+    filename = clean(file.filename).lower()
+
+    raw_files = {}
+
+    if filename.endswith('.zip'):
+        with zipfile.ZipFile(io.BytesIO(content)) as z:
+            for name in z.namelist():
+                low = name.lower()
+                if not low.endswith('.csv'):
+                    continue
+                if 'product' in low or 'stock' in low:
+                    continue
+                raw_files[low] = z.read(name)
+    else:
+        low = filename
+        if 'product' not in low and 'stock' not in low:
+            raw_files[low] = content
+
+    detected = {
+        'clientes': [],
+        'pacientes': [],
+        'hc': [],
+        'vacunas': [],
+        'antiparasitarios': [],
+        'attr': [],
+        'agenda': [],
+        'examenes': [],
+        'cirugias': [],
+        'patologias': []
+    }
+
+    for name, data in raw_files.items():
+        rows = read_csv_bytes(data)
+
+        if 'clientes' in name:
+            detected['clientes'] = rows
+        elif 'pacientes' in name:
+            detected['pacientes'] = rows
+        elif 'hc-vacunas' in name:
+            detected['vacunas'] = rows
+        elif 'hc-antiparasitarios' in name:
+            detected['antiparasitarios'] = rows
+        elif 'hc-attr' in name:
+            detected['attr'] = rows
+        elif 'hc-agenda' in name:
+            detected['agenda'] = rows
+        elif 'hc-examenes' in name:
+            detected['examenes'] = rows
+        elif 'hc-cirugias' in name:
+            detected['cirugias'] = rows
+        elif 'hc-patologias' in name:
+            detected['patologias'] = rows
+        elif name.endswith('hc.csv') or 'exp-hc.csv' in name:
+            detected['hc'] = rows
+
+    stats = {
+        'owners_created': 0,
+        'owners_skipped': 0,
+        'patients_created': 0,
+        'patients_skipped': 0,
+        'events_created': 0,
+        'events_skipped': 0,
+        'appointments_created': 0,
+        'appointments_skipped': 0,
+        'pathologies_added': 0,
+        'ignored_products_stock': True
+    }
+
+    owner_map = {}
+
+    for row in detected['clientes']:
+        myvete_id = pick(row, 'id')
+        marker = f'MYVETE_CLIENT_ID:{myvete_id}'
+
+        existing = marker_exists(Owner, Owner.notes, marker) if myvete_id else None
+
+        first_name = pick(row, 'nombres')
+        last_name = pick(row, 'apellido')
+        owner_name = clean(f'{first_name} {last_name}').strip()
+
+        if not owner_name:
+            owner_name = pick(row, 'nombre', 'cliente', 'propietario') or 'Sin propietario'
+
+        phone = pick(row, 'telMovil', 'telefono', 'teléfono', 'celular')
+        email = pick(row, 'email')
+        address = pick(row, 'direccion', 'dirección', 'domicilio')
+        comment = pick(row, 'comentario')
+
+        if not existing:
+            existing = (
+                db.query(Owner)
+                .filter(Owner.name.ilike(owner_name))
+                .first()
+            )
+
+        if existing:
+            if phone and not existing.phone:
+                existing.phone = phone
+            if phone and not existing.whatsapp:
+                existing.whatsapp = phone
+            if email and not existing.email:
+                existing.email = email
+            if address and not existing.address:
+                existing.address = address
+
+            if marker and marker not in (existing.notes or ''):
+                existing.notes = ((existing.notes or '') + f'\n{marker}').strip()
+
+            stats['owners_skipped'] += 1
+            owner = existing
+        else:
+            owner = Owner(
+                name=owner_name,
+                phone=phone,
+                whatsapp=phone,
+                email=email,
+                address=address,
+                notes=f'{marker}\nImportado desde MyVete\n{comment}'.strip()
+            )
+            db.add(owner)
+            db.flush()
+            stats['owners_created'] += 1
+
+        if myvete_id:
+            owner_map[myvete_id] = owner.id
+
+    patient_map = {}
+
+    for row in detected['pacientes']:
+        myvete_id = pick(row, 'id')
+        owner_mvv_id = pick(row, 'idCliente')
+        owner_id = owner_map.get(owner_mvv_id)
+
+        marker = f'MYVETE_PATIENT_ID:{myvete_id}'
+        existing = marker_exists(Patient, Patient.notes, marker) if myvete_id else None
+
+        patient_name = pick(row, 'nombre') or 'Sin nombre'
+        species = pick(row, 'especie')
+        breed = pick(row, 'raza')
+        sex = pick(row, 'sexo')
+        color = pick(row, 'color')
+        birth = parse_date(pick(row, 'fechaNacimiento'))
+        comment = pick(row, 'comentario')
+        neutered = pick(row, 'esCastrado')
+
+        if not owner_id:
+            owner = Owner(
+                name='Sin propietario MyVete',
+                notes='Creado automáticamente durante importación MyVete'
+            )
+            db.add(owner)
+            db.flush()
+            owner_id = owner.id
+
+        if not existing:
+            existing = (
+                db.query(Patient)
+                .filter(Patient.name.ilike(patient_name))
+                .filter(Patient.owner_id == owner_id)
+                .first()
+            )
+
+        if existing:
+            if marker and marker not in (existing.notes or ''):
+                existing.notes = ((existing.notes or '') + f'\n{marker}').strip()
+            stats['patients_skipped'] += 1
+            patient = existing
+        else:
+            patient = Patient(
+                name=patient_name,
+                owner_id=owner_id,
+                species=species,
+                breed=breed,
+                sex=sex,
+                birth_date=birth,
+                color=color,
+                neutered=True if neutered == '1' else False,
+                notes=f'{marker}\nImportado desde MyVete\n{comment}'.strip()
+            )
+            db.add(patient)
+            db.flush()
+            stats['patients_created'] += 1
+
+        if myvete_id:
+            patient_map[myvete_id] = patient.id
+
+    vaccines_by_hc = {}
+    for row in detected['vacunas']:
+        idhc = pick(row, 'idHC')
+        vaccines_by_hc.setdefault(idhc, []).append(row)
+
+    antip_by_hc = {}
+    for row in detected['antiparasitarios']:
+        idhc = pick(row, 'idHC')
+        antip_by_hc.setdefault(idhc, []).append(row)
+
+    attr_by_hc = {}
+    for row in detected['attr']:
+        idhc = pick(row, 'idHC')
+        attr_by_hc.setdefault(idhc, []).append(row)
+
+    exams_by_hc = {}
+    for row in detected['examenes']:
+        idhc = pick(row, 'idHC')
+        exams_by_hc.setdefault(idhc, []).append(row)
+
+    surgeries_by_hc = {}
+    for row in detected['cirugias']:
+        idhc = pick(row, 'idHC')
+        surgeries_by_hc.setdefault(idhc, []).append(row)
+
+    pathologies_by_hc = {}
+    for row in detected['patologias']:
+        idhc = pick(row, 'idHC')
+        pathologies_by_hc.setdefault(idhc, []).append(row)
+
+    def event_type_from_exam(name):
+        text = clean(name).lower()
+        if 'rx' in text or 'radio' in text:
+            return 'Radiografía'
+        if 'eco' in text:
+            return 'Ecografía'
+        if 'ecg' in text or 'electro' in text:
+            return 'ECG'
+        if 'lab' in text or 'sangre' in text or 'orina' in text:
+            return 'Laboratorio'
+        return 'Otro procedimiento'
+
+    for row in detected['hc']:
+        hc_id = pick(row, 'id')
+        patient_mvv_id = pick(row, 'idPaciente')
+        patient_id = patient_map.get(patient_mvv_id)
+
+        if not patient_id:
+            stats['events_skipped'] += 1
+            continue
+
+        event_dt = parse_datetime(pick(row, 'fechaCreacion')) or argentina_now()
+        description_original = pick(row, 'descripcion')
+        usuario = pick(row, 'usuario')
+
+        marker = f'MYVETE_HC_ID:{hc_id}'
+
+        existing = marker_exists(ClinicalEvent, ClinicalEvent.description, marker) if hc_id else None
+
+        if existing:
+            stats['events_skipped'] += 1
+            continue
+
+        weight = None
+        for attr in attr_by_hc.get(hc_id, []):
+            if 'peso' in pick(attr, 'nombreParam', 'descParam').lower():
+                weight = to_float(pick(attr, 'valor'))
+
+        sections = []
+
+        sections.append(f'Importado desde MyVete\n{marker}')
+
+        if description_original:
+            sections.append(f'🩺 Registro original\n{description_original}')
+
+        if weight is not None:
+            sections.append(f'⚖️ Peso registrado\n{weight} kg')
+
+        if vaccines_by_hc.get(hc_id):
+            lines = []
+            for v in vaccines_by_hc[hc_id]:
+                lines.append(f"- {pick(v, 'vacuna') or 'Vacuna'} {pick(v, 'comentario')}")
+            sections.append('💉 Vacunas asociadas\n' + '\n'.join(lines))
+
+        if antip_by_hc.get(hc_id):
+            lines = []
+            for a in antip_by_hc[hc_id]:
+                lines.append(f"- {pick(a, 'nombreATP') or 'Antiparasitario'} {pick(a, 'comentario')}")
+            sections.append('🪱 Antiparasitarios asociados\n' + '\n'.join(lines))
+
+        if exams_by_hc.get(hc_id):
+            lines = []
+            for ex in exams_by_hc[hc_id]:
+                lines.append(f"- {pick(ex, 'nombreExamen') or 'Examen'} {pick(ex, 'comentarioHCExamen')}")
+            sections.append('📎 Estudios / exámenes\n' + '\n'.join(lines))
+
+        if surgeries_by_hc.get(hc_id):
+            lines = []
+            for sx in surgeries_by_hc[hc_id]:
+                lines.append(f"- {pick(sx, 'nombreCirugia') or 'Cirugía'} {pick(sx, 'comentarioCirugia')}")
+            sections.append('🔪 Cirugías asociadas\n' + '\n'.join(lines))
+
+        if pathologies_by_hc.get(hc_id):
+            lines = []
+            for pa in pathologies_by_hc[hc_id]:
+                lines.append(f"- {pick(pa, 'patologia') or 'Patología'} {pick(pa, 'comentario')}")
+            sections.append('⚠️ Patologías asociadas\n' + '\n'.join(lines))
+
+            patient = db.get(Patient, patient_id)
+            if patient:
+                existing_alerts = patient.alerts or ''
+                for pa in pathologies_by_hc[hc_id]:
+                    pathology_text = pick(pa, 'patologia')
+                    if pathology_text and pathology_text not in existing_alerts:
+                        existing_alerts = (existing_alerts + f'\n{pathology_text}').strip()
+                        stats['pathologies_added'] += 1
+                patient.alerts = existing_alerts
+
+        if usuario:
+            sections.append(f'👤 Usuario MyVete\n{usuario}')
+
+        has_only_preventive = (
+            not description_original
+            and (
+                vaccines_by_hc.get(hc_id)
+                or antip_by_hc.get(hc_id)
+            )
+            and not exams_by_hc.get(hc_id)
+            and not surgeries_by_hc.get(hc_id)
+            and not pathologies_by_hc.get(hc_id)
+        )
+
+        if not has_only_preventive:
+            event = ClinicalEvent(
+                patient_id=patient_id,
+                event_date=event_dt,
+                event_type='Consulta clínica',
+                title='Consulta importada MyVete',
+                description='\n\n'.join(sections),
+                weight=weight,
+                created_by=user.username
+            )
+            db.add(event)
+            stats['events_created'] += 1
+
+        if weight is not None:
+            patient = db.get(Patient, patient_id)
+            if patient:
+                patient.weight = weight
+
+        for v in vaccines_by_hc.get(hc_id, []):
+            vaccine_name = pick(v, 'vacuna') or 'Vacuna'
+            vaccine_marker = f'MYVETE_HC_ID:{hc_id}:VACUNA:{vaccine_name}'
+            if marker_exists(ClinicalEvent, ClinicalEvent.description, vaccine_marker):
+                continue
+
+            db.add(ClinicalEvent(
+                patient_id=patient_id,
+                event_date=event_dt,
+                event_type='Vacuna',
+                title=vaccine_name,
+                description=f'💉 Vacuna importada desde MyVete\n{vaccine_marker}\nComentario: {pick(v, "comentario") or "-"}',
+                vaccine_name=vaccine_name,
+                created_by=user.username
+            ))
+            stats['events_created'] += 1
+
+        for a in antip_by_hc.get(hc_id, []):
+            antip_name = pick(a, 'nombreATP') or 'Antiparasitario'
+            antip_marker = f'MYVETE_HC_ID:{hc_id}:ANTIP:{antip_name}'
+            if marker_exists(ClinicalEvent, ClinicalEvent.description, antip_marker):
+                continue
+
+            db.add(ClinicalEvent(
+                patient_id=patient_id,
+                event_date=event_dt,
+                event_type='Desparasitación',
+                title=antip_name,
+                description=f'🪱 Desparasitación importada desde MyVete\n{antip_marker}\nComentario: {pick(a, "comentario") or "-"}',
+                dewormer_product=antip_name,
+                created_by=user.username
+            ))
+            stats['events_created'] += 1
+
+        for sx in surgeries_by_hc.get(hc_id, []):
+            sx_name = pick(sx, 'nombreCirugia') or 'Cirugía'
+            sx_marker = f'MYVETE_HC_ID:{hc_id}:CIRUGIA:{sx_name}'
+            if marker_exists(ClinicalEvent, ClinicalEvent.description, sx_marker):
+                continue
+
+            db.add(ClinicalEvent(
+                patient_id=patient_id,
+                event_date=event_dt,
+                event_type='Cirugía',
+                title=sx_name,
+                description=f'🔪 Cirugía importada desde MyVete\n{sx_marker}\nComentario: {pick(sx, "comentarioCirugia") or "-"}',
+                created_by=user.username
+            ))
+            stats['events_created'] += 1
+
+        for ex in exams_by_hc.get(hc_id, []):
+            ex_name = pick(ex, 'nombreExamen') or 'Examen'
+            ex_marker = f'MYVETE_HC_ID:{hc_id}:EXAMEN:{ex_name}'
+            if marker_exists(ClinicalEvent, ClinicalEvent.description, ex_marker):
+                continue
+
+            db.add(ClinicalEvent(
+                patient_id=patient_id,
+                event_date=event_dt,
+                event_type=event_type_from_exam(ex_name),
+                title=ex_name,
+                description=f'📎 Examen importado desde MyVete\n{ex_marker}\nComentario: {pick(ex, "comentarioHCExamen") or "-"}',
+                created_by=user.username
+            ))
+            stats['events_created'] += 1
+
+    for row in detected['agenda']:
+        patient_mvv_id = pick(row, 'idPaciente')
+        patient_id = patient_map.get(patient_mvv_id)
+
+        start_dt = parse_datetime(pick(row, 'fechaInicioTurno'))
+        end_dt = parse_datetime(pick(row, 'fechaFinTurno'))
+
+        if not start_dt:
+            stats['appointments_skipped'] += 1
+            continue
+
+        event_name = pick(row, 'evento')
+        service = (
+            pick(row, 'nombreServicio')
+            or pick(row, 'nombreVacuna')
+            or pick(row, 'nombreATP')
+            or pick(row, 'nombreExamen')
+            or event_name
+            or 'Turno importado MyVete'
+        )
+
+        comment = pick(row, 'comentario')
+        user_mvv = pick(row, 'usuario')
+
+        existing = (
+            db.query(Appointment)
+            .filter(Appointment.patient_id == patient_id)
+            .filter(Appointment.appointment_date == datetime.combine(start_dt.date(), datetime.min.time()))
+            .filter(Appointment.service == service)
+            .first()
+        )
+
+        if existing:
+            stats['appointments_skipped'] += 1
+            continue
+
+        appointment = Appointment(
+            appointment_date=datetime.combine(start_dt.date(), datetime.min.time()),
+            start_time=start_dt.strftime('%H:%M') if start_dt else '',
+            end_time=end_dt.strftime('%H:%M') if end_dt else '',
+            patient_id=patient_id,
+            service=service,
+            title=event_name or service,
+            notes=f'Importado desde MyVete\nComentario: {comment or "-"}\nUsuario: {user_mvv or "-"}',
+            status='Pendiente'
+        )
+
+        db.add(appointment)
+        stats['appointments_created'] += 1
+
+    db.commit()
+
+    html = f"""
+    <!doctype html>
+    <html>
+    <head>
+        <title>Resultado importación MyVete</title>
+        <style>
+            body {{ font-family: Arial; background:#fff7fb; margin:0; padding:35px; color:#1f2937; }}
+            .box {{ max-width:820px; margin:auto; background:white; border:1px solid #f3c6d8; border-radius:22px; padding:28px; box-shadow:0 8px 24px rgba(0,0,0,.06); }}
+            h1 {{ margin-top:0; }}
+            .grid {{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }}
+            .item {{ background:#fff7fb; border:1px solid #f3c6d8; border-radius:14px; padding:14px; }}
+            .num {{ font-size:28px; font-weight:bold; }}
+            a {{ color:#d85b9a; font-weight:bold; text-decoration:none; }}
+        </style>
+    </head>
+    <body>
+        <div class="box">
+            <h1>✅ Importación MyVete finalizada</h1>
+
+            <div class="grid">
+                <div class="item"><div class="num">{stats['owners_created']}</div>Propietarios creados</div>
+                <div class="item"><div class="num">{stats['owners_skipped']}</div>Propietarios existentes/actualizados</div>
+
+                <div class="item"><div class="num">{stats['patients_created']}</div>Pacientes creados</div>
+                <div class="item"><div class="num">{stats['patients_skipped']}</div>Pacientes existentes/actualizados</div>
+
+                <div class="item"><div class="num">{stats['events_created']}</div>Eventos clínicos creados</div>
+                <div class="item"><div class="num">{stats['events_skipped']}</div>Eventos duplicados/salteados</div>
+
+                <div class="item"><div class="num">{stats['appointments_created']}</div>Turnos importados</div>
+                <div class="item"><div class="num">{stats['appointments_skipped']}</div>Turnos salteados</div>
+
+                <div class="item"><div class="num">{stats['pathologies_added']}</div>Patologías agregadas a alertas</div>
+                <div class="item"><div class="num">0</div>Productos / stock importados</div>
+            </div>
+
+            <p style="margin-top:24px;">
+                <a href="/migration/myvete">Importar otra base</a> ·
+                <a href="/search">Buscar pacientes</a> ·
+                <a href="/">Volver al inicio</a>
+            </p>
+        </div>
+    </body>
+    </html>
+    """
+
+    return HTMLResponse(html)
 @app.post('/attachment/{attachment_id}/delete')
 def delete_attachment(
     attachment_id: int,
