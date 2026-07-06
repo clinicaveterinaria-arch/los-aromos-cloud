@@ -192,13 +192,27 @@
         style="display:grid;
                gap:8px;">
 
-        <a
-            class="hc2-btn"
-            href="/hospitalizations/new?patient_id={{ patient.id }}">
-
-            🏥 Internar
-
-        </a>
+        <form method="post" action="/patients/{{ patient.id }}/hospitalize" style="margin:0;">
+        
+            <input type="hidden" name="cage" value="">
+            <input type="hidden" name="responsible_vet" value="">
+            <input type="hidden" name="reason" value="Internación desde Historia Clínica V2">
+            <input type="hidden" name="diagnosis" value="">
+            <input type="hidden" name="treatment_plan" value="">
+            <input type="hidden" name="notes" value="">
+            <input type="hidden" name="initial_weight" value="{{ patient.weight or '' }}">
+            <input type="hidden" name="initial_temperature" value="">
+            <input type="hidden" name="initial_heart_rate" value="">
+            <input type="hidden" name="initial_respiratory_rate" value="">
+            <input type="hidden" name="initial_mucous_membranes" value="">
+            <input type="hidden" name="initial_crt" value="">
+            <input type="hidden" name="initial_hydration" value="">
+        
+            <button type="submit" class="hc2-btn" style="width:100%;">
+                🏥 Internar
+            </button>
+        
+        </form>
 
         <a
             class="hc2-btn"
