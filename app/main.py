@@ -746,10 +746,24 @@ def home(request: Request, db: Session = Depends(get_db), user: User = Depends(r
         db.query(Appointment)
         .filter(Appointment.appointment_date >= day_start)
         .filter(Appointment.appointment_date <= day_end)
-        .filter(Appointment.status.in_(['Pendiente', 'Confirmado']))
+        .filter(Appointment.status != 'Cancelado')
         .order_by(Appointment.start_time.asc())
         .all()
     )
+    
+    stats['today'] = len(today_appointments)
+    stats['surgery_today'] = len([
+        a for a in today_appointments
+        if 'cirug' in (a.service or '').lower()
+    ])
+    stats['ecg_today'] = len([
+        a for a in today_appointments
+        if 'ecg' in (a.service or '').lower() or 'ecg' in (a.title or '').lower()
+    ])
+    stats['rx_today'] = len([
+        a for a in today_appointments
+        if 'rx' in (a.service or '').lower() or 'radiograf' in (a.service or '').lower() or 'rx' in (a.title or '').lower()
+    ])
 
     recent_patients = (
         db.query(Patient)
