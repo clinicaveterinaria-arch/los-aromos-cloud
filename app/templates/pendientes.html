@@ -353,8 +353,28 @@
             <h1>🔔 Pendientes</h1>
             <p>Organizá tu trabajo de hoy y de los próximos días.</p>
         </div>
-        <div class="pend-hero-badge">
-            {{ eventos|length }} recordatorios activos
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        
+            <div class="pend-hero-badge">
+                {{ eventos|length }} recordatorios activos
+            </div>
+        
+            {% if show_all %}
+        
+            <a href="/pendientes"
+               class="pend-btn">
+                📅 Solo este mes
+            </a>
+        
+            {% else %}
+        
+            <a href="/pendientes?show_all=1"
+               class="pend-btn">
+                📂 Mostrar todos
+            </a>
+        
+            {% endif %}
+        
         </div>
     </div>
 
