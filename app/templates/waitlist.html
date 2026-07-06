@@ -349,12 +349,16 @@
         <form method="post" action="/waitlist" class="wait-form">
             <div>
                 <label>Propietario</label>
-                <select name="owner_id" id="owner_id">
-                    <option value="">Sin propietario</option>
-                    {% for o in owners %}
-                        <option value="{{ o.id }}">{{ o.name }}</option>
-                    {% endfor %}
-                </select>
+                <input type="hidden" name="owner_id" id="owner_id">
+                <input id="owner_search" autocomplete="off" placeholder="Escribí propietario, teléfono o WhatsApp...">
+                <div id="owner_results" class="autocomplete-box"></div>
+            </div>
+            
+            <div>
+                <label>Paciente</label>
+                <input type="hidden" name="patient_id" id="patient_id">
+                <input id="patient_search" autocomplete="off" placeholder="Escribí paciente o propietario...">
+                <div id="patient_results" class="autocomplete-box"></div>
             </div>
 
             <div>
