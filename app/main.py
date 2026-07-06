@@ -1864,15 +1864,17 @@ async def patient_visit_create(
         if selected_date:
             event_datetime = datetime.combine(selected_date, argentina_now().time())
 
-    vaccine_name = get('vaccine_name')
-    vaccine_lot = get('vaccine_lot')
-    vaccine_expiration = get('vaccine_expiration')
-    next_vaccine_date = get('next_vaccine_date')
-
-    dewormer_product = get('dewormer_product')
-    dewormer_drug = get('dewormer_drug')
-    dewormer_dose = get('dewormer_dose')
-    next_deworming_date = get('next_deworming_date')
+        vaccine_name = get('vaccine_name')
+        vaccine_lot = get('vaccine_lot')
+        vaccine_expiration = get('vaccine_expiration')
+        next_vaccine_name = get('next_vaccine_name')
+        next_vaccine_date = get('next_vaccine_date')
+        
+        dewormer_product = get('dewormer_product')
+        dewormer_drug = get('dewormer_drug')
+        dewormer_dose = get('dewormer_dose')
+        next_dewormer_product = get('next_dewormer_product')
+        next_deworming_date = get('next_deworming_date')
 
     has_vaccine = any([
         vaccine_name.strip(),
@@ -2022,9 +2024,37 @@ async def patient_visit_create(
             file_path=public_url
         ))
 
-    reminder_types = getlist('reminder_type[]') or getlist('reminder_type')
-    reminder_titles = getlist('reminder_title[]') or getlist('reminder_title')
-    reminder_dates = getlist('reminder_date[]') or getlist('reminder_date')
+    if next_vaccine_date and next_vaccine_date.strip():
+        db.add(ClinicalEvent(
+            patient_id=patient.id,
+            event_date=argentina_now(),
+            event_type='Vacuna',
+            title=next_vaccine_name or 'Vacuna pendiente',
+            description=(
+                f"{DUE_ACTIVE_MARKER}\n"
+                f"Recordatorio creado desde visita #{event.id}\n"
+                f"Vacuna aplicada hoy: {vaccine_name or '-'}\n"
+                f"Próxima vacuna: {next_vaccine_name or '-'}"
+            ),
+            reminder_date=parse_date(next_vaccine_date),
+            created_by=user.username
+        ))
+    
+    if next_deworming_date and next_deworming_date.strip():
+        db.add(ClinicalEvent(
+            patient_id=patient.id,
+            event_date=argentina_now(),
+            event_type='Desparasitación',
+            title=next_dewormer_product or 'Desparasitación pendiente',
+            description=(
+                f"{DUE_ACTIVE_MARKER}\n"
+                f"Recordatorio creado desde visita #{event.id}\n"
+                f"Desparasitación aplicada hoy: {dewormer_product or '-'}\n"
+                f"Próximo desparasitario: {next_dewormer_product or '-'}"
+            ),
+            reminder_date=parse_date(next_deworming_date),
+            created_by=user.username
+        ))
 
     for r_type, r_title, r_date in zip(reminder_types, reminder_titles, reminder_dates):
         r_date_parsed = parse_date(r_date)
