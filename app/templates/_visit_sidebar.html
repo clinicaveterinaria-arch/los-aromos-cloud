@@ -132,11 +132,50 @@
         📎 Archivos
     </h3>
 
-    <button class="hc2-btn" style="width:100%;">
+    {% set ns = namespace(total_files=0) %}
 
-        📂 Ver archivos del paciente
+    {% for e in events %}
+        {% if e.attachments %}
+            {% for a in e.attachments %}
+                {% set ns.total_files = ns.total_files + 1 %}
+            {% endfor %}
+        {% endif %}
+    {% endfor %}
 
-    </button>
+    {% if ns.total_files > 0 %}
+
+        <details>
+            <summary class="hc2-btn" style="width:100%;cursor:pointer;">
+                📂 Ver archivos del paciente ({{ ns.total_files }})
+            </summary>
+
+            <div style="margin-top:10px;display:grid;gap:8px;">
+                {% for e in events %}
+                    {% if e.attachments %}
+                        {% for a in e.attachments %}
+                            <a
+                                class="hc2-btn"
+                                href="{{ a.file_path }}"
+                                target="_blank"
+                                style="font-size:13px;text-align:left;">
+                                📎 {{ a.filename }}
+                                <br>
+                                <span class="hc2-muted">
+                                    {{ e.event_date.strftime('%d/%m/%Y') if e.event_date else '' }}
+                                    · {{ e.title or e.event_type or 'Evento' }}
+                                </span>
+                            </a>
+                        {% endfor %}
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </details>
+
+    {% else %}
+
+        <p class="hc2-muted">No hay archivos cargados todavía.</p>
+
+    {% endif %}
 
 </div>
 
@@ -163,7 +202,7 @@
 
         <a
             class="hc2-btn"
-            href="/sales/new?patient_id={{ patient.id }}">
+            href="/sales?patient_id={{ patient.id }}">
 
             🛒 Venta
 
@@ -177,13 +216,29 @@
 
         </a>
 
-        <button
-            class="hc2-btn"
-            type="button">
+        {% if events and events|length > 0 %}
 
-            🤖 IA Clínica
+            <a
+                class="hc2-btn"
+                href="/patients/{{ patient.id }}/events/{{ events[0].id }}">
 
-        </button>
+                🤖 IA Clínica del último evento
+
+            </a>
+
+        {% else %}
+
+            <button
+                class="hc2-btn"
+                type="button"
+                disabled
+                style="opacity:.55;cursor:not-allowed;">
+
+                🤖 IA Clínica sin eventos
+
+            </button>
+
+        {% endif %}
 
     </div>
 
