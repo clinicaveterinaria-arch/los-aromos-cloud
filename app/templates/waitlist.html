@@ -327,6 +327,33 @@
             display:none;
         }
     }
+.autocomplete-box {
+    position:relative;
+    background:white;
+    border:1px solid #f3c6d8;
+    border-radius:12px;
+    margin-top:4px;
+    max-height:220px;
+    overflow-y:auto;
+    display:none;
+    z-index:50;
+}
+
+.autocomplete-item {
+    padding:10px 12px;
+    cursor:pointer;
+    border-bottom:1px solid #f3edf1;
+    font-size:14px;
+}
+
+.autocomplete-item:hover {
+    background:#fff0f7;
+}
+
+.autocomplete-muted {
+    color:#6b7280;
+    font-size:12px;
+}
 </style>
 
 <div class="wait-page">
@@ -538,39 +565,139 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const ownerSelect = document.getElementById('owner_id');
-    const patientSelect = document.getElementById('patient_id');
+    const ownerId = document.getElementById('owner_id');
+    const patientId = document.getElementById('patient_id');
 
-    if (ownerSelect && patientSelect) {
-        const allOptions = Array.from(patientSelect.querySelectorAll('option'));
+    const ownerSearch = document.getElementById('owner_search');
+    const patientSearch = document.getElementById('patient_search');
 
-        function filterPatients() {
-            const ownerId = ownerSelect.value;
+    const ownerResults = document.getElementById('owner_results');
+    const patientResults = document.getElementById('patient_results');
 
-            patientSelect.innerHTML = '';
-            const visiblePatients = [];
+    let searchTimer = null;
 
-            allOptions.forEach(option => {
-                if (option.value === '') {
-                    patientSelect.appendChild(option.cloneNode(true));
-                    return;
-                }
+    function clearBox(box) {
+        box.innerHTML = '';
+        box.style.display = 'none';
+    }
 
-                if (!ownerId || option.dataset.owner === ownerId) {
-                    visiblePatients.push(option.cloneNode(true));
-                }
+    function showItem(box, html, callback) {
+        const div = document.createElement('div');
+        div.className = 'autocomplete-item';
+        div.innerHTML = html;
+        div.addEventListener('click', callback);
+        box.appendChild(div);
+        box.style.display = 'block';
+    }
+
+    async function searchWaitlist(q) {
+        const res = await fetch('/api/waitlist/search?q=' + encodeURIComponent(q));
+        return await res.json();
+    }
+
+    async function loadOwnerPatients(selectedOwnerId) {
+        const res = await fetch('/api/waitlist/owner/' + selectedOwnerId + '/patients');
+        return await res.json();
+    }
+
+    function delayedSearch(callback) {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(callback, 250);
+    }
+
+    ownerSearch.addEventListener('input', function () {
+        const q = ownerSearch.value.trim();
+
+        ownerId.value = '';
+        patientId.value = '';
+        clearBox(ownerResults);
+
+        if (q.length < 2) return;
+
+        delayedSearch(async function () {
+            const data = await searchWaitlist(q);
+            clearBox(ownerResults);
+
+            data.owners.forEach(o => {
+                showItem(
+                    ownerResults,
+                    `<b>${o.name}</b><div class="autocomplete-muted">${o.phone || ''}</div>`,
+                    async function () {
+                        ownerId.value = o.id;
+                        ownerSearch.value = o.name;
+                        clearBox(ownerResults);
+
+                        const patientsData = await loadOwnerPatients(o.id);
+
+                        if (patientsData.patients.length === 1) {
+                            const p = patientsData.patients[0];
+                            patientId.value = p.id;
+                            patientSearch.value = p.name;
+                            clearBox(patientResults);
+                        } else {
+                            patientSearch.value = '';
+                            patientId.value = '';
+                            clearBox(patientResults);
+
+                            patientsData.patients.forEach(p => {
+                                showItem(
+                                    patientResults,
+                                    `<b>${p.name}</b><div class="autocomplete-muted">${p.species || ''} ${p.breed || ''}</div>`,
+                                    function () {
+                                        patientId.value = p.id;
+                                        patientSearch.value = p.name;
+                                        clearBox(patientResults);
+                                    }
+                                );
+                            });
+                        }
+                    }
+                );
             });
+        });
+    });
 
-            visiblePatients.forEach(option => patientSelect.appendChild(option));
+    patientSearch.addEventListener('input', function () {
+        const q = patientSearch.value.trim();
 
-            if (visiblePatients.length === 1) {
-                patientSelect.value = visiblePatients[0].value;
-            }
+        patientId.value = '';
+        clearBox(patientResults);
+
+        if (q.length < 2) return;
+
+        delayedSearch(async function () {
+            const data = await searchWaitlist(q);
+            clearBox(patientResults);
+
+            data.patients.forEach(p => {
+                showItem(
+                    patientResults,
+                    `<b>${p.name}</b><div class="autocomplete-muted">${p.owner_name || 'Sin propietario'} ${p.owner_phone || ''}</div>`,
+                    function () {
+                        patientId.value = p.id;
+                        patientSearch.value = p.name;
+
+                        if (p.owner_id) {
+                            ownerId.value = p.owner_id;
+                            ownerSearch.value = p.owner_name;
+                        }
+
+                        clearBox(patientResults);
+                    }
+                );
+            });
+        });
+    });
+
+    document.addEventListener('click', function (e) {
+        if (!ownerResults.contains(e.target) && e.target !== ownerSearch) {
+            clearBox(ownerResults);
         }
 
-        ownerSelect.addEventListener('change', filterPatients);
-        filterPatients();
-    }
+        if (!patientResults.contains(e.target) && e.target !== patientSearch) {
+            clearBox(patientResults);
+        }
+    });
 });
 </script>
 
