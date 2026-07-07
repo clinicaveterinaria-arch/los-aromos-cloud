@@ -779,73 +779,7 @@ def home(request: Request, db: Session = Depends(get_db), user: User = Depends(r
         .all()
     )
 
-    try:
-        inactive_cutoff = today.replace(year=today.year - 1)
-    except ValueError:
-        inactive_cutoff = today.replace(year=today.year - 1, month=2, day=28)
 
-    inactive_patients = []
-
-    for p in db.query(Patient).all():
-        last_event = (
-            db.query(ClinicalEvent)
-            .filter(ClinicalEvent.patient_id == p.id)
-            .order_by(ClinicalEvent.event_date.desc())
-            .first()
-        )
-
-        if last_event is None or last_event.event_date.date() < inactive_cutoff:
-            inactive_patients.append({
-                'patient': p,
-                'last_event': last_event
-            })
-
-    inactive_patients = inactive_patients[:8]
-
-    preventive_cutoff = today - timedelta(days=365)
-
-    overdue_vaccines = []
-    overdue_dewormings = []
-    preventive_due = []
-
-    for p in db.query(Patient).all():
-        last_vaccine = (
-            db.query(ClinicalEvent)
-            .filter(ClinicalEvent.patient_id == p.id)
-            .filter(ClinicalEvent.event_type == 'Vacuna')
-            .order_by(ClinicalEvent.event_date.desc())
-            .first()
-        )
-
-        last_deworming = (
-            db.query(ClinicalEvent)
-            .filter(ClinicalEvent.patient_id == p.id)
-            .filter(ClinicalEvent.event_type == 'Desparasitación')
-            .order_by(ClinicalEvent.event_date.desc())
-            .first()
-        )
-
-        vaccine_due = last_vaccine is None or not last_vaccine.event_date or last_vaccine.event_date.date() < preventive_cutoff
-        deworming_due = last_deworming is None or not last_deworming.event_date or last_deworming.event_date.date() < preventive_cutoff
-
-        if vaccine_due:
-            overdue_vaccines.append({'patient': p, 'last_event': last_vaccine})
-
-        if deworming_due:
-            overdue_dewormings.append({'patient': p, 'last_event': last_deworming})
-
-        if vaccine_due or deworming_due:
-            preventive_due.append({
-                'patient': p,
-                'last_vaccine': last_vaccine,
-                'last_deworming': last_deworming,
-                'vaccine_due': vaccine_due,
-                'deworming_due': deworming_due
-            })
-
-    preventive_due = preventive_due[:10]
-    overdue_vaccines = overdue_vaccines[:20]
-    overdue_dewormings = overdue_dewormings[:20]
 
     today_sales = (
         db.query(Sale)
@@ -869,34 +803,7 @@ def home(request: Request, db: Session = Depends(get_db), user: User = Depends(r
         .count()
     )
 
-    week_start = today - timedelta(days=today.weekday())
-    weekly_activity = []
 
-    for i in range(7):
-        current_day = week_start + timedelta(days=i)
-        current_start = datetime.combine(current_day, datetime.min.time())
-        current_end = datetime.combine(current_day, datetime.max.time())
-
-        events_count = (
-            db.query(ClinicalEvent)
-            .filter(ClinicalEvent.event_date >= current_start)
-            .filter(ClinicalEvent.event_date <= current_end)
-            .count()
-        )
-
-        appointments_count = (
-            db.query(Appointment)
-            .filter(Appointment.appointment_date >= current_start)
-            .filter(Appointment.appointment_date <= current_end)
-            .count()
-        )
-
-        weekly_activity.append({
-            'label': current_day.strftime('%a'),
-            'count': events_count + appointments_count
-        })
-
-    max_weekly_activity = max([d['count'] for d in weekly_activity], default=1) or 1
 
     dashboard_alerts = []
 
@@ -906,8 +813,7 @@ def home(request: Request, db: Session = Depends(get_db), user: User = Depends(r
     if critical_stock_count > 0:
         dashboard_alerts.append(f"Hay {critical_stock_count} productos con stock crítico.")
 
-    if inactive_patients:
-        dashboard_alerts.append(f"Hay {len(inactive_patients)} pacientes sin visitas recientes.")
+
 
     if not dashboard_alerts:
         dashboard_alerts.append("Todo se ve ordenado para hoy.")
@@ -924,16 +830,10 @@ def home(request: Request, db: Session = Depends(get_db), user: User = Depends(r
             'today_events': today_events,
             'upcoming_appointments': upcoming_appointments,
             'today_appointments': today_appointments,
-            'recent_patients': recent_patients,
-            'inactive_patients': inactive_patients,
-            'overdue_vaccines': overdue_vaccines,
-            'overdue_dewormings': overdue_dewormings,
-            'preventive_due': preventive_due,
+            'recent_patients': recent_patients, 
             'today_sales_total': today_sales_total,
             'today_sales_count': today_sales_count,
             'critical_stock_count': critical_stock_count,
-            'weekly_activity': weekly_activity,
-            'max_weekly_activity': max_weekly_activity,
             'dashboard_alerts': dashboard_alerts,
             'today': today
         }
