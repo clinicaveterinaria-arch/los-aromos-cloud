@@ -408,60 +408,15 @@
             </div>
             <div class="watermark">⚠️</div>
         </a>
-        <a href="#plan-sanitario-pendiente" class="home-stat-card card-pendientes" style="text-decoration:none;color:inherit;">
-            <h3>💉 Preventivos</h3>
-            <div class="big-number">{{ overdue_vaccines|length + overdue_dewormings|length }}</div>
-            <div class="label">Plan sanitario pendiente</div>
-            <div class="mini-row">
-                <span>{{ overdue_vaccines|length }} Vacunas</span>
-                <span>{{ overdue_dewormings|length }} Despar.</span>
-            </div>
-            <div class="watermark">💉</div>
-        </a>       
+
     </div>
-    <div class="home-panel" id="plan-sanitario-pendiente" style="margin-bottom:18px;">
+
         <div class="home-panel-head">
             <h2>💉 Plan sanitario pendiente</h2>
             <span class="home-badge badge-red">{{ preventive_due|length }} pacientes</span>
         </div>
 
-        <div class="home-list">
-            {% for item in preventive_due[:6] %}
-                <a href="/patients/{{ item.patient.id }}/v2" class="home-list-item">
-                    <div class="home-item-left">
-                        <div class="home-avatar">
-                            {% if item.vaccine_due and item.deworming_due %}💉{% elif item.vaccine_due %}💉{% else %}🪱{% endif %}
-                        </div>
-                        <div>
-                            <div class="home-item-title">
-                                {{ item.patient.name }}
-                                {% if item.patient.owner %} · {{ item.patient.owner.name }}{% endif %}
-                            </div>
-                            <div class="home-item-subtitle">
-                                {% if item.vaccine_due %}
-                                    Vacuna: {% if item.last_vaccine %}{{ item.last_vaccine.event_date.strftime('%d/%m/%Y') }}{% else %}Nunca registrada{% endif %}
-                                {% endif %}
-                                {% if item.vaccine_due and item.deworming_due %} · {% endif %}
-                                {% if item.deworming_due %}
-                                    Desparasitación: {% if item.last_deworming %}{{ item.last_deworming.event_date.strftime('%d/%m/%Y') }}{% else %}Nunca registrada{% endif %}
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
 
-                    {% if item.vaccine_due and item.deworming_due %}
-                        <span class="home-badge badge-red">Ambas</span>
-                    {% elif item.vaccine_due %}
-                        <span class="home-badge badge-yellow">Vacuna</span>
-                    {% else %}
-                        <span class="home-badge badge-yellow">Desparas.</span>
-                    {% endif %}
-                </a>
-            {% else %}
-                <p class="home-item-subtitle">No hay pacientes con plan sanitario pendiente.</p>
-            {% endfor %}
-        </div>
-    </div>
     <div class="home-main-grid">
 
         <div class="home-panel">
