@@ -39,7 +39,7 @@
 
     .home-stats-grid {
         display:grid;
-        grid-template-columns:repeat(5,minmax(160px,1fr));
+        grid-template-columns:repeat(4,minmax(160px,1fr));
         gap:16px;
         margin-bottom:20px;
     }
@@ -94,7 +94,6 @@
     }
 
     .card-turnos { background:linear-gradient(135deg,#fff,#fff5fa); }
-    .card-pendientes { background:linear-gradient(135deg,#fff,#f8fbff); border-color:#bfdbfe; }
     .card-ventas { background:linear-gradient(135deg,#fff,#f8fff8); border-color:#bbf7d0; }
     .card-stock { background:linear-gradient(135deg,#fff,#fff7ed); border-color:#fed7aa; }
     .card-alertas { background:linear-gradient(135deg,#fff,#fff1f2); border-color:#fecdd3; }
@@ -211,34 +210,6 @@
     .badge-red { background:#fee2e2; color:#991b1b; }
     .badge-blue { background:#dbeafe; color:#1d4ed8; }
 
-    .home-chart-box {
-        height:230px;
-        border:1px solid #f3edf1;
-        border-radius:18px;
-        background:linear-gradient(180deg,#fff,#fff8fb);
-        display:flex;
-        align-items:end;
-        gap:12px;
-        padding:18px;
-    }
-
-    .fake-bar {
-        flex:1;
-        border-radius:999px 999px 8px 8px;
-        background:linear-gradient(180deg,#df6aa0,#f3a9c8);
-        min-height:22px;
-        position:relative;
-    }
-
-    .fake-bar span {
-        position:absolute;
-        bottom:-22px;
-        left:50%;
-        transform:translateX(-50%);
-        color:#6b7280;
-        font-size:12px;
-    }
-
     .quick-grid {
         display:grid;
         grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
@@ -263,26 +234,6 @@
     .quick-card:hover {
         background:#fff0f7;
         color:#d85b9a;
-    }
-
-    .home-table {
-        width:100%;
-        border-collapse:collapse;
-        font-size:14px;
-    }
-
-    .home-table th,
-    .home-table td {
-        padding:10px;
-        border-bottom:1px solid #f3edf1;
-        text-align:left;
-    }
-
-    .home-table th {
-        color:#6b7280;
-        font-size:12px;
-        text-transform:uppercase;
-        letter-spacing:.04em;
     }
 
     @media (max-width:1200px) {
@@ -315,23 +266,12 @@
 {% set ecg_hoy = turnos_hoy|selectattr('service', 'equalto', 'ECG')|list|length %}
 {% set rx_hoy = turnos_hoy|selectattr('service', 'equalto', 'Radiografía')|list|length %}
 
-{% set vacunas_proximas = [] %}
-{% set desparas_proximas = [] %}
-{% for e in upcoming %}
-    {% if e.event_type == 'Vacuna' or e.vaccine_name %}
-        {% set _ = vacunas_proximas.append(e) %}
-    {% endif %}
-    {% if e.event_type == 'Desparasitación' or e.dewormer_product %}
-        {% set _ = desparas_proximas.append(e) %}
-    {% endif %}
-{% endfor %}
-
 <div class="home-v3">
 
     <div class="home-header">
         <div class="home-title">
-        <h1>👋 Hola, Caro y Juli!!</h1>
-        <p>Acá tienen un resumen del día de hoy, así que PÓNGANLE GANAS Y HAGAN💵QUE LA CASA NO SE CONSTRUYE SOLA!!.</p>
+            <h1>👋 Hola, Caro y Juli!!</h1>
+            <p>Acá tienen un resumen del día de hoy, así que PÓNGANLE GANAS Y HAGAN💵QUE LA CASA NO SE CONSTRUYE SOLA!!.</p>
         </div>
         <div class="home-date-pill">📅 {{ today.strftime('%d/%m/%Y') }}</div>
     </div>
@@ -349,70 +289,80 @@
             <div class="watermark">📅</div>
         </a>
 
-        <a href="/pendientes" class="home-stat-card card-pendientes" style="text-decoration:none;color:inherit;">
-            <h3>🔔 Pendientes</h3>
-            <div class="big-number">{{ stats.pending }}</div>
-            <div class="label">Recordatorios</div>
-            <div class="mini-row">
-                <span>{{ vacunas_proximas|length }} Vacunas</span>
-                <span>{{ desparas_proximas|length }} Desparas.</span>
-                <span>{{ stats.today }} Hoy</span>
-            </div>
-            <div class="watermark">🔔</div>
-        </a>
-
         <a href="/sales" class="home-stat-card card-ventas" style="text-decoration:none;color:inherit;">
             <h3>💰 Ventas</h3>
-        
+
             <div class="big-number">
                 $ {{ "{:,.0f}".format(today_sales_total).replace(",", ".") }}
             </div>
-        
+
             <div class="label">
                 {{ today_sales_count }} ventas hoy
             </div>
-        
+
             <div class="mini-row">
                 <span>Ver ventas</span>
                 <span>Comanda</span>
             </div>
-        
+
             <div class="watermark">💰</div>
         </a>
 
         <a href="/products?alert=critical" class="home-stat-card card-stock" style="text-decoration:none;color:inherit;">
             <h3>📦 Stock</h3>
-        
+
             <div class="big-number">
                 {{ critical_stock_count }}
             </div>
-        
+
             <div class="label">
                 Productos críticos
             </div>
-        
+
             <div class="mini-row">
                 <span>Ver productos</span>
                 <span>Stock mínimo</span>
             </div>
-        
+
             <div class="watermark">📦</div>
         </a>
+
         <a href="/pendientes" class="home-stat-card card-alertas" style="text-decoration:none;color:inherit;">
             <h3>⚠️ Alertas</h3>
             <div class="big-number">{{ stats.overdue }}</div>
-            <div class="label">Vencidos</div>
+            <div class="label">Recordatorios vencidos</div>
             <div class="mini-row">
                 <span>{{ stats.today }} para hoy</span>
-               
+                <span>Ver pendientes</span>
             </div>
             <div class="watermark">⚠️</div>
         </a>
-
     </div>
 
+    <div class="home-panel" style="margin-bottom:18px;">
+        <div class="home-panel-head">
+            <h2>🧠 IA Gerencial</h2>
+            <span class="home-badge badge-blue">Resumen del día</span>
+        </div>
 
-
+        <div class="home-list">
+            {% for alert in dashboard_alerts %}
+                <div class="home-list-item">
+                    <div class="home-item-left">
+                        <div class="home-avatar">💡</div>
+                        <div>
+                            <div class="home-item-title">
+                                {{ alert }}
+                            </div>
+                            <div class="home-item-subtitle">
+                                Generado automáticamente según la actividad de la clínica.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
 
     <div class="home-main-grid">
 
@@ -448,90 +398,6 @@
 
         <div class="home-panel">
             <div class="home-panel-head">
-                <h2>🔔 Próximos recordatorios</h2>
-
-
-    <div class="home-main-grid">
-
-        <div class="home-panel">
-            <div class="home-panel-head">
-                <h2>📈 Actividad de la semana</h2>
-                <span class="home-badge badge-blue">Vista rápida</span>
-            </div>
-
-            <div class="home-chart-box">
-                {% for day in weekly_activity %}
-                    <div class="fake-bar" style="height:{{ ((day.count / max_weekly_activity) * 85)|int + 10 }}%;">
-                        <span>{{ day.label }}</span>
-                    </div>
-                {% endfor %}
-            </div>
-        </div>
-
-        <div class="home-panel">
-            <div class="home-panel-head">
-                <h2>⚠️ Pacientes sin visitas &gt; 12 meses</h2>
-                <span class="home-badge badge-red">{{ inactive_patients|length }}</span>
-            </div>
-
-            <div class="home-list">
-                {% for item in inactive_patients[:5] %}
-                    <a href="/patients/{{ item.patient.id }}/v2" class="home-list-item">
-                        <div class="home-item-left">
-                            <div class="home-avatar">🐾</div>
-                            <div>
-                                <div class="home-item-title">{{ item.patient.name }}</div>
-                                <div class="home-item-subtitle">
-                                    {% if item.last_event %}
-                                        Última visita: {{ item.last_event.event_date.strftime('%d/%m/%Y') }}
-                                    {% else %}
-                                        Sin eventos registrados
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                        <span class="home-badge badge-yellow">Revisar</span>
-                    </a>
-                {% else %}
-                    <p class="home-item-subtitle">No hay pacientes inactivos.</p>
-                {% endfor %}
-            </div>
-        </div>
-
-    </div>
-
-    <div class="home-main-grid">
-
-        <div class="home-panel">
-            <div class="home-panel-head">
-                <h2>🩺 Últimos eventos</h2>
-                <a href="/search" class="home-link-btn">Buscar paciente</a>
-            </div>
-
-            <div class="home-list">
-                {% for e in latest_events[:6] %}
-                    <a href="/patients/{{ e.patient.id }}/v2" class="home-list-item">
-                        <div class="home-item-left">
-                            <div class="home-avatar">
-                                {% if e.event_type == 'ECG' %}💗{% elif e.event_type == 'Radiografía' %}📷{% elif e.event_type == 'Vacuna' %}💉{% elif e.event_type == 'Laboratorio' %}🧪{% else %}🩺{% endif %}
-                            </div>
-                            <div>
-                                <div class="home-item-title">{{ e.event_type }} · {{ e.patient.name }}</div>
-                                <div class="home-item-subtitle">
-                                    {{ e.event_date.strftime('%d/%m/%Y %H:%M') }}{% if e.title %} · {{ e.title }}{% endif %}
-                                </div>
-                            </div>
-                        </div>
-                        <span class="home-badge badge-pink">Abrir</span>
-                    </a>
-                {% else %}
-                    <p class="home-item-subtitle">No hay eventos cargados todavía.</p>
-                {% endfor %}
-            </div>
-        </div>
-
-        <div class="home-panel">
-            <div class="home-panel-head">
                 <h2>🐶 Pacientes recientes</h2>
                 <a href="/patients/new" class="home-link-btn">Nuevo paciente</a>
             </div>
@@ -560,42 +426,39 @@
 
     </div>
 
+    <div class="home-panel" style="margin-bottom:18px;">
+        <div class="home-panel-head">
+            <h2>🩺 Últimos eventos</h2>
+            <a href="/search" class="home-link-btn">Buscar paciente</a>
+        </div>
+
+        <div class="home-list">
+            {% for e in latest_events[:6] %}
+                <a href="/patients/{{ e.patient.id }}/v2" class="home-list-item">
+                    <div class="home-item-left">
+                        <div class="home-avatar">
+                            {% if e.event_type == 'ECG' %}💗{% elif e.event_type == 'Radiografía' %}📷{% elif e.event_type == 'Vacuna' %}💉{% elif e.event_type == 'Laboratorio' %}🧪{% else %}🩺{% endif %}
+                        </div>
+                        <div>
+                            <div class="home-item-title">{{ e.event_type }} · {{ e.patient.name }}</div>
+                            <div class="home-item-subtitle">
+                                {{ e.event_date.strftime('%d/%m/%Y %H:%M') }}{% if e.title %} · {{ e.title }}{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <span class="home-badge badge-pink">Abrir</span>
+                </a>
+            {% else %}
+                <p class="home-item-subtitle">No hay eventos cargados todavía.</p>
+            {% endfor %}
+        </div>
+    </div>
+
     <div class="home-panel">
         <div class="home-panel-head">
             <h2>⚡ Accesos rápidos</h2>
         </div>
-<div class="home-panel" style="margin-bottom:18px;">
 
-    <div class="home-panel-head">
-        <h2>🧠 IA Gerencial</h2>
-        <span class="home-badge badge-blue">Resumen del día</span>
-    </div>
-
-    <div class="home-list">
-
-        {% for alert in dashboard_alerts %}
-
-        <div class="home-list-item">
-            <div class="home-item-left">
-                <div class="home-avatar">💡</div>
-
-                <div>
-                    <div class="home-item-title">
-                        {{ alert }}
-                    </div>
-
-                    <div class="home-item-subtitle">
-                        Generado automáticamente según la actividad de la clínica.
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {% endfor %}
-
-    </div>
-
-</div>
         <div class="quick-grid">
             <a href="/search" class="quick-card">🩺 Historia clínica</a>
             <a href="/agenda" class="quick-card">📅 Agenda</a>
@@ -604,7 +467,7 @@
             <a href="/patients/new" class="quick-card">🐾 Nuevo paciente</a>
             <a href="/owners" class="quick-card">👤 Propietarios</a>
             <a href="/pendientes" class="quick-card">🔔 Pendientes</a>
-            <a href="/stats" class="quick-card">📊 Estadísticas</a>            
+            <a href="/stats" class="quick-card">📊 Estadísticas</a>
             <a href="/migration" class="quick-card">📥 Migración</a>
         </div>
     </div>
