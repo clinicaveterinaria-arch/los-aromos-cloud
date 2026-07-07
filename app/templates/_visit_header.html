@@ -2,43 +2,128 @@
 
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap;">
 
-        <div>
+        <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;">
 
-            <h2 class="hc2-title">
-                🐾 {{ patient.name }}
-            </h2>
+            <div style="position:relative;width:96px;height:96px;flex-shrink:0;">
 
-            <div class="hc2-muted" style="margin-top:6px;">
+                <div style="
+                    width:96px;
+                    height:96px;
+                    border-radius:50%;
+                    overflow:hidden;
+                    border:3px solid #f3c6d8;
+                    background:#fff0f7;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    font-size:38px;
+                    color:#d85b9a;
+                    font-weight:bold;">
 
-                <strong>Propietario:</strong>
-                {{ patient.owner.name if patient.owner else '-' }}
+                    {% if patient.photo_url %}
+                        <img src="{{ patient.photo_url }}"
+                             alt="{{ patient.name }}"
+                             style="width:100%;height:100%;object-fit:cover;">
+                    {% else %}
+                        {{ patient.name[:1] if patient.name else '?' }}
+                    {% endif %}
 
-                &nbsp;&nbsp;•&nbsp;&nbsp;
+                </div>
 
-                <strong>Especie:</strong>
-                {{ patient.species or '-' }}
+                <label for="patient_photo"
+                       title="Agregar o cambiar foto"
+                       style="
+                       position:absolute;
+                       right:0;
+                       bottom:0;
+                       width:32px;
+                       height:32px;
+                       border-radius:50%;
+                       background:#d85b9a;
+                       color:white;
+                       display:flex;
+                       align-items:center;
+                       justify-content:center;
+                       font-size:22px;
+                       font-weight:bold;
+                       cursor:pointer;
+                       border:2px solid white;
+                       box-shadow:0 4px 10px rgba(0,0,0,.18);">
+                    +
+                </label>
 
-                &nbsp;&nbsp;•&nbsp;&nbsp;
+                <form action="/patients/{{ patient.id }}/photo"
+                      method="post"
+                      enctype="multipart/form-data">
 
-                <strong>Raza:</strong>
-                {{ patient.breed or '-' }}
+                    <input id="patient_photo"
+                           name="photo"
+                           type="file"
+                           accept="image/*"
+                           hidden
+                           onchange="this.form.submit()">
+
+                </form>
 
             </div>
 
-            <div class="hc2-muted" style="margin-top:6px;">
+            <div>
 
-                <strong>Sexo:</strong>
-                {{ patient.sex or '-' }}
+                <h2 class="hc2-title" style="font-size:30px;">
+                    🐾 {{ patient.name }}
+                </h2>
 
-                &nbsp;&nbsp;•&nbsp;&nbsp;
+                <div class="hc2-muted" style="margin-top:8px;font-size:14px;">
 
-                <strong>Edad:</strong>
-                {{ patient.age or '-' }}
+                    <strong>Propietario:</strong>
+                    {{ patient.owner.name if patient.owner else '-' }}
 
-                &nbsp;&nbsp;•&nbsp;&nbsp;
+                    &nbsp;&nbsp;•&nbsp;&nbsp;
 
-                <strong>Peso:</strong>
-                {{ patient.weight or '-' }} kg
+                    <strong>Especie:</strong>
+                    {{ patient.species or '-' }}
+
+                    &nbsp;&nbsp;•&nbsp;&nbsp;
+
+                    <strong>Raza:</strong>
+                    {{ patient.breed or '-' }}
+
+                </div>
+
+                <div class="hc2-muted" style="margin-top:8px;font-size:14px;">
+
+                    <strong>Sexo:</strong>
+                    {{ patient.sex or '-' }}
+
+                    &nbsp;&nbsp;•&nbsp;&nbsp;
+
+                    <strong>Edad:</strong>
+                    {% if patient.birth_date %}
+                        {{ patient.birth_date.strftime("%d/%m/%Y") }}
+                        ({{ ((today - patient.birth_date).days // 365) }} años)
+                    {% else %}
+                        -
+                    {% endif %}
+
+                    &nbsp;&nbsp;•&nbsp;&nbsp;
+
+                    <strong>Peso:</strong>
+                    {{ patient.weight or '-' }} kg
+
+                </div>
+
+                {% if patient.alerts %}
+                    <div style="
+                        margin-top:10px;
+                        background:#fff1f2;
+                        border:1px solid #fecdd3;
+                        color:#991b1b;
+                        border-radius:12px;
+                        padding:8px 10px;
+                        font-size:13px;">
+                        🚨 <strong>Alerta:</strong> {{ patient.alerts }}
+                    </div>
+                {% endif %}
 
             </div>
 
@@ -46,34 +131,31 @@
 
         <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;">
 
-            <a href="/patients"
+            <a href="/search"
                class="hc2-btn">
-
-                ← Pacientes
-
+                ← Buscar
             </a>
 
-            <a href="/hospitalizations"
+            <a href="/patients/{{ patient.id }}/edit"
                class="hc2-btn">
-
-                🏥 Internación
-
+                ✏️ Editar paciente
             </a>
 
-            <a href="/sales/new?patient_id={{ patient.id }}"
+            <a href="/patients/{{ patient.id }}/hospitalize"
                class="hc2-btn">
+                🏥 Internar
+            </a>
 
+            <a href="/patients/{{ patient.id }}/cart"
+               class="hc2-btn">
                 🛒 Venta
-
             </a>
 
-            <button
-                type="button"
-                class="hc2-btn">
-
+            <a href="/patients/{{ patient.id }}/print"
+               target="_blank"
+               class="hc2-btn">
                 📄 Imprimir
-
-            </button>
+            </a>
 
         </div>
 
