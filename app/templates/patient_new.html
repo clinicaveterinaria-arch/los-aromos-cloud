@@ -187,8 +187,32 @@
                 <div class="field-box">
                     <label>Fecha de nacimiento</label>
                     <input type="date" name="birth_date" id="birthDate">
+                
+                    <div style="display:flex; gap:8px; margin-top:8px;">
+                        <input
+                            type="number"
+                            id="approxAgeValue"
+                            placeholder="Edad"
+                            min="0"
+                            style="flex:1;"
+                        >
+                
+                        <select
+                            id="approxAgeUnit"
+                            style="width:120px;"
+                        >
+                            <option value="days">Días</option>
+                            <option value="weeks">Semanas</option>
+                            <option value="months">Meses</option>
+                            <option value="years">Años</option>
+                        </select>
+                    </div>
+                
+                    <small style="color:#888;">
+                        Si no conocés la fecha exacta, ingresá una edad aproximada.
+                    </small>
                 </div>
-
+                
                 <div class="field-box">
                     <label>Edad automática</label>
                     <div class="age-box" id="ageBox">Sin fecha cargada</div>
@@ -231,6 +255,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const newOwnerBox = document.getElementById('newOwnerBox');
     const birthDate = document.getElementById('birthDate');
     const ageBox = document.getElementById('ageBox');
+    const approxAgeValue = document.getElementById('approxAgeValue');
+    const approxAgeUnit = document.getElementById('approxAgeUnit');
 
     if (ownerSelect) {
         const allOwnerOptions = Array.from(ownerSelect.querySelectorAll('option'));
@@ -291,7 +317,43 @@ document.addEventListener('DOMContentLoaded', function () {
             ageBox.textContent = years + ' años y ' + months + ' meses';
         }
     }
-
+    function calculateBirthDateFromApproxAge() {
+        if (!birthDate || !approxAgeValue || !approxAgeUnit) return;
+    
+        const value = parseInt(approxAgeValue.value, 10);
+        const unit = approxAgeUnit.value;
+    
+        if (!value || value < 0) return;
+    
+        const date = new Date();
+    
+        if (unit === 'days') {
+            date.setDate(date.getDate() - value);
+        }
+    
+        if (unit === 'weeks') {
+            date.setDate(date.getDate() - (value * 7));
+        }
+    
+        if (unit === 'months') {
+            date.setMonth(date.getMonth() - value);
+        }
+    
+        if (unit === 'years') {
+            date.setFullYear(date.getFullYear() - value);
+        }
+    
+        birthDate.value = date.toISOString().split('T')[0];
+        calculateAge();
+    }
+    
+    if (approxAgeValue) {
+        approxAgeValue.addEventListener('input', calculateBirthDateFromApproxAge);
+    }
+    
+    if (approxAgeUnit) {
+        approxAgeUnit.addEventListener('change', calculateBirthDateFromApproxAge);
+    }
     if (birthDate) {
         birthDate.addEventListener('change', calculateAge);
         calculateAge();
