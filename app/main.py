@@ -2113,9 +2113,6 @@ async def patient_visit_create(
             reminder_date=parse_date(next_deworming_date),
             created_by=user.username
         ))
-    reminder_types = getlist('reminder_type') or []
-    reminder_titles = getlist('reminder_title') or []
-    reminder_dates = getlist('reminder_date') or []
     for r_type, r_title, r_date in zip(reminder_types, reminder_titles, reminder_dates):
         r_date_parsed = parse_date(r_date)
 
