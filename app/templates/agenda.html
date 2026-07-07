@@ -1073,24 +1073,57 @@
                 </select>
 
                 <label><b>Cliente</b></label>
-                <select name="owner_id" id="owner_id">
-                    <option value="">Sin cliente asignado</option>
-                    {% for o in owners %}
-                        <option value="{{ o.id }}" data-whatsapp="{{ o.whatsapp or o.phone or '' }}">
-                            {{ o.name }}
-                        </option>
-                    {% endfor %}
-                </select>
-
+                
+                <input
+                    type="text"
+                    id="owner_search"
+                    placeholder="Escribí el propietario"
+                    autocomplete="off">
+                
+                <input type="hidden" name="owner_id" id="owner_id">
+                
+                <div id="owner_results"
+                     style="display:none;border:1px solid #f3c6d8;border-radius:12px;background:white;margin-top:4px;max-height:180px;overflow:auto;">
+                </div>
+                
                 <label><b>Paciente</b></label>
-                <select name="patient_id" id="patient_id">
-                    <option value="">Sin paciente asignado</option>
-                    {% for p in patients %}
-                        <option value="{{ p.id }}" data-owner="{{ p.owner_id if p.owner_id else '' }}">
-                            {{ p.name }}{% if p.owner %} - {{ p.owner.name }}{% endif %}
-                        </option>
-                    {% endfor %}
-                </select>
+                
+                <input
+                    type="text"
+                    id="patient_search"
+                    placeholder="Escribí la mascota"
+                    autocomplete="off">
+                
+                <input type="hidden" name="patient_id" id="patient_id">
+                
+                <div id="patient_results"
+                     style="display:none;border:1px solid #f3c6d8;border-radius:12px;background:white;margin-top:4px;max-height:180px;overflow:auto;">
+                </div>
+                
+                <script id="agenda-data" type="application/json">
+                {
+                    "owners": [
+                        {% for o in owners %}
+                        {
+                            "id": "{{ o.id }}",
+                            "name": {{ (o.name or '')|tojson }},
+                            "whatsapp": {{ (o.whatsapp or o.phone or '')|tojson }}
+                        }{% if not loop.last %},{% endif %}
+                        {% endfor %}
+                    ],
+                    "patients": [
+                        {% for p in patients %}
+                        {
+                            "id": "{{ p.id }}",
+                            "name": {{ (p.name or '')|tojson }},
+                            "owner_id": "{{ p.owner_id if p.owner_id else '' }}",
+                            "owner_name": {{ (p.owner.name if p.owner else '')|tojson }},
+                            "owner_whatsapp": {{ ((p.owner.whatsapp or p.owner.phone or '') if p.owner else '')|tojson }}
+                        }{% if not loop.last %},{% endif %}
+                        {% endfor %}
+                    ]
+                }
+                </script>
 
                 <label><b>Nota / Precio</b></label>
                 <textarea name="notes" rows="3" placeholder="Observaciones, presupuesto o precio estimado"></textarea>
