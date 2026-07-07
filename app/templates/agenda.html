@@ -1191,46 +1191,192 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
-    const ownerSelect = document.getElementById('owner_id');
-    const patientSelect = document.getElementById('patient_id');
+    const agendaDataScript = document.getElementById('agenda-data');
+    const agendaData = agendaDataScript ? JSON.parse(agendaDataScript.textContent) : { owners: [], patients: [] };
+    
+    const ownerSearch = document.getElementById('owner_search');
+    const patientSearch = document.getElementById('patient_search');
+    
+    const ownerHidden = document.getElementById('owner_id');
+    const patientHidden = document.getElementById('patient_id');
+    
+    const ownerResults = document.getElementById('owner_results');
+    const patientResults = document.getElementById('patient_results');
+    
     const whatsappInput = document.getElementById('contact_whatsapp');
-
-    if (ownerSelect && patientSelect) {
-        const allOptions = Array.from(patientSelect.querySelectorAll('option'));
-
-        function filterPatients() {
-            const ownerId = ownerSelect.value;
-            const selectedOwner = ownerSelect.options[ownerSelect.selectedIndex];
-
-            if (whatsappInput && selectedOwner) {
-                whatsappInput.value = selectedOwner.dataset.whatsapp || '';
-            }
-
-            patientSelect.innerHTML = '';
-            const visiblePatients = [];
-
-            allOptions.forEach(option => {
-                if (option.value === '') {
-                    patientSelect.appendChild(option.cloneNode(true));
-                    return;
-                }
-
-                if (option.dataset.owner === ownerId) {
-                    visiblePatients.push(option.cloneNode(true));
-                }
-            });
-
-            visiblePatients.forEach(option => patientSelect.appendChild(option));
-
-            if (visiblePatients.length === 1) {
-                patientSelect.value = visiblePatients[0].value;
+    
+    function normalizeText(value) {
+        return String(value || '')
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '');
+    }
+    
+    function hideResults(box) {
+        if (box) {
+            box.style.display = 'none';
+            box.innerHTML = '';
+        }
+    }
+    
+    function resultItem(html, onClick) {
+        const div = document.createElement('div');
+        div.innerHTML = html;
+        div.style.padding = '9px 11px';
+        div.style.cursor = 'pointer';
+        div.style.borderBottom = '1px solid #f3edf1';
+    
+        div.addEventListener('mouseenter', function () {
+            div.style.background = '#fff0f7';
+        });
+    
+        div.addEventListener('mouseleave', function () {
+            div.style.background = 'white';
+        });
+    
+        div.addEventListener('click', onClick);
+    
+        return div;
+    }
+    
+    function selectOwner(owner) {
+        ownerHidden.value = owner.id || '';
+        ownerSearch.value = owner.name || '';
+    
+        if (whatsappInput) {
+            whatsappInput.value = owner.whatsapp || '';
+        }
+    
+        patientHidden.value = '';
+        patientSearch.value = '';
+    
+        hideResults(ownerResults);
+    
+        const ownerPatients = agendaData.patients.filter(p => String(p.owner_id) === String(owner.id));
+    
+        if (ownerPatients.length === 1) {
+            selectPatient(ownerPatients[0]);
+        } else {
+            showPatients('', owner.id);
+            if (patientSearch) patientSearch.focus();
+        }
+    }
+    
+    function selectPatient(patient) {
+        patientHidden.value = patient.id || '';
+        patientSearch.value = patient.name || '';
+    
+        if (patient.owner_id) {
+            ownerHidden.value = patient.owner_id;
+            ownerSearch.value = patient.owner_name || '';
+    
+            if (whatsappInput) {
+                whatsappInput.value = patient.owner_whatsapp || '';
             }
         }
-
-        ownerSelect.addEventListener('change', filterPatients);
-        filterPatients();
+    
+        hideResults(patientResults);
+        hideResults(ownerResults);
     }
-
+    
+    function showOwners(query) {
+        const q = normalizeText(query);
+    
+        const matches = agendaData.owners
+            .filter(o => normalizeText(o.name).includes(q))
+            .slice(0, 25);
+    
+        ownerResults.innerHTML = '';
+    
+        if (!matches.length) {
+            hideResults(ownerResults);
+            return;
+        }
+    
+        matches.forEach(owner => {
+            const pets = agendaData.patients
+                .filter(p => String(p.owner_id) === String(owner.id))
+                .map(p => p.name)
+                .join(', ');
+    
+            ownerResults.appendChild(resultItem(
+                `<b>${owner.name}</b><br><small style="color:#6b7280;">${pets || 'Sin mascotas cargadas'}</small>`,
+                function () {
+                    selectOwner(owner);
+                }
+            ));
+        });
+    
+        ownerResults.style.display = 'block';
+    }
+    
+    function showPatients(query, ownerId) {
+        const q = normalizeText(query);
+    
+        let list = agendaData.patients;
+    
+        if (ownerId) {
+            list = list.filter(p => String(p.owner_id) === String(ownerId));
+        }
+    
+        const matches = list
+            .filter(p => {
+                const text = normalizeText((p.name || '') + ' ' + (p.owner_name || ''));
+                return text.includes(q);
+            })
+            .slice(0, 25);
+    
+        patientResults.innerHTML = '';
+    
+        if (!matches.length) {
+            hideResults(patientResults);
+            return;
+        }
+    
+        matches.forEach(patient => {
+            patientResults.appendChild(resultItem(
+                `<b>${patient.name}</b><br><small style="color:#6b7280;">${patient.owner_name || 'Sin propietario'}</small>`,
+                function () {
+                    selectPatient(patient);
+                }
+            ));
+        });
+    
+        patientResults.style.display = 'block';
+    }
+    
+    if (ownerSearch) {
+        ownerSearch.addEventListener('input', function () {
+            ownerHidden.value = '';
+            patientHidden.value = '';
+            showOwners(this.value);
+        });
+    
+        ownerSearch.addEventListener('focus', function () {
+            showOwners(this.value);
+        });
+    }
+    
+    if (patientSearch) {
+        patientSearch.addEventListener('input', function () {
+            patientHidden.value = '';
+            showPatients(this.value, ownerHidden.value);
+        });
+    
+        patientSearch.addEventListener('focus', function () {
+            showPatients(this.value, ownerHidden.value);
+        });
+    }
+    
+    document.addEventListener('click', function (event) {
+        if (!event.target.closest('#owner_search, #owner_results')) {
+            hideResults(ownerResults);
+        }
+    
+        if (!event.target.closest('#patient_search, #patient_results')) {
+            hideResults(patientResults);
+        }
+    });
     let draggedAppointmentId = null;
 
     function minutesFromTime(value) {
