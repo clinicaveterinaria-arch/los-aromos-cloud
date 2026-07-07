@@ -896,17 +896,34 @@
                                 | list %}
                             {% set last_applied = same_applied|last %}
                             {% set next_dose = same_pending|first %}
-                            {% set delayed = next_dose and next_dose.scheduled_time and next_dose.scheduled_time < current_time_hhmm %}
 
-                            {% set treatment_status = 'Completado' if not next_dose else ('Atrasada' if delayed else 'Pendiente') %}
+                            {% set scheduled_parts = next_dose.scheduled_time.split(':') if next_dose and next_dose.scheduled_time else [] %}
+                            {% set current_parts = current_time_hhmm.split(':') if current_time_hhmm else [] %}
+
+                            {% set scheduled_minutes = (scheduled_parts[0]|int * 60 + scheduled_parts[1]|int) if scheduled_parts|length == 2 else none %}
+                            {% set current_minutes = (current_parts[0]|int * 60 + current_parts[1]|int) if current_parts|length == 2 else none %}
+
+                            {% set minutes_diff = current_minutes - scheduled_minutes if scheduled_minutes is not none and current_minutes is not none else none %}
+
+                            {% if not next_dose %}
+                                {% set treatment_status = 'Completado' %}
+                            {% elif minutes_diff is not none and minutes_diff > 30 %}
+                                {% set treatment_status = 'Atrasada' %}
+                            {% elif minutes_diff is not none and minutes_diff >= -15 %}
+                                {% set treatment_status = 'Próxima' %}
+                            {% else %}
+                                {% set treatment_status = 'Pendiente' %}
+                            {% endif %}
 
                             {% set card_color =
                                 '#fff1f2' if treatment_status == 'Atrasada' else
+                                '#fff7ed' if treatment_status == 'Próxima' else
                                 '#fefce8' if treatment_status == 'Pendiente' else
                                 '#f0fdf4' %}
 
                             {% set border_color =
                                 '#fecaca' if treatment_status == 'Atrasada' else
+                                '#fed7aa' if treatment_status == 'Próxima' else
                                 '#fde68a' if treatment_status == 'Pendiente' else
                                 '#bbf7d0' %}
 
@@ -932,13 +949,14 @@
                                     <div style="text-align:right;">
                                         {% if treatment_status == 'Atrasada' %}
                                             <b style="color:#dc2626;">🔴 Atrasada</b>
-
+                                        {% elif treatment_status == 'Próxima' %}
+                                            <b style="color:#ea580c;">🟠 Próxima</b>
                                         {% elif treatment_status == 'Pendiente' %}
                                             <b style="color:#b45309;">🟡 Pendiente</b>
-
                                         {% else %}
                                             <b style="color:#15803d;">🟢 Completado</b>
                                         {% endif %}
+                                    </div>
                                     </div>
                                 </div>
 
