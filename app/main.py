@@ -1971,9 +1971,9 @@ async def patient_visit_create(
 
     studies = getlist('studies')
     studies = [s for s in studies if s and str(s).strip()]
-    reminder_types = getlist('reminder_type')
-    reminder_titles = getlist('reminder_title')
-    reminder_dates = getlist('reminder_date')
+    reminder_types = getlist('reminder_type') or getlist('reminder_type[]') or []
+    reminder_titles = getlist('reminder_title') or getlist('reminder_title[]') or []
+    reminder_dates = getlist('reminder_date') or getlist('reminder_date[]') or []
     if studies:
         description_parts.append(
             "Estudios solicitados / realizados:\n" + "\n".join(f"- {s}" for s in studies)
