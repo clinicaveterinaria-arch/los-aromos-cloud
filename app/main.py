@@ -2081,7 +2081,7 @@ async def patient_visit_create(
             filename=original_name,
             file_path=public_url
         ))
-
+    close_managed_due_events(db, patient, event, user)
     if next_vaccine_date and next_vaccine_date.strip():
         db.add(ClinicalEvent(
             patient_id=patient.id,
@@ -2142,7 +2142,7 @@ async def patient_visit_create(
 
         db.add(reminder_event)
 
-    close_managed_due_events(db, patient, event, user)
+    
 
     db.commit()
 
