@@ -896,14 +896,18 @@
                                 | list %}
                             {% set last_applied = same_applied|last %}
                             {% set next_dose = same_pending|first %}
-                            {% set overdue = next_dose and next_dose.scheduled_time and next_dose.scheduled_time < current_time_hhmm %}
+                            {% set delayed = next_dose and next_dose.scheduled_time and next_dose.scheduled_time < current_time_hhmm %}
+
+                            {% set treatment_status = 'Completado' if not next_dose else ('Atrasada' if delayed else 'Pendiente') %}
+
                             {% set card_color =
-                                '#fff1f2' if overdue else
-                                '#fefce8' if next_dose else
+                                '#fff1f2' if treatment_status == 'Atrasada' else
+                                '#fefce8' if treatment_status == 'Pendiente' else
                                 '#f0fdf4' %}
+
                             {% set border_color =
-                                '#fecaca' if overdue else
-                                '#fde68a' if next_dose else
+                                '#fecaca' if treatment_status == 'Atrasada' else
+                                '#fde68a' if treatment_status == 'Pendiente' else
                                 '#bbf7d0' %}
 
                             <div style="
@@ -926,12 +930,14 @@
                                     </div>
 
                                     <div style="text-align:right;">
-                                        {% if overdue %}
-                                            <b style="color:#dc2626;">⚠ Vencida</b>
-                                        {% elif next_dose %}
-                                            <b style="color:#b45309;">⏰ Próxima</b>
+                                        {% if treatment_status == 'Atrasada' %}
+                                            <b style="color:#dc2626;">🔴 Atrasada</b>
+
+                                        {% elif treatment_status == 'Pendiente' %}
+                                            <b style="color:#b45309;">🟡 Pendiente</b>
+
                                         {% else %}
-                                            <b style="color:#15803d;">✔ Sin pendientes</b>
+                                            <b style="color:#15803d;">🟢 Completado</b>
                                         {% endif %}
                                     </div>
                                 </div>
@@ -996,7 +1002,7 @@
                                     <div class="dash-card">
                                         <span>Próxima dosis</span>
                                         <b>{{ next_dose.scheduled_time if next_dose else '-' }}</b>
-                                        <small>{% if overdue %}Vencida{% elif next_dose %}Pendiente{% else %}Completo{% endif %}</small>
+                                        <small>{{ treatment_status }}</small>
                                     </div>
 
                                     <div class="dash-card">
