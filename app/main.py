@@ -1350,6 +1350,7 @@ def waitlist_create(
 @app.post('/waitlist/{entry_id}/enter')
 def waitlist_enter_hc(
     entry_id: int,
+    request: Request,
     db: Session = Depends(get_db),
     user: User = Depends(require_user)
 ):
@@ -1363,12 +1364,13 @@ def waitlist_enter_hc(
         entry.started_at = argentina_now()
         db.commit()
 
+    request.session['active_waitlist_entry_id'] = entry.id
+
     if entry.patient_id:
         return RedirectResponse(f'/patients/{entry.patient_id}/v2', status_code=303)
 
     return RedirectResponse('/waitlist', status_code=303)
-
-    return RedirectResponse('/waitlist', status_code=303)
+   
 
 
 @app.post('/waitlist/{entry_id}/status')
