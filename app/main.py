@@ -1034,8 +1034,17 @@ def agenda(
             text += f" - {title}"
 
         appointments_tooltip_by_day.setdefault(day_key, []).append(text)
-    owners = db.query(Owner).order_by(Owner.name).limit(300).all()
-    patients = db.query(Patient).order_by(Patient.name).limit(300).all()
+    owners = (
+        db.query(Owner)
+        .order_by(Owner.name)
+        .all()
+    )
+    
+    patients = (
+        db.query(Patient)
+        .order_by(Patient.name)
+        .all()
+    )
 
     return templates.TemplateResponse(
         'agenda.html',
