@@ -2141,7 +2141,16 @@ async def patient_visit_create(
         )
 
         db.add(reminder_event)
+    active_waiting_entries = (
+        db.query(WaitingListEntry)
+        .filter(WaitingListEntry.patient_id == patient.id)
+        .filter(WaitingListEntry.status.in_(['Esperando', 'En consulta']))
+        .all()
+    )
 
+    for waiting_entry in active_waiting_entries:
+        waiting_entry.status = 'Finalizado'
+        waiting_entry.finished_at = argentina_now()
     
 
     db.commit()
