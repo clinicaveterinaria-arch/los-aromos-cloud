@@ -1358,12 +1358,15 @@ def waitlist_enter_hc(
     if not entry:
         raise HTTPException(status_code=404, detail='Entrada no encontrada')
 
-    entry.status = 'En consulta'
-    entry.started_at = argentina_now()
-    db.commit()
+    if entry.status != 'Finalizado':
+        entry.status = 'En consulta'
+        entry.started_at = argentina_now()
+        db.commit()
 
     if entry.patient_id:
-        return RedirectResponse(f'/patients/{entry.patient_id}', status_code=303)
+        return RedirectResponse(f'/patients/{entry.patient_id}/v2', status_code=303)
+
+    return RedirectResponse('/waitlist', status_code=303)
 
     return RedirectResponse('/waitlist', status_code=303)
 
