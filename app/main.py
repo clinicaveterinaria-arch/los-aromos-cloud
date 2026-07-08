@@ -8636,8 +8636,8 @@ def hospitalization_detail(
             'clinical_summary': hospital_ai['clinical_summary'],
             'today': argentina_now().date(),
             'current_time_hhmm': argentina_now().strftime('%H:%M'),
-            'latest_event_time": latest_event_time,
-            'latest_checklist_time": latest_checklist_time
+            'latest_event_time': latest_event_time,
+            'latest_checklist_time': latest_checklist_time
         }
     )
 @app.get('/hospitalizations/{hospitalization_id}/print', response_class=HTMLResponse)
