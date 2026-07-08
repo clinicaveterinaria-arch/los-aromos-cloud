@@ -118,6 +118,44 @@
 .product-row:hover {
     background:#f8edf3;
 }
+.cart-search-box {
+    position:relative;
+    margin-bottom:15px;
+}
+
+.cart-search-results {
+    display:none;
+    position:absolute;
+    z-index:50;
+    top:46px;
+    left:0;
+    right:0;
+    background:white;
+    border:1px solid #f3c6d8;
+    border-radius:14px;
+    box-shadow:0 10px 26px rgba(0,0,0,0.12);
+    max-height:280px;
+    overflow:auto;
+}
+
+.cart-search-result {
+    padding:10px 12px;
+    cursor:pointer;
+    border-bottom:1px solid #f9e2ec;
+}
+
+.cart-search-result:hover,
+.cart-search-result.active {
+    background:#fff0f7;
+}
+
+.cart-search-result b {
+    display:block;
+}
+
+.cart-search-result small {
+    color:#6b7280;
+}    
 </style>
 
 <script>
@@ -212,13 +250,118 @@ document.querySelectorAll('.product-row').forEach(row => {
     });
 });
 
-document.getElementById('product-search').addEventListener('keyup', function() {
-    const value = this.value.toLowerCase();
+const CART_PRODUCTS = [
+    {% for product in products %}
+        {
+            id: "{{ product.id }}",
+            name: "{{ product.name|e }}",
+            price: {{ product.sale_price or 0 }},
+            stock: {{ product.stock or 0 }}
+        }{% if not loop.last %},{% endif %}
+    {% endfor %}
+];
+
+let cartSearchIndex = -1;
+let cartResults = [];
+
+function normalizeCartText(text) {
+    return (text || "").toString().toLowerCase();
+}
+
+function searchCartProducts() {
+    const input = document.getElementById("product-search");
+    const box = document.getElementById("cart-search-results");
+    const q = normalizeCartText(input.value).trim();
+
+    cartSearchIndex = -1;
+    cartResults = [];
 
     document.querySelectorAll('.product-row').forEach(row => {
-        row.style.display = row.innerText.toLowerCase().includes(value) ? '' : 'none';
+        row.style.display = row.innerText.toLowerCase().includes(q) ? '' : 'none';
     });
-});
+
+    if (!q) {
+        box.style.display = "none";
+        box.innerHTML = "";
+        return;
+    }
+
+    cartResults = CART_PRODUCTS
+        .filter(p => normalizeCartText(p.name).includes(q))
+        .slice(0, 15);
+
+    if (!cartResults.length) {
+        box.innerHTML = '<div class="cart-search-result"><small>No se encontraron productos.</small></div>';
+        box.style.display = "block";
+        return;
+    }
+
+    box.innerHTML = cartResults.map((p, index) => `
+        <div class="cart-search-result" onclick="addCartProductByIndex(${index})">
+            <b>${p.name}</b>
+            <small>Stock: ${p.stock} · $ ${Number(p.price || 0).toFixed(2)}</small>
+        </div>
+    `).join("");
+
+    box.style.display = "block";
+}
+
+function handleCartSearchKey(event) {
+    const box = document.getElementById("cart-search-results");
+    const items = box.querySelectorAll(".cart-search-result");
+
+    if (event.key === "ArrowDown") {
+        event.preventDefault();
+        cartSearchIndex = Math.min(cartSearchIndex + 1, items.length - 1);
+        updateCartActiveSearch(items);
+    }
+
+    if (event.key === "ArrowUp") {
+        event.preventDefault();
+        cartSearchIndex = Math.max(cartSearchIndex - 1, 0);
+        updateCartActiveSearch(items);
+    }
+
+    if (event.key === "Enter") {
+        event.preventDefault();
+
+        if (cartResults.length) {
+            const index = cartSearchIndex >= 0 ? cartSearchIndex : 0;
+            addCartProductByIndex(index);
+        }
+    }
+}
+
+function updateCartActiveSearch(items) {
+    items.forEach(item => item.classList.remove("active"));
+
+    if (items[cartSearchIndex]) {
+        items[cartSearchIndex].classList.add("active");
+    }
+}
+
+function addCartProductByIndex(index) {
+    const product = cartResults[index];
+
+    if (!product) {
+        return;
+    }
+
+    addToCart(product.name, product.price, product.id);
+
+    const input = document.getElementById("product-search");
+    const box = document.getElementById("cart-search-results");
+
+    input.value = "";
+    box.innerHTML = "";
+    box.style.display = "none";
+
+    document.querySelectorAll('.product-row').forEach(row => {
+        row.style.display = '';
+    });
+
+    input.focus();
+}
 </script>
 
 {% endblock %}
