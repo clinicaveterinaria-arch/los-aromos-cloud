@@ -6248,6 +6248,16 @@ def event_whatsapp(
             f"Clínica Veterinaria Los Aromos."
         )
 
+    if WP_SENT_MARKER not in (event.description or ''):
+        event.description = (
+            (event.description or '').strip()
+            + '\n\n'
+            + WP_SENT_MARKER
+            + '\n'
+            + f'📲 Recordatorio enviado por WhatsApp el {argentina_now().strftime("%d/%m/%Y %H:%M")} por {user.username}.'
+        ).strip()
+        db.commit()
+
     import urllib.parse
     url = f"https://wa.me/{number}?text={urllib.parse.quote(message)}"
 
