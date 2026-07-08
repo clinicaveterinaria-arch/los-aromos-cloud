@@ -822,7 +822,7 @@
                 </div>
             </div>
 
-            <div class="card">
+            <div class="card" id="evolucion">
                 <h2>➕ Nueva evolución / control</h2>
 
                 {% if hospitalization.status == 'Internado' %}
@@ -843,7 +843,7 @@
                     <div class="alert">Esta internación ya fue cerrada. No se pueden cargar nuevas evoluciones.</div>
                 {% endif %}
             </div>
-            <div class="card">
+            <div class="card" id="checklist">
                 <h2>✅ Checklist de enfermería</h2>
 
                 {% if hospitalization.status == 'Internado' %}
@@ -1014,7 +1014,7 @@
 
             </div>
 
-            <div class="card">
+            <div class="card" id="fluidoterapia">
                 <h2>💧 Fluidoterapia</h2>
 
                 {% if hospitalization.status == 'Internado' %}
@@ -1145,7 +1145,7 @@
                 result.innerHTML = text;
             }
             </script>
-            <div class="card">
+            <div class="card" id="medicacion">
                 <h2>💊 Medicación inteligente</h2>
 
                 {% if hospitalization.status == 'Internado' %}
