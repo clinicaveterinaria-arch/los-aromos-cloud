@@ -117,6 +117,105 @@
 .fake-check{
     width:18px;height:18px;border-radius:6px;border:2px solid #f3c6d8;background:#fff8fb;
 }
+/* ===== INTERNACIÓN V3 - BLOQUE 1 ===== */
+
+.state-compact{
+    padding:14px;
+}
+
+.state-head{
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    align-items:flex-start;
+    margin-bottom:12px;
+}
+
+.state-head h2{
+    margin:0;
+    font-size:20px;
+}
+
+.state-updated{
+    color:#6b7280;
+    font-size:12px;
+    text-align:right;
+}
+
+.state-bars{
+    display:grid;
+    gap:10px;
+}
+
+.state-row{
+    display:grid;
+    grid-template-columns:90px 1fr 64px;
+    gap:10px;
+    align-items:center;
+    font-size:13px;
+}
+
+.state-label{
+    font-weight:bold;
+    color:#374151;
+}
+
+.state-value{
+    text-align:right;
+    font-weight:bold;
+    color:#1f2937;
+}
+
+.state-bar{
+    height:7px;
+    background:#f3edf1;
+    border-radius:999px;
+    overflow:hidden;
+}
+
+.state-fill{
+    height:100%;
+    background:#d85b9a;
+    border-radius:999px;
+}
+
+.state-mini-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:8px;
+    margin-top:14px;
+}
+
+.state-mini{
+    border:1px solid #f1d6e2;
+    border-radius:14px;
+    padding:10px;
+    background:#fff;
+}
+
+.state-mini span{
+    display:block;
+    color:#6b7280;
+    font-size:12px;
+}
+
+.state-mini b{
+    display:block;
+    margin-top:4px;
+    color:#1f2937;
+    font-size:15px;
+}
+
+@media (max-width:520px){
+    .state-row{
+        grid-template-columns:76px 1fr 52px;
+        font-size:12px;
+    }
+
+    .state-mini-grid{
+        grid-template-columns:1fr 1fr;
+    }
+}    
 @media (max-width:900px){
 
     .hosp-page{
@@ -570,78 +669,67 @@
 
         <div>
 
-            <div class="card">
+            <div class="card state-compact">
 
-                <h2>❤️ Estado del paciente</h2>
-                <div class="note">
-
-                <b>📈 Evolución rápida</b>
-                
-                <br><br>
-                
-                🌡 Temperatura
-                
-                <progress value="{{ uti_monitor[0].value|default(0) }}" max="42" style="width:100%;"></progress>
-                
-                <br><br>
-                
-                ❤️ FC
-                
-                <progress value="{{ uti_monitor[1].value|default(0) }}" max="240" style="width:100%;"></progress>
-                
-                <br><br>
-                
-                🫁 FR
-                
-                <progress value="{{ uti_monitor[2].value|default(0) }}" max="80" style="width:100%;"></progress>
-                
-                <br><br>
-                
-                ⚖ Peso
-                
-                <progress value="{{ uti_monitor[3].value|default(0) }}" max="80" style="width:100%;"></progress>
-                
+                <div class="state-head">
+                    <h2>❤️ Estado del paciente</h2>
+                    <div class="state-updated">
+                        Última actualización<br>
+                        {{ current_time_hhmm or "-" }} hs
+                    </div>
                 </div>
-                
-                <br>
-                <div class="dashboard">
 
-                    <div class="dash-card">
-                        <span>🌡 Temperatura</span>
-                        <b>{{ hospitalization.initial_temperature or "-" }}</b>
-                        <small>Ingreso</small>
+                <div class="state-bars">
+
+                    <div class="state-row">
+                        <div class="state-label">🌡 Temp.</div>
+                        <div class="state-bar">
+                            <div class="state-fill" style="width:{{ ((uti_monitor[0].value|default(0) / 42) * 100)|round(0) }}%;"></div>
+                        </div>
+                        <div class="state-value">{{ hospitalization.initial_temperature or "-" }}</div>
                     </div>
 
-                    <div class="dash-card">
-                        <span>❤️ FC</span>
-                        <b>{{ hospitalization.initial_heart_rate or "-" }}</b>
-                        <small>lpm</small>
+                    <div class="state-row">
+                        <div class="state-label">❤️ FC</div>
+                        <div class="state-bar">
+                            <div class="state-fill" style="width:{{ ((uti_monitor[1].value|default(0) / 240) * 100)|round(0) }}%;"></div>
+                        </div>
+                        <div class="state-value">{{ hospitalization.initial_heart_rate or "-" }}</div>
                     </div>
 
-                    <div class="dash-card">
-                        <span>🫁 FR</span>
-                        <b>{{ hospitalization.initial_respiratory_rate or "-" }}</b>
-                        <small>rpm</small>
+                    <div class="state-row">
+                        <div class="state-label">🫁 FR</div>
+                        <div class="state-bar">
+                            <div class="state-fill" style="width:{{ ((uti_monitor[2].value|default(0) / 80) * 100)|round(0) }}%;"></div>
+                        </div>
+                        <div class="state-value">{{ hospitalization.initial_respiratory_rate or "-" }}</div>
                     </div>
 
-                    <div class="dash-card">
-                        <span>⚖ Peso</span>
-                        <b>{{ hospitalization.initial_weight or patient.weight or "-" }}</b>
-                        <small>kg</small>
+                    <div class="state-row">
+                        <div class="state-label">⚖ Peso</div>
+                        <div class="state-bar">
+                            <div class="state-fill" style="width:{{ ((uti_monitor[3].value|default(0) / 80) * 100)|round(0) }}%;"></div>
+                        </div>
+                        <div class="state-value">{{ hospitalization.initial_weight or patient.weight or "-" }}</div>
                     </div>
 
-                    <div class="dash-card">
+                </div>
+
+                <div class="state-mini-grid">
+                    <div class="state-mini">
                         <span>👄 Mucosas</span>
                         <b>{{ hospitalization.initial_mucous_membranes or "-" }}</b>
-                        <small>Inicial</small>
                     </div>
 
-                    <div class="dash-card">
+                    <div class="state-mini">
                         <span>💧 Hidratación</span>
                         <b>{{ hospitalization.initial_hydration or "-" }}</b>
-                        <small>Inicial</small>
                     </div>
 
+                    <div class="state-mini">
+                        <span>🟢 Estado general</span>
+                        <b>{{ hospitalization.status }}</b>
+                    </div>
                 </div>
 
             </div>
