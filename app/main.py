@@ -8580,7 +8580,33 @@ def hospitalization_detail(
         .order_by(HospitalizationFluid.created_at.desc())
         .all()
     )
+    # ==========================================
+    # Últimos registros
+    # ==========================================
 
+    latest_event = related_events[0] if related_events else None
+
+    latest_event_time = (
+        latest_event.event_date.strftime("%H:%M")
+        if latest_event and latest_event.event_date
+        else "-"
+    )
+
+    latest_checklist = (
+        db.query(ClinicalEvent)
+        .filter(
+            ClinicalEvent.patient_id == patient.id,
+            ClinicalEvent.event_type == "Checklist enfermería"
+        )
+        .order_by(ClinicalEvent.event_date.desc())
+        .first()
+    )
+
+    latest_checklist_time = (
+        latest_checklist.event_date.strftime("%H:%M")
+        if latest_checklist and latest_checklist.event_date
+        else "-"
+    )
     hospital_ai = build_hospitalization_ai(
         hospitalization,
         patient,
@@ -8609,7 +8635,9 @@ def hospitalization_detail(
             'hours_since_control': hospital_ai['hours_since_control'],
             'clinical_summary': hospital_ai['clinical_summary'],
             'today': argentina_now().date(),
-            'current_time_hhmm': argentina_now().strftime('%H:%M')
+            'current_time_hhmm': argentina_now().strftime('%H:%M'),
+            'latest_event_time": latest_event_time,
+            'latest_checklist_time": latest_checklist_time
         }
     )
 @app.get('/hospitalizations/{hospitalization_id}/print', response_class=HTMLResponse)
