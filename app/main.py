@@ -1517,7 +1517,6 @@ def patient_cart(
         db.query(Product)
         .filter(Product.active == True)
         .order_by(Product.name)
-        .limit(300)
         .all()
     )
     quick_names = [
