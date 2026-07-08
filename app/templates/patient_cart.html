@@ -32,13 +32,19 @@
 
             <h4>Productos y servicios</h4>
 
-            <input
-                type="text"
-                id="product-search"
-                class="form-control"
-                placeholder="Buscar producto o servicio..."
-                style="margin-bottom:15px;"
-            >
+            <div class="cart-search-box">
+                <input
+                    type="text"
+                    id="product-search"
+                    class="form-control"
+                    placeholder="Buscar producto o servicio..."
+                    autocomplete="off"
+                    oninput="searchCartProducts()"
+                    onkeydown="handleCartSearchKey(event)"
+                >
+            
+                <div id="cart-search-results" class="cart-search-results"></div>
+            </div>
 
             <div id="products-list" style="max-height:330px; overflow-y:auto; border:1px solid #ddd; border-radius:8px; margin-bottom:20px;">
                 {% for product in products %}
