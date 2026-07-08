@@ -215,6 +215,151 @@
     .state-mini-grid{
         grid-template-columns:1fr 1fr;
     }
+} 
+/* ===== INTERNACIÓN V3 - BLOQUE 2 MEDICACIÓN ===== */
+
+.med-list-v3{
+    display:grid;
+    gap:10px;
+}
+
+.med-card-v3{
+    border:1px solid #f1d6e2;
+    border-radius:18px;
+    padding:12px;
+    background:#fff;
+}
+
+.med-card-v3.danger{background:#fff1f2;border-color:#fecaca;}
+.med-card-v3.next{background:#fff7ed;border-color:#fed7aa;}
+.med-card-v3.pending{background:#fefce8;border-color:#fde68a;}
+.med-card-v3.done{background:#f0fdf4;border-color:#bbf7d0;}
+
+.med-head-v3{
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    align-items:flex-start;
+}
+
+.med-title-v3 b{
+    font-size:16px;
+    color:#1f2937;
+}
+
+.med-title-v3 small{
+    display:block;
+    margin-top:3px;
+    color:#6b7280;
+    font-size:12px;
+}
+
+.med-status-v3{
+    font-size:13px;
+    font-weight:bold;
+    white-space:nowrap;
+}
+
+.med-progress-v3{
+    margin:10px 0;
+}
+
+.med-progress-top{
+    display:flex;
+    justify-content:space-between;
+    font-size:12px;
+    color:#6b7280;
+    margin-bottom:5px;
+}
+
+.med-bar-v3{
+    height:7px;
+    border-radius:999px;
+    background:#f3edf1;
+    overflow:hidden;
+}
+
+.med-fill-v3{
+    height:100%;
+    border-radius:999px;
+    background:#d85b9a;
+}
+
+.med-meta-v3{
+    display:flex;
+    flex-wrap:wrap;
+    gap:7px;
+    margin-bottom:10px;
+}
+
+.med-pill-v3{
+    background:white;
+    border:1px solid #f1d6e2;
+    color:#374151;
+    border-radius:999px;
+    padding:5px 9px;
+    font-size:12px;
+    font-weight:bold;
+}
+
+.med-last-v3{
+    color:#6b7280;
+    font-size:12px;
+    margin-bottom:9px;
+}
+
+.med-actions-v3{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:7px;
+    align-items:center;
+}
+
+.med-actions-v3 form{
+    margin:0;
+}
+
+.med-btn-v3{
+    width:100%;
+    border:none;
+    border-radius:10px;
+    padding:8px 9px;
+    font-size:12px;
+    font-weight:bold;
+    cursor:pointer;
+    color:white;
+}
+
+.med-detail-v3{
+    margin-top:10px;
+}
+
+.med-detail-v3 summary{
+    cursor:pointer;
+    color:#d85b9a;
+    font-weight:bold;
+    font-size:13px;
+}
+
+.med-detail-box{
+    margin-top:8px;
+    background:white;
+    border:1px solid #f1d6e2;
+    border-radius:14px;
+    padding:10px;
+    color:#374151;
+    font-size:13px;
+    white-space:pre-wrap;
+}
+
+@media (max-width:520px){
+    .med-actions-v3{
+        grid-template-columns:1fr;
+    }
+
+    .med-head-v3{
+        flex-direction:column;
+    }
 }    
 @media (max-width:900px){
 
@@ -960,7 +1105,7 @@
 
                 <h3>💊 Tratamientos activos</h3>
 
-                <div style="display:grid;gap:12px;">
+                <div class="med-list-v3">
                     {% set ns = namespace(seen=[]) %}
 
                     {% for m in active_meds %}
@@ -982,6 +1127,7 @@
                                 | selectattr("route","equalto",m.route)
                                 | selectattr("frequency","equalto",m.frequency)
                                 | list %}
+
                             {% set last_applied = same_applied|last %}
                             {% set next_dose = same_pending|first %}
 
@@ -1003,167 +1149,107 @@
                                 {% set treatment_status = 'Pendiente' %}
                             {% endif %}
 
-                            {% set card_color =
-                                '#fff1f2' if treatment_status == 'Atrasada' else
-                                '#fff7ed' if treatment_status == 'Próxima' else
-                                '#fefce8' if treatment_status == 'Pendiente' else
-                                '#f0fdf4' %}
+                            {% set total_doses = (same_pending|length) + (same_applied|length) %}
+                            {% set progress_percent = ((same_applied|length) * 100 / total_doses)|round(0) if total_doses > 0 else 0 %}
 
-                            {% set border_color =
-                                '#fecaca' if treatment_status == 'Atrasada' else
-                                '#fed7aa' if treatment_status == 'Próxima' else
-                                '#fde68a' if treatment_status == 'Pendiente' else
-                                '#bbf7d0' %}
+                            {% set clean_notes = m.notes or '' %}
+                            {% if "[TRATAMIENTO_ACTIVO:" in clean_notes %}
+                                {% set clean_notes = clean_notes.split("]")[-1].strip() %}
+                            {% endif %}
 
-                            <div style="
-                                border:1px solid {{ border_color }};
-                                background:{{ card_color }};
-                                border-radius:18px;
-                                padding:14px;
-                            ">
-                                <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;">
-                                    <div>
-                                        <b style="font-size:17px;color:#1f2937;">
-                                            💊 {{ m.medication_name or '-' }}
-                                        </b>
+                            <div class="med-card-v3 {% if treatment_status == 'Atrasada' %}danger{% elif treatment_status == 'Próxima' %}next{% elif treatment_status == 'Pendiente' %}pending{% else %}done{% endif %}">
 
-                                        <br>
-
-                                        <small style="color:#6b7280;">
-                                            {{ m.dose or '-' }} · {{ m.route or '-' }} · {{ m.frequency or '-' }}
-                                        </small>
+                                <div class="med-head-v3">
+                                    <div class="med-title-v3">
+                                        <b>💊 {{ m.medication_name or '-' }}</b>
+                                        <small>{{ m.dose or '-' }} · {{ m.route or '-' }} · {{ m.frequency or '-' }}</small>
                                     </div>
 
-                                    <div style="text-align:right;">
+                                    <div class="med-status-v3">
                                         {% if treatment_status == 'Atrasada' %}
-                                            <b style="color:#dc2626;">🔴 Atrasada</b>
+                                            <span style="color:#dc2626;">🔴 Atrasada</span>
                                         {% elif treatment_status == 'Próxima' %}
-                                            <b style="color:#ea580c;">🟠 Próxima</b>
+                                            <span style="color:#ea580c;">🟠 Próxima</span>
                                         {% elif treatment_status == 'Pendiente' %}
-                                            <b style="color:#b45309;">🟡 Pendiente</b>
+                                            <span style="color:#b45309;">🟡 Pendiente</span>
                                         {% else %}
-                                            <b style="color:#15803d;">🟢 Completado</b>
+                                            <span style="color:#15803d;">🟢 Completado</span>
                                         {% endif %}
                                     </div>
-                                    </div>
                                 </div>
 
-                                <br>
-                                {% set total_doses = (same_pending|length) + (same_applied|length) %}
-                                {% set progress_percent = ((same_applied|length) * 100 / total_doses)|round(0) if total_doses > 0 else 0 %}
-                                
-                                <div style="margin-bottom:12px;">
-                                    <div style="display:flex;justify-content:space-between;font-size:13px;color:#6b7280;margin-bottom:5px;">
-                                        <span>Progreso del tratamiento</span>
+                                <div class="med-progress-v3">
+                                    <div class="med-progress-top">
+                                        <span>Progreso</span>
                                         <b>{{ progress_percent }}%</b>
                                     </div>
-                                
-                                    <progress value="{{ progress_percent }}" max="100" style="width:100%;height:16px;"></progress>
-                                </div>
-                                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
 
-                                    <span style="
-                                        background:#dcfce7;
-                                        color:#166534;
-                                        padding:6px 10px;
-                                        border-radius:999px;
-                                        font-size:13px;
-                                        font-weight:bold;">
-                                        ✔ {{ same_applied|length }} aplicadas
-                                    </span>
-                                
-                                    <span style="
-                                        background:#fef3c7;
-                                        color:#92400e;
-                                        padding:6px 10px;
-                                        border-radius:999px;
-                                        font-size:13px;
-                                        font-weight:bold;">
-                                        ⏳ {{ same_pending|length }} pendientes
-                                    </span>
-                                
-                                    <span style="
-                                        background:#eef2ff;
-                                        color:#4338ca;
-                                        padding:6px 10px;
-                                        border-radius:999px;
-                                        font-size:13px;
-                                        font-weight:bold;">
-                                        📊 {{ total_doses }} dosis totales
-                                    </span>
-                                
+                                    <div class="med-bar-v3">
+                                        <div class="med-fill-v3" style="width:{{ progress_percent }}%;"></div>
+                                    </div>
                                 </div>
+
+                                <div class="med-meta-v3">
+                                    <span class="med-pill-v3">🕐 {{ next_dose.scheduled_time if next_dose else '-' }}</span>
+                                    <span class="med-pill-v3">✔ {{ same_applied|length }} aplicadas</span>
+                                    <span class="med-pill-v3">⏳ {{ same_pending|length }} pendientes</span>
+                                    <span class="med-pill-v3">📊 {{ total_doses }} dosis</span>
+                                </div>
+
                                 {% if last_applied and last_applied.applied_at %}
-                                <div class="soft-alert" style="margin-bottom:12px;">
-                                    <b>🕒 Última dosis aplicada</b><br>
-                                
-                                    {{ last_applied.applied_at.strftime('%d/%m/%Y %H:%M') }}
-                                
+                                <div class="med-last-v3">
+                                    Última aplicación:
+                                    {{ last_applied.applied_at.strftime('%d/%m %H:%M') }}
                                     {% if last_applied.applied_by %}
                                         · {{ last_applied.applied_by }}
                                     {% endif %}
                                 </div>
                                 {% endif %}
-                                <div class="dashboard" style="margin-bottom:0;">
-                                    <div class="dash-card">
-                                        <span>Próxima dosis</span>
-                                        <b>{{ next_dose.scheduled_time if next_dose else '-' }}</b>
-                                        <small>{{ treatment_status }}</small>
-                                    </div>
 
-                                    <div class="dash-card">
-                                        <span>Pendientes</span>
-                                        <b>{{ same_pending|length }}</b>
-                                        <small>Dosis</small>
-                                    </div>
-
-                                    <div class="dash-card">
-                                        <span>Aplicadas</span>
-                                        <b>{{ same_applied|length }}</b>
-                                        <small>Dosis</small>
-                                    </div>
-                                </div>
-
-                                {% if m.notes %}
-                                
-                                {% set clean_notes = m.notes %}
-                                
-                                {% if "[TRATAMIENTO_ACTIVO:" in clean_notes %}
-                                    {% set clean_notes = clean_notes.split("]")[-1].strip() %}
-                                {% endif %}
-                                
-                                {% if clean_notes %}
-                                <div class="note" style="margin-top:12px;">
-                                    {{ clean_notes }}
-                                </div>
-                                {% endif %}
-                                
-                                {% endif %}
-
-                                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">
-
-                                <button
-                                    type="button"
-                                    onclick="document.getElementById('treatment_{{ loop.index }}').classList.toggle('hidden')"
-                                    style="background:#6b7280;color:white;border:none;border-radius:10px;padding:9px 11px;font-weight:bold;cursor:pointer;">
-                                    📋 Ver dosis
-                                </button>
+                                <div class="med-actions-v3">
                                     {% if next_dose %}
                                     <form method="post" action="/hospitalizations/{{ hospitalization.id }}/medications/{{ next_dose.id }}/done"
                                           onsubmit="return confirm('¿Aplicar la próxima dosis de {{ m.medication_name }}?');">
-                                        <button type="submit" style="background:#22c55e;color:white;border:none;border-radius:10px;padding:9px 11px;font-weight:bold;cursor:pointer;">
-                                            ✔ Aplicar próxima
+                                        <button type="submit" class="med-btn-v3" style="background:#22c55e;">
+                                            ✔ Aplicar
                                         </button>
                                     </form>
+                                    {% else %}
+                                        <button type="button" class="med-btn-v3" style="background:#9ca3af;">
+                                            ✔ Sin pendientes
+                                        </button>
+                                    {% endif %}
 
+                                    <details class="med-detail-v3">
+                                        <summary>📋 Detalle</summary>
+                                        <div class="med-detail-box">
+                                            Próxima dosis: {{ next_dose.scheduled_time if next_dose else '-' }}
+                                            Pendientes: {{ same_pending|length }}
+                                            Aplicadas: {{ same_applied|length }}
+                                            Total: {{ total_doses }}
+
+                                            {% if clean_notes %}
+{{ clean_notes }}
+                                            {% else %}
+Sin observaciones cargadas.
+                                            {% endif %}
+                                        </div>
+                                    </details>
+
+                                    {% if next_dose %}
                                     <form method="post" action="/hospitalizations/{{ hospitalization.id }}/medications/{{ next_dose.id }}/finish"
                                           onsubmit="return confirm('¿Finalizar este tratamiento completo?');">
-                                        <button type="submit" style="background:#d85b9a;color:white;border:none;border-radius:10px;padding:9px 11px;font-weight:bold;cursor:pointer;">
-                                            🏁 Finalizar tratamiento
+                                        <button type="submit" class="med-btn-v3" style="background:#d85b9a;">
+                                            🏁 Finalizar
                                         </button>
                                     </form>
+                                    {% else %}
+                                        <button type="button" class="med-btn-v3" style="background:#9ca3af;">
+                                            🏁 Finalizado
+                                        </button>
                                     {% endif %}
                                 </div>
+
                             </div>
                         {% endif %}
                     {% endfor %}
