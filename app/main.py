@@ -1871,6 +1871,7 @@ def patient_detail_v2(
             'upcoming_events': upcoming_events,
             'upcoming_appointments': upcoming_appointments,
             'upcoming_patient_items': upcoming_patient_items,
+            'whatsapp_pending_alerts': whatsapp_pending_alerts,
             'next_visit': next_visit,
             'vaccine_names': vaccine_names,
             'dewormer_names': dewormer_names,
