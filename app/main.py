@@ -8601,7 +8601,11 @@ def hospitalization_detail(
         .order_by(ClinicalEvent.event_date.desc())
         .first()
     )
-
+    latest_checklist_time = (
+        latest_checklist.event_date.strftime("%H:%M")
+        if latest_checklist and latest_checklist.event_date
+        else "-"
+    )
 
     hospital_ai = build_hospitalization_ai(
         hospitalization,
