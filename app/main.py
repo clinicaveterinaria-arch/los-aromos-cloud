@@ -8887,7 +8887,7 @@ def hospitalization_checklist(
 
     event = ClinicalEvent(
         patient_id=patient.id,
-        event_type='Control',
+        event_type='Checklist enfermería',
         title='Checklist de enfermería',
         description='\n'.join(checklist_lines),
         created_by=user.username,
