@@ -964,7 +964,7 @@
                     <div class="state-row">
                         <div class="state-label">🌡 Temp.</div>
                         <div class="state-bar">
-                            <div class="state-fill" style="width:{{ ((uti_monitor[0].value|default(0) / 42) * 100)|round(0) }}%;"></div>
+                            <div class="state-fill" style="width:{{ (((uti_monitor[0].value|default(0)|float) / 42) * 100)|round(0) }}%;"></div>
                         </div>
                         <div class="state-value">{{ hospitalization.initial_temperature or "-" }}</div>
                     </div>
@@ -972,7 +972,7 @@
                     <div class="state-row">
                         <div class="state-label">❤️ FC</div>
                         <div class="state-bar">
-                            <div class="state-fill" style="width:{{ ((uti_monitor[1].value|default(0) / 240) * 100)|round(0) }}%;"></div>
+                            <div class="state-fill" style="width:{{ (((uti_monitor[1].value|default(0)|float) / 240) * 100)|round(0) }}%;"></div>
                         </div>
                         <div class="state-value">{{ hospitalization.initial_heart_rate or "-" }}</div>
                     </div>
@@ -980,7 +980,7 @@
                     <div class="state-row">
                         <div class="state-label">🫁 FR</div>
                         <div class="state-bar">
-                            <div class="state-fill" style="width:{{ ((uti_monitor[2].value|default(0) / 80) * 100)|round(0) }}%;"></div>
+                            <div class="state-fill" style="width:{{ (((uti_monitor[2].value|default(0)|float) / 80) * 100)|round(0) }}%;"></div>
                         </div>
                         <div class="state-value">{{ hospitalization.initial_respiratory_rate or "-" }}</div>
                     </div>
@@ -988,7 +988,7 @@
                     <div class="state-row">
                         <div class="state-label">⚖ Peso</div>
                         <div class="state-bar">
-                            <div class="state-fill" style="width:{{ ((uti_monitor[3].value|default(0) / 80) * 100)|round(0) }}%;"></div>
+                            <div class="state-fill" style="width:{{ (((uti_monitor[3].value|default(0)|float) / 80) * 100)|round(0) }}%;"></div>
                         </div>
                         <div class="state-value">{{ hospitalization.initial_weight or patient.weight or "-" }}</div>
                     </div>
