@@ -415,7 +415,55 @@ textarea {
                                             Venta sin cliente
                                         {% endif %}
                                     </b>
-
+                                    <div style="margin-top:6px; display:flex; gap:6px; flex-wrap:wrap;">
+                                    
+                                        {% if sale.status == 'pending' %}
+                                            <span style="
+                                                background:#fef3c7;
+                                                color:#92400e;
+                                                padding:3px 10px;
+                                                border-radius:999px;
+                                                font-size:12px;
+                                                font-weight:700;">
+                                                🟡 Pendiente de pago
+                                            </span>
+                                    
+                                        {% elif sale.status == 'paid' %}
+                                            <span style="
+                                                background:#dcfce7;
+                                                color:#166534;
+                                                padding:3px 10px;
+                                                border-radius:999px;
+                                                font-size:12px;
+                                                font-weight:700;">
+                                                🟢 Pagada
+                                            </span>
+                                    
+                                        {% elif sale.status == 'cancelled' %}
+                                            <span style="
+                                                background:#fee2e2;
+                                                color:#991b1b;
+                                                padding:3px 10px;
+                                                border-radius:999px;
+                                                font-size:12px;
+                                                font-weight:700;">
+                                                🔴 Cancelada
+                                            </span>
+                                        {% endif %}
+                                    
+                                        {% if sale.created_from_clinic %}
+                                            <span style="
+                                                background:#dbeafe;
+                                                color:#1d4ed8;
+                                                padding:3px 10px;
+                                                border-radius:999px;
+                                                font-size:12px;
+                                                font-weight:700;">
+                                                🏥 Historia Clínica
+                                            </span>
+                                        {% endif %}
+                                    
+                                    </div>
                                     <div style="color:#6b7280; font-size:13px; margin-top:4px;">
                                         {{ sale.date.strftime("%d/%m/%Y %H:%M") if sale.date else "" }}
                                         · {{ sale.items_count }} producto{% if sale.items_count != 1 %}s{% endif %}
