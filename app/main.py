@@ -1644,6 +1644,7 @@ def patient_cart_send(
     )
 DUE_ACTIVE_MARKER = '[DEUDA_ACTIVA]'
 DUE_CLOSED_MARKER = '[DEUDA_CERRADA]'
+WP_SENT_MARKER = '[WHATSAPP_AVISADO]'
 
 
 def is_managed_due_event(event):
@@ -1806,7 +1807,15 @@ def patient_detail_v2(
         .limit(10)
         .all()
     )
-
+    whatsapp_pending_alerts = (
+        db.query(ClinicalEvent)
+        .filter(ClinicalEvent.patient_id == patient.id)
+        .filter(ClinicalEvent.reminder_date == today)
+        .filter(ClinicalEvent.description.ilike(f'%{DUE_ACTIVE_MARKER}%'))
+        .filter(ClinicalEvent.description.ilike(f'%{WP_SENT_MARKER}%'))
+        .order_by(ClinicalEvent.reminder_date.asc())
+        .all()
+    )
     upcoming_patient_items = []
 
     for e in upcoming_events:
