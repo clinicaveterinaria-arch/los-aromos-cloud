@@ -8602,11 +8602,7 @@ def hospitalization_detail(
         .first()
     )
 
-    latest_checklist_time = (
-        latest_checklist.event_date.strftime("%H:%M")
-        if latest_checklist and latest_checklist.event_date
-        else "-"
-    )
+
     hospital_ai = build_hospitalization_ai(
         hospitalization,
         patient,
@@ -8614,7 +8610,45 @@ def hospitalization_detail(
         medications,
         fluids
     )
+    latest_vitals = hospital_ai.get("last_vital")
 
+    current_patient_status = {
+        "temperature": (
+            getattr(latest_vitals, "temperature", None)
+            if latest_vitals and getattr(latest_vitals, "temperature", None) is not None
+            else hospitalization.initial_temperature
+        ),
+        "heart_rate": (
+            getattr(latest_vitals, "heart_rate", None)
+            if latest_vitals and getattr(latest_vitals, "heart_rate", None) is not None
+            else hospitalization.initial_heart_rate
+        ),
+        "respiratory_rate": (
+            getattr(latest_vitals, "respiratory_rate", None)
+            if latest_vitals and getattr(latest_vitals, "respiratory_rate", None) is not None
+            else hospitalization.initial_respiratory_rate
+        ),
+        "weight": (
+            getattr(latest_vitals, "weight", None)
+            if latest_vitals and getattr(latest_vitals, "weight", None) is not None
+            else (hospitalization.initial_weight or patient.weight)
+        ),
+        "mucous_membranes": (
+            getattr(latest_vitals, "mucous_membranes", "")
+            if latest_vitals and getattr(latest_vitals, "mucous_membranes", "")
+            else hospitalization.initial_mucous_membranes
+        ),
+        "crt": (
+            getattr(latest_vitals, "crt", "")
+            if latest_vitals and getattr(latest_vitals, "crt", "")
+            else hospitalization.initial_crt
+        ),
+        "hydration": (
+            getattr(latest_vitals, "hydration", "")
+            if latest_vitals and getattr(latest_vitals, "hydration", "")
+            else hospitalization.initial_hydration
+        ),
+    }
     return templates.TemplateResponse(
         'hospitalization_detail.html',
         {
@@ -8637,7 +8671,8 @@ def hospitalization_detail(
             'today': argentina_now().date(),
             'current_time_hhmm': argentina_now().strftime('%H:%M'),
             'latest_event_time': latest_event_time,
-            'latest_checklist_time': latest_checklist_time
+            'latest_checklist_time': latest_checklist_time,
+            'current_patient_status': current_patient_status
         }
     )
 @app.get('/hospitalizations/{hospitalization_id}/print', response_class=HTMLResponse)
