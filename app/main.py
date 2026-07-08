@@ -9225,7 +9225,7 @@ def hospitalization_add_evolution(
     db.commit()
 
     return RedirectResponse(
-        f'/hospitalizations/{hospitalization.id}#evolucion'
+        f'/hospitalizations/{hospitalization.id}#evolucion',
         status_code=303
     )
 @app.post('/hospitalizations/{hospitalization_id}/checklist')
