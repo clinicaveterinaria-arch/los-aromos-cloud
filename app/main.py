@@ -8605,6 +8605,11 @@ def hospitalization_detail(
         latest_checklist.event_date.strftime("%H:%M")
         if latest_checklist and latest_checklist.event_date
         else "-"
+    )    
+    latest_checklist_time = (
+        latest_checklist.event_date.strftime("%H:%M")
+        if latest_checklist and latest_checklist.event_date
+        else "-"
     )
 
     hospital_ai = build_hospitalization_ai(
