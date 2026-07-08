@@ -9277,7 +9277,7 @@ def hospitalization_checklist(
     db.commit()
 
     return RedirectResponse(
-        f'/hospitalizations/{hospitalization.id}#checklist'
+        f'/hospitalizations/{hospitalization.id}#checklist',
         status_code=303
     )
 @app.post('/hospitalizations/{hospitalization_id}/fluids')
@@ -9338,7 +9338,7 @@ def hospitalization_fluids(
     db.commit()
 
     return RedirectResponse(
-        f'/hospitalizations/{hospitalization.id}#fluidoterapia'
+        f'/hospitalizations/{hospitalization.id}#fluidoterapia',
         status_code=303
     )
 @app.post('/hospitalizations/{hospitalization_id}/fluids/{fluid_id}/finish')
@@ -9382,7 +9382,7 @@ def hospitalization_fluid_finish(
     db.commit()
 
     return RedirectResponse(
-        f'/hospitalizations/{hospitalization.id}#fluidoterapia'
+        f'/hospitalizations/{hospitalization.id}#fluidoterapia',
         status_code=303
     )
 @app.post('/hospitalizations/{hospitalization_id}/fluids/{fluid_id}/delete')
@@ -9405,7 +9405,7 @@ def hospitalization_fluid_delete(
     db.commit()
 
     return RedirectResponse(
-        f'/hospitalizations/{hospitalization.id}#fluidoterapia'
+        f'/hospitalizations/{hospitalization.id}#fluidoterapia',
         status_code=303
     )
 def medication_interval_hours(frequency: str):
@@ -9510,7 +9510,7 @@ def hospitalization_medication_create(
     db.commit()
 
     return RedirectResponse(
-        f'/hospitalizations/{hospitalization.id}#medicacion'
+        f'/hospitalizations/{hospitalization.id}#medicacion',
         status_code=303
     )
 
@@ -9594,7 +9594,7 @@ def hospitalization_medication_done(
     db.commit()
 
     return RedirectResponse(
-        f'/hospitalizations/{hospitalization.id}#medicacion'
+        f'/hospitalizations/{hospitalization.id}#medicacion',
         status_code=303
     )
 
@@ -9655,7 +9655,7 @@ def hospitalization_medication_finish(
     db.commit()
 
     return RedirectResponse(
-        f'/hospitalizations/{hospitalization.id}#medicacion'
+        f'/hospitalizations/{hospitalization.id}#medicacion',
         status_code=303
     )
 
@@ -9680,7 +9680,7 @@ def hospitalization_medication_delete(
     db.commit()
 
     return RedirectResponse(
-        f'/hospitalizations/{hospitalization.id}#medicacion'
+        f'/hospitalizations/{hospitalization.id}#medicacion',
         status_code=303
     )
 @app.post('/hospitalizations/{hospitalization_id}/discharge')
@@ -9717,7 +9717,7 @@ def hospitalization_discharge(
     db.commit()
 
     return RedirectResponse(
-        f'/hospitalizations/{hospitalization.id}#alta'
+        f'/hospitalizations/{hospitalization.id}#alta',
         status_code=303
     )
 @app.get('/health')
