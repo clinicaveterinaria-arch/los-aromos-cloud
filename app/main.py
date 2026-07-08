@@ -7565,18 +7565,23 @@ def vademecum_import_template(
     user: User = Depends(require_user)
 ):
     csv_content = (
-        "Principio activo,Nombre comercial,Laboratorio,Presentación,Concentración,Especie,Categoría,Vía,Indicaciones\n"
-        "Meloxicam,Metacam,Boehringer,Suspensión oral,1.5 mg/ml,Canino,AINE,VO,Dolor e inflamación\n"
-        "Amoxicilina + Clavulánico,Clavamox,Zoetis,Comprimidos,250 mg,Canino y felino,Antibiótico,VO,Infecciones bacterianas\n"
+        "Principio activo,Nombre comercial,Laboratorio,Presentación,Concentración,Especie,Categoría,Vía,"
+        "Dosis perro,Dosis gato,Frecuencia,Indicaciones,Contraindicaciones,Interacciones,Advertencias,Observaciones\n"
+        "Meloxicam,Meloxivet,,Inyectable,4 mg/ml,Canino y felino,AINE,SC,"
+        "0.2 mg/kg inicial; luego 0.1 mg/kg cada 24 h,0.1 mg/kg inicial; luego 0.05 mg/kg cada 24 h,"
+        "Cada 24 h,Dolor e inflamación,Evitar en insuficiencia renal/deshidratación/úlcera GI,"
+        "No combinar con corticoides u otros AINE,Usar con monitoreo renal,Ejemplo de carga para Aromos Cloud\n"
     )
 
     return Response(
-        content=csv_content,
-        media_type="text/csv",
+        content=csv_content.encode("utf-8-sig"),
+        media_type="text/csv; charset=utf-8",
         headers={
-            "Content-Disposition": "attachment; filename=plantilla_vademecum.csv"
+            "Content-Disposition": "attachment; filename=plantilla_vademecum_ampliada.csv"
         }
     )
+
+
 @app.post("/vademecum/update-senasa")
 def update_senasa(
     db: Session = Depends(get_db),
@@ -7599,11 +7604,13 @@ def update_senasa(
             status_code=303
         )
 
-    except Exception as e:
+    except Exception:
         return RedirectResponse(
             url=f"/vademecum?imported=1&errors=1",
             status_code=303
         )
+
+
 @app.post('/vademecum/import')
 async def vademecum_import(
     file: UploadFile = File(...),
@@ -7611,23 +7618,376 @@ async def vademecum_import(
     user: User = Depends(require_user)
 ):
     content = await file.read()
+    filename = (file.filename or "").lower()
 
-    rows = read_rows_from_upload(file.filename, content)
-    records, parse_errors = parse_vademecum_rows(rows)
-    summary = import_vademecum(db, records)
+    def clean(value):
+        if value is None:
+            return ""
+        return str(value).strip()
 
-    total_errors = len(parse_errors) + len(summary.get("errors", []))
+    def normalize(value):
+        return (
+            clean(value)
+            .lower()
+            .replace("á", "a")
+            .replace("é", "e")
+            .replace("í", "i")
+            .replace("ó", "o")
+            .replace("ú", "u")
+            .replace("ñ", "n")
+            .replace(" ", "")
+            .replace("_", "")
+            .replace("-", "")
+        )
+
+    def pick(row, *names):
+        normalized = {normalize(k): clean(v) for k, v in row.items()}
+        for name in names:
+            key = normalize(name)
+            if key in normalized:
+                return normalized[key]
+        return ""
+
+    rows = []
+
+    if filename.endswith(".xlsx"):
+        wb = load_workbook(BytesIO(content), data_only=True)
+        ws = wb.active
+        headers = [clean(c.value) for c in ws[1]]
+
+        for row_values in ws.iter_rows(min_row=2, values_only=True):
+            rows.append(dict(zip(headers, row_values)))
+
+    else:
+        text_content = content.decode("utf-8-sig", errors="replace")
+        sample = text_content[:2000]
+        delimiter = ";" if sample.count(";") >= sample.count(",") else ","
+        reader = csv.DictReader(StringIO(text_content), delimiter=delimiter)
+        rows = list(reader)
+
+    new_active = 0
+    updated_active = 0
+    new_brands = 0
+    updated_brands = 0
+    skipped = 0
+    errors = 0
+
+    for row in rows:
+        try:
+            active_name = pick(
+                row,
+                "Principio activo",
+                "Droga",
+                "Activo",
+                "Monodroga"
+            )
+
+            brand_name = pick(
+                row,
+                "Nombre comercial",
+                "Comercial",
+                "Marca",
+                "Producto"
+            )
+
+            if not active_name and not brand_name:
+                skipped += 1
+                continue
+
+            if not active_name:
+                active_name = brand_name
+
+            laboratory = pick(row, "Laboratorio", "Elaborador", "Manufacturer")
+            presentation = pick(row, "Presentación", "Presentacion", "Forma farmacéutica", "Forma farmaceutica")
+            concentration = pick(row, "Concentración", "Concentracion", "Concentration")
+            species = pick(row, "Especie", "Species")
+            category = pick(row, "Categoría", "Categoria", "Rubro")
+            route = pick(row, "Vía", "Via", "Ruta", "Route")
+            frequency = pick(row, "Frecuencia", "Frequency")
+
+            dog_dose = pick(
+                row,
+                "Dosis perro",
+                "Dosis canino",
+                "Dosis perros",
+                "Canino",
+                "Dosis"
+            )
+
+            cat_dose = pick(
+                row,
+                "Dosis gato",
+                "Dosis felino",
+                "Dosis gatos",
+                "Felino"
+            )
+
+            indications = pick(row, "Indicaciones", "Usos", "Uso")
+            contraindications = pick(row, "Contraindicaciones", "Contraindicacion")
+            interactions = pick(row, "Interacciones", "Interacciones importantes")
+            warnings = pick(row, "Advertencias", "Precauciones", "Precaución", "Precaucion")
+            observations = pick(row, "Observaciones", "Notas", "Comentarios")
+
+            active = db.execute(
+                text("""
+                    SELECT *
+                    FROM vademecum_active_ingredients
+                    WHERE lower(name) = lower(:name)
+                    LIMIT 1
+                """),
+                {"name": active_name}
+            ).mappings().first()
+
+            if active:
+                db.execute(
+                    text("""
+                        UPDATE vademecum_active_ingredients
+                        SET
+                            category = :category,
+                            species = :species,
+                            dog_dose = :dog_dose,
+                            cat_dose = :cat_dose,
+                            route = :route,
+                            frequency = :frequency,
+                            indications = :indications,
+                            contraindications = :contraindications,
+                            interactions = :interactions,
+                            warnings = :warnings,
+                            observations = :observations,
+                            active = TRUE
+                        WHERE id = :id
+                    """),
+                    {
+                        "id": active["id"],
+                        "category": category or active["category"] or "",
+                        "species": species or active["species"] or "",
+                        "dog_dose": dog_dose or active["dog_dose"] or "",
+                        "cat_dose": cat_dose or active["cat_dose"] or "",
+                        "route": route or active["route"] or "",
+                        "frequency": frequency or active["frequency"] or "",
+                        "indications": indications or active["indications"] or "",
+                        "contraindications": contraindications or active["contraindications"] or "",
+                        "interactions": interactions or active["interactions"] or "",
+                        "warnings": warnings or active["warnings"] or "",
+                        "observations": observations or active["observations"] or "",
+                    }
+                )
+                active_id = active["id"]
+                updated_active += 1
+
+            else:
+                result = db.execute(
+                    text("""
+                        INSERT INTO vademecum_active_ingredients (
+                            name, category, species, dog_dose, cat_dose,
+                            route, frequency, indications, contraindications,
+                            interactions, warnings, observations, active
+                        )
+                        VALUES (
+                            :name, :category, :species, :dog_dose, :cat_dose,
+                            :route, :frequency, :indications, :contraindications,
+                            :interactions, :warnings, :observations, TRUE
+                        )
+                        RETURNING id
+                    """),
+                    {
+                        "name": active_name,
+                        "category": category,
+                        "species": species,
+                        "dog_dose": dog_dose,
+                        "cat_dose": cat_dose,
+                        "route": route,
+                        "frequency": frequency,
+                        "indications": indications,
+                        "contraindications": contraindications,
+                        "interactions": interactions,
+                        "warnings": warnings,
+                        "observations": observations,
+                    }
+                )
+
+                active_id = result.scalar()
+                new_active += 1
+
+            if brand_name:
+                brand = db.execute(
+                    text("""
+                        SELECT *
+                        FROM vademecum_brands
+                        WHERE active_ingredient_id = :active_id
+                        AND lower(brand_name) = lower(:brand_name)
+                        LIMIT 1
+                    """),
+                    {
+                        "active_id": active_id,
+                        "brand_name": brand_name
+                    }
+                ).mappings().first()
+
+                if brand:
+                    db.execute(
+                        text("""
+                            UPDATE vademecum_brands
+                            SET
+                                laboratory = :laboratory,
+                                presentation = :presentation,
+                                concentration = :concentration,
+                                active = TRUE
+                            WHERE id = :id
+                        """),
+                        {
+                            "id": brand["id"],
+                            "laboratory": laboratory or brand["laboratory"] or "",
+                            "presentation": presentation or brand["presentation"] or "",
+                            "concentration": concentration or brand["concentration"] or "",
+                        }
+                    )
+                    updated_brands += 1
+
+                else:
+                    db.execute(
+                        text("""
+                            INSERT INTO vademecum_brands (
+                                active_ingredient_id,
+                                brand_name,
+                                laboratory,
+                                presentation,
+                                concentration,
+                                active
+                            )
+                            VALUES (
+                                :active_id,
+                                :brand_name,
+                                :laboratory,
+                                :presentation,
+                                :concentration,
+                                TRUE
+                            )
+                        """),
+                        {
+                            "active_id": active_id,
+                            "brand_name": brand_name,
+                            "laboratory": laboratory,
+                            "presentation": presentation,
+                            "concentration": concentration,
+                        }
+                    )
+                    new_brands += 1
+
+            dose_text = ""
+            if dog_dose and cat_dose:
+                dose_text = f"Perro: {dog_dose} | Gato: {cat_dose}"
+            elif dog_dose:
+                dose_text = dog_dose
+            elif cat_dose:
+                dose_text = cat_dose
+
+            old_drug = db.execute(
+                text("""
+                    SELECT id
+                    FROM vademecum_drugs
+                    WHERE lower(commercial_name) = lower(:commercial_name)
+                    AND lower(active_ingredient) = lower(:active_ingredient)
+                    LIMIT 1
+                """),
+                {
+                    "commercial_name": brand_name or active_name,
+                    "active_ingredient": active_name
+                }
+            ).mappings().first()
+
+            if old_drug:
+                db.execute(
+                    text("""
+                        UPDATE vademecum_drugs
+                        SET
+                            commercial_name = :commercial_name,
+                            active_ingredient = :active_ingredient,
+                            category = :category,
+                            species = :species,
+                            dose = :dose,
+                            route = :route,
+                            frequency = :frequency,
+                            indications = :indications,
+                            contraindications = :contraindications,
+                            observations = :observations,
+                            active = TRUE
+                        WHERE id = :id
+                    """),
+                    {
+                        "id": old_drug["id"],
+                        "commercial_name": brand_name or active_name,
+                        "active_ingredient": active_name,
+                        "category": category,
+                        "species": species,
+                        "dose": dose_text,
+                        "route": route,
+                        "frequency": frequency,
+                        "indications": indications,
+                        "contraindications": contraindications,
+                        "observations": observations,
+                    }
+                )
+            else:
+                db.execute(
+                    text("""
+                        INSERT INTO vademecum_drugs (
+                            commercial_name,
+                            active_ingredient,
+                            category,
+                            species,
+                            dose,
+                            route,
+                            frequency,
+                            indications,
+                            contraindications,
+                            observations,
+                            active
+                        )
+                        VALUES (
+                            :commercial_name,
+                            :active_ingredient,
+                            :category,
+                            :species,
+                            :dose,
+                            :route,
+                            :frequency,
+                            :indications,
+                            :contraindications,
+                            :observations,
+                            TRUE
+                        )
+                    """),
+                    {
+                        "commercial_name": brand_name or active_name,
+                        "active_ingredient": active_name,
+                        "category": category,
+                        "species": species,
+                        "dose": dose_text,
+                        "route": route,
+                        "frequency": frequency,
+                        "indications": indications,
+                        "contraindications": contraindications,
+                        "observations": observations,
+                    }
+                )
+
+        except Exception as e:
+            print("ERROR IMPORTANDO VADEMECUM:", str(e))
+            errors += 1
+
+    db.commit()
 
     return RedirectResponse(
         url=(
             "/vademecum?"
             f"imported=1"
-            f"&new_active={summary.get('new_active', 0)}"
-            f"&updated_active={summary.get('updated_active', 0)}"
-            f"&new_brands={summary.get('new_brands', 0)}"
-            f"&updated_brands={summary.get('updated_brands', 0)}"
-            f"&skipped={summary.get('skipped', 0)}"
-            f"&errors={total_errors}"
+            f"&new_active={new_active}"
+            f"&updated_active={updated_active}"
+            f"&new_brands={new_brands}"
+            f"&updated_brands={updated_brands}"
+            f"&skipped={skipped}"
+            f"&errors={errors}"
         ),
         status_code=303
     )
