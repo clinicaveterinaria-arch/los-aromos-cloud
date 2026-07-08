@@ -360,6 +360,106 @@
     .med-head-v3{
         flex-direction:column;
     }
+} 
+/* ===== INTERNACIÓN V3 - BLOQUE 3 TIMELINE / ALERTAS ===== */
+
+.timeline-v3{
+    display:grid;
+    gap:9px;
+}
+
+.evo-card-v3{
+    border:1px solid #f1d6e2;
+    background:#fff;
+    border-radius:16px;
+    padding:11px 12px;
+}
+
+.evo-top-v3{
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    align-items:flex-start;
+}
+
+.evo-title-v3 b{
+    color:#1f2937;
+    font-size:14px;
+}
+
+.evo-title-v3 small{
+    display:block;
+    color:#6b7280;
+    font-size:12px;
+    margin-top:2px;
+}
+
+.evo-time-v3{
+    color:#d85b9a;
+    font-size:12px;
+    font-weight:bold;
+    white-space:nowrap;
+}
+
+.evo-preview-v3{
+    margin-top:7px;
+    color:#4b5563;
+    font-size:13px;
+    line-height:1.35;
+    white-space:pre-wrap;
+}
+
+.evo-detail-v3{
+    margin-top:6px;
+}
+
+.evo-detail-v3 summary{
+    cursor:pointer;
+    color:#d85b9a;
+    font-size:12px;
+    font-weight:bold;
+}
+
+.compact-panel-v3{
+    display:grid;
+    gap:8px;
+}
+
+.compact-row-v3{
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    align-items:flex-start;
+    border:1px solid #f1d6e2;
+    border-radius:14px;
+    padding:9px 10px;
+    background:#fff;
+}
+
+.compact-row-v3 span{
+    color:#374151;
+    font-size:13px;
+    line-height:1.3;
+}
+
+.compact-row-v3 small{
+    display:block;
+    color:#6b7280;
+    font-size:11px;
+    margin-top:2px;
+}
+
+.compact-row-v3 b{
+    color:#d85b9a;
+    font-size:12px;
+    white-space:nowrap;
+}
+
+.compact-ai-v3 summary{
+    cursor:pointer;
+    color:#d85b9a;
+    font-weight:bold;
+    font-size:13px;
 }    
 @media (max-width:900px){
 
@@ -791,18 +891,53 @@
                 <h2>🕓 Evoluciones</h2>
 
                 {% if related_events %}
-                <div class="timeline">
+                <div class="timeline-v3">
                     {% for e in related_events %}
-                    <div class="item">
-                        <div class="date">{{ e.event_date.strftime('%d/%m %H:%M') if e.event_date else '-' }}</div>
-                        <div class="dot">
-                            {% if e.event_type == 'Alta' %}🏠{% elif e.event_type == 'Internación' %}🏥{% elif e.event_type == 'Control' %}📋{% else %}🩺{% endif %}
+
+                        {% set evo_text = e.description or e.diagnosis or e.treatment or '' %}
+
+                        <div class="evo-card-v3">
+                            <div class="evo-top-v3">
+                                <div class="evo-title-v3">
+                                    <b>
+                                        {% if e.event_type == 'Alta' %}🏠
+                                        {% elif e.event_type == 'Internación' %}🏥
+                                        {% elif e.event_type == 'Control' %}📋
+                                        {% else %}🩺
+                                        {% endif %}
+                                        {{ e.event_type }}{% if e.title %} · {{ e.title }}{% endif %}
+                                    </b>
+
+                                    <small>
+                                        Registrado por {{ e.created_by or '-' }}
+                                    </small>
+                                </div>
+
+                                <div class="evo-time-v3">
+                                    {{ e.event_date.strftime('%d/%m %H:%M') if e.event_date else '-' }}
+                                </div>
+                            </div>
+
+                            {% if evo_text %}
+                                {% if evo_text|length > 180 %}
+                                    <div class="evo-preview-v3">
+                                        {{ evo_text[:180] }}...
+                                    </div>
+
+                                    <details class="evo-detail-v3">
+                                        <summary>▼ Ver completo</summary>
+                                        <div class="evo-preview-v3">
+                                            {{ evo_text }}
+                                        </div>
+                                    </details>
+                                {% else %}
+                                    <div class="evo-preview-v3">
+                                        {{ evo_text }}
+                                    </div>
+                                {% endif %}
+                            {% endif %}
                         </div>
-                        <div>
-                            <h3>{{ e.event_type }}{% if e.title %} · {{ e.title }}{% endif %}</h3>
-                            <p>{% if e.description %}{{ e.description }}{% elif e.diagnosis %}{{ e.diagnosis }}{% elif e.treatment %}{{ e.treatment }}{% else %}Sin detalle cargado.{% endif %}</p>
-                        </div>
-                    </div>
+
                     {% endfor %}
                 </div>
                 {% else %}
@@ -1302,32 +1437,26 @@ Sin observaciones cargadas.
             <div class="card">
                 <h2>🍽️ Enfermería rápida</h2>
 
-                <div class="mini-list">
-                    <div class="mini-row">
-                        <span>Comió / tomó agua</span>
+                <div class="compact-panel-v3">
+                    <div class="compact-row-v3">
+                        <span>🍽️ Comió / tomó agua<small>Último registro: {{ current_time_hhmm or '-' }} hs</small></span>
                         <b>Checklist</b>
                     </div>
 
-                    <div class="mini-row">
-                        <span>Orina / materia fecal</span>
+                    <div class="compact-row-v3">
+                        <span>🚽 Orina / materia fecal<small>Último registro: {{ current_time_hhmm or '-' }} hs</small></span>
                         <b>Checklist</b>
                     </div>
 
-                    <div class="mini-row">
-                        <span>Vómitos / diarrea</span>
+                    <div class="compact-row-v3">
+                        <span>🤢 Vómitos / diarrea<small>Último registro: {{ current_time_hhmm or '-' }} hs</small></span>
                         <b>Checklist</b>
                     </div>
 
-                    <div class="mini-row">
-                        <span>Limpieza de jaula</span>
+                    <div class="compact-row-v3">
+                        <span>🧼 Limpieza de jaula<small>Último registro: {{ current_time_hhmm or '-' }} hs</small></span>
                         <b>Checklist</b>
                     </div>
-                </div>
-
-                <br>
-
-                <div class="soft-alert">
-                    El checklist guardable está en la columna izquierda y queda registrado como evolución.
                 </div>
             </div>
             <div class="card">
@@ -1405,46 +1534,24 @@ Sin observaciones cargadas.
             <div class="card">
                 <h2>👩‍⚕️ Enfermería en tiempo real</h2>
 
-                <h3 style="margin-bottom:12px;">
-                    📌 Prioridad automática
-                </h3>
-
                 <div class="note"
                      style="{% if priority_class=='danger' %}background:#fff1f2;border-color:#fecaca;color:#991b1b;
                             {% elif priority_class=='warning' %}background:#fff7ed;border-color:#fed7aa;color:#9a3412;
                             {% elif priority_class=='watch' %}background:#fefce8;border-color:#fde68a;color:#854d0e;
                             {% else %}background:#f0fdf4;border-color:#bbf7d0;color:#166534;
                             {% endif %}">
-
-                    <b style="font-size:17px;">
-                        {{ priority_icon }} {{ priority_label }}
-                    </b>
-
-                    <br>
-
-                    Score IA: {{ priority_score }}/100
+                    <b>{{ priority_icon }} {{ priority_label }}</b><br>
+                    <small>Score IA: {{ priority_score }}/100 · Último control: {{ current_time_hhmm or '-' }} hs</small>
                 </div>
 
                 <br>
 
-                <div class="soft-alert">
-                    <b>Resumen IA</b>
-
-                    <ul style="margin-top:10px;margin-bottom:0;">
-                        {% for line in clinical_summary %}
-                        <li>{{ line }}</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-
-                <br>
-
-                <div class="mini-list">
+                <div class="compact-panel-v3">
                     {% for task in nursing_tasks %}
-                    <div class="mini-row">
+                    <div class="compact-row-v3">
                         <span>
-                            {{ task.icon }} <b style="color:#374151;">{{ task.title }}</b><br>
-                            <small style="color:#6b7280;">{{ task.detail }}</small>
+                            {{ task.icon }} {{ task.title }}
+                            <small>{{ task.detail }}</small>
                         </span>
                         <b>{{ task.priority }}</b>
                     </div>
@@ -1453,33 +1560,38 @@ Sin observaciones cargadas.
 
                 <br>
 
-                <div class="soft-alert">
-                    Vista automática: medicaciones pendientes, fluidos activos y próximo control clínico.
-                </div>
+                <details class="compact-ai-v3">
+                    <summary>▼ Ver resumen IA</summary>
+                    <div class="note" style="margin-top:10px;">
+                        <ul style="margin-top:0;margin-bottom:0;">
+                            {% for line in clinical_summary %}
+                            <li>{{ line }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </details>
             </div>
-
             <div class="card">
                 <h2>🤖 IA / Alertas clínicas</h2>
+
                 <button type="button"
                         onclick="runHospitalizationAI()"
-                        style="background:#7c3aed;color:white;border:none;border-radius:14px;padding:12px 14px;font-weight:bold;cursor:pointer;width:100%;margin-bottom:12px;">
-                    🧠 Analizar internación con IA real
+                        style="background:#7c3aed;color:white;border:none;border-radius:14px;padding:11px 14px;font-weight:bold;cursor:pointer;width:100%;margin-bottom:10px;">
+                    🧠 Analizar internación
                 </button>
 
                 <div id="hospitalization_ai_result" class="note" style="display:none;margin-bottom:12px;"></div>
-                {% if hospitalization.status == 'Internado' %}
-                    <div class="soft-alert">Paciente internado activo.</div>
-                {% else %}
-                    <div class="alert">Internación cerrada.</div>
-                {% endif %}
 
-                <div class="mini-list">
+                <div class="compact-panel-v3">
                     {% for alert in hospital_alerts %}
-                    <div class="mini-row"
-                         style="{% if alert.level == 'danger' %}border-color:#fecaca;background:#fff1f2;{% elif alert.level == 'warning' %}border-color:#fed7aa;background:#fff7ed;{% else %}border-color:#bbf7d0;background:#f0fdf4;{% endif %}">
+                    <div class="compact-row-v3"
+                         style="{% if alert.level == 'danger' %}border-color:#fecaca;background:#fff1f2;
+                                {% elif alert.level == 'warning' %}border-color:#fed7aa;background:#fff7ed;
+                                {% else %}border-color:#bbf7d0;background:#f0fdf4;
+                                {% endif %}">
                         <span>
-                            {{ alert.icon }} <b style="color:#374151;">{{ alert.title }}</b><br>
-                            <small style="color:#6b7280;">{{ alert.detail }}</small>
+                            {{ alert.icon }} {{ alert.title }}
+                            <small>{{ alert.detail }}</small>
                         </span>
                         <b>
                             {% if alert.level == 'danger' %}
@@ -1495,27 +1607,17 @@ Sin observaciones cargadas.
                 </div>
 
                 <br>
-                <br>
 
-                <div class="note">
-
-                    <b>📋 Resumen clínico automático</b>
-
-                    <ul style="margin-top:10px;margin-bottom:0;">
-
-                        {% for line in clinical_summary %}
-
-                        <li>{{ line }}</li>
-
-                        {% endfor %}
-
-                    </ul>
-
-                </div>
-                <p style="color:#6b7280;font-size:14px;">
-                    IA clínica local: cruza constantes, controles demorados, medicación pendiente,
-                    fluidoterapia activa, mucosas, TRC e hidratación.
-                </p>
+                <details class="compact-ai-v3">
+                    <summary>▼ Ver resumen clínico automático</summary>
+                    <div class="note" style="margin-top:10px;">
+                        <ul style="margin-top:0;margin-bottom:0;">
+                            {% for line in clinical_summary %}
+                            <li>{{ line }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </details>
             </div>
 
             <div class="card">
