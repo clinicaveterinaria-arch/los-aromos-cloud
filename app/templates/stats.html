@@ -3,418 +3,282 @@
 
 <style>
     .stats-page { padding:24px 28px; }
+    .stats-hero { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; margin-bottom:18px; }
+    .stats-title h1 { margin:0 0 6px; font-size:32px; color:#1f2937; }
+    .stats-title p { margin:0; color:#6b7280; }
+    .stats-filters { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+    .stats-filter, .export-btn { border:1px solid #f3c6d8; background:white; color:#374151; border-radius:12px; padding:11px 14px; text-decoration:none; font-weight:700; cursor:pointer; }
+    .stats-filter.active { background:#d85b9a; color:white; border-color:#d85b9a; }
+    .export-btn { color:#d85b9a; }
+    .stats-card { background:white; border:1px solid #f3c6d8; border-radius:20px; padding:20px; box-shadow:0 8px 26px rgba(0,0,0,.04); margin-bottom:18px; }
+    .stats-card h2 { margin:0 0 16px; color:#1f2937; font-size:20px; }
+    .comparison-form { display:grid; grid-template-columns:1fr 1fr auto; gap:12px; align-items:end; margin-top:14px; }
+    .comparison-form label { display:block; font-size:12px; color:#6b7280; font-weight:700; margin-bottom:5px; }
+    .comparison-form select { width:100%; padding:10px; border:1px solid #f3c6d8; border-radius:10px; background:white; }
+    .comparison-form button { background:#d85b9a; color:white; border:none; border-radius:10px; padding:11px 16px; font-weight:700; cursor:pointer; }
+    .period-note { color:#6b7280; margin:0; }
+    .kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:14px; margin-bottom:18px; }
+    .kpi-card { background:white; border:1px solid #f3c6d8; border-radius:20px; padding:18px; box-shadow:0 8px 26px rgba(0,0,0,.04); }
+    .kpi-icon { width:48px; height:48px; border-radius:50%; background:#fff0f7; color:#d85b9a; display:flex; align-items:center; justify-content:center; font-size:24px; margin-bottom:12px; }
+    .kpi-card small { color:#6b7280; font-weight:700; }
+    .kpi-card h2 { margin:8px 0 5px; font-size:26px; color:#1f2937; }
+    .trend-up { color:#166534 !important; }
+    .trend-down { color:#991b1b !important; }
+    .category-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; margin-bottom:18px; }
+    .category-card { background:white; border:1px solid #f3c6d8; border-radius:18px; padding:17px; box-shadow:0 8px 24px rgba(0,0,0,.035); }
+    .category-head { display:flex; justify-content:space-between; gap:10px; align-items:center; margin-bottom:12px; }
+    .category-head b { color:#1f2937; }
+    .category-icon { font-size:25px; }
+    .category-row { display:flex; justify-content:space-between; gap:10px; padding:6px 0; color:#6b7280; border-bottom:1px solid #f8edf2; }
+    .category-row:last-child { border-bottom:none; }
+    .category-row strong { color:#1f2937; text-align:right; }
+    .two-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+    .simple-table { width:100%; border-collapse:collapse; font-size:14px; }
+    .simple-table th, .simple-table td { padding:12px 10px; border-bottom:1px solid #f3edf1; text-align:left; }
+    .simple-table th { color:#6b7280; font-size:12px; text-transform:uppercase; letter-spacing:.04em; }
+    .simple-table td.number, .simple-table th.number { text-align:right; white-space:nowrap; }
+    .amount { color:#d85b9a; font-weight:700; }
+    .empty-text { color:#6b7280; margin:0; }
+    .day-badge { display:inline-block; background:#fff0f7; color:#9d174d; border-radius:999px; padding:5px 10px; font-size:12px; font-weight:700; }
+    .ranking-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
 
-    .stats-hero {
-        display:flex;
-        justify-content:space-between;
-        align-items:flex-start;
-        gap:16px;
-        flex-wrap:wrap;
-        margin-bottom:18px;
+    @media(max-width:1100px) {
+        .category-grid { grid-template-columns:1fr 1fr; }
     }
-
-    .stats-title h1 {
-        margin:0 0 6px 0;
-        font-size:32px;
-        color:#1f2937;
+    @media(max-width:900px) {
+        .stats-page { padding:12px; }
+        .stats-hero { flex-direction:column; }
+        .stats-filters { width:100%; display:grid; grid-template-columns:1fr 1fr; }
+        .comparison-form, .two-grid, .ranking-grid { grid-template-columns:1fr; }
+        .simple-table { display:block; overflow-x:auto; white-space:nowrap; }
     }
-
-    .stats-title p {
-        margin:0;
-        color:#6b7280;
+    @media(max-width:520px) {
+        .stats-page { padding:8px; }
+        .stats-title h1 { font-size:25px; }
+        .stats-filters, .kpi-grid, .category-grid { grid-template-columns:1fr; }
     }
-
-    .stats-filters {
-        display:flex;
-        gap:8px;
-        flex-wrap:wrap;
-        align-items:center;
-    }
-
-    .stats-filter,
-    .export-btn {
-        border:1px solid #f3c6d8;
-        background:white;
-        color:#374151;
-        border-radius:12px;
-        padding:11px 14px;
-        text-decoration:none;
-        font-weight:bold;
-    }
-
-    .stats-filter.active {
-        background:#d85b9a;
-        color:white;
-        border-color:#d85b9a;
-    }
-
-    .export-btn {
-        color:#d85b9a;
-    }
-
-    .kpi-grid {
-        display:grid;
-        grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-        gap:14px;
-        margin-bottom:18px;
-    }
-
-    .kpi-card {
-        background:white;
-        border:1px solid #f3c6d8;
-        border-radius:20px;
-        padding:18px;
-        box-shadow:0 8px 26px rgba(0,0,0,.04);
-    }
-
-    .kpi-icon {
-        width:48px;
-        height:48px;
-        border-radius:50%;
-        background:#fff0f7;
-        color:#d85b9a;
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        font-size:24px;
-        margin-bottom:12px;
-    }
-
-    .kpi-card small {
-        color:#6b7280;
-        font-weight:bold;
-    }
-
-    .kpi-card h2 {
-        margin:8px 0 5px 0;
-        font-size:26px;
-        color:#1f2937;
-    }
-
-    .stats-card {
-        background:white;
-        border:1px solid #f3c6d8;
-        border-radius:20px;
-        padding:20px;
-        box-shadow:0 8px 26px rgba(0,0,0,.04);
-        margin-bottom:18px;
-    }
-
-    .stats-card h2 {
-        margin:0 0 16px 0;
-        color:#1f2937;
-        font-size:20px;
-    }
-
-    .simple-table {
-        width:100%;
-        border-collapse:collapse;
-        font-size:14px;
-    }
-
-    .simple-table th,
-    .simple-table td {
-        padding:12px 10px;
-        border-bottom:1px solid #f3edf1;
-        text-align:left;
-    }
-
-    .simple-table th {
-        color:#6b7280;
-        font-size:12px;
-        text-transform:uppercase;
-        letter-spacing:.04em;
-    }
-
-    .simple-table td.number,
-    .simple-table th.number {
-        text-align:right;
-        white-space:nowrap;
-    }
-
-    .amount {
-        color:#d85b9a;
-        font-weight:bold;
-    }
-
-    .empty-text {
-        color:#6b7280;
-        margin:0;
-    }
-
-    .two-grid {
-        display:grid;
-        grid-template-columns:1fr 1fr;
-        gap:18px;
-    }
-
-    @media (max-width:900px){
-
-        .stats-page{
-            padding:12px;
-        }
-
-        .stats-hero{
-            flex-direction:column;
-            align-items:flex-start;
-        }
-
-        .stats-title h1{
-            font-size:28px;
-        }
-
-        .stats-filters{
-            width:100%;
-            display:grid;
-            grid-template-columns:1fr 1fr;
-            gap:8px;
-        }
-
-        .stats-filter,
-        .export-btn{
-            text-align:center;
-        }
-
-        .kpi-grid{
-            grid-template-columns:1fr 1fr;
-        }
-
-        .two-grid{
-            grid-template-columns:1fr;
-        }
-
-        .simple-table{
-            display:block;
-            overflow-x:auto;
-            white-space:nowrap;
-        }
-
-    }
-
-    @media (max-width:520px){
-
-        .stats-page{
-            padding:8px;
-        }
-
-        .stats-title h1{
-            font-size:24px;
-        }
-
-        .stats-filters,
-        .kpi-grid{
-            grid-template-columns:1fr;
-        }
-
+    @media print {
+        .stats-filters, .comparison-form { display:none !important; }
+        .stats-page { padding:0; }
+        .stats-card, .kpi-card, .category-card { box-shadow:none; break-inside:avoid; }
     }
 </style>
 
 <div class="stats-page">
-
     <div class="stats-hero">
         <div class="stats-title">
-            <h1>📊 Estadísticas</h1>
-            <p>Resumen de ventas, pacientes, medios de pago y rankings del período seleccionado.</p>
+            <h1>📊 Estadísticas gerenciales</h1>
+            <p>Facturación, ticket, ganancias, rubros y medios de pago.</p>
         </div>
 
         <div class="stats-filters">
-            <a class="stats-filter {% if period == 'today' %}active{% endif %}" href="/stats?period=today">Hoy</a>
+            <a class="stats-filter {% if period == 'today' %}active{% endif %}" href="/stats?period=today">Día</a>
             <a class="stats-filter {% if period == 'week' %}active{% endif %}" href="/stats?period=week">Semana</a>
             <a class="stats-filter {% if period == 'month' %}active{% endif %}" href="/stats?period=month&month={{ month }}&compare_month={{ compare_month }}">Mes</a>
-            <a class="export-btn" href="#" onclick="window.print(); return false;">🖨 Imprimir</a>
+            <button class="export-btn" type="button" onclick="window.print()">🖨 Imprimir</button>
         </div>
-        
-        <form method="get" action="/stats" class="stats-card" style="margin-top:12px;">
-            <input type="hidden" name="period" value="month">
-        
-            <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end;">
-                <div>
-                    <label style="font-size:12px;color:#6b7280;font-weight:bold;">Mes principal</label>
-                    <select name="month" style="width:100%;padding:10px;border:1px solid #f3c6d8;border-radius:10px;">
-                        {% for m in available_months %}
-                            <option value="{{ m.value }}" {% if m.value == month %}selected{% endif %}>
-                                {{ m.label }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
-        
-                <div>
-                    <label style="font-size:12px;color:#6b7280;font-weight:bold;">Comparar con</label>
-                    <select name="compare_month" style="width:100%;padding:10px;border:1px solid #f3c6d8;border-radius:10px;">
-                        {% for m in available_months %}
-                            <option value="{{ m.value }}" {% if m.value == compare_month %}selected{% endif %}>
-                                {{ m.label }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
-        
-                <button type="submit" style="background:#d85b9a;color:white;border:none;border-radius:10px;padding:11px 16px;font-weight:bold;cursor:pointer;">
-                    Comparar
-                </button>
-            </div>
-        </form>
     </div>
+
+    {% if period == 'month' %}
+        <div class="stats-card">
+            <form method="get" action="/stats" class="comparison-form">
+                <input type="hidden" name="period" value="month">
+                <div>
+                    <label>Mes principal</label>
+                    <select name="month">
+                        {% for item in available_months %}
+                            <option value="{{ item.value }}" {% if item.value == month %}selected{% endif %}>{{ item.label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label>Comparar con</label>
+                    <select name="compare_month">
+                        {% for item in available_months %}
+                            <option value="{{ item.value }}" {% if item.value == compare_month %}selected{% endif %}>{{ item.label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit">Comparar</button>
+            </form>
+        </div>
+    {% endif %}
+
     <div class="stats-card">
-        <h2>📅 Comparación mensual</h2>
-        <p class="empty-text">
-            Mostrando <b>{{ period_label }}</b> comparado con <b>{{ compare_label }}</b>.
-        </p>
+        <p class="period-note">Mostrando <b>{{ period_label }}</b> comparado con <b>{{ compare_label }}</b>.</p>
     </div>
+
     <div class="kpi-grid">
-    
+        {% set kpis = [
+            ('💰', 'Facturación', current.sales_total, comparison_stats.sales_total, true),
+            ('💵', 'Ganancia', current.profit_total, comparison_stats.profit_total, true),
+            ('🧾', 'Cantidad de ventas', current.sales_count, comparison_stats.sales_count, false),
+            ('📈', 'Ticket promedio', current.ticket_average, comparison_stats.ticket_average, true),
+            ('🐶', 'Pacientes atendidos', current.patients_seen, comparison_stats.patients_seen, false)
+        ] %}
+
+        {% for icon, title, value, trend, is_money in kpis %}
+            <div class="kpi-card">
+                <div class="kpi-icon">{{ icon }}</div>
+                <small>{{ title }}</small>
+                <h2>
+                    {% if is_money %}$ {{ "{:,.0f}".format(value).replace(",", ".") }}{% else %}{{ value }}{% endif %}
+                </h2>
+                <small class="{% if trend.up %}trend-up{% else %}trend-down{% endif %}">
+                    {% if trend.up %}▲{% else %}▼{% endif %}
+                    {% if is_money %}$ {{ "{:,.0f}".format(trend.amount|abs).replace(",", ".") }}{% else %}{{ trend.amount|abs|int }}{% endif %}
+                    · {{ "{:,.1f}".format(trend.percent|abs).replace(",", ".") }}%
+                </small>
+            </div>
+        {% endfor %}
+
         <div class="kpi-card">
-            <div class="kpi-icon">💰</div>
-            <small>Facturación</small>
-            <h2>$ {{ "{:,.0f}".format(sales_total).replace(",", ".") }}</h2>
-            <small>
-                {% if comparison_stats.sales_total.up %}▲{% else %}▼{% endif %}
-                $ {{ "{:,.0f}".format(comparison_stats.sales_total.amount|abs).replace(",", ".") }}
-                · {{ "{:,.1f}".format(comparison_stats.sales_total.percent|abs).replace(",", ".") }}%
-                vs {{ compare_label }}
-            </small>
+            <div class="kpi-icon">📊</div>
+            <small>Rentabilidad</small>
+            <h2>{{ "{:,.1f}".format(current.margin_percent).replace(",", ".") }}%</h2>
+            <small>Costo total: $ {{ "{:,.0f}".format(current.cost_total).replace(",", ".") }}</small>
         </div>
-    
-        <div class="kpi-card">
-            <div class="kpi-icon">💵</div>
-            <small>Ganancia</small>
-            <h2>$ {{ "{:,.0f}".format(profit_total).replace(",", ".") }}</h2>
-            <small>
-                {% if comparison_stats.profit_total.up %}▲{% else %}▼{% endif %}
-                $ {{ "{:,.0f}".format(comparison_stats.profit_total.amount|abs).replace(",", ".") }}
-                · {{ "{:,.1f}".format(comparison_stats.profit_total.percent|abs).replace(",", ".") }}%
-                vs {{ compare_label }}
-            </small>
-        </div>
-    
-        <div class="kpi-card">
-            <div class="kpi-icon">🧾</div>
-            <small>Cantidad de ventas</small>
-            <h2>{{ sales_count }}</h2>
-            <small>
-                {% if comparison_stats.sales_count.up %}▲{% else %}▼{% endif %}
-                {{ comparison_stats.sales_count.amount|abs|int }}
-                · {{ "{:,.1f}".format(comparison_stats.sales_count.percent|abs).replace(",", ".") }}%
-                vs {{ compare_label }}
-            </small>
-        </div>
-    
-        <div class="kpi-card">
-            <div class="kpi-icon">📈</div>
-            <small>Ticket promedio</small>
-            <h2>$ {{ "{:,.0f}".format(ticket_average).replace(",", ".") }}</h2>
-            <small>
-                {% if comparison_stats.ticket_average.up %}▲{% else %}▼{% endif %}
-                $ {{ "{:,.0f}".format(comparison_stats.ticket_average.amount|abs).replace(",", ".") }}
-                · {{ "{:,.1f}".format(comparison_stats.ticket_average.percent|abs).replace(",", ".") }}%
-                vs {{ compare_label }}
-            </small>
-        </div>
-    
-        <div class="kpi-card">
-            <div class="kpi-icon">🐶</div>
-            <small>Pacientes atendidos</small>
-            <h2>{{ patients_seen }}</h2>
-            <small>
-                {% if comparison_stats.patients_seen.up %}▲{% else %}▼{% endif %}
-                {{ comparison_stats.patients_seen.amount|abs|int }}
-                · {{ "{:,.1f}".format(comparison_stats.patients_seen.percent|abs).replace(",", ".") }}%
-                vs {{ compare_label }}
-            </small>
-        </div>
-    
     </div>
 
-    <div class="stats-card">
-        <h2>💳 Medios de pago · {{ period_label }}</h2>
-
-        {% if payments_by_method %}
-            <table class="simple-table">
-                <thead>
-                    <tr>
-                        <th>Medio</th>
-                        <th class="number">Cantidad</th>
-                        <th class="number">Total</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for method, data in payments_by_method.items() %}
-                        <tr>
-                            <td>{{ method }}</td>
-                            <td class="number">{{ data.count }}</td>
-                            <td class="number amount">$ {{ "{:,.0f}".format(data.total).replace(",", ".") }}</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        {% else %}
-            <p class="empty-text">Sin pagos registrados en este período.</p>
-        {% endif %}
+    <div class="category-grid">
+        {% for category in current.category_stats if category.key != 'other' %}
+            {% set trend = category_comparison[category.key] %}
+            <div class="category-card">
+                <div class="category-head">
+                    <b>{{ category.label }}</b>
+                    <span class="category-icon">{{ category.icon }}</span>
+                </div>
+                <div class="category-row"><span>Facturación</span><strong>$ {{ "{:,.0f}".format(category.sales).replace(",", ".") }}</strong></div>
+                <div class="category-row"><span>Costo</span><strong>$ {{ "{:,.0f}".format(category.cost).replace(",", ".") }}</strong></div>
+                <div class="category-row"><span>Ganancia</span><strong>$ {{ "{:,.0f}".format(category.profit).replace(",", ".") }}</strong></div>
+                <div class="category-row"><span>Participación</span><strong>{{ "{:,.1f}".format(category.percent).replace(",", ".") }}%</strong></div>
+                <div class="category-row">
+                    <span>Vs. período anterior</span>
+                    <strong class="{% if trend.sales.up %}trend-up{% else %}trend-down{% endif %}">
+                        {% if trend.sales.up %}▲{% else %}▼{% endif %} {{ "{:,.1f}".format(trend.sales.percent|abs).replace(",", ".") }}%
+                    </strong>
+                </div>
+            </div>
+        {% endfor %}
     </div>
+
+    {% set other = current.category_stats_map.other %}
+    {% if other.sales > 0 %}
+        <div class="stats-card">
+            <h2>📦 Ventas sin rubro reconocido</h2>
+            <p class="period-note">
+                Facturación: <b>$ {{ "{:,.0f}".format(other.sales).replace(",", ".") }}</b> ·
+                Ganancia: <b>$ {{ "{:,.0f}".format(other.profit).replace(",", ".") }}</b>.
+                Revisá el rubro de esos productos para que entren en Farmacia, Pet Shop, Balanceados o Servicios clínicos.
+            </p>
+        </div>
+    {% endif %}
 
     <div class="two-grid">
-
         <div class="stats-card">
-            <h2>🩺 Top 10 Servicios clínicos · {{ period_label }}</h2>
-
-            {% if top_clinical_services %}
+            <h2>💳 Medios de pago</h2>
+            {% if current.payments_by_method %}
                 <table class="simple-table">
                     <thead>
                         <tr>
-                            <th>Servicio</th>
-                            <th class="number">Cant.</th>
-                            <th class="number">Facturación</th>
-                            <th class="number">Ganancia</th>
+                            <th>Medio</th>
+                            <th class="number">Operaciones</th>
+                            <th class="number">Total</th>
+                            <th class="number">%</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for item in top_clinical_services %}
+                        {% for method, data in current.payments_by_method.items() %}
                             <tr>
-                                <td>{{ loop.index }}. {{ item.name }}</td>
-                                <td class="number">{{ item.qty|int }}</td>
-                                <td class="number amount">$ {{ "{:,.0f}".format(item.total).replace(",", ".") }}</td>
-                                <td class="number amount">$ {{ "{:,.0f}".format(item.profit).replace(",", ".") }}</td>
+                                <td>{{ method }}</td>
+                                <td class="number">{{ data.count }}</td>
+                                <td class="number amount">$ {{ "{:,.0f}".format(data.total).replace(",", ".") }}</td>
+                                <td class="number">{{ "{:,.1f}".format(data.percent).replace(",", ".") }}%</td>
                             </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             {% else %}
-                <p class="empty-text">Sin servicios clínicos vendidos en este período.</p>
+                <p class="empty-text">Sin pagos registrados en este período.</p>
             {% endif %}
         </div>
 
         <div class="stats-card">
-            <h2>💊 Top 10 Medicina · {{ period_label }}</h2>
-
-            {% if top_medicine_products %}
-                <table class="simple-table">
-                    <thead>
-                        <tr>
-                            <th>Producto</th>
-                            <th class="number">Cant.</th>
-                            <th class="number">Facturación</th>
-                            <th class="number">Ganancia</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in top_medicine_products %}
-                            <tr>
-                                <td>{{ loop.index }}. {{ item.name }}</td>
-                                <td class="number">{{ item.qty|int }}</td>
-                                <td class="number amount">$ {{ "{:,.0f}".format(item.total).replace(",", ".") }}</td>
-                                <td class="number amount">$ {{ "{:,.0f}".format(item.profit).replace(",", ".") }}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+            <h2>🏆 Días destacados</h2>
+            {% if current.best_day %}
+                <div class="category-row">
+                    <span>Mejor día</span>
+                    <strong>{{ current.best_day.date.strftime('%d/%m/%Y') }} · $ {{ "{:,.0f}".format(current.best_day.sales).replace(",", ".") }}</strong>
+                </div>
+                <div class="category-row">
+                    <span>Día de menor venta</span>
+                    <strong>{{ current.worst_day.date.strftime('%d/%m/%Y') }} · $ {{ "{:,.0f}".format(current.worst_day.sales).replace(",", ".") }}</strong>
+                </div>
             {% else %}
-                <p class="empty-text">Sin productos de medicina vendidos en este período.</p>
+                <p class="empty-text">Sin ventas registradas en este período.</p>
             {% endif %}
         </div>
-
     </div>
 
+    <div class="stats-card">
+        <h2>📅 Evolución diaria</h2>
+        <table class="simple-table">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th class="number">Ventas</th>
+                    <th class="number">Facturación</th>
+                    <th class="number">Ganancia</th>
+                    <th class="number">Ticket promedio</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for day in current.daily_rows %}
+                    <tr>
+                        <td><span class="day-badge">{{ day.date.strftime('%d/%m/%Y') }}</span></td>
+                        <td class="number">{{ day.count }}</td>
+                        <td class="number amount">$ {{ "{:,.0f}".format(day.sales).replace(",", ".") }}</td>
+                        <td class="number">$ {{ "{:,.0f}".format(day.profit).replace(",", ".") }}</td>
+                        <td class="number">$ {{ "{:,.0f}".format(day.ticket).replace(",", ".") }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="ranking-grid">
+        {% for category_key in ['clinical', 'pharmacy', 'food', 'petshop'] %}
+            {% set rows = current.top_by_category[category_key] %}
+            {% set meta = category_meta[category_key] %}
+            <div class="stats-card">
+                <h2>{{ meta.icon }} Top 10 · {{ meta.label }}</h2>
+                {% if rows %}
+                    <table class="simple-table">
+                        <thead>
+                            <tr>
+                                <th>Producto / servicio</th>
+                                <th class="number">Cant.</th>
+                                <th class="number">Venta</th>
+                                <th class="number">Ganancia</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in rows %}
+                                <tr>
+                                    <td>{{ loop.index }}. {{ item.name }}</td>
+                                    <td class="number">{{ "{:,.2f}".format(item.qty).rstrip('0').rstrip('.') }}</td>
+                                    <td class="number amount">$ {{ "{:,.0f}".format(item.sales).replace(",", ".") }}</td>
+                                    <td class="number">$ {{ "{:,.0f}".format(item.profit).replace(",", ".") }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p class="empty-text">Sin ventas de este rubro en el período.</p>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
 </div>
 
 {% endblock %}
