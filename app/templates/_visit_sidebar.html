@@ -420,37 +420,7 @@
         alert('Resultado agregado a tratamiento.');
     
     }
-    function sendClinicalAiMockMessage() {
-        const input = document.getElementById('clinicalAiChatInput');
-        const box = document.getElementById('clinicalAiChatBox');
-    
-        if (!input || !box) {
-            return;
-        }
-    
-        const question = input.value.trim();
-    
-        if (!question) {
-            return;
-        }
-    
-        box.innerHTML += `
-            <div style="background:#ffffff; border:1px solid #e5e7eb; border-radius:14px; padding:10px 12px; margin-bottom:10px;">
-                <b>Vos</b>
-                <div style="margin-top:4px; color:#374151;">${question}</div>
-            </div>
-    
-            <div style="background:#fff0f7; border:1px solid #f3c6d8; border-radius:14px; padding:10px 12px; margin-bottom:10px;">
-                <b>IA</b>
-                <div style="margin-top:4px; color:#374151;">
-                    Fase 1: mensaje recibido. En Fase 2 voy a responder usando la historia clínica completa del paciente.
-                </div>
-            </div>
-        `;
-    
-        input.value = '';
-        box.scrollTop = box.scrollHeight;
-    }
+
     function getClinicalAiFormData() {
         const form = document.querySelector('form');
     
