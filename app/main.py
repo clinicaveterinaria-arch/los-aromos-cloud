@@ -1751,22 +1751,72 @@ def normalize_due_text(value):
 
 
 def due_match_score(pending_event, real_event):
-    pending_type = normalize_due_text(pending_event.event_type)
-    real_type = normalize_due_text(real_event.event_type)
+    pending_type = normalize_due_text(
+        pending_event.event_type
+    )
 
-    pending_title = normalize_due_text(pending_event.title)
+    real_type = normalize_due_text(
+        real_event.event_type
+    )
+
+    pending_title = normalize_due_text(
+        pending_event.title
+    )
+
+    real_vaccine = normalize_due_text(
+        getattr(real_event, 'vaccine_name', '') or ''
+    )
+
+    real_dewormer = normalize_due_text(
+        getattr(real_event, 'dewormer_product', '') or ''
+    )
 
     real_text = normalize_due_text(
         f'{real_event.title or ""} '
         f'{real_event.description or ""} '
-        f'{real_event.vaccine_name or ""} '
-        f'{real_event.dewormer_product or ""}'
+        f'{real_vaccine} '
+        f'{real_dewormer}'
     )
+
+    # Una vacuna o desparasitación puede estar cargada
+    # dentro de una visita cuyo tipo principal sea Consulta clínica.
+    effective_real_types = {real_type}
+
+    if real_vaccine:
+        effective_real_types.add('vacuna')
+
+    if real_dewormer:
+        effective_real_types.add('desparasitacion')
+
+    if (
+        'radiografia' in real_text
+        or ' rx ' in f' {real_text} '
+    ):
+        effective_real_types.add('radiografia')
+
+    if (
+        'ecografia' in real_text
+        or 'ecocardiografia' in real_text
+    ):
+        effective_real_types.add('ecografia')
+        effective_real_types.add('ecocardiografia')
+
+    if (
+        'electrocardiograma' in real_text
+        or ' ecg ' in f' {real_text} '
+    ):
+        effective_real_types.add('ecg')
+
+    if (
+        'laboratorio' in real_text
+        or 'analisis' in real_text
+    ):
+        effective_real_types.add('laboratorio')
 
     score = 0
 
-    if pending_type == real_type:
-        score += 60
+    if pending_type in effective_real_types:
+        score += 70
 
     if pending_title and pending_title in real_text:
         score += 50
@@ -1782,40 +1832,68 @@ def due_match_score(pending_event, real_event):
             'clinico',
             'desparasitacion',
             'consulta',
-            'aplicacion'
+            'aplicacion',
+            'antiparasitario'
         }
     }
 
     real_tokens = set(real_text.split())
 
-    score += len(pending_tokens.intersection(real_tokens)) * 15
+    score += (
+        len(
+            pending_tokens.intersection(real_tokens)
+        )
+        * 15
+    )
 
-    if 'vacun' in pending_type and real_type == 'vacuna':
+    if (
+        (
+            pending_type == 'vacuna'
+            or 'vacun' in pending_title
+        )
+        and 'vacuna' in effective_real_types
+    ):
         score += 40
 
     if (
-        'despar' in pending_type
-        or 'antiparas' in pending_title
-        or 'pipeta' in pending_title
-    ) and real_type == 'desparasitacion':
+        (
+            pending_type == 'desparasitacion'
+            or 'despar' in pending_title
+            or 'antiparas' in pending_title
+            or 'pipeta' in pending_title
+        )
+        and 'desparasitacion' in effective_real_types
+    ):
         score += 40
 
-    if pending_type == 'control' and real_type in [
-        'control',
-        'consulta clinica'
-    ]:
+    if (
+        pending_type == 'control'
+        and (
+            'control' in effective_real_types
+            or 'consulta clinica' in effective_real_types
+        )
+    ):
         score += 35
 
-    if WP_SENT_MARKER in (pending_event.description or ''):
+    if WP_SENT_MARKER in (
+        pending_event.description or ''
+    ):
         score += 5
 
     return score
 
 
-def close_managed_due_events(db, patient, real_event, user):
+def close_managed_due_events(
+    db,
+    patient,
+    real_event,
+    user
+):
     active_due_events = (
         db.query(ClinicalEvent)
-        .filter(ClinicalEvent.patient_id == patient.id)
+        .filter(
+            ClinicalEvent.patient_id == patient.id
+        )
         .filter(
             ClinicalEvent.description.ilike(
                 f'%{DUE_ACTIVE_MARKER}%'
@@ -1832,10 +1910,15 @@ def close_managed_due_events(db, patient, real_event, user):
     candidates = []
 
     for due_event in active_due_events:
-        score = due_match_score(due_event, real_event)
+        score = due_match_score(
+            due_event,
+            real_event
+        )
 
         if score >= 60:
-            candidates.append((score, due_event))
+            candidates.append(
+                (score, due_event)
+            )
 
     if not candidates:
         return 0
@@ -1860,14 +1943,129 @@ def close_managed_due_events(db, patient, real_event, user):
     due_event.description += (
         '\n\n'
         '✅ Pendiente cumplido automáticamente.\n'
-        f'Evento realizado: {real_event.title or real_event.event_type}\n'
-        f'Fecha real: {argentina_now().strftime("%d/%m/%Y %H:%M")}\n'
+        f'Evento realizado: '
+        f'{real_event.title or real_event.event_type}\n'
+        f'Fecha real: '
+        f'{argentina_now().strftime("%d/%m/%Y %H:%M")}\n'
         f'Registrado por: {user.username}.'
     )
 
     due_event.reminder_date = None
 
     return 1
+
+
+def reconcile_existing_due_events(
+    db,
+    patient,
+    user
+):
+    active_due_events = (
+        db.query(ClinicalEvent)
+        .filter(
+            ClinicalEvent.patient_id == patient.id
+        )
+        .filter(
+            ClinicalEvent.description.ilike(
+                f'%{DUE_ACTIVE_MARKER}%'
+            )
+        )
+        .filter(
+            ~ClinicalEvent.description.ilike(
+                f'%{DUE_CLOSED_MARKER}%'
+            )
+        )
+        .all()
+    )
+
+    if not active_due_events:
+        return 0
+
+    real_events = (
+        db.query(ClinicalEvent)
+        .filter(
+            ClinicalEvent.patient_id == patient.id
+        )
+        .filter(
+            ~ClinicalEvent.description.ilike(
+                f'%{DUE_ACTIVE_MARKER}%'
+            )
+        )
+        .filter(
+            ~ClinicalEvent.description.ilike(
+                f'%{DUE_CLOSED_MARKER}%'
+            )
+        )
+        .order_by(
+            ClinicalEvent.event_date.desc()
+        )
+        .all()
+    )
+
+    closed_count = 0
+
+    for due_event in active_due_events:
+        due_reference_date = (
+            due_event.reminder_date
+            or (
+                due_event.event_date.date()
+                if due_event.event_date
+                else None
+            )
+        )
+
+        matching_real_event = None
+        best_score = 0
+
+        for real_event in real_events:
+            if not real_event.event_date:
+                continue
+
+            if (
+                due_reference_date
+                and real_event.event_date.date()
+                < due_reference_date
+            ):
+                continue
+
+            score = due_match_score(
+                due_event,
+                real_event
+            )
+
+            if score > best_score:
+                best_score = score
+                matching_real_event = real_event
+
+        if (
+            matching_real_event
+            and best_score >= 60
+        ):
+            due_event.description = (
+                due_event.description or ''
+            ).replace(
+                DUE_ACTIVE_MARKER,
+                DUE_CLOSED_MARKER
+            )
+
+            due_event.description += (
+                '\n\n'
+                '✅ Pendiente cumplido automáticamente.\n'
+                f'Evento realizado: '
+                f'{matching_real_event.title or matching_real_event.event_type}\n'
+                f'Fecha real: '
+                f'{matching_real_event.event_date.strftime("%d/%m/%Y %H:%M")}\n'
+                f'Conciliado automáticamente por: '
+                f'{user.username}.'
+            )
+
+            due_event.reminder_date = None
+            closed_count += 1
+
+    if closed_count:
+        db.commit()
+
+    return closed_count
 @app.post('/patients/{patient_id}/photo')
 async def patient_upload_photo(
     patient_id: int,
