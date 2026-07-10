@@ -202,6 +202,7 @@
             </button>
         
             <button type="button"
+                    onclick="addClinicalAiResultToTreatment()"
                     class="hc2-btn primary">
                 Agregar a tratamiento
             </button>
@@ -343,6 +344,30 @@
             alert('Resultado copiado.');
         });
     } 
+    function addClinicalAiResultToTreatment() {
+        const body = document.getElementById('clinicalAiModalBody');
+        const treatmentField = document.querySelector('[name="treatment"]');
+    
+        if (!body || !treatmentField) {
+            alert('No encontré el campo de tratamiento.');
+            return;
+        }
+    
+        const text = body.innerText || '';
+    
+        if (!text.trim()) {
+            alert('No hay resultado IA para agregar.');
+            return;
+        }
+    
+        const separator = treatmentField.value.trim()
+            ? "\n\n────────────────────────\n\n"
+            : "";
+    
+        treatmentField.value = treatmentField.value + separator + "🤖 IA clínica:\n" + text.trim();
+    
+        alert('Resultado agregado a tratamiento.');
+    }
     function sendClinicalAiMockMessage() {
         const input = document.getElementById('clinicalAiChatInput');
         const box = document.getElementById('clinicalAiChatBox');
