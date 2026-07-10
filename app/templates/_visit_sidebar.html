@@ -363,11 +363,25 @@
         document.getElementById('clinicalAiModal').style.display = 'none';
     }
     function copyClinicalAiResult() {
-        const body = document.getElementById('clinicalAiModalBody');
     
-        if (!body) {
+        const result = document.getElementById('clinicalAiOnlyResult');
+    
+        if (!result) {
+            alert('Todavía no hay un resultado para copiar.');
             return;
         }
+    
+        navigator.clipboard.writeText(result.innerText).then(function () {
+    
+            alert('Resultado copiado al portapapeles.');
+    
+        }).catch(function () {
+    
+            alert('No fue posible copiar el resultado.');
+    
+        });
+    
+    }
     
         const text = body.innerText || '';
     
