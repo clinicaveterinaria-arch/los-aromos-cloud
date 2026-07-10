@@ -2136,6 +2136,12 @@ def patient_detail_v2(
 
     today = argentina_now().date()
 
+    reconcile_existing_due_events(
+        db,
+        patient,
+        user
+    )
+
     events = (
         db.query(ClinicalEvent)
         .filter(ClinicalEvent.patient_id == patient.id)
