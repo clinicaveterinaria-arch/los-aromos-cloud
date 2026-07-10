@@ -161,7 +161,42 @@
     </div>
 
 </div>
+<div id="clinicalAiModal"
+     style="display:none; position:fixed; inset:0; background:rgba(17,24,39,.45); z-index:9999; align-items:center; justify-content:center; padding:18px;">
 
+    <div style="width:100%; max-width:620px; background:white; border-radius:24px; border:1px solid #f3c6d8; box-shadow:0 20px 50px rgba(0,0,0,.18); overflow:hidden;">
+
+        <div style="padding:16px 18px; background:#fff8fb; border-bottom:1px solid #f3c6d8; display:flex; align-items:center; justify-content:space-between; gap:12px;">
+            <h3 id="clinicalAiModalTitle" style="margin:0; color:#1f2937;">
+                🤖 Centro de IA clínica
+            </h3>
+
+            <button type="button"
+                    onclick="closeClinicalAiModal()"
+                    style="border:none; background:white; color:#d85b9a; border-radius:999px; width:34px; height:34px; font-size:18px; cursor:pointer;">
+                ×
+            </button>
+        </div>
+
+        <div id="clinicalAiModalBody" style="padding:18px;">
+        </div>
+
+        <div style="padding:14px 18px; border-top:1px solid #f3c6d8; display:flex; justify-content:flex-end; gap:8px;">
+            <button type="button"
+                    onclick="closeClinicalAiModal()"
+                    class="hc2-btn">
+                Cerrar
+            </button>
+
+            <button type="button"
+                    class="hc2-btn primary">
+                Copiar resultado
+            </button>
+        </div>
+
+    </div>
+
+</div>
 <style>
     .hc2-ai-btn {
         border: 1px solid #f3c6d8;
@@ -220,7 +255,28 @@
         }
     }
 
-    function openClinicalAiMock(actionName) {
-        alert(actionName + "\\n\\nFase 1: interfaz lista.\\nFase 2: se conectará con OpenAI.");
-    }
+function openClinicalAiMock(actionName) {
+    document.getElementById('clinicalAiModalTitle').innerText = actionName;
+
+    document.getElementById('clinicalAiModalBody').innerHTML = `
+        <div style="background:#fff8fb; border:1px solid #f3c6d8; border-radius:16px; padding:14px; margin-bottom:12px;">
+            <b>🤖 Centro de IA clínica</b>
+            <p style="margin:8px 0 0 0; color:#6b7280; font-size:13px;">
+                Fase 1 activa: la interfaz ya está preparada.
+                En Fase 2 este botón se conectará con OpenAI y analizará automáticamente los datos clínicos del paciente.
+            </p>
+        </div>
+
+        <div style="border:1px solid #e5e7eb; border-radius:16px; padding:14px;">
+            <div style="font-weight:bold; margin-bottom:8px;">Acción seleccionada</div>
+            <div style="color:#d85b9a; font-weight:bold;">${actionName}</div>
+        </div>
+    `;
+
+    document.getElementById('clinicalAiModal').style.display = 'flex';
+}
+
+function closeClinicalAiModal() {
+    document.getElementById('clinicalAiModal').style.display = 'none';
+}
 </script>
