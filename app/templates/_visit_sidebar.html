@@ -578,6 +578,7 @@
             const typing = document.getElementById('clinicalAiTypingMessage');
     
             if (typing) {
+                window.lastClinicalAiResult = data.result || '';
                 typing.removeAttribute('id');
                 typing.innerHTML = `
                     <b>IA</b>
