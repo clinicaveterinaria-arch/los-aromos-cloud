@@ -287,4 +287,17 @@
     function closeClinicalAiModal() {
         document.getElementById('clinicalAiModal').style.display = 'none';
     }
+    function copyClinicalAiResult() {
+        const body = document.getElementById('clinicalAiModalBody');
+    
+        if (!body) {
+            return;
+        }
+    
+        const text = body.innerText || '';
+    
+        navigator.clipboard.writeText(text).then(function() {
+            alert('Resultado copiado.');
+        });
+    }    
 </script>
