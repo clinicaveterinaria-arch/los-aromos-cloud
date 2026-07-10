@@ -7494,60 +7494,142 @@ def stats_page(
 ):
     from collections import defaultdict
     import calendar
+    import unicodedata
 
     today = argentina_now().date()
 
+    def normalize(value):
+        text_value = str(value or '').strip().lower()
+        text_value = ''.join(
+            char for char in unicodedata.normalize('NFD', text_value)
+            if unicodedata.category(char) != 'Mn'
+        )
+        text_value = re.sub(r'[^a-z0-9]+', ' ', text_value)
+        return re.sub(r'\s+', ' ', text_value).strip()
+
     def month_bounds(month_value):
         try:
-            base = datetime.strptime(month_value, "%Y-%m").date()
+            base = datetime.strptime(month_value, '%Y-%m').date()
         except Exception:
             base = today.replace(day=1)
 
         start = base.replace(day=1)
         last_day = calendar.monthrange(start.year, start.month)[1]
-        end = start.replace(day=last_day)
-
-        return start, end
+        return start, start.replace(day=last_day)
 
     def previous_month_value(month_value):
-        try:
-            base = datetime.strptime(month_value, "%Y-%m").date()
-        except Exception:
-            base = today.replace(day=1)
-
-        first = base.replace(day=1)
-        prev_last = first - timedelta(days=1)
-        return prev_last.strftime("%Y-%m")
+        start, _ = month_bounds(month_value)
+        return (start - timedelta(days=1)).strftime('%Y-%m')
 
     if not month:
-        month = today.strftime("%Y-%m")
+        month = today.strftime('%Y-%m')
 
     if not compare_month:
         compare_month = previous_month_value(month)
 
     selected_start, selected_end = month_bounds(month)
-    compare_start, compare_end = month_bounds(compare_month)
-
-    month_start = today.replace(day=1)
+    compare_month_start, compare_month_end = month_bounds(compare_month)
 
     if period == 'today':
         start_date = today
         end_date = today
-        period_label = 'Hoy'
+        compare_start = today - timedelta(days=1)
+        compare_end = compare_start
+        period_label = today.strftime('%d/%m/%Y')
+        compare_label = compare_start.strftime('%d/%m/%Y')
+
     elif period == 'week':
-        raw_week_start = today - timedelta(days=today.weekday())
-        start_date = max(raw_week_start, month_start)
+        start_date = today - timedelta(days=today.weekday())
         end_date = today
-        period_label = 'Esta semana'
+        compare_start = start_date - timedelta(days=7)
+        compare_end = end_date - timedelta(days=7)
+        period_label = f'{start_date.strftime("%d/%m")} al {end_date.strftime("%d/%m/%Y")}'
+        compare_label = f'{compare_start.strftime("%d/%m")} al {compare_end.strftime("%d/%m/%Y")}'
+
     else:
+        period = 'month'
         start_date = selected_start
         end_date = selected_end
-        period = 'month'
+        compare_start = compare_month_start
+        compare_end = compare_month_end
         period_label = selected_start.strftime('%m/%Y')
+        compare_label = compare_start.strftime('%m/%Y')
 
-    def get_sales_summary(start_date, end_date):
-        start_dt = datetime.combine(start_date, datetime.min.time())
-        end_dt = datetime.combine(end_date, datetime.max.time())
+    category_meta = {
+        'clinical': {'label': 'Servicios clínicos', 'icon': '🩺'},
+        'pharmacy': {'label': 'Farmacia', 'icon': '💊'},
+        'food': {'label': 'Alimentos balanceados', 'icon': '🥣'},
+        'petshop': {'label': 'Pet Shop', 'icon': '🐾'},
+        'other': {'label': 'Otros', 'icon': '📦'}
+    }
+
+    def classify_product(product, rubro_value=''):
+        rubro_text = normalize(rubro_value or getattr(product, 'rubro', ''))
+        tipo_text = normalize(getattr(product, 'tipo', ''))
+        name_text = normalize(getattr(product, 'name', ''))
+        full_text = f'{rubro_text} {tipo_text} {name_text}'.strip()
+
+        if (
+            'servicio clinico' in rubro_text
+            or 'servicios clinicos' in rubro_text
+            or rubro_text in {'servicio', 'servicios', 'clinica', 'clinico'}
+        ):
+            return 'clinical'
+
+        if (
+            'alimento balanceado' in rubro_text
+            or 'alimentos balanceados' in rubro_text
+            or 'balanceado' in rubro_text
+            or 'alimento' in rubro_text
+        ):
+            return 'food'
+
+        if (
+            'petshop' in rubro_text
+            or 'pet shop' in rubro_text
+            or 'accesorio' in rubro_text
+            or 'accesorios' in rubro_text
+        ):
+            return 'petshop'
+
+        if (
+            'farmacia' in rubro_text
+            or 'medicamento' in rubro_text
+            or 'medicina' in rubro_text
+        ):
+            return 'pharmacy'
+
+        clinical_words = [
+            'consulta', 'control', 'ecg', 'radiografia', 'ecografia',
+            'cirugia', 'internacion', 'anestesia', 'curacion',
+            'laboratorio', 'vacunacion', 'servicio'
+        ]
+        food_words = ['balanceado', 'alimento', 'racion', 'dieta']
+        petshop_words = [
+            'collar', 'correa', 'pretal', 'juguete', 'cama', 'comedero',
+            'bebedero', 'transportadora', 'arena', 'piedras sanitarias',
+            'shampoo', 'cepillo', 'ropa'
+        ]
+        pharmacy_words = [
+            'farmacia', 'medicamento', 'comprimido', 'inyectable', 'ampolla',
+            'antibiotico', 'analgesico', 'antiinflamatorio', 'pipeta',
+            'antiparasitario', 'vacuna', 'jarabe', 'suspension'
+        ]
+
+        if any(word in full_text for word in clinical_words):
+            return 'clinical'
+        if any(word in full_text for word in food_words):
+            return 'food'
+        if any(word in full_text for word in petshop_words):
+            return 'petshop'
+        if any(word in full_text for word in pharmacy_words):
+            return 'pharmacy'
+
+        return 'other'
+
+    def build_period_data(range_start, range_end):
+        start_dt = datetime.combine(range_start, datetime.min.time())
+        end_dt = datetime.combine(range_end, datetime.max.time())
 
         sales = (
             db.query(Sale)
@@ -7558,35 +7640,191 @@ def stats_page(
             .all()
         )
 
-        sale_ids = [s.id for s in sales]
+        sale_ids = [sale.id for sale in sales]
+        sales_by_id = {sale.id: sale for sale in sales}
 
-        sales_total = sum(s.total or 0 for s in sales)
+        category_stats = {
+            key: {
+                'key': key,
+                'label': meta['label'],
+                'icon': meta['icon'],
+                'sales': 0.0,
+                'cost': 0.0,
+                'profit': 0.0,
+                'qty': 0.0,
+                'percent': 0.0
+            }
+            for key, meta in category_meta.items()
+        }
+
+        product_stats = defaultdict(
+            lambda: {
+                'name': '',
+                'category': 'other',
+                'qty': 0.0,
+                'sales': 0.0,
+                'cost': 0.0,
+                'profit': 0.0
+            }
+        )
+
+        daily_stats = defaultdict(
+            lambda: {
+                'date': None,
+                'sales': 0.0,
+                'profit': 0.0,
+                'count': 0,
+                'ticket': 0.0
+            }
+        )
+
+        sale_item_totals = defaultdict(float)
+        items = []
+
+        if sale_ids:
+            items = (
+                db.query(SaleItem)
+                .filter(SaleItem.sale_id.in_(sale_ids))
+                .all()
+            )
+
+            for item in items:
+                sale_item_totals[item.sale_id] += item.subtotal or 0
+
+        for sale in sales:
+            sale_day = sale.date.date() if sale.date else range_start
+            daily_stats[sale_day]['date'] = sale_day
+            daily_stats[sale_day]['sales'] += sale.total or 0
+            daily_stats[sale_day]['count'] += 1
+
+        for item in items:
+            sale = sales_by_id.get(item.sale_id)
+            product = db.get(Product, item.product_id)
+
+            if not sale or not product:
+                continue
+
+            raw_subtotal = item.subtotal or ((item.quantity or 0) * (item.unit_price or 0))
+            item_total_for_sale = sale_item_totals.get(item.sale_id, 0)
+            allocation_factor = (
+                (sale.total or 0) / item_total_for_sale
+                if item_total_for_sale > 0
+                else 1
+            )
+            allocated_sales = raw_subtotal * allocation_factor
+
+            category = classify_product(product)
+            qty = item.quantity or 0
+
+            if category == 'clinical':
+                cost = 0
+                profit = allocated_sales
+            else:
+                cost = (product.cost_price or 0) * qty
+                profit = allocated_sales - cost
+
+            category_stats[category]['sales'] += allocated_sales
+            category_stats[category]['cost'] += cost
+            category_stats[category]['profit'] += profit
+            category_stats[category]['qty'] += qty
+
+            product_key = (category, product.id)
+            product_stats[product_key]['name'] = product.name or 'Sin nombre'
+            product_stats[product_key]['category'] = category
+            product_stats[product_key]['qty'] += qty
+            product_stats[product_key]['sales'] += allocated_sales
+            product_stats[product_key]['cost'] += cost
+            product_stats[product_key]['profit'] += profit
+
+            sale_day = sale.date.date() if sale.date else range_start
+            daily_stats[sale_day]['profit'] += profit
+
+        sales_total = sum(sale.total or 0 for sale in sales)
         sales_count = len(sales)
-        profit_total = sum(s.profit_amount or 0 for s in sales)
-        ticket_average = (sales_total / sales_count) if sales_count else 0
-        patients_seen = len(set(s.patient_id for s in sales if s.patient_id))
+        profit_total = sum(data['profit'] for data in category_stats.values())
+        cost_total = sum(data['cost'] for data in category_stats.values())
+        ticket_average = sales_total / sales_count if sales_count else 0
+        patients_seen = len({sale.patient_id for sale in sales if sale.patient_id})
+        margin_percent = (profit_total / sales_total * 100) if sales_total else 0
+
+        for data in category_stats.values():
+            data['percent'] = (data['sales'] / sales_total * 100) if sales_total else 0
+
+        daily_rows = []
+        cursor = range_start
+        while cursor <= range_end:
+            data = daily_stats[cursor]
+            data['date'] = cursor
+            data['ticket'] = data['sales'] / data['count'] if data['count'] else 0
+            daily_rows.append(dict(data))
+            cursor += timedelta(days=1)
+
+        days_with_sales = [row for row in daily_rows if row['count'] > 0]
+        best_day = max(days_with_sales, key=lambda row: row['sales']) if days_with_sales else None
+        worst_day = min(days_with_sales, key=lambda row: row['sales']) if days_with_sales else None
+
+        payments_by_method = {}
+        if sale_ids:
+            payments = (
+                db.query(SalePayment)
+                .filter(SalePayment.sale_id.in_(sale_ids))
+                .all()
+            )
+
+            payment_stats = defaultdict(lambda: {'count': 0, 'total': 0.0, 'percent': 0.0})
+            for payment in payments:
+                method = payment.method or 'Sin método'
+                payment_stats[method]['count'] += 1
+                payment_stats[method]['total'] += payment.amount or 0
+
+            payment_total = sum(data['total'] for data in payment_stats.values())
+            for data in payment_stats.values():
+                data['percent'] = (data['total'] / payment_total * 100) if payment_total else 0
+
+            payments_by_method = dict(
+                sorted(
+                    payment_stats.items(),
+                    key=lambda row: row[1]['total'],
+                    reverse=True
+                )
+            )
+
+        top_by_category = {}
+        for category_key in category_meta:
+            rows = [
+                data for data in product_stats.values()
+                if data['category'] == category_key
+            ]
+            top_by_category[category_key] = sorted(
+                rows,
+                key=lambda row: row['sales'],
+                reverse=True
+            )[:10]
 
         return {
             'sales': sales,
-            'sale_ids': sale_ids,
             'sales_total': sales_total,
             'sales_count': sales_count,
+            'cost_total': cost_total,
             'profit_total': profit_total,
+            'margin_percent': margin_percent,
             'ticket_average': ticket_average,
-            'patients_seen': patients_seen
+            'patients_seen': patients_seen,
+            'category_stats': list(category_stats.values()),
+            'category_stats_map': category_stats,
+            'payments_by_method': payments_by_method,
+            'daily_rows': daily_rows,
+            'best_day': best_day,
+            'worst_day': worst_day,
+            'top_by_category': top_by_category
         }
 
-    current = get_sales_summary(start_date, end_date)
-    comparison = get_sales_summary(compare_start, compare_end)
+    current = build_period_data(start_date, end_date)
+    comparison = build_period_data(compare_start, compare_end)
 
     def diff(current_value, previous_value):
         amount = (current_value or 0) - (previous_value or 0)
-
-        if previous_value:
-            percent = (amount / previous_value) * 100
-        else:
-            percent = 0
-
+        percent = (amount / previous_value * 100) if previous_value else 0
         return {
             'amount': amount,
             'percent': percent,
@@ -7601,123 +7839,24 @@ def stats_page(
         'patients_seen': diff(current['patients_seen'], comparison['patients_seen'])
     }
 
-    sales = current['sales']
-    sale_ids = current['sale_ids']
-
-    sales_total = current['sales_total']
-    sales_count = current['sales_count']
-    profit_total = current['profit_total']
-    ticket_average = current['ticket_average']
-    patients_seen = current['patients_seen']
-
-    payments_by_method = {}
-
-    if sale_ids:
-        payments = (
-            db.query(SalePayment)
-            .filter(SalePayment.sale_id.in_(sale_ids))
-            .all()
-        )
-
-        payment_stats = defaultdict(lambda: {'count': 0, 'total': 0})
-
-        for payment in payments:
-            method = payment.method or 'Sin método'
-            payment_stats[method]['count'] += 1
-            payment_stats[method]['total'] += payment.amount or 0
-
-        payments_by_method = dict(payment_stats)
-
-    def classify_department(product):
-        text = f"{product.rubro or ''} {product.tipo or ''} {product.name or ''}".lower()
-
-        medicine_words = [
-            'medicina', 'farmacia', 'farmaco', 'fármaco', 'medicamento',
-            'antibiotico', 'antibiótico', 'analgesico', 'analgésico',
-            'antiinflamatorio', 'aine', 'inyectable', 'comprimido',
-            'pipeta', 'antiparasitario', 'desparasitante', 'vacuna',
-            'meloxicam', 'amoxicilina', 'cefalexina', 'enrofloxacina',
-            'dexametasona', 'prednisolona', 'bravecto', 'nexgard'
-        ]
-
-        service_words = [
-            'servicio', 'consulta', 'control', 'ecg', 'rx', 'radiografia',
-            'radiografía', 'ecografia', 'ecografía', 'cirugia', 'cirugía',
-            'internacion', 'internación', 'anestesia', 'curacion', 'curación',
-            'laboratorio', 'iny cons', 'int cons'
-        ]
-
-        if any(word in text for word in medicine_words):
-            return 'medicine'
-
-        if any(word in text for word in service_words):
-            return 'clinical'
-
-        return 'clinical'
-
-    clinical_stats = defaultdict(lambda: {'qty': 0, 'total': 0, 'profit': 0})
-    medicine_stats = defaultdict(lambda: {'qty': 0, 'total': 0, 'profit': 0})
-
-    if sale_ids:
-        items = (
-            db.query(SaleItem)
-            .filter(SaleItem.sale_id.in_(sale_ids))
-            .all()
-        )
-
-        for item in items:
-            product = db.get(Product, item.product_id)
-
-            if not product:
-                continue
-
-            name = product.name or 'Sin nombre'
-            qty = item.quantity or 0
-            subtotal = item.subtotal or 0
-            cost = (product.cost_price or 0) * qty
-            profit = subtotal - cost
-
-            department = classify_department(product)
-            target = medicine_stats if department == 'medicine' else clinical_stats
-
-            target[name]['qty'] += qty
-            target[name]['total'] += subtotal
-            target[name]['profit'] += profit
-
-    top_clinical_services = sorted(
-        [
-            {
-                'name': name,
-                'qty': data['qty'],
-                'total': data['total'],
-                'profit': data['profit']
-            }
-            for name, data in clinical_stats.items()
-        ],
-        key=lambda x: x['qty'],
-        reverse=True
-    )[:10]
-
-    top_medicine_products = sorted(
-        [
-            {
-                'name': name,
-                'qty': data['qty'],
-                'total': data['total'],
-                'profit': data['profit']
-            }
-            for name, data in medicine_stats.items()
-        ],
-        key=lambda x: x['qty'],
-        reverse=True
-    )[:10]
+    category_comparison = {}
+    for key in category_meta:
+        category_comparison[key] = {
+            'sales': diff(
+                current['category_stats_map'][key]['sales'],
+                comparison['category_stats_map'][key]['sales']
+            ),
+            'profit': diff(
+                current['category_stats_map'][key]['profit'],
+                comparison['category_stats_map'][key]['profit']
+            )
+        }
 
     available_months = []
-    for i in range(24):
-        ref = today.replace(day=1)
+    ref = today.replace(day=1)
+    for i in range(60):
         year = ref.year
         month_number = ref.month - i
-
         while month_number <= 0:
             month_number += 12
             year -= 1
@@ -7733,26 +7872,20 @@ def stats_page(
             'request': request,
             'period': period,
             'period_label': period_label,
+            'compare_label': compare_label,
             'start_date': start_date,
             'end_date': end_date,
-
             'month': month,
             'compare_month': compare_month,
             'available_months': available_months,
-            'compare_label': compare_start.strftime('%m/%Y'),
-            'comparison_stats': comparison_stats,
+            'current': current,
             'comparison': comparison,
-
-            'sales_total': sales_total,
-            'sales_count': sales_count,
-            'profit_total': profit_total,
-            'ticket_average': ticket_average,
-            'patients_seen': patients_seen,
-            'payments_by_method': payments_by_method,
-            'top_clinical_services': top_clinical_services,
-            'top_medicine_products': top_medicine_products
+            'comparison_stats': comparison_stats,
+            'category_comparison': category_comparison,
+            'category_meta': category_meta
         }
     )
+
 # ===== VADEMÉCUM =====
 
 @app.get('/vademecum', response_class=HTMLResponse)
