@@ -320,10 +320,11 @@
                 </div>
     
                 <div style="display:flex; gap:8px; margin-top:12px;">
-                    <input id="clinicalAiChatInput"
-                           type="text"
-                           placeholder="Escribí una pregunta clínica..."
-                           style="flex:1; border:1px solid #ead7e1; border-radius:13px; padding:10px 12px; font-size:14px;">
+                <input id="clinicalAiChatInput"
+                       type="text"
+                       placeholder="Escribí una pregunta clínica..."
+                       onkeydown="if(event.key==='Enter'){event.preventDefault();sendClinicalAiRealMessage();}"
+                       style="flex:1; border:1px solid #ead7e1; border-radius:13px; padding:10px 12px; font-size:14px;">
     
                     <button type="button"
                             onclick="sendClinicalAiRealMessage()"
