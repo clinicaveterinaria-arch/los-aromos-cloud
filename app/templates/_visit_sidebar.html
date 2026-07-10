@@ -559,7 +559,11 @@
                 typing.innerHTML = `
                     <b>IA</b>
                     <div style="margin-top:4px; color:#374151; white-space:pre-wrap;">
-                        ${data.result || 'La IA no devolvió contenido.'}
+                        ${(data.result || 'La IA no devolvió contenido.')
+                            .replace(/&/g,'&amp;')
+                            .replace(/</g,'&lt;')
+                            .replace(/>/g,'&gt;')
+                            .replace(/\n/g,'<br>')}
                     </div>
                 `;
             }
