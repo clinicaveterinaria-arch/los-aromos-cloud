@@ -500,6 +500,40 @@
                 return;
             }
             window.lastClinicalAiResult = data.result || '';
+            const badge = document.getElementById('clinicalAiStatusBadge');
+
+            if (badge) {
+            
+                const txt = (data.result || '').toLowerCase();
+            
+                if (
+                    txt.includes('🔴') ||
+                    txt.includes('urgente') ||
+                    txt.includes('riesgo') ||
+                    txt.includes('revisar')
+                ) {
+            
+                    badge.innerHTML = '🔴 Revisar este paciente';
+                    badge.style.color = '#dc2626';
+            
+                } else if (
+                    txt.includes('🟡') ||
+                    txt.includes('observación') ||
+                    txt.includes('observaciones') ||
+                    txt.includes('precaución')
+                ) {
+            
+                    badge.innerHTML = '🟡 Observaciones encontradas';
+                    badge.style.color = '#d97706';
+            
+                } else {
+            
+                    badge.innerHTML = '🟢 Sin alertas importantes';
+                    badge.style.color = '#16a34a';
+            
+                }
+            
+            }
             resultBox.innerHTML = `
                 <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
                     <div style="width:10px;height:10px;border-radius:50%;background:#16a34a;"></div>
