@@ -1646,67 +1646,228 @@ DUE_CLOSED_MARKER = '[DEUDA_CERRADA]'
 WP_SENT_MARKER = '[WHATSAPP_AVISADO]'
 
 
-def is_managed_due_event(event):
-    return event and event.description and DUE_ACTIVE_MARKER in event.description
+def extract_due_metadata(event):
+    description = event.description or ''
+
+    sent_at = ''
+    original_date = event.reminder_date
+
+    sent_match = re.search(
+        r'Recordatorio (?:enviado|marcado como enviado) por WhatsApp el '
+        r'(\d{2}/\d{2}/\d{4} \d{2}:\d{2})',
+        description
+    )
+
+    if sent_match:
+        sent_at = sent_match.group(1)
+
+    date_match = re.search(
+        r'\[FECHA_PENDIENTE:(\d{4}-\d{2}-\d{2})\]',
+        description
+    )
+
+    if date_match:
+        try:
+            original_date = datetime.strptime(
+                date_match.group(1),
+                '%Y-%m-%d'
+            ).date()
+        except ValueError:
+            pass
+
+    event.whatsapp_sent_at = sent_at
+    event.original_reminder_date = original_date
+
+    if original_date:
+        event.days_overdue = max(
+            0,
+            (argentina_now().date() - original_date).days
+        )
+    else:
+        event.days_overdue = 0
+
+    return event
 
 
-def event_matches_managed_due(real_event, due_event):
-    real_type = (real_event.event_type or '').lower()
-    real_text = f'{real_event.title or ""} {real_event.description or ""} {real_event.vaccine_name or ""} {real_event.dewormer_product or ""}'.lower()
+def mark_due_as_whatsapp_sent(event, user):
+    now = argentina_now()
+    description = event.description or ''
 
-    due_type = (due_event.event_type or '').lower()
-    due_text = f'{due_event.title or ""} {due_event.description or ""}'.lower()
+    additions = []
 
-    if due_type == real_type:
-        return True
+    if DUE_CLOSED_MARKER in description:
+        return False
 
-    if ('vacun' in due_text or 'vacuna' in due_type) and real_type == 'vacuna':
-        return True
+    if DUE_ACTIVE_MARKER not in description:
+        additions.append(DUE_ACTIVE_MARKER)
+
+    if event.reminder_date and '[FECHA_PENDIENTE:' not in description:
+        additions.append(
+            f'[FECHA_PENDIENTE:{event.reminder_date.strftime("%Y-%m-%d")}]'
+        )
+
+    if WP_SENT_MARKER not in description:
+        additions.append(WP_SENT_MARKER)
+        additions.append(
+            f'📲 Recordatorio enviado por WhatsApp el '
+            f'{now.strftime("%d/%m/%Y %H:%M")} por {user.username}.'
+        )
+    else:
+        additions.append(
+            f'📲 Recordatorio reenviado por WhatsApp el '
+            f'{now.strftime("%d/%m/%Y %H:%M")} por {user.username}.'
+        )
+
+    if additions:
+        event.description = (
+            description.strip()
+            + '\n\n'
+            + '\n'.join(additions)
+        ).strip()
+
+    return True
+
+
+def normalize_due_text(value):
+    value = (value or '').lower()
+
+    replacements = {
+        'á': 'a',
+        'é': 'e',
+        'í': 'i',
+        'ó': 'o',
+        'ú': 'u',
+        'ü': 'u',
+        'ñ': 'n'
+    }
+
+    for old, new in replacements.items():
+        value = value.replace(old, new)
+
+    value = re.sub(r'[^a-z0-9 ]+', ' ', value)
+    value = re.sub(r'\s+', ' ', value).strip()
+
+    return value
+
+
+def due_match_score(pending_event, real_event):
+    pending_type = normalize_due_text(pending_event.event_type)
+    real_type = normalize_due_text(real_event.event_type)
+
+    pending_title = normalize_due_text(pending_event.title)
+
+    real_text = normalize_due_text(
+        f'{real_event.title or ""} '
+        f'{real_event.description or ""} '
+        f'{real_event.vaccine_name or ""} '
+        f'{real_event.dewormer_product or ""}'
+    )
+
+    score = 0
+
+    if pending_type == real_type:
+        score += 60
+
+    if pending_title and pending_title in real_text:
+        score += 50
+
+    pending_tokens = {
+        token
+        for token in pending_title.split()
+        if len(token) >= 4
+        and token not in {
+            'pendiente',
+            'vacuna',
+            'control',
+            'clinico',
+            'desparasitacion',
+            'consulta',
+            'aplicacion'
+        }
+    }
+
+    real_tokens = set(real_text.split())
+
+    score += len(pending_tokens.intersection(real_tokens)) * 15
+
+    if 'vacun' in pending_type and real_type == 'vacuna':
+        score += 40
 
     if (
-        'despar' in due_text
-        or 'antiparas' in due_text
-        or 'aprax' in due_text
-        or 'pipeta' in due_text
-        or due_type == 'desparasitación'
-    ) and real_type == 'desparasitación':
-        return True
+        'despar' in pending_type
+        or 'antiparas' in pending_title
+        or 'pipeta' in pending_title
+    ) and real_type == 'desparasitacion':
+        score += 40
 
-    if 'control' in due_text and real_type in ['control', 'consulta clínica']:
-        return True
+    if pending_type == 'control' and real_type in [
+        'control',
+        'consulta clinica'
+    ]:
+        score += 35
 
-    if 'consulta' in due_text and real_type == 'consulta clínica':
-        return True
+    if WP_SENT_MARKER in (pending_event.description or ''):
+        score += 5
 
-    return False
+    return score
 
 
 def close_managed_due_events(db, patient, real_event, user):
     active_due_events = (
         db.query(ClinicalEvent)
         .filter(ClinicalEvent.patient_id == patient.id)
-        .filter(ClinicalEvent.description.ilike(f'%{DUE_ACTIVE_MARKER}%'))
+        .filter(
+            ClinicalEvent.description.ilike(
+                f'%{DUE_ACTIVE_MARKER}%'
+            )
+        )
+        .filter(
+            ~ClinicalEvent.description.ilike(
+                f'%{DUE_CLOSED_MARKER}%'
+            )
+        )
         .all()
     )
 
-    closed_count = 0
+    candidates = []
 
     for due_event in active_due_events:
-        if event_matches_managed_due(real_event, due_event):
-            due_event.description = (due_event.description or '').replace(
-                DUE_ACTIVE_MARKER,
-                DUE_CLOSED_MARKER
-            )
+        score = due_match_score(due_event, real_event)
 
-            due_event.description += (
-                '\n\n✅ Pendiente cumplido automáticamente al cargar el evento real '
-                f'el {argentina_now().strftime("%d/%m/%Y %H:%M")} por {user.username}.'
-            )
+        if score >= 60:
+            candidates.append((score, due_event))
 
-            due_event.reminder_date = None
-            closed_count += 1
+    if not candidates:
+        return 0
 
-    return closed_count
+    candidates.sort(
+        key=lambda item: (
+            -item[0],
+            item[1].reminder_date or date.max,
+            item[1].id
+        )
+    )
+
+    due_event = candidates[0][1]
+
+    due_event.description = (
+        due_event.description or ''
+    ).replace(
+        DUE_ACTIVE_MARKER,
+        DUE_CLOSED_MARKER
+    )
+
+    due_event.description += (
+        '\n\n'
+        '✅ Pendiente cumplido automáticamente.\n'
+        f'Evento realizado: {real_event.title or real_event.event_type}\n'
+        f'Fecha real: {argentina_now().strftime("%d/%m/%Y %H:%M")}\n'
+        f'Registrado por: {user.username}.'
+    )
+
+    due_event.reminder_date = None
+
+    return 1
 @app.post('/patients/{patient_id}/photo')
 async def patient_upload_photo(
     patient_id: int,
@@ -1808,13 +1969,35 @@ def patient_detail_v2(
     )
     whatsapp_pending_alerts = (
         db.query(ClinicalEvent)
-        .filter(ClinicalEvent.patient_id == patient.id)
-        .filter(ClinicalEvent.reminder_date == today)
-        .filter(ClinicalEvent.description.ilike(f'%{DUE_ACTIVE_MARKER}%'))
-        .filter(ClinicalEvent.description.ilike(f'%{WP_SENT_MARKER}%'))
-        .order_by(ClinicalEvent.reminder_date.asc())
+        .filter(
+            ClinicalEvent.patient_id == patient.id
+        )
+        .filter(
+            ClinicalEvent.description.ilike(
+                f'%{DUE_ACTIVE_MARKER}%'
+            )
+        )
+        .filter(
+            ClinicalEvent.description.ilike(
+                f'%{WP_SENT_MARKER}%'
+            )
+        )
+        .filter(
+            ~ClinicalEvent.description.ilike(
+                f'%{DUE_CLOSED_MARKER}%'
+            )
+        )
+        .order_by(
+            ClinicalEvent.reminder_date.asc().nullslast(),
+            ClinicalEvent.id.asc()
+        )
         .all()
     )
+
+    whatsapp_pending_alerts = [
+        extract_due_metadata(event)
+        for event in whatsapp_pending_alerts
+    ]
     upcoming_patient_items = []
 
     for e in upcoming_events:
@@ -6335,46 +6518,94 @@ def pendientes(
     today = argentina_now().date()
 
     from calendar import monthrange
-    
+
     last_day = monthrange(today.year, today.month)[1]
     end_of_month = today.replace(day=last_day)
-    
-    query = (
+
+    all_events = (
         db.query(ClinicalEvent)
-        .filter(ClinicalEvent.reminder_date != None)
-    )
-    
-    if not show_all:
-        query = query.filter(
-            ClinicalEvent.reminder_date <= end_of_month
+        .filter(
+            or_(
+                ClinicalEvent.reminder_date != None,
+                ClinicalEvent.description.ilike(
+                    f'%{DUE_ACTIVE_MARKER}%'
+                )
+            )
         )
-    
-    query = (
-        db.query(ClinicalEvent)
-        .filter(ClinicalEvent.reminder_date != None)
-    )
-    
-    if not show_all:
-        query = query.filter(
-            ClinicalEvent.reminder_date <= end_of_month
+        .filter(
+            ~ClinicalEvent.description.ilike(
+                f'%{DUE_CLOSED_MARKER}%'
+            )
         )
-    
-    eventos = (
-        query
-        .order_by(ClinicalEvent.reminder_date.asc())
+        .order_by(
+            ClinicalEvent.reminder_date.asc().nullslast(),
+            ClinicalEvent.id.asc()
+        )
         .all()
     )
 
+    overdue_events = []
+    today_events = []
+    upcoming_events = []
+    notified_events = []
+
+    for event in all_events:
+        description = event.description or ''
+
+        is_notified = (
+            WP_SENT_MARKER in description
+            and DUE_ACTIVE_MARKER in description
+        )
+
+        if is_notified:
+            notified_events.append(
+                extract_due_metadata(event)
+            )
+            continue
+
+        if not event.reminder_date:
+            continue
+
+        if event.reminder_date < today:
+            overdue_events.append(event)
+
+        elif event.reminder_date == today:
+            today_events.append(event)
+
+        elif show_all or event.reminder_date <= end_of_month:
+            upcoming_events.append(event)
+
+    eventos = (
+        overdue_events
+        + today_events
+        + upcoming_events
+    )
+
+    stats = {
+        'total': len(eventos) + len(notified_events),
+        'overdue': len(overdue_events),
+        'today': len(today_events),
+        'upcoming': len(upcoming_events),
+        'notified': len(notified_events)
+    }
+
     return templates.TemplateResponse(
         'pendientes.html',
-       {
-    'request': request,
-    'eventos': eventos,
-    'today': today,
-    'pending_count': len(eventos),
-    'show_all': show_all
-}
+        {
+            'request': request,
+            'eventos': eventos,
+            'overdue_events': overdue_events,
+            'today_events': today_events,
+            'upcoming_events': upcoming_events,
+            'notified_events': notified_events,
+            'stats': stats,
+            'today': today,
+            'pending_count': stats['total'],
+            'show_all': show_all
+        }
     )
+
+
 @app.get('/patients/{patient_id}/quick-pendiente')
 def quick_pendiente(
     patient_id: int,
@@ -6388,40 +6619,50 @@ def quick_pendiente(
     if not patient:
         raise HTTPException(
             status_code=404,
-            detail="Paciente no encontrado"
+            detail='Paciente no encontrado'
         )
 
-    reminder_date = argentina_now().date() + timedelta(days=days)
+    reminder_date = (
+        argentina_now().date()
+        + timedelta(days=days)
+    )
 
     existing_event = (
         db.query(ClinicalEvent)
         .filter(ClinicalEvent.patient_id == patient.id)
         .filter(ClinicalEvent.event_type == type)
         .filter(ClinicalEvent.title == type)
-        .filter(ClinicalEvent.reminder_date == reminder_date)
+        .filter(
+            ClinicalEvent.reminder_date == reminder_date
+        )
         .first()
     )
 
     if existing_event:
         return RedirectResponse(
-            f"/patients/{patient.id}",
+            f'/patients/{patient.id}/v2',
             status_code=303
         )
 
     event = ClinicalEvent(
         patient_id=patient.id,
+        event_date=argentina_now(),
         event_type=type,
         title=type,
-        reminder_date=reminder_date
+        description=DUE_ACTIVE_MARKER,
+        reminder_date=reminder_date,
+        created_by=user.username
     )
 
     db.add(event)
     db.commit()
 
     return RedirectResponse(
-        f"/patients/{patient.id}",
+        f'/patients/{patient.id}/v2',
         status_code=303
     )
+
+
 @app.post('/events/{event_id}/done')
 def event_done(
     event_id: int,
@@ -6431,28 +6672,21 @@ def event_done(
     event = db.get(ClinicalEvent, event_id)
 
     if not event:
-        raise HTTPException(status_code=404, detail="Evento no encontrado")
+        raise HTTPException(
+            status_code=404,
+            detail='Evento no encontrado'
+        )
 
-    original_date = event.reminder_date
-
-    event.reminder_date = None
-
-    if DUE_ACTIVE_MARKER not in (event.description or ''):
-        event.description = (
-            (event.description or '').strip()
-            + '\n\n'
-            + DUE_ACTIVE_MARKER
-            + '\n'
-            + '⚠ Pendiente gestionado administrativamente.\n'
-            + 'Esto NO significa que el acto clínico se haya realizado.\n'
-            + f'Gestionado por: {user.username}\n'
-            + f'Fecha de gestión: {argentina_now().strftime("%d/%m/%Y %H:%M")}\n'
-            + f'Fecha pendiente original: {original_date.strftime("%d/%m/%Y") if original_date else "-"}'
-        ).strip()
+    mark_due_as_whatsapp_sent(event, user)
 
     db.commit()
 
-    return RedirectResponse('/pendientes', status_code=303)
+    return RedirectResponse(
+        '/pendientes',
+        status_code=303
+    )
+
+
 @app.post('/events/{event_id}/delete')
 def delete_event(
     event_id: int,
@@ -6462,7 +6696,10 @@ def delete_event(
     event = db.get(ClinicalEvent, event_id)
 
     if not event:
-        raise HTTPException(status_code=404, detail="Evento no encontrado")
+        raise HTTPException(
+            status_code=404,
+            detail='Evento no encontrado'
+        )
 
     patient_id = event.patient_id
 
@@ -6470,9 +6707,11 @@ def delete_event(
     db.commit()
 
     return RedirectResponse(
-        f"/patients/{patient_id}",
+        f'/patients/{patient_id}/v2',
         status_code=303
     )
+
+
 @app.get('/events/{event_id}/whatsapp')
 def event_whatsapp(
     event_id: int,
@@ -6482,61 +6721,96 @@ def event_whatsapp(
     event = db.get(ClinicalEvent, event_id)
 
     if not event:
-        raise HTTPException(status_code=404, detail="Evento no encontrado")
+        raise HTTPException(
+            status_code=404,
+            detail='Evento no encontrado'
+        )
 
     patient = event.patient
-    owner = patient.owner
+    owner = patient.owner if patient else None
 
-    number = (owner.whatsapp or owner.phone or "").strip()
+    if not patient or not owner:
+        return RedirectResponse(
+            '/pendientes',
+            status_code=303
+        )
+
+    number = (
+        owner.whatsapp
+        or owner.phone
+        or ''
+    ).strip()
 
     if not number:
-        return RedirectResponse(f"/patients/{patient.id}", status_code=303)
-
-    number = ''.join(c for c in number if c.isdigit())
-
-    if not number.startswith("54"):
-        number = "549" + number
-
-    if event.event_type == "Vacuna" or "vacun" in (event.title or "").lower():
-        vacuna = event.title if event.title else "correspondiente"
-    
-        message = (
-            f"Buenos días *{owner.name}*.\n\n"
-            f"Te recordamos que *{patient.name}* debe recibir hoy su *{vacuna}*.\n\n"
-            f"¡Los esperamos!"
+        return RedirectResponse(
+            f'/patients/{patient.id}/v2',
+            status_code=303
         )
-    
-    elif event.event_type == "Desparasitación" or "despar" in (event.title or "").lower() or "antiparas" in (event.title or "").lower() or "aprax" in (event.title or "").lower() or "pipeta" in (event.title or "").lower():
-            message = (
-                f"Buenos días *{owner.name}*.\n\n"
-                f"Te recordamos que *{patient.name}* debe desparasitarse hoy.\n\n"
-                f"Es solo un comprimido o una pipeta, por lo que pueden:\n"
-                f"• Traerlo a la clínica para realizar la desparasitación.\n"
-                f"• Comprar la medicación y administrarla en casa.\n"
-                f"• Solicitar envío a domicilio.\n\n"
-                f"¿Qué preferís?"
-            )
+
+    number = ''.join(
+        character
+        for character in number
+        if character.isdigit()
+    )
+
+    if number.startswith('0'):
+        number = number[1:]
+
+    if not number.startswith('54'):
+        number = '549' + number
+
+    title_text = event.title or event.event_type or 'recordatorio'
+
+    if (
+        event.event_type == 'Vacuna'
+        or 'vacun' in title_text.lower()
+    ):
+        message = (
+            f'Buenos días *{owner.name}*.\n\n'
+            f'Te recordamos que *{patient.name}* debe recibir '
+            f'su *{title_text}*.\n\n'
+            f'¡Los esperamos!'
+        )
+
+    elif (
+        event.event_type == 'Desparasitación'
+        or 'despar' in title_text.lower()
+        or 'antiparas' in title_text.lower()
+        or 'aprax' in title_text.lower()
+        or 'pipeta' in title_text.lower()
+    ):
+        message = (
+            f'Buenos días *{owner.name}*.\n\n'
+            f'Te recordamos que *{patient.name}* debe '
+            f'desparasitarse.\n\n'
+            f'Pueden traerlo a la clínica, retirar la '
+            f'medicación o solicitar envío a domicilio.\n\n'
+            f'¿Qué preferís?'
+        )
+
     else:
         message = (
-            f"Hola *{owner.name}*.\n\n"
-            f"Te recordamos que *{patient.name}* tiene pendiente: *{event.title or event.event_type}*.\n\n"
-            f"Clínica Veterinaria Los Aromos."
+            f'Hola *{owner.name}*.\n\n'
+            f'Te recordamos que *{patient.name}* tiene '
+            f'pendiente: *{title_text}*.\n\n'
+            f'Clínica Veterinaria Los Aromos.'
         )
 
-    if WP_SENT_MARKER not in (event.description or ''):
-        event.description = (
-            (event.description or '').strip()
-            + '\n\n'
-            + WP_SENT_MARKER
-            + '\n'
-            + f'📲 Recordatorio enviado por WhatsApp el {argentina_now().strftime("%d/%m/%Y %H:%M")} por {user.username}.'
-        ).strip()
-        db.commit()
+    mark_due_as_whatsapp_sent(event, user)
+
+    db.commit()
 
     import urllib.parse
-    url = f"https://wa.me/{number}?text={urllib.parse.quote(message)}"
 
-    return RedirectResponse(url, status_code=303)
+    url = (
+        f'https://wa.me/{number}'
+        f'?text={urllib.parse.quote(message)}'
+    )
+
+    return RedirectResponse(
+        url,
+        status_code=303
+    )
 @app.get('/patients/{patient_id}/history', response_class=HTMLResponse)
 def patient_history(
     request: Request,
