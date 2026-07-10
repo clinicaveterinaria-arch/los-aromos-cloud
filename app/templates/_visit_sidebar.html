@@ -499,7 +499,7 @@
             if (!resultBox) {
                 return;
             }
-    
+            window.lastClinicalAiResult = data.result || '';
             resultBox.innerHTML = `
                 <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
                     <div style="width:10px;height:10px;border-radius:50%;background:#16a34a;"></div>
