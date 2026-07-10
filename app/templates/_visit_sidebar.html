@@ -283,6 +283,7 @@
 </style>
 
 <script>
+    let clinicalAiConversation = [];
     function toggleClinicalAiCenter() {
         const body = document.getElementById('clinicalAiCenterBody');
 
@@ -541,7 +542,10 @@
         }
     
         const question = input.value.trim();
-    
+        clinicalAiConversation.push({
+            role: "user",
+            content: question
+        });
         if (!question) {
             return;
         }
