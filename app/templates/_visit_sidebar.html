@@ -266,20 +266,58 @@
     function openClinicalAiMock(actionName) {
         document.getElementById('clinicalAiModalTitle').innerText = actionName;
     
-        document.getElementById('clinicalAiModalBody').innerHTML = `
-            <div style="background:#fff8fb; border:1px solid #f3c6d8; border-radius:16px; padding:14px; margin-bottom:12px;">
-                <b>🤖 Centro de IA clínica</b>
-                <p style="margin:8px 0 0 0; color:#6b7280; font-size:13px;">
-                    Fase 1 activa: la interfaz ya está preparada.
-                    En Fase 2 este botón se conectará con OpenAI y analizará automáticamente los datos clínicos del paciente.
-                </p>
-            </div>
+        if (actionName.includes('Consultar')) {
+            document.getElementById('clinicalAiModalBody').innerHTML = `
+                <div style="background:#fff8fb; border:1px solid #f3c6d8; border-radius:16px; padding:14px; margin-bottom:12px;">
+                    <b>💬 Chat del Centro de IA clínica</b>
+                    <p style="margin:8px 0 0 0; color:#6b7280; font-size:13px;">
+                        Fase 1 activa. En Fase 2 este chat usará automáticamente la historia clínica del paciente.
+                    </p>
+                </div>
     
-            <div style="border:1px solid #e5e7eb; border-radius:16px; padding:14px;">
-                <div style="font-weight:bold; margin-bottom:8px;">Acción seleccionada</div>
-                <div style="color:#d85b9a; font-weight:bold;">${actionName}</div>
-            </div>
-        `;
+                <div id="clinicalAiChatBox"
+                     style="border:1px solid #e5e7eb; border-radius:16px; padding:14px; min-height:180px; max-height:280px; overflow:auto; background:#fff;">
+                    <div style="background:#fff0f7; border:1px solid #f3c6d8; border-radius:14px; padding:10px 12px; margin-bottom:10px;">
+                        <b>IA</b>
+                        <div style="margin-top:4px; color:#374151;">
+                            Hola. Soy el Centro de IA clínica. Todavía estoy en Fase 1, pero este será el espacio para consultar sobre este paciente.
+                        </div>
+                    </div>
+                </div>
+    
+                <div style="display:flex; gap:8px; margin-top:12px;">
+                    <input id="clinicalAiChatInput"
+                           type="text"
+                           placeholder="Escribí una pregunta clínica..."
+                           style="flex:1; border:1px solid #ead7e1; border-radius:13px; padding:10px 12px; font-size:14px;">
+    
+                    <button type="button"
+                            onclick="sendClinicalAiMockMessage()"
+                            class="hc2-btn primary">
+                        Enviar
+                    </button>
+                </div>
+            `;
+        } else {
+            document.getElementById('clinicalAiModalBody').innerHTML = `
+                <div style="background:#fff8fb; border:1px solid #f3c6d8; border-radius:16px; padding:14px; margin-bottom:12px;">
+                    <b>🤖 Centro de IA clínica</b>
+                    <p style="margin:8px 0 0 0; color:#6b7280; font-size:13px;">
+                        Fase 1 activa: la interfaz ya está preparada.
+                        En Fase 2 este botón se conectará con OpenAI y analizará automáticamente los datos clínicos del paciente.
+                    </p>
+                </div>
+    
+                <div style="border:1px solid #e5e7eb; border-radius:16px; padding:14px;">
+                    <div style="font-weight:bold; margin-bottom:8px;">Acción seleccionada</div>
+                    <div style="color:#d85b9a; font-weight:bold;">${actionName}</div>
+    
+                    <div style="margin-top:14px; color:#6b7280; font-size:13px;">
+                        Acá aparecerá el resultado generado por la IA.
+                    </div>
+                </div>
+            `;
+        }
     
         document.getElementById('clinicalAiModal').style.display = 'flex';
     }
@@ -299,5 +337,36 @@
         navigator.clipboard.writeText(text).then(function() {
             alert('Resultado copiado.');
         });
+    } 
+    function sendClinicalAiMockMessage() {
+        const input = document.getElementById('clinicalAiChatInput');
+        const box = document.getElementById('clinicalAiChatBox');
+    
+        if (!input || !box) {
+            return;
+        }
+    
+        const question = input.value.trim();
+    
+        if (!question) {
+            return;
+        }
+    
+        box.innerHTML += `
+            <div style="background:#ffffff; border:1px solid #e5e7eb; border-radius:14px; padding:10px 12px; margin-bottom:10px;">
+                <b>Vos</b>
+                <div style="margin-top:4px; color:#374151;">${question}</div>
+            </div>
+    
+            <div style="background:#fff0f7; border:1px solid #f3c6d8; border-radius:14px; padding:10px 12px; margin-bottom:10px;">
+                <b>IA</b>
+                <div style="margin-top:4px; color:#374151;">
+                    Fase 1: mensaje recibido. En Fase 2 voy a responder usando la historia clínica completa del paciente.
+                </div>
+            </div>
+        `;
+    
+        input.value = '';
+        box.scrollTop = box.scrollHeight;
     }    
 </script>
