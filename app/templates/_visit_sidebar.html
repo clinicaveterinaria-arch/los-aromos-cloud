@@ -529,4 +529,15 @@
             }
         });
     }
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        closeClinicalAiModal();
+    }
+});
+
+document.getElementById('clinicalAiModal').addEventListener('click', function(event) {
+    if (event.target === this) {
+        closeClinicalAiModal();
+    }
+});
 </script>
