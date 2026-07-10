@@ -1886,6 +1886,151 @@ def patient_detail_v2(
             'user': user
         }
     )
+# ==========================================================
+# CENTRO DE IA CLÍNICA - HISTORIA CLÍNICA V2
+# Fase 2: endpoint base para botones IA
+# ==========================================================
+
+@app.post('/patients/{patient_id}/ai-center')
+async def patient_ai_center(
+    patient_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    import json
+    import urllib.request
+
+    patient = db.get(Patient, patient_id)
+
+    if not patient:
+        raise HTTPException(status_code=404, detail="Paciente no encontrado")
+
+    payload_in = await request.json()
+
+    action = payload_in.get("action", "")
+    form_data = payload_in.get("form_data", {})
+
+    events = (
+        db.query(ClinicalEvent)
+        .filter(ClinicalEvent.patient_id == patient.id)
+        .order_by(ClinicalEvent.event_date.desc())
+        .limit(20)
+        .all()
+    )
+
+    history_lines = []
+
+    for e in events:
+        history_lines.append(
+            f"""
+Fecha: {e.event_date.strftime('%d/%m/%Y %H:%M') if e.event_date else ''}
+Tipo: {e.event_type or ''}
+Título: {e.title or ''}
+Descripción: {e.description or ''}
+Anamnesis: {e.anamnesis or ''}
+Examen físico: {e.physical_exam or ''}
+Diagnóstico: {e.diagnosis or ''}
+Tratamiento: {e.treatment or ''}
+Peso: {e.weight or ''}
+Temperatura: {e.temperature or ''}
+FC: {e.heart_rate or ''}
+FR: {e.respiratory_rate or ''}
+"""
+        )
+
+    clinical_context = f"""
+Paciente:
+Nombre: {patient.name or ''}
+Especie: {patient.species or ''}
+Raza: {patient.breed or ''}
+Sexo: {patient.sex or ''}
+Peso actual: {patient.weight or ''}
+Alertas: {patient.alerts or ''}
+Notas: {patient.notes or ''}
+
+Consulta actual cargada en pantalla:
+Fecha: {form_data.get('event_date', '')}
+Peso: {form_data.get('weight', '')}
+Temperatura: {form_data.get('temperature', '')}
+FC: {form_data.get('heart_rate', '')}
+FR: {form_data.get('respiratory_rate', '')}
+Motivo / título: {form_data.get('title', '')}
+Anamnesis: {form_data.get('anamnesis', '')}
+Examen físico: {form_data.get('physical_exam', '')}
+Diagnóstico / conclusión: {form_data.get('diagnosis', '')}
+Tratamiento / indicaciones: {form_data.get('treatment', '')}
+
+Historia clínica previa:
+{chr(10).join(history_lines)}
+"""
+
+    api_key = os.getenv("OPENAI_API_KEY", "").strip()
+
+    if not api_key:
+        return JSONResponse({
+            "ok": False,
+            "result": "Falta configurar OPENAI_API_KEY en Render."
+        })
+
+    prompt = f"""
+Sos un asistente clínico veterinario para pequeños animales.
+
+Acción solicitada:
+{action}
+
+Usá exclusivamente la información clínica disponible.
+No inventes datos.
+Diferenciá claramente hallazgos, sospechas y recomendaciones.
+Indicá nivel de confianza cuando corresponda.
+Respondé en español, con terminología veterinaria argentina.
+No reemplazás el criterio del veterinario.
+
+Información clínica:
+{clinical_context}
+"""
+
+    try:
+        payload = {
+            "model": os.getenv("OPENAI_MODEL", "gpt-5.4-mini"),
+            "input": prompt,
+            "max_output_tokens": 1200
+        }
+
+        req = urllib.request.Request(
+            "https://api.openai.com/v1/responses",
+            data=json.dumps(payload).encode("utf-8"),
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json"
+            },
+            method="POST"
+        )
+
+        with urllib.request.urlopen(req, timeout=40) as response:
+            data = json.loads(response.read().decode("utf-8"))
+
+        result = data.get("output_text", "")
+
+        if not result:
+            parts = []
+            for item in data.get("output", []):
+                for content in item.get("content", []):
+                    if content.get("type") in ["output_text", "text"]:
+                        parts.append(content.get("text", ""))
+            result = "\n".join(parts).strip()
+
+        return JSONResponse({
+            "ok": True,
+            "result": result or "La IA no devolvió contenido."
+        })
+
+    except Exception as e:
+        print("ERROR CENTRO IA CLINICA:", str(e))
+        return JSONResponse({
+            "ok": False,
+            "result": f"No se pudo consultar la IA: {str(e)}"
+        })
 @app.post('/patients/{patient_id}/visits')
 async def patient_visit_create(
     patient_id: int,
