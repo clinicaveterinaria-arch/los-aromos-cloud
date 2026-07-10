@@ -390,15 +390,21 @@
         });
     } 
     function addClinicalAiResultToTreatment() {
-        const body = document.getElementById('clinicalAiModalBody');
+    
+        const result = document.getElementById('clinicalAiOnlyResult');
         const treatmentField = document.querySelector('[name="treatment"]');
     
-        if (!body || !treatmentField) {
+        if (!result) {
+            alert('Todavía no hay un resultado IA para agregar.');
+            return;
+        }
+    
+        if (!treatmentField) {
             alert('No encontré el campo de tratamiento.');
             return;
         }
     
-        const text = body.innerText || '';
+        const text = result.innerText || '';
     
         if (!text.trim()) {
             alert('No hay resultado IA para agregar.');
@@ -412,6 +418,7 @@
         treatmentField.value = treatmentField.value + separator + "🤖 IA clínica:\n" + text.trim();
     
         alert('Resultado agregado a tratamiento.');
+    
     }
     function sendClinicalAiMockMessage() {
         const input = document.getElementById('clinicalAiChatInput');
