@@ -587,6 +587,10 @@
     
             if (typing) {
                 window.lastClinicalAiResult = data.result || '';
+                clinicalAiConversation.push({
+                    role: "assistant",
+                    content: data.result || ''
+                });
                 const badge = document.getElementById('clinicalAiStatusBadge');
 
                 if (badge) {
