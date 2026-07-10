@@ -253,6 +253,33 @@
         font-size: 18px;
         line-height: 1;
     }
+    .hc2-ai-loading {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #d85b9a;
+        font-weight: bold;
+    }
+
+    .hc2-ai-loading span {
+        width: 14px;
+        height: 14px;
+        border: 3px solid #f3c6d8;
+        border-top-color: #d85b9a;
+        border-radius: 999px;
+        display: inline-block;
+        animation: hc2AiSpin .8s linear infinite;
+    }
+
+    @keyframes hc2AiSpin {
+        from {
+            transform: rotate(0deg);
+        }
+
+        to {
+            transform: rotate(360deg);
+        }
+    }    
 </style>
 
 <script>
