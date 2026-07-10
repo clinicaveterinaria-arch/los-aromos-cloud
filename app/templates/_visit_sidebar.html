@@ -181,17 +181,25 @@
         <div id="clinicalAiModalBody" style="padding:18px;">
         </div>
 
-        <div style="padding:14px 18px; border-top:1px solid #f3c6d8; display:flex; justify-content:flex-end; gap:8px;">
+        <div style="padding:14px 18px; border-top:1px solid #f3c6d8; display:flex; flex-wrap:wrap; justify-content:flex-end; gap:8px;">
+        
             <button type="button"
                     onclick="closeClinicalAiModal()"
                     class="hc2-btn">
                 Cerrar
             </button>
-
+        
             <button type="button"
-                    class="hc2-btn primary">
+                    onclick="copyClinicalAiResult()"
+                    class="hc2-btn">
                 Copiar resultado
             </button>
+        
+            <button type="button"
+                    class="hc2-btn primary">
+                Agregar a tratamiento
+            </button>
+        
         </div>
 
     </div>
@@ -255,28 +263,28 @@
         }
     }
 
-function openClinicalAiMock(actionName) {
-    document.getElementById('clinicalAiModalTitle').innerText = actionName;
-
-    document.getElementById('clinicalAiModalBody').innerHTML = `
-        <div style="background:#fff8fb; border:1px solid #f3c6d8; border-radius:16px; padding:14px; margin-bottom:12px;">
-            <b>🤖 Centro de IA clínica</b>
-            <p style="margin:8px 0 0 0; color:#6b7280; font-size:13px;">
-                Fase 1 activa: la interfaz ya está preparada.
-                En Fase 2 este botón se conectará con OpenAI y analizará automáticamente los datos clínicos del paciente.
-            </p>
-        </div>
-
-        <div style="border:1px solid #e5e7eb; border-radius:16px; padding:14px;">
-            <div style="font-weight:bold; margin-bottom:8px;">Acción seleccionada</div>
-            <div style="color:#d85b9a; font-weight:bold;">${actionName}</div>
-        </div>
-    `;
-
-    document.getElementById('clinicalAiModal').style.display = 'flex';
-}
-
-function closeClinicalAiModal() {
-    document.getElementById('clinicalAiModal').style.display = 'none';
-}
+    function openClinicalAiMock(actionName) {
+        document.getElementById('clinicalAiModalTitle').innerText = actionName;
+    
+        document.getElementById('clinicalAiModalBody').innerHTML = `
+            <div style="background:#fff8fb; border:1px solid #f3c6d8; border-radius:16px; padding:14px; margin-bottom:12px;">
+                <b>🤖 Centro de IA clínica</b>
+                <p style="margin:8px 0 0 0; color:#6b7280; font-size:13px;">
+                    Fase 1 activa: la interfaz ya está preparada.
+                    En Fase 2 este botón se conectará con OpenAI y analizará automáticamente los datos clínicos del paciente.
+                </p>
+            </div>
+    
+            <div style="border:1px solid #e5e7eb; border-radius:16px; padding:14px;">
+                <div style="font-weight:bold; margin-bottom:8px;">Acción seleccionada</div>
+                <div style="color:#d85b9a; font-weight:bold;">${actionName}</div>
+            </div>
+        `;
+    
+        document.getElementById('clinicalAiModal').style.display = 'flex';
+    }
+    
+    function closeClinicalAiModal() {
+        document.getElementById('clinicalAiModal').style.display = 'none';
+    }
 </script>
