@@ -1973,18 +1973,139 @@ Historia clínica previa:
             "result": "Falta configurar OPENAI_API_KEY en Render."
         })
 
+    action_lower = (action or "").lower()
+
+    if "resumir" in action_lower:
+        task_instruction = """
+Objetivo: generar un resumen clínico breve y útil.
+
+Formato:
+1. Resumen del motivo de consulta.
+2. Hallazgos clínicos relevantes.
+3. Problemas activos.
+4. Tratamiento o indicaciones cargadas.
+5. Próximos pasos sugeridos.
+
+No agregues diagnósticos no sustentados.
+"""
+    elif "diferenciales" in action_lower:
+        task_instruction = """
+Objetivo: proponer diagnósticos diferenciales.
+
+Formato:
+1. Diagnósticos diferenciales de mayor probabilidad.
+2. Diagnósticos diferenciales de probabilidad moderada.
+3. Diagnósticos menos probables, pero a considerar.
+4. Datos a favor y en contra de cada uno.
+5. Nivel de confianza.
+
+No afirmes un diagnóstico definitivo si faltan datos.
+"""
+    elif "tratamiento" in action_lower:
+        task_instruction = """
+Objetivo: sugerir tratamiento clínico orientativo.
+
+Formato:
+1. Medidas generales.
+2. Medicación posible con dosis orientativas en mg/kg cuando corresponda.
+3. Vía, frecuencia y duración sugerida.
+4. Monitoreo recomendado.
+5. Contraindicaciones o precauciones.
+
+No indiques tratamientos peligrosos sin aclarar condiciones de uso.
+"""
+    elif "estudios" in action_lower:
+        task_instruction = """
+Objetivo: sugerir estudios complementarios.
+
+Formato:
+1. Estudios prioritarios.
+2. Estudios opcionales según evolución.
+3. Justificación clínica de cada estudio.
+4. Qué hallazgos se buscarían confirmar o descartar.
+
+No pidas estudios innecesarios si la clínica no los justifica.
+"""
+    elif "alertas" in action_lower or "estado clínico" in action_lower:
+        task_instruction = """
+Objetivo: detectar alertas clínicas.
+
+Formato:
+1. Alertas importantes.
+2. Inconsistencias o datos faltantes.
+3. Riesgos por medicación, dosis o contraindicaciones.
+4. Signos de alarma para seguimiento.
+5. Clasificación final: 🟢 Sin alertas importantes / 🟡 Observaciones / 🔴 Revisar este paciente.
+
+Si no hay alertas, decilo claramente.
+"""
+    elif "alta" in action_lower:
+        task_instruction = """
+Objetivo: redactar indicaciones para el propietario.
+
+Formato:
+1. Explicación simple del cuadro.
+2. Indicaciones en casa.
+3. Medicación si corresponde.
+4. Cuidados y alimentación.
+5. Cuándo volver o consultar de urgencia.
+
+Usá lenguaje claro, amable y no técnico.
+"""
+    elif "derivación" in action_lower:
+        task_instruction = """
+Objetivo: redactar informe de derivación veterinaria.
+
+Formato:
+1. Datos clínicos relevantes.
+2. Motivo de derivación.
+3. Hallazgos.
+4. Tratamientos realizados.
+5. Estudios realizados o pendientes.
+6. Pregunta clínica para el colega receptor.
+
+Usá tono profesional y claro.
+"""
+    elif "evidencia" in action_lower:
+        task_instruction = """
+Objetivo: explicar el razonamiento clínico.
+
+Formato:
+1. Qué datos clínicos sostienen la sospecha.
+2. Qué datos faltan.
+3. Qué diagnósticos se priorizan y por qué.
+4. Recomendaciones basadas en criterio clínico veterinario.
+
+No inventes citas bibliográficas específicas.
+"""
+    else:
+        task_instruction = """
+Objetivo: responder la consulta clínica realizada por la veterinaria.
+
+Formato:
+1. Respuesta directa.
+2. Justificación clínica.
+3. Recomendaciones.
+4. Nivel de confianza.
+
+No inventes datos.
+"""
+
     prompt = f"""
 Sos un asistente clínico veterinario para pequeños animales.
 
 Acción solicitada:
 {action}
 
-Usá exclusivamente la información clínica disponible.
-No inventes datos.
-Diferenciá claramente hallazgos, sospechas y recomendaciones.
-Indicá nivel de confianza cuando corresponda.
-Respondé en español, con terminología veterinaria argentina.
-No reemplazás el criterio del veterinario.
+{task_instruction}
+
+Reglas generales:
+- Usá exclusivamente la información clínica disponible.
+- No inventes datos.
+- Diferenciá claramente hallazgos, sospechas y recomendaciones.
+- Indicá nivel de confianza cuando corresponda.
+- Respondé en español, con terminología veterinaria argentina.
+- No reemplazás el criterio del veterinario.
 
 Información clínica:
 {clinical_context}
