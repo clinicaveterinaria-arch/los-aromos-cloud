@@ -174,14 +174,40 @@
 
         {% include "_visit_header.html" ignore missing %}
         {% if whatsapp_pending_alerts %}
-        <div class="hc2-card" style="border-color:#f59e0b; background:#fffbeb;">
-            <h3 style="margin:0 0 8px 0; color:#92400e;">⚠️ Avisados por WhatsApp, pero aún no cumplidos</h3>
+        <div
+            class="hc2-card"
+            style="border-color:#f59e0b; background:#fffbeb;"
+        >
+            <h3
+                style="margin:0 0 8px 0; color:#92400e;"
+            >
+                ⚠️ Pendientes informados al propietario
+            </h3>
 
             {% for pending in whatsapp_pending_alerts %}
-                <div style="padding:10px 0; border-top:1px solid #fde68a;">
-                    <b>{{ pending.title or pending.event_type }}</b>
+                <div
+                    style="
+                        padding:11px 0;
+                        border-top:1px solid #fde68a;
+                    "
+                >
+                    <b>
+                        Debe realizar:
+                        {{ pending.title or pending.event_type }}
+                    </b>
+
                     <div class="hc2-muted">
-                        Pendiente para hoy. Ya se envió recordatorio por WhatsApp, pero todavía no fue cargado como cumplido.
+                        {% if pending.original_reminder_date %}
+                            Fecha originalmente indicada:
+                            {{ pending.original_reminder_date.strftime('%d/%m/%Y') }}.
+                        {% endif %}
+
+                        {% if pending.whatsapp_sent_at %}
+                            Avisado por WhatsApp el
+                            {{ pending.whatsapp_sent_at }}.
+                        {% endif %}
+
+                        Todavía no se registró su realización.
                     </div>
                 </div>
             {% endfor %}
