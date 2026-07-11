@@ -1266,33 +1266,13 @@
                             {% set last_applied = same_applied|last %}
                             {% set next_dose = same_pending|first %}
 
-                            {% set scheduled_parts = next_dose.scheduled_time.split(':') if next_dose and next_dose.scheduled_time else [] %}
-                            {% set current_parts = current_time_hhmm.split(':') if current_time_hhmm else [] %}
-
-                            {% set scheduled_minutes = (scheduled_parts[0]|int * 60 + scheduled_parts[1]|int) if scheduled_parts|length == 2 else none %}
-                            {% set current_minutes = (current_parts[0]|int * 60 + current_parts[1]|int) if current_parts|length == 2 else none %}
-
-                            {% set minutes_diff = current_minutes - scheduled_minutes if scheduled_minutes is not none and current_minutes is not none else none %}
-
                             {% if not next_dose %}
                             
                                 {% set treatment_status = 'Completado' %}
                             
-                            {% elif minutes_diff is none %}
-                            
-                                {% set treatment_status = 'Pendiente' %}
-                            
-                            {% elif minutes_diff < 0 %}
-                            
-                                {% set treatment_status = 'Próxima' %}
-                            
-                            {% elif minutes_diff <= 30 %}
-                            
-                                {% set treatment_status = 'Pendiente' %}
-                            
                             {% else %}
                             
-                                {% set treatment_status = 'Atrasada' %}
+                                {% set treatment_status = next_dose.ui_status or 'Pendiente' %}
                             
                             {% endif %}
 
