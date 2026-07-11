@@ -113,8 +113,38 @@
                         {% endif %}
 
                         <div class="hc2-actions">
-                            <a class="hc2-btn" href="/patients/{{ patient.id }}/events/{{ e.id }}">Ver</a>
-                            <a class="hc2-btn" href="/patients/{{ patient.id }}/events/{{ e.id }}/edit">Editar</a>
+                        
+                            <a class="hc2-btn"
+                               href="/patients/{{ patient.id }}/events/{{ e.id }}">
+                                Ver
+                            </a>
+                        
+                            <a class="hc2-btn"
+                               href="/patients/{{ patient.id }}/events/{{ e.id }}/edit">
+                                Editar
+                            </a>
+                        
+                            <form
+                                method="post"
+                                action="/patients/{{ patient.id }}/events/{{ e.id }}/delete"
+                                style="display:inline;"
+                                onsubmit="return confirm(
+                                    '¿Eliminar definitivamente este evento de la historia clínica?\n\nEsta acción no se puede deshacer.'
+                                );">
+                        
+                                <button
+                                    type="submit"
+                                    class="hc2-btn"
+                                    style="
+                                        color:#dc2626;
+                                        border-color:#fecaca;
+                                        background:#fff5f5;
+                                    ">
+                                    🗑 Borrar
+                                </button>
+                        
+                            </form>
+                        
                         </div>
 
                     </div>
