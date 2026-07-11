@@ -2852,14 +2852,18 @@ async def patient_visit_create(
                 return None
         return None
 
-    event_date_value = get('event_date')
+    # Fecha elegida en "Fecha del evento"
+    visit_date_value = get('visit_date')
     event_datetime = argentina_now()
-    
-    if event_date_value and event_date_value.strip():
-        selected_date = parse_date(event_date_value)
+
+    if visit_date_value and visit_date_value.strip():
+        selected_date = parse_date(visit_date_value)
+
         if selected_date:
-            event_datetime = datetime.combine(selected_date, argentina_now().time())
-    
+            event_datetime = datetime.combine(
+                selected_date,
+                argentina_now().time()
+            )
     vaccine_name = get('vaccine_name')
     vaccine_lot = get('vaccine_lot')
     vaccine_expiration = get('vaccine_expiration')
