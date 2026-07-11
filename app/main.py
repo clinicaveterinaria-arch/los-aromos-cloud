@@ -321,6 +321,27 @@ Cantidad de imágenes adjuntas enviadas para análisis:
 app = FastAPI(title='Los Aromos Cloud')
 app.add_middleware(SessionMiddleware, secret_key=os.getenv('SECRET_KEY', 'dev-secret-change-me'))
 app.mount('/static', StaticFiles(directory='app/static'), name='static')
+@app.get('/service-worker.js')
+def service_worker():
+    service_worker_path = 'app/static/service-worker.js'
+
+    if not os.path.exists(service_worker_path):
+        raise HTTPException(
+            status_code=404,
+            detail='Service worker no encontrado'
+        )
+
+    with open(service_worker_path, 'r', encoding='utf-8') as file:
+        content = file.read()
+
+    return Response(
+        content=content,
+        media_type='application/javascript',
+        headers={
+            'Service-Worker-Allowed': '/',
+            'Cache-Control': 'no-cache'
+        }
+    )    
 os.makedirs("app/uploads", exist_ok=True)
 os.makedirs('app/uploads', exist_ok=True)
 app.mount('/uploads', StaticFiles(directory='app/uploads'), name='uploads')
