@@ -2282,6 +2282,53 @@ def _ai_clean(value):
     return str(value or '').strip()
 
 
+def _ai_collect_file_blocks(events, max_pdfs=5, max_images=6):
+    content_blocks = []
+    file_labels = []
+    seen_urls = set()
+    pdf_count = 0
+    image_count = 0
+
+    for event in events:
+        for attachment in getattr(event, 'attachments', []) or []:
+            file_url = _ai_clean(getattr(attachment, 'file_path', ''))
+            file_name = _ai_clean(getattr(attachment, 'filename', '')) or 'archivo'
+            file_name_lower = file_name.lower()
+
+            if not file_url.startswith(('http://', 'https://')):
+                continue
+
+            if file_url in seen_urls:
+                continue
+
+            if file_name_lower.endswith('.pdf') and pdf_count < max_pdfs:
+                content_blocks.append({
+                    'type': 'input_file',
+                    'file_url': file_url
+                })
+                file_labels.append(f'PDF: {file_name}')
+                seen_urls.add(file_url)
+                pdf_count += 1
+                continue
+
+            if (
+                file_name_lower.endswith(('.jpg', '.jpeg', '.png', '.webp'))
+                and image_count < max_images
+            ):
+                content_blocks.append({
+                    'type': 'input_image',
+                    'image_url': file_url
+                })
+                file_labels.append(f'Imagen: {file_name}')
+                seen_urls.add(file_url)
+                image_count += 1
+
+            if pdf_count >= max_pdfs and image_count >= max_images:
+                return content_blocks, file_labels
+
+    return content_blocks, file_labels
+
+
 def _ai_event_text(event):
     attachments = []
     for attachment in getattr(event, 'attachments', []) or []:
@@ -2535,6 +2582,8 @@ async def patient_ai_center(
     ]
     trend_context = '\n'.join(line for line in trend_lines if line) or 'No hay datos numéricos suficientes para calcular tendencias.'
 
+    file_content_blocks, file_labels = _ai_collect_file_blocks(real_events[:25])
+
     history_context = '\n---\n'.join(_ai_event_text(event) for event in real_events[:25])
     lab_context = '\n---\n'.join(_ai_event_text(event) for event in lab_events) or 'Sin eventos de laboratorio cargados.'
     cardio_context = '\n---\n'.join(_ai_event_text(event) for event in (ecg_events + eco_events + rx_events)[:20]) or 'Sin estudios cardiológicos cargados.'
@@ -2559,6 +2608,8 @@ async def patient_ai_center(
         source_labels.append(f'Fluidoterapia ({len(hospitalization_fluids)})')
     if vademecum_rows:
         source_labels.append(f'Vademécum ({len(vademecum_rows)} coincidencias)')
+    if file_labels:
+        source_labels.append(f'Archivos leídos ({len(file_labels)})')
 
     clinical_context = f"""
 DATOS DEL PACIENTE
@@ -2668,7 +2719,8 @@ Dá una respuesta directa, razonamiento, recomendaciones y nivel de confianza.
             'ok': False,
             'result': 'Falta configurar OPENAI_API_KEY en Render.',
             'sources': source_labels,
-            'status': 'error'
+            'status': 'error',
+            'files_read': file_labels
         })
 
     prompt = f"""
@@ -2695,9 +2747,22 @@ CONTEXTO CLÍNICO INTEGRADO
 """
 
     try:
+        request_content = [
+            {
+                'type': 'input_text',
+                'text': prompt
+            }
+        ]
+        request_content.extend(file_content_blocks)
+
         payload = {
             'model': os.getenv('OPENAI_MODEL', 'gpt-5.4-mini'),
-            'input': prompt,
+            'input': [
+                {
+                    'role': 'user',
+                    'content': request_content
+                }
+            ],
             'max_output_tokens': 1800
         }
         req = urllib.request.Request(
@@ -2733,7 +2798,8 @@ CONTEXTO CLÍNICO INTEGRADO
             'result': result or 'La IA no devolvió contenido.',
             'sources': source_labels,
             'status': status,
-            'integrated': True
+            'integrated': True,
+            'files_read': file_labels
         })
 
     except Exception as e:
@@ -2742,7 +2808,8 @@ CONTEXTO CLÍNICO INTEGRADO
             'ok': False,
             'result': f'No se pudo consultar la IA: {str(e)}',
             'sources': source_labels,
-            'status': 'error'
+            'status': 'error',
+            'files_read': file_labels
         })
 @app.post('/patients/{patient_id}/visits')
 async def patient_visit_create(
