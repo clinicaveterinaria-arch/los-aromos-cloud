@@ -3,6 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Los Aromos Cloud</title>
+
+  <meta name="theme-color" content="#d85b9a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Aromos">
+
   <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
   <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png">
@@ -390,5 +398,15 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 });
 </script> 
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('/service-worker.js')
+      .catch(function (error) {
+        console.error('Error registrando PWA:', error);
+      });
+  });
+}
+</script>  
 </body>
 </html>
