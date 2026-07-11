@@ -11,7 +11,16 @@
             <summary>📅 Datos del evento</summary>
             <div class="hc2-section-body">
                 <div class="hc2-form-grid">
-                    <input type="date" name="visit_date" value="{{ today.strftime('%Y-%m-%d') }}">
+                    <div style="display:flex;flex-direction:column;gap:5px;">
+                        <label style="font-size:13px;font-weight:bold;color:#6b7280;">
+                            📅 Fecha del evento
+                        </label>
+                    
+                        <input
+                            type="date"
+                            name="visit_date"
+                            value="{{ today.strftime('%Y-%m-%d') }}">
+                    </div>
                     <input name="weight" placeholder="Peso kg" value="{{ patient.weight or '' }}">
                     <input name="temperature" placeholder="Temperatura °C">
                     <input name="heart_rate" placeholder="FC">
