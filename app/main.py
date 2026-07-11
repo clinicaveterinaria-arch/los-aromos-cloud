@@ -10097,9 +10097,137 @@ def hospitalization_detail(
 
     medications = (
         db.query(HospitalizationMedication)
-        .filter(HospitalizationMedication.hospitalization_id == hospitalization.id)
-        .order_by(HospitalizationMedication.scheduled_time.asc(), HospitalizationMedication.created_at.desc())
+        .filter(
+            HospitalizationMedication.hospitalization_id == hospitalization.id
+        )
+        .order_by(
+            HospitalizationMedication.created_at.asc(),
+            HospitalizationMedication.id.asc()
+        )
         .all()
+    )
+    
+    # ==========================================================
+    # Orden cronológico real de las dosis
+    # Respeta cambios de día: 23:00 → 07:00 → 15:00
+    # ==========================================================
+    
+    now_argentina = argentina_now()
+    treatment_groups = {}
+    
+    for medication in medications:
+        notes_text = medication.notes or ''
+    
+        treatment_match = re.search(
+            r'\[TRATAMIENTO_ACTIVO:([^\]]+)\]',
+            notes_text
+        )
+    
+        treatment_key = (
+            treatment_match.group(1)
+            if treatment_match
+            else f'medication-{medication.id}'
+        )
+    
+        treatment_groups.setdefault(
+            treatment_key,
+            []
+        ).append(medication)
+    
+    for group_medications in treatment_groups.values():
+    
+        group_medications.sort(
+            key=lambda item: item.id
+        )
+    
+        previous_minutes = None
+        day_offset = 0
+    
+        first_created_at = (
+            group_medications[0].created_at
+            or now_argentina
+        )
+    
+        created_minutes = (
+            first_created_at.hour * 60
+            + first_created_at.minute
+        )
+    
+        for index, medication in enumerate(group_medications):
+    
+            try:
+                hour_text, minute_text = (
+                    medication.scheduled_time or ''
+                ).split(':')
+    
+                scheduled_hour = int(hour_text)
+                scheduled_minute = int(minute_text)
+    
+            except Exception:
+                medication.ui_scheduled_at = None
+                medication.ui_status = 'Pendiente'
+                continue
+    
+            scheduled_minutes = (
+                scheduled_hour * 60
+                + scheduled_minute
+            )
+    
+            if index == 0:
+                # Si el horario inicial ya pasó ampliamente,
+                # se interpreta como perteneciente al día siguiente.
+                if scheduled_minutes < created_minutes - 30:
+                    day_offset = 1
+    
+            elif (
+                previous_minutes is not None
+                and scheduled_minutes < previous_minutes
+            ):
+                day_offset += 1
+    
+            scheduled_date = (
+                first_created_at.date()
+                + timedelta(days=day_offset)
+            )
+    
+            scheduled_datetime = datetime.combine(
+                scheduled_date,
+                datetime.min.time()
+            ).replace(
+                hour=scheduled_hour,
+                minute=scheduled_minute
+            )
+    
+            medication.ui_scheduled_at = scheduled_datetime
+    
+            if medication.status == 'Aplicada':
+                medication.ui_status = 'Aplicada'
+    
+            elif medication.status == 'Finalizada':
+                medication.ui_status = 'Finalizada'
+    
+            else:
+                minutes_difference = (
+                    now_argentina - scheduled_datetime
+                ).total_seconds() / 60
+    
+                if minutes_difference < 0:
+                    medication.ui_status = 'Próxima'
+    
+                elif minutes_difference <= 30:
+                    medication.ui_status = 'Pendiente'
+    
+                else:
+                    medication.ui_status = 'Atrasada'
+    
+            previous_minutes = scheduled_minutes
+    
+    medications.sort(
+        key=lambda medication: (
+            medication.ui_scheduled_at
+            or datetime.max,
+            medication.id
+        )
     )
 
     fluids = (
