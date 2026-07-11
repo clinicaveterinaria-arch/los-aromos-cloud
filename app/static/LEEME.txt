@@ -1,0 +1,18 @@
+PAQUETE PWA - LOS AROMOS CLOUD
+
+Copiar estos archivos dentro de:
+app/static/
+
+- icon-192.png
+- icon-512.png
+- icon-192-maskable.png
+- icon-512-maskable.png
+- site.webmanifest
+- service-worker.js
+
+En base.html:
+1) Agregar las etiquetas PWA dentro de <head>.
+2) Registrar el service worker antes de </body>.
+
+El service worker solo almacena archivos estáticos.
+No guarda historias clínicas, ventas, internaciones ni datos médicos.
