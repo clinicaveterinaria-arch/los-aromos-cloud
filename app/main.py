@@ -2275,8 +2275,187 @@ def patient_detail_v2(
     )
 # ==========================================================
 # CENTRO DE IA CLÍNICA - HISTORIA CLÍNICA V2
-# Fase 2: endpoint base para botones IA
+# FASE 3: integración clínica completa
 # ==========================================================
+
+def _ai_clean(value):
+    return str(value or '').strip()
+
+
+def _ai_event_text(event):
+    attachments = []
+    for attachment in getattr(event, 'attachments', []) or []:
+        attachments.append(
+            f"{getattr(attachment, 'filename', '') or 'archivo'}: "
+            f"{getattr(attachment, 'file_path', '') or ''}"
+        )
+
+    return f"""
+Fecha: {event.event_date.strftime('%d/%m/%Y %H:%M') if event.event_date else ''}
+Tipo: {_ai_clean(event.event_type)}
+Título: {_ai_clean(event.title)}
+Descripción: {_ai_clean(event.description)}
+Anamnesis: {_ai_clean(event.anamnesis)}
+Examen físico: {_ai_clean(event.physical_exam)}
+Diagnóstico: {_ai_clean(event.diagnosis)}
+Tratamiento: {_ai_clean(event.treatment)}
+Peso: {_ai_clean(event.weight)} kg
+Temperatura: {_ai_clean(event.temperature)} °C
+FC: {_ai_clean(event.heart_rate)} lpm
+FR: {_ai_clean(event.respiratory_rate)} rpm
+Mucosas: {_ai_clean(event.mucous_membranes)}
+TRC: {_ai_clean(event.crt)}
+Hidratación: {_ai_clean(event.hydration)}
+Vacuna: {_ai_clean(event.vaccine_name)}
+Desparasitario: {_ai_clean(event.dewormer_product)}
+ECG: FC {_ai_clean(event.ecg_hr)}; ritmo {_ai_clean(event.ecg_rhythm)}; P {_ai_clean(event.ecg_p)}; PR {_ai_clean(event.ecg_pr)}; QRS {_ai_clean(event.ecg_qrs)}; ST {_ai_clean(event.ecg_st)}; T {_ai_clean(event.ecg_t)}; QT {_ai_clean(event.ecg_qt)}; eje {_ai_clean(event.ecg_axis)}; interpretación {_ai_clean(event.ecg_interpretation)}
+Ecocardiografía: AI/Ao {_ai_clean(event.eco_aiao)}; FS {_ai_clean(event.eco_fs)}; FE {_ai_clean(getattr(event, 'eco_fe', ''))}; EPSS {_ai_clean(getattr(event, 'eco_epss', ''))}; ACVIM {_ai_clean(event.eco_acvim)}; diagnóstico {_ai_clean(event.eco_diagnosis)}; tratamiento {_ai_clean(event.eco_treatment)}
+Radiografía: VHS {_ai_clean(event.rx_vhs)}; VLAS {_ai_clean(event.rx_vlas)}; corazón {_ai_clean(getattr(event, 'rx_heart_size', ''))}; vasos {_ai_clean(getattr(event, 'rx_pulmonary_vessels', ''))}; patrón pulmonar {_ai_clean(event.rx_lung_pattern)}; edema {_ai_clean(event.rx_edema)}; congestión {_ai_clean(event.rx_congestion)}; observaciones {_ai_clean(event.rx_observations)}
+Adjuntos: {' | '.join(attachments) if attachments else 'Sin adjuntos'}
+"""
+
+
+def _ai_numeric_trend(events, field, label, unit=''):
+    points = []
+    for event in reversed(events):
+        value = getattr(event, field, None)
+        if value in [None, '']:
+            continue
+        try:
+            number = float(str(value).replace(',', '.'))
+        except Exception:
+            continue
+        points.append((event.event_date, number))
+
+    if not points:
+        return ''
+
+    first_date, first_value = points[0]
+    last_date, last_value = points[-1]
+    delta = last_value - first_value
+    direction = 'sin cambios'
+    if delta > 0:
+        direction = f'aumentó {abs(delta):g}{unit}'
+    elif delta < 0:
+        direction = f'disminuyó {abs(delta):g}{unit}'
+
+    values = ', '.join(
+        f"{dt.strftime('%d/%m/%Y') if dt else '-'}: {value:g}{unit}"
+        for dt, value in points[-8:]
+    )
+    return f"{label}: {values}. Tendencia global: {direction}."
+
+
+def _ai_medication_context(db, hospitalization):
+    if not hospitalization:
+        return 'Sin internación activa.', [], []
+
+    medications = (
+        db.query(HospitalizationMedication)
+        .filter(HospitalizationMedication.hospitalization_id == hospitalization.id)
+        .order_by(HospitalizationMedication.scheduled_time.asc())
+        .all()
+    )
+    fluids = (
+        db.query(HospitalizationFluid)
+        .filter(HospitalizationFluid.hospitalization_id == hospitalization.id)
+        .order_by(HospitalizationFluid.created_at.desc())
+        .all()
+    )
+
+    medication_lines = [
+        f"- {m.medication_name or '-'} | dosis {m.dose or '-'} | vía {m.route or '-'} | "
+        f"frecuencia {m.frequency or '-'} | horario {m.scheduled_time or '-'} | estado {m.status or '-'} | notas {m.notes or '-'}"
+        for m in medications
+    ]
+    fluid_lines = [
+        f"- {f.fluid_type or '-'} | ritmo {f.fluid_rate or '-'} ml/h | {f.ml_kg_h or '-'} ml/kg/h | "
+        f"equipo {f.drip_set or '-'} | estado {f.status or '-'} | notas {f.notes or '-'}"
+        for f in fluids
+    ]
+
+    text_context = f"""
+Internación activa desde: {hospitalization.admission_date.strftime('%d/%m/%Y %H:%M') if hospitalization.admission_date else ''}
+Jaula: {hospitalization.cage or '-'}
+Veterinario responsable: {hospitalization.responsible_vet or '-'}
+Motivo: {hospitalization.reason or '-'}
+Diagnóstico: {hospitalization.diagnosis or '-'}
+Plan terapéutico: {hospitalization.treatment_plan or '-'}
+Notas: {hospitalization.notes or '-'}
+Peso inicial: {hospitalization.initial_weight or '-'} kg
+T° inicial: {hospitalization.initial_temperature or '-'}
+FC inicial: {hospitalization.initial_heart_rate or '-'}
+FR inicial: {hospitalization.initial_respiratory_rate or '-'}
+Mucosas iniciales: {hospitalization.initial_mucous_membranes or '-'}
+TRC inicial: {hospitalization.initial_crt or '-'}
+Hidratación inicial: {hospitalization.initial_hydration or '-'}
+
+Medicación de internación:
+{chr(10).join(medication_lines) if medication_lines else '- Sin medicaciones cargadas'}
+
+Fluidoterapia:
+{chr(10).join(fluid_lines) if fluid_lines else '- Sin fluidoterapia cargada'}
+"""
+    return text_context, medications, fluids
+
+
+def _ai_vademecum_context(db, medication_names):
+    names = [name.strip() for name in medication_names if name and name.strip()]
+    if not names:
+        return 'Sin medicaciones para cruzar con el Vademécum.', []
+
+    rows_found = []
+    seen = set()
+
+    for medication_name in names[:20]:
+        search = f"%{medication_name}%"
+        rows = db.execute(text("""
+            SELECT
+                a.name,
+                a.dog_dose,
+                a.cat_dose,
+                a.route,
+                a.frequency,
+                a.indications,
+                a.contraindications,
+                a.interactions,
+                a.warnings,
+                a.observations,
+                COALESCE(string_agg(DISTINCT b.brand_name, ', '), '') AS brands
+            FROM vademecum_active_ingredients a
+            LEFT JOIN vademecum_brands b ON b.active_ingredient_id = a.id AND b.active = TRUE
+            WHERE a.active = TRUE
+              AND (
+                    a.name ILIKE :search
+                    OR b.brand_name ILIKE :search
+              )
+            GROUP BY a.id
+            LIMIT 5
+        """), {'search': search}).mappings().all()
+
+        for row in rows:
+            key = (row.get('name') or '').lower()
+            if key in seen:
+                continue
+            seen.add(key)
+            rows_found.append(row)
+
+    if not rows_found:
+        return 'No se encontraron coincidencias de las medicaciones actuales en el Vademécum.', []
+
+    lines = []
+    for row in rows_found:
+        lines.append(
+            f"- Principio activo: {row.get('name') or '-'}; marcas: {row.get('brands') or '-'}; "
+            f"dosis perro: {row.get('dog_dose') or '-'}; dosis gato: {row.get('cat_dose') or '-'}; "
+            f"vía: {row.get('route') or '-'}; frecuencia: {row.get('frequency') or '-'}; "
+            f"indicaciones: {row.get('indications') or '-'}; contraindicaciones: {row.get('contraindications') or '-'}; "
+            f"interacciones: {row.get('interactions') or '-'}; advertencias: {row.get('warnings') or '-'}; "
+            f"observaciones: {row.get('observations') or '-'}"
+        )
+
+    return '\n'.join(lines), rows_found
+
 
 @app.post('/patients/{patient_id}/ai-center')
 async def patient_ai_center(
@@ -2289,255 +2468,281 @@ async def patient_ai_center(
     import urllib.request
 
     patient = db.get(Patient, patient_id)
-
     if not patient:
-        raise HTTPException(status_code=404, detail="Paciente no encontrado")
+        raise HTTPException(status_code=404, detail='Paciente no encontrado')
 
     payload_in = await request.json()
-
-    action = payload_in.get("action", "")
-    form_data = payload_in.get("form_data", {})
+    action = _ai_clean(payload_in.get('action'))
+    form_data = payload_in.get('form_data') or {}
+    custom_question = _ai_clean(payload_in.get('question'))
 
     events = (
         db.query(ClinicalEvent)
         .filter(ClinicalEvent.patient_id == patient.id)
         .order_by(ClinicalEvent.event_date.desc())
-        .limit(20)
+        .limit(40)
         .all()
     )
 
-    history_lines = []
+    real_events = [
+        event for event in events
+        if DUE_ACTIVE_MARKER not in (event.description or '')
+        and DUE_CLOSED_MARKER not in (event.description or '')
+    ]
 
-    for e in events:
-        history_lines.append(
-            f"""
-Fecha: {e.event_date.strftime('%d/%m/%Y %H:%M') if e.event_date else ''}
-Tipo: {e.event_type or ''}
-Título: {e.title or ''}
-Descripción: {e.description or ''}
-Anamnesis: {e.anamnesis or ''}
-Examen físico: {e.physical_exam or ''}
-Diagnóstico: {e.diagnosis or ''}
-Tratamiento: {e.treatment or ''}
-Peso: {e.weight or ''}
-Temperatura: {e.temperature or ''}
-FC: {e.heart_rate or ''}
-FR: {e.respiratory_rate or ''}
-"""
+    active_hospitalization = (
+        db.query(Hospitalization)
+        .filter(
+            Hospitalization.patient_id == patient.id,
+            Hospitalization.status == 'Internado'
         )
+        .order_by(Hospitalization.admission_date.desc())
+        .first()
+    )
+
+    hospitalization_context, hospitalization_medications, hospitalization_fluids = (
+        _ai_medication_context(db, active_hospitalization)
+    )
+
+    medication_names = [m.medication_name for m in hospitalization_medications]
+
+    current_treatment = _ai_clean(form_data.get('treatment'))
+    if current_treatment:
+        for line in current_treatment.replace(',', '\n').splitlines():
+            clean_line = line.strip(' -•\t')
+            if clean_line:
+                medication_names.append(clean_line[:120])
+
+    vademecum_context, vademecum_rows = _ai_vademecum_context(db, medication_names)
+
+    ecg_events = [e for e in real_events if (e.event_type or '').lower() == 'ecg'][:8]
+    eco_events = [e for e in real_events if 'ecocardi' in (e.event_type or '').lower()][:8]
+    rx_events = [e for e in real_events if 'radiograf' in (e.event_type or '').lower()][:8]
+    lab_events = [e for e in real_events if 'laboratorio' in (e.event_type or '').lower()][:10]
+    hospitalization_events = [e for e in real_events if 'internaci' in (e.event_type or '').lower()][:12]
+
+    trend_lines = [
+        _ai_numeric_trend(real_events[:20], 'weight', 'Peso', ' kg'),
+        _ai_numeric_trend(real_events[:20], 'temperature', 'Temperatura', ' °C'),
+        _ai_numeric_trend(real_events[:20], 'heart_rate', 'Frecuencia cardíaca', ' lpm'),
+        _ai_numeric_trend(real_events[:20], 'respiratory_rate', 'Frecuencia respiratoria', ' rpm'),
+        _ai_numeric_trend(ecg_events, 'ecg_hr', 'FC en ECG', ' lpm'),
+        _ai_numeric_trend(ecg_events, 'ecg_axis', 'Eje eléctrico', '°'),
+        _ai_numeric_trend(eco_events, 'eco_aiao', 'AI/Ao'),
+        _ai_numeric_trend(eco_events, 'eco_fs', 'Fracción de acortamiento', '%'),
+        _ai_numeric_trend(rx_events, 'rx_vhs', 'VHS'),
+        _ai_numeric_trend(rx_events, 'rx_vlas', 'VLAS')
+    ]
+    trend_context = '\n'.join(line for line in trend_lines if line) or 'No hay datos numéricos suficientes para calcular tendencias.'
+
+    history_context = '\n---\n'.join(_ai_event_text(event) for event in real_events[:25])
+    lab_context = '\n---\n'.join(_ai_event_text(event) for event in lab_events) or 'Sin eventos de laboratorio cargados.'
+    cardio_context = '\n---\n'.join(_ai_event_text(event) for event in (ecg_events + eco_events + rx_events)[:20]) or 'Sin estudios cardiológicos cargados.'
+    hospitalization_events_context = '\n---\n'.join(_ai_event_text(event) for event in hospitalization_events) or 'Sin evoluciones de internación en la historia clínica.'
+
+    source_labels = []
+    if real_events:
+        source_labels.append(f'Historia clínica ({len(real_events[:25])} eventos)')
+    if active_hospitalization:
+        source_labels.append('Internación activa')
+    if ecg_events:
+        source_labels.append(f'ECG ({len(ecg_events)})')
+    if eco_events:
+        source_labels.append(f'Ecocardiografía ({len(eco_events)})')
+    if rx_events:
+        source_labels.append(f'Radiografías ({len(rx_events)})')
+    if lab_events:
+        source_labels.append(f'Laboratorio ({len(lab_events)})')
+    if hospitalization_medications:
+        source_labels.append(f'Medicaciones ({len(hospitalization_medications)})')
+    if hospitalization_fluids:
+        source_labels.append(f'Fluidoterapia ({len(hospitalization_fluids)})')
+    if vademecum_rows:
+        source_labels.append(f'Vademécum ({len(vademecum_rows)} coincidencias)')
 
     clinical_context = f"""
-Paciente:
+DATOS DEL PACIENTE
 Nombre: {patient.name or ''}
 Especie: {patient.species or ''}
 Raza: {patient.breed or ''}
 Sexo: {patient.sex or ''}
-Peso actual: {patient.weight or ''}
-Alertas: {patient.alerts or ''}
-Notas: {patient.notes or ''}
+Fecha de nacimiento: {patient.birth_date.strftime('%d/%m/%Y') if patient.birth_date else ''}
+Peso actual registrado: {patient.weight or ''} kg
+Alertas permanentes: {patient.alerts or ''}
+Notas permanentes: {patient.notes or ''}
 
-Consulta actual cargada en pantalla:
+CONSULTA ACTUAL CARGADA EN PANTALLA
 Fecha: {form_data.get('event_date', '')}
+Tipo: {form_data.get('event_type', '')}
 Peso: {form_data.get('weight', '')}
 Temperatura: {form_data.get('temperature', '')}
 FC: {form_data.get('heart_rate', '')}
 FR: {form_data.get('respiratory_rate', '')}
 Motivo / título: {form_data.get('title', '')}
+Descripción: {form_data.get('description', '')}
 Anamnesis: {form_data.get('anamnesis', '')}
 Examen físico: {form_data.get('physical_exam', '')}
 Diagnóstico / conclusión: {form_data.get('diagnosis', '')}
 Tratamiento / indicaciones: {form_data.get('treatment', '')}
 
-Historia clínica previa:
-{chr(10).join(history_lines)}
+INTERNACIÓN ACTIVA
+{hospitalization_context}
+
+EVOLUCIONES DE INTERNACIÓN
+{hospitalization_events_context}
+
+TENDENCIAS CLÍNICAS Y DE ESTUDIOS
+{trend_context}
+
+ECG, ECOCARDIOGRAFÍA Y RADIOGRAFÍAS
+{cardio_context}
+
+LABORATORIO
+{lab_context}
+
+VADEMÉCUM, CONTRAINDICACIONES E INTERACCIONES
+{vademecum_context}
+
+HISTORIA CLÍNICA RECIENTE
+{history_context or 'Sin historia clínica previa.'}
 """
 
-    api_key = os.getenv("OPENAI_API_KEY", "").strip()
-
-    if not api_key:
-        return JSONResponse({
-            "ok": False,
-            "result": "Falta configurar OPENAI_API_KEY en Render."
-        })
-
-    action_lower = (action or "").lower()
-
-    if "resumir" in action_lower:
+    action_lower = action.lower()
+    if 'resumir' in action_lower:
         task_instruction = """
-Objetivo: generar un resumen clínico breve y útil.
-
-Formato:
-1. Resumen del motivo de consulta.
-2. Hallazgos clínicos relevantes.
-3. Problemas activos.
-4. Tratamiento o indicaciones cargadas.
-5. Próximos pasos sugeridos.
-
-No agregues diagnósticos no sustentados.
+Generá un resumen clínico integrado y breve.
+Separá: motivo actual, hallazgos, problemas activos, evolución/tendencias, tratamiento actual y próximos pasos.
 """
-    elif "diferenciales" in action_lower:
+    elif 'diferenciales' in action_lower:
         task_instruction = """
-Objetivo: proponer diagnósticos diferenciales.
-
-Formato:
-1. Diagnósticos diferenciales de mayor probabilidad.
-2. Diagnósticos diferenciales de probabilidad moderada.
-3. Diagnósticos menos probables, pero a considerar.
-4. Datos a favor y en contra de cada uno.
-5. Nivel de confianza.
-
-No afirmes un diagnóstico definitivo si faltan datos.
+Proponé diagnósticos diferenciales jerarquizados.
+Para cada uno indicá datos a favor, datos en contra o faltantes y nivel de confianza.
+No afirmes diagnósticos definitivos no sustentados.
 """
-    elif "tratamiento" in action_lower:
+    elif 'tratamiento' in action_lower:
         task_instruction = """
-Objetivo: sugerir tratamiento clínico orientativo.
-
-Formato:
-1. Medidas generales.
-2. Medicación posible con dosis orientativas en mg/kg cuando corresponda.
-3. Vía, frecuencia y duración sugerida.
-4. Monitoreo recomendado.
-5. Contraindicaciones o precauciones.
-
-No indiques tratamientos peligrosos sin aclarar condiciones de uso.
+Sugerí un plan terapéutico orientativo integrado con el peso, la especie, la historia, los estudios, la internación y el Vademécum disponible.
+Incluí dosis en mg/kg solo cuando estén sustentadas, vía, frecuencia, duración, monitoreo, ajustes y precauciones.
+Revisá expresamente duplicaciones, contraindicaciones e interacciones.
 """
-    elif "estudios" in action_lower:
+    elif 'estudios' in action_lower:
         task_instruction = """
-Objetivo: sugerir estudios complementarios.
-
-Formato:
-1. Estudios prioritarios.
-2. Estudios opcionales según evolución.
-3. Justificación clínica de cada estudio.
-4. Qué hallazgos se buscarían confirmar o descartar.
-
-No pidas estudios innecesarios si la clínica no los justifica.
+Priorizá estudios complementarios según urgencia y rendimiento diagnóstico.
+Indicá qué pregunta clínica responde cada estudio y qué hallazgo se busca confirmar o descartar.
+Tené en cuenta los estudios ya realizados para no repetirlos sin justificación.
 """
-    elif "alertas" in action_lower or "estado clínico" in action_lower:
+    elif 'alertas' in action_lower or 'estado clínico' in action_lower:
         task_instruction = """
-Objetivo: detectar alertas clínicas.
-
-Formato:
-1. Alertas importantes.
-2. Inconsistencias o datos faltantes.
-3. Riesgos por medicación, dosis o contraindicaciones.
-4. Signos de alarma para seguimiento.
-5. Clasificación final: 🟢 Sin alertas importantes / 🟡 Observaciones / 🔴 Revisar este paciente.
-
-Si no hay alertas, decilo claramente.
+Detectá alertas clínicas, tendencias desfavorables, datos incompatibles, omisiones importantes, riesgos de medicación, interacciones y controles vencidos.
+Finalizá obligatoriamente con una sola clasificación exacta:
+🟢 Sin alertas importantes
+🟡 Observaciones encontradas
+🔴 Revisar este paciente
 """
-    elif "alta" in action_lower:
+    elif 'alta' in action_lower:
         task_instruction = """
-Objetivo: redactar indicaciones para el propietario.
-
-Formato:
-1. Explicación simple del cuadro.
-2. Indicaciones en casa.
-3. Medicación si corresponde.
-4. Cuidados y alimentación.
-5. Cuándo volver o consultar de urgencia.
-
-Usá lenguaje claro, amable y no técnico.
+Redactá indicaciones de alta para el propietario en lenguaje simple.
+Incluí cuidados, medicación con horarios si está disponible, alimentación, controles y signos de alarma.
+No uses jerga técnica sin explicarla.
 """
-    elif "derivación" in action_lower:
+    elif 'derivación' in action_lower:
         task_instruction = """
-Objetivo: redactar informe de derivación veterinaria.
-
-Formato:
-1. Datos clínicos relevantes.
-2. Motivo de derivación.
-3. Hallazgos.
-4. Tratamientos realizados.
-5. Estudios realizados o pendientes.
-6. Pregunta clínica para el colega receptor.
-
-Usá tono profesional y claro.
+Redactá un informe profesional de derivación con antecedentes, motivo, hallazgos, evolución, estudios, tratamientos, respuesta y pregunta clínica al colega receptor.
 """
-    elif "evidencia" in action_lower:
+    elif 'evidencia' in action_lower:
         task_instruction = """
-Objetivo: explicar el razonamiento clínico.
-
-Formato:
-1. Qué datos clínicos sostienen la sospecha.
-2. Qué datos faltan.
-3. Qué diagnósticos se priorizan y por qué.
-4. Recomendaciones basadas en criterio clínico veterinario.
-
-No inventes citas bibliográficas específicas.
+Explicá el razonamiento clínico y el grado de evidencia de cada conclusión.
+Diferenciá datos observados, inferencias y recomendaciones.
+No inventes artículos, autores ni citas.
 """
     else:
-        task_instruction = """
-Objetivo: responder la consulta clínica realizada por la veterinaria.
-
-Formato:
-1. Respuesta directa.
-2. Justificación clínica.
-3. Recomendaciones.
-4. Nivel de confianza.
-
-No inventes datos.
+        task_instruction = f"""
+Respondé esta consulta clínica concreta de la veterinaria:
+{custom_question or action}
+Dá una respuesta directa, razonamiento, recomendaciones y nivel de confianza.
 """
 
-    prompt = f"""
-Sos un asistente clínico veterinario para pequeños animales.
+    api_key = os.getenv('OPENAI_API_KEY', '').strip()
+    if not api_key:
+        return JSONResponse({
+            'ok': False,
+            'result': 'Falta configurar OPENAI_API_KEY en Render.',
+            'sources': source_labels,
+            'status': 'error'
+        })
 
-Acción solicitada:
+    prompt = f"""
+Sos un asistente clínico veterinario experto en pequeños animales integrado a Aromos Cloud.
+
+ACCIÓN SOLICITADA
 {action}
 
 {task_instruction}
 
-Reglas generales:
-- Usá exclusivamente la información clínica disponible.
-- No inventes datos.
-- Diferenciá claramente hallazgos, sospechas y recomendaciones.
-- Indicá nivel de confianza cuando corresponda.
-- Respondé en español, con terminología veterinaria argentina.
-- No reemplazás el criterio del veterinario.
+REGLAS OBLIGATORIAS
+- Usá toda la información disponible, incluyendo historia, internación, estudios, tendencias, medicaciones y Vademécum.
+- No inventes datos, resultados, imágenes ni valores.
+- Diferenciá con claridad hallazgos, sospechas y recomendaciones.
+- Si faltan datos, indicá exactamente cuáles.
+- Correlacioná estudios con anamnesis, examen físico y evolución.
+- Para tratamientos, verificá especie, peso, vía, dosis, duplicaciones, contraindicaciones e interacciones.
+- No reemplazás el criterio de la veterinaria tratante.
+- Respondé en español con terminología veterinaria argentina.
+- No agregues bibliografía ficticia.
 
-Información clínica:
+CONTEXTO CLÍNICO INTEGRADO
 {clinical_context}
 """
 
     try:
         payload = {
-            "model": os.getenv("OPENAI_MODEL", "gpt-5.4-mini"),
-            "input": prompt,
-            "max_output_tokens": 1200
+            'model': os.getenv('OPENAI_MODEL', 'gpt-5.4-mini'),
+            'input': prompt,
+            'max_output_tokens': 1800
         }
-
         req = urllib.request.Request(
-            "https://api.openai.com/v1/responses",
-            data=json.dumps(payload).encode("utf-8"),
+            'https://api.openai.com/v1/responses',
+            data=json.dumps(payload).encode('utf-8'),
             headers={
-                "Authorization": f"Bearer {api_key}",
-                "Content-Type": "application/json"
+                'Authorization': f'Bearer {api_key}',
+                'Content-Type': 'application/json'
             },
-            method="POST"
+            method='POST'
         )
+        with urllib.request.urlopen(req, timeout=55) as response:
+            data = json.loads(response.read().decode('utf-8'))
 
-        with urllib.request.urlopen(req, timeout=40) as response:
-            data = json.loads(response.read().decode("utf-8"))
-
-        result = data.get("output_text", "")
-
+        result = data.get('output_text', '')
         if not result:
             parts = []
-            for item in data.get("output", []):
-                for content in item.get("content", []):
-                    if content.get("type") in ["output_text", "text"]:
-                        parts.append(content.get("text", ""))
-            result = "\n".join(parts).strip()
+            for item in data.get('output', []):
+                for content in item.get('content', []):
+                    if content.get('type') in ['output_text', 'text']:
+                        parts.append(content.get('text', ''))
+            result = '\n'.join(parts).strip()
+
+        result_lower = (result or '').lower()
+        status = 'green'
+        if '🔴' in result or 'revisar este paciente' in result_lower or 'urgente' in result_lower:
+            status = 'red'
+        elif '🟡' in result or 'observaciones encontradas' in result_lower or 'precauc' in result_lower:
+            status = 'yellow'
 
         return JSONResponse({
-            "ok": True,
-            "result": result or "La IA no devolvió contenido."
+            'ok': True,
+            'result': result or 'La IA no devolvió contenido.',
+            'sources': source_labels,
+            'status': status,
+            'integrated': True
         })
 
     except Exception as e:
-        print("ERROR CENTRO IA CLINICA:", str(e))
+        print('ERROR CENTRO IA CLÍNICA FASE 3:', str(e))
         return JSONResponse({
-            "ok": False,
-            "result": f"No se pudo consultar la IA: {str(e)}"
+            'ok': False,
+            'result': f'No se pudo consultar la IA: {str(e)}',
+            'sources': source_labels,
+            'status': 'error'
         })
 @app.post('/patients/{patient_id}/visits')
 async def patient_visit_create(
