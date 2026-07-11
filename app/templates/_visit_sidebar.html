@@ -45,8 +45,8 @@
 
 </div>
 <!-- ==========================================================
-     CENTRO DE IA CLÍNICA - FASE 1
-     Solo interfaz visual. No rompe nada existente.
+     CENTRO DE IA CLÍNICA - FASE 3
+     Integración con HC, internación, estudios, tendencias y Vademécum.
 ========================================================== -->
 
 <div class="hc2-card" style="padding:0; overflow:hidden;">
@@ -64,8 +64,8 @@
         <button type="button"
                 onclick="openClinicalAiMock('Estado clínico IA')"
                 style="border:none; background:transparent; padding:0; cursor:pointer; text-align:left;">
-            <span id="clinicalAiStatusBadge" style="font-weight:bold; color:#16a34a;">
-                🟢 Sin alertas importantes
+            <span id="clinicalAiStatusBadge" style="font-weight:bold; color:#6b7280;">
+                ⚪ Estado pendiente de análisis
             </span>
         </button>
     </div>
@@ -122,45 +122,18 @@
             💬 Consultar a la IA (Chat)
         </button>
 
+        <div id="clinicalAiSourcesCard" style="display:none; margin-top:10px; padding:10px 11px; border:1px solid #dbeafe; background:#eff6ff; border-radius:14px; font-size:12px; color:#1e3a8a;">
+            <b>🔗 Información integrada</b>
+            <div id="clinicalAiSources" style="margin-top:5px; line-height:1.5;"></div>
+        </div>
+
         <div style="margin-top:10px; border:1px solid #f3c6d8; border-radius:14px; overflow:hidden;">
             <div style="background:#fff8fb; padding:9px 11px; font-weight:bold; font-size:13px;">
                 Últimas consultas IA
             </div>
 
-            <div style="padding:9px 11px; font-size:13px;">
-
-                <div class="hc2-ai-history-row">
-                    <span>14:35</span>
-                    <b>Diagnósticos diferenciales</b>
-                    <span>›</span>
-                </div>
-
-                <div class="hc2-ai-history-row">
-                    <span>14:38</span>
-                    <b>Estudios recomendados</b>
-                    <span>›</span>
-                </div>
-
-                <div class="hc2-ai-history-row">
-                    <span>14:41</span>
-                    <b>Sugerir tratamiento</b>
-                    <span>›</span>
-                </div>
-
-                <div class="hc2-ai-history-row">
-                    <span>14:44</span>
-                    <b>Chat con IA</b>
-                    <span>›</span>
-                </div>
-
-                <div style="text-align:center; margin-top:10px;">
-                    <button type="button"
-                            onclick="openClinicalAiMock('Historial completo IA')"
-                            style="border:none; background:white; color:#d85b9a; font-weight:bold; font-size:12px; cursor:pointer;">
-                        Ver historial completo
-                    </button>
-                </div>
-
+            <div id="clinicalAiHistory" style="padding:9px 11px; font-size:13px;">
+                <div class="hc2-muted">Todavía no se realizaron consultas IA en este paciente.</div>
             </div>
         </div>
 
@@ -284,6 +257,8 @@
 
 <script>
 let clinicalAiConversation = [];
+let currentClinicalAiAction = '';
+const clinicalAiHistoryKey = 'aromos_ai_history_{{ patient.id }}';
 
 function toggleClinicalAiCenter() {
     const body = document.getElementById('clinicalAiCenterBody');
@@ -301,6 +276,7 @@ function openClinicalAiMock(actionName) {
         return;
     }
 
+    currentClinicalAiAction = actionName;
     title.innerText = actionName;
 
     body.innerHTML = `
@@ -311,18 +287,24 @@ function openClinicalAiMock(actionName) {
             </p>
         </div>
 
+        ${actionName.includes('Consultar') ? `
+            <div style="margin-bottom:12px;">
+                <label style="display:block; font-weight:bold; margin-bottom:6px;">Tu consulta clínica</label>
+                <textarea id="clinicalAiQuestion" placeholder="Escribí la pregunta para la IA..." style="width:100%; min-height:90px; border:1px solid #f3c6d8; border-radius:14px; padding:11px; resize:vertical;"></textarea>
+                <button type="button" onclick="runClinicalAiAction('${actionName.replace(/'/g, "\'")}')" class="hc2-btn primary" style="margin-top:8px;">Consultar</button>
+            </div>` : ''}
+
         <div id="clinicalAiResultBox"
              style="border:1px solid #e5e7eb; border-radius:16px; padding:14px; min-height:160px; white-space:pre-wrap; color:#374151;">
-            <div class="hc2-ai-loading">
-                <span></span>
-                Analizando historia clínica...
-            </div>
+            ${actionName.includes('Consultar') ? '<div class="hc2-muted">Escribí la consulta y presioná Consultar.</div>' : '<div class="hc2-ai-loading"><span></span>Integrando historia clínica, internación, estudios, tendencias y medicación...</div>'}
         </div>
     `;
 
     modal.style.display = 'flex';
 
-    runClinicalAiAction(actionName);
+    if (!actionName.includes('Consultar')) {
+        runClinicalAiAction(actionName);
+    }
 }
 
 function closeClinicalAiModal() {
@@ -340,6 +322,8 @@ function getClinicalAiFormData() {
 
     [
         'event_date',
+        'event_type',
+        'description',
         'weight',
         'temperature',
         'heart_rate',
@@ -365,32 +349,118 @@ function escapeClinicalAiText(text) {
         .replace(/\n/g, '<br>');
 }
 
-function updateClinicalAiBadge(text) {
+function updateClinicalAiBadge(text, status) {
     const badge = document.getElementById('clinicalAiStatusBadge');
     if (!badge) return;
 
-    const txt = (text || '').toLowerCase();
-
-    if (txt.includes('🔴') || txt.includes('urgente') || txt.includes('riesgo') || txt.includes('revisar')) {
+    if (status === 'red') {
         badge.innerHTML = '🔴 Revisar este paciente';
         badge.style.color = '#dc2626';
-    } else if (txt.includes('🟡') || txt.includes('observación') || txt.includes('observaciones') || txt.includes('precaución')) {
+    } else if (status === 'yellow') {
         badge.innerHTML = '🟡 Observaciones encontradas';
         badge.style.color = '#d97706';
-    } else {
+    } else if (status === 'green') {
         badge.innerHTML = '🟢 Sin alertas importantes';
         badge.style.color = '#16a34a';
+    } else {
+        const txt = (text || '').toLowerCase();
+        if (txt.includes('🔴') || txt.includes('urgente') || txt.includes('revisar este paciente')) {
+            badge.innerHTML = '🔴 Revisar este paciente';
+            badge.style.color = '#dc2626';
+        } else if (txt.includes('🟡') || txt.includes('observaciones encontradas') || txt.includes('precaución')) {
+            badge.innerHTML = '🟡 Observaciones encontradas';
+            badge.style.color = '#d97706';
+        } else {
+            badge.innerHTML = '🟢 Sin alertas importantes';
+            badge.style.color = '#16a34a';
+        }
+    }
+}
+
+function renderClinicalAiSources(sources) {
+    const card = document.getElementById('clinicalAiSourcesCard');
+    const box = document.getElementById('clinicalAiSources');
+    if (!card || !box) return;
+    if (!sources || !sources.length) {
+        card.style.display = 'none';
+        return;
+    }
+    box.innerHTML = sources.map(source => '• ' + escapeClinicalAiText(source)).join('<br>');
+    card.style.display = 'block';
+}
+
+function saveClinicalAiHistory(actionName, result) {
+    let history = [];
+    try {
+        history = JSON.parse(localStorage.getItem(clinicalAiHistoryKey) || '[]');
+    } catch (error) {
+        history = [];
+    }
+    history.unshift({
+        time: new Date().toLocaleTimeString('es-AR', {hour:'2-digit', minute:'2-digit'}),
+        action: actionName,
+        result: result || ''
+    });
+    history = history.slice(0, 8);
+    localStorage.setItem(clinicalAiHistoryKey, JSON.stringify(history));
+    renderClinicalAiHistory();
+}
+
+function renderClinicalAiHistory() {
+    const container = document.getElementById('clinicalAiHistory');
+    if (!container) return;
+    let history = [];
+    try {
+        history = JSON.parse(localStorage.getItem(clinicalAiHistoryKey) || '[]');
+    } catch (error) {
+        history = [];
+    }
+    if (!history.length) {
+        container.innerHTML = '<div class="hc2-muted">Todavía no se realizaron consultas IA en este paciente.</div>';
+        return;
+    }
+    container.innerHTML = history.map((item, index) => `
+        <button type="button" onclick="openClinicalAiHistoryItem(${index})" class="hc2-ai-history-row" style="width:100%; border:none; background:white; text-align:left; cursor:pointer;">
+            <span>${escapeClinicalAiText(item.time)}</span>
+            <b>${escapeClinicalAiText(item.action)}</b>
+            <span>›</span>
+        </button>
+    `).join('');
+}
+
+function openClinicalAiHistoryItem(index) {
+    let history = [];
+    try { history = JSON.parse(localStorage.getItem(clinicalAiHistoryKey) || '[]'); } catch (error) {}
+    const item = history[index];
+    if (!item) return;
+    openClinicalAiMock(item.action);
+    const resultBox = document.getElementById('clinicalAiResultBox');
+    if (resultBox) {
+        window.lastClinicalAiResult = item.result || '';
+        resultBox.innerHTML = `<div id="clinicalAiOnlyResult" style="white-space:pre-wrap; line-height:1.6; font-size:14px; color:#374151;">${escapeClinicalAiText(item.result)}</div>`;
     }
 }
 
 function runClinicalAiAction(actionName) {
     const resultBox = document.getElementById('clinicalAiResultBox');
+    const questionField = document.getElementById('clinicalAiQuestion');
+    const question = questionField ? questionField.value.trim() : '';
+
+    if (actionName.includes('Consultar') && !question) {
+        alert('Escribí la consulta clínica.');
+        return;
+    }
+
+    if (resultBox) {
+        resultBox.innerHTML = '<div class="hc2-ai-loading"><span></span>Integrando historia clínica, internación, estudios, tendencias y medicación...</div>';
+    }
 
     fetch('/patients/{{ patient.id }}/ai-center', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
             action: actionName,
+            question: question,
             form_data: getClinicalAiFormData()
         })
     })
@@ -399,18 +469,23 @@ function runClinicalAiAction(actionName) {
         if (!resultBox) return;
 
         window.lastClinicalAiResult = data.result || '';
-        updateClinicalAiBadge(data.result || '');
+        updateClinicalAiBadge(data.result || '', data.status);
+        renderClinicalAiSources(data.sources || []);
 
         resultBox.innerHTML = `
             <div style="display:flex; align-items:center; gap:8px; margin-bottom:14px;">
-                <div style="width:10px; height:10px; border-radius:50%; background:#16a34a;"></div>
-                <b>Análisis completado</b>
+                <div style="width:10px; height:10px; border-radius:50%; background:${data.ok ? '#16a34a' : '#dc2626'};"></div>
+                <b>${data.ok ? 'Análisis integrado completado' : 'No se pudo completar el análisis'}</b>
             </div>
-
+            ${data.sources && data.sources.length ? `<div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:12px; padding:9px 10px; margin-bottom:12px; font-size:12px; color:#1e3a8a;"><b>Fuentes clínicas usadas:</b> ${data.sources.map(escapeClinicalAiText).join(' · ')}</div>` : ''}
             <div id="clinicalAiOnlyResult" style="white-space:pre-wrap; line-height:1.6; font-size:14px; color:#374151;">
                 ${escapeClinicalAiText(data.result)}
             </div>
         `;
+
+        if (data.ok) {
+            saveClinicalAiHistory(actionName, data.result || '');
+        }
     })
     .catch(error => {
         if (resultBox) {
@@ -451,6 +526,8 @@ document.addEventListener('keydown', function(event) {
         closeClinicalAiModal();
     }
 });
+
+renderClinicalAiHistory();
 
 const clinicalAiModal = document.getElementById('clinicalAiModal');
 if (clinicalAiModal) {
