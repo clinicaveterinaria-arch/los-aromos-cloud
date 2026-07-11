@@ -2145,6 +2145,16 @@ def patient_detail_v2(
     events = (
         db.query(ClinicalEvent)
         .filter(ClinicalEvent.patient_id == patient.id)
+        .filter(
+            ~ClinicalEvent.description.ilike(
+                f'%{DUE_ACTIVE_MARKER}%'
+            )
+        )
+        .filter(
+            ~ClinicalEvent.description.ilike(
+                f'%{DUE_CLOSED_MARKER}%'
+            )
+        )
         .order_by(ClinicalEvent.event_date.desc())
         .limit(20)
         .all()
@@ -3028,7 +3038,7 @@ async def patient_visit_create(
     if next_vaccine_date and next_vaccine_date.strip():
         db.add(ClinicalEvent(
             patient_id=patient.id,
-            event_date=argentina_now(),
+            event_date=event_datetime,
             event_type='Vacuna',
             title=next_vaccine_name or 'Vacuna pendiente',
             description=(
@@ -3044,7 +3054,7 @@ async def patient_visit_create(
     if next_deworming_date and next_deworming_date.strip():
         db.add(ClinicalEvent(
             patient_id=patient.id,
-            event_date=argentina_now(),
+            event_date=event_datetime,
             event_type='Desparasitación',
             title=next_dewormer_product or 'Desparasitación pendiente',
             description=(
@@ -3067,7 +3077,7 @@ async def patient_visit_create(
 
         reminder_event = ClinicalEvent(
             patient_id=patient.id,
-            event_date=argentina_now(),
+            event_date=event_datetime,
             event_type=r_type,
             title=r_title,
             description=(
