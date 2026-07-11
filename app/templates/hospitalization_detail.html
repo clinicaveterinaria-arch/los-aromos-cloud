@@ -1275,13 +1275,25 @@
                             {% set minutes_diff = current_minutes - scheduled_minutes if scheduled_minutes is not none and current_minutes is not none else none %}
 
                             {% if not next_dose %}
+                            
                                 {% set treatment_status = 'Completado' %}
-                            {% elif minutes_diff is not none and minutes_diff > 30 %}
-                                {% set treatment_status = 'Atrasada' %}
-                            {% elif minutes_diff is not none and minutes_diff >= -15 %}
-                                {% set treatment_status = 'Próxima' %}
-                            {% else %}
+                            
+                            {% elif minutes_diff is none %}
+                            
                                 {% set treatment_status = 'Pendiente' %}
+                            
+                            {% elif minutes_diff < 0 %}
+                            
+                                {% set treatment_status = 'Próxima' %}
+                            
+                            {% elif minutes_diff <= 30 %}
+                            
+                                {% set treatment_status = 'Pendiente' %}
+                            
+                            {% else %}
+                            
+                                {% set treatment_status = 'Atrasada' %}
+                            
                             {% endif %}
 
                             {% set total_doses = (same_pending|length) + (same_applied|length) %}
