@@ -8,6 +8,11 @@ from typing import Optional
 from io import BytesIO, StringIO
 from openpyxl import load_workbook, Workbook
 import csv
+import base64
+import json
+import zipfile
+import urllib.request
+import urllib.error
 from fastapi import FastAPI, Request, Form, Depends, HTTPException, UploadFile, File
 from fastapi.responses import RedirectResponse, HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
@@ -2842,6 +2847,484 @@ CONTEXTO CLÍNICO INTEGRADO
             'status': 'error',
             'files_read': file_labels
         })
+# ==========================================================
+# IMPORTADOR INTELIGENTE DE HISTORIA CLÍNICA
+# PDF, imágenes, ZIP, DOCX, XLSX y EML
+# ==========================================================
+
+IMPORT_ALLOWED_EXTENSIONS = {
+    '.pdf', '.jpg', '.jpeg', '.png', '.webp',
+    '.zip', '.docx', '.xlsx', '.eml'
+}
+IMPORT_MAX_FILE_BYTES = 25 * 1024 * 1024
+IMPORT_MAX_TOTAL_BYTES = 80 * 1024 * 1024
+IMPORT_MAX_EXPANDED_FILES = 100
+IMPORT_MAX_ZIP_UNCOMPRESSED = 80 * 1024 * 1024
+IMPORT_TEXT_LIMIT = 30000
+
+
+def _import_safe_filename(filename: str) -> str:
+    name = os.path.basename(filename or 'archivo').strip() or 'archivo'
+    name = re.sub(r'[^A-Za-z0-9._áéíóúÁÉÍÓÚñÑ()-]+', '_', name)
+    return name[:180]
+
+
+def _import_extension(filename: str) -> str:
+    return os.path.splitext(filename or '')[1].lower()
+
+
+def _import_date_from_text(text_value: str):
+    text_value = text_value or ''
+    patterns = [
+        r'(?<!\d)([0-3]?\d)[/.-]([01]?\d)[/.-]((?:19|20)\d{2})(?!\d)',
+        r'(?<!\d)((?:19|20)\d{2})[/.-]([01]?\d)[/.-]([0-3]?\d)(?!\d)',
+    ]
+    for index, pattern in enumerate(patterns):
+        for match in re.finditer(pattern, text_value):
+            try:
+                if index == 0:
+                    day, month, year = map(int, match.groups())
+                else:
+                    year, month, day = map(int, match.groups())
+                parsed = date(year, month, day)
+                if date(1990, 1, 1) <= parsed <= argentina_now().date() + timedelta(days=7):
+                    return parsed
+            except ValueError:
+                continue
+    return None
+
+
+def _import_guess_type(text_value: str, filename: str) -> str:
+    haystack = f'{filename} {text_value}'.lower()
+    rules = [
+        ('Ecocardiografía', ['ecocardiograf', 'aiao', 'ai/ao', 'fracción de acortamiento']),
+        ('ECG', ['electrocardiograma', 'intervalo pr', 'qrs', 'eje eléctrico']),
+        ('Radiografía', ['radiograf', 'rayos x', 'vhs', 'proyección laterolateral', 'proyección ventrodorsal']),
+        ('Ecografía', ['ecograf', 'ultrasonograf', 'vesícula biliar', 'parénquima hepático']),
+        ('Laboratorio', ['hemograma', 'hematocrito', 'bioquímica', 'creatinina', 'urea', 'leucocitos']),
+        ('Cirugía', ['cirugía', 'quirúrgic', 'procedimiento operatorio']),
+        ('Internación', ['internación', 'hospitalización', 'hospitalizado']),
+        ('Alta', ['alta médica', 'indicaciones al alta']),
+        ('Vacuna', ['vacuna', 'vacunación', 'séxtuple', 'antirrábica']),
+        ('Desparasitación', ['desparasitación', 'antiparasitario', 'pipeta']),
+    ]
+    for event_type, keywords in rules:
+        if any(keyword in haystack for keyword in keywords):
+            return event_type
+    return 'Consulta clínica'
+
+
+def _import_image_data_url(content: bytes, mime_type: str) -> str:
+    encoded = base64.b64encode(content).decode('ascii')
+    return f'data:{mime_type};base64,{encoded}'
+
+
+def _import_pdf_content(content: bytes):
+    text_parts = []
+    images = []
+
+    try:
+        from pypdf import PdfReader
+        reader = PdfReader(BytesIO(content))
+        for page in reader.pages[:40]:
+            try:
+                text_parts.append(page.extract_text() or '')
+            except Exception:
+                continue
+    except Exception as exc:
+        print('IMPORTADOR PDF TEXTO:', str(exc))
+
+    try:
+        import fitz
+        document = fitz.open(stream=content, filetype='pdf')
+        for page_index in range(min(len(document), 4)):
+            page = document.load_page(page_index)
+            pix = page.get_pixmap(matrix=fitz.Matrix(1.5, 1.5), alpha=False)
+            png = pix.tobytes('png')
+            images.append(_import_image_data_url(png, 'image/png'))
+        document.close()
+    except Exception as exc:
+        print('IMPORTADOR PDF IMÁGENES:', str(exc))
+
+    return '\n'.join(text_parts).strip(), images
+
+
+def _import_docx_text(content: bytes) -> str:
+    from docx import Document
+    document = Document(BytesIO(content))
+    parts = [paragraph.text for paragraph in document.paragraphs if paragraph.text.strip()]
+    for table in document.tables:
+        for row in table.rows:
+            parts.append(' | '.join(cell.text.strip() for cell in row.cells))
+    return '\n'.join(parts)
+
+
+def _import_xlsx_text(content: bytes) -> str:
+    workbook = load_workbook(BytesIO(content), data_only=True, read_only=True)
+    parts = []
+    for worksheet in workbook.worksheets[:15]:
+        parts.append(f'HOJA: {worksheet.title}')
+        for row_index, row in enumerate(worksheet.iter_rows(values_only=True), start=1):
+            if row_index > 300:
+                break
+            values = ['' if value is None else str(value) for value in row]
+            if any(value.strip() for value in values):
+                parts.append(' | '.join(values))
+    workbook.close()
+    return '\n'.join(parts)
+
+
+def _import_eml_parts(filename: str, content: bytes):
+    from email import policy
+    from email.parser import BytesParser
+
+    message = BytesParser(policy=policy.default).parsebytes(content)
+    subject = str(message.get('subject') or '')
+    sent_date = str(message.get('date') or '')
+    sender = str(message.get('from') or '')
+    body_parts = [f'Asunto: {subject}', f'Fecha del correo: {sent_date}', f'Remitente: {sender}']
+    children = []
+
+    if message.is_multipart():
+        for part in message.walk():
+            disposition = part.get_content_disposition()
+            child_name = part.get_filename()
+            if disposition == 'attachment' and child_name:
+                payload = part.get_payload(decode=True) or b''
+                if payload:
+                    children.append((_import_safe_filename(child_name), payload, part.get_content_type()))
+            elif part.get_content_type() == 'text/plain' and disposition != 'attachment':
+                try:
+                    body_parts.append(part.get_content())
+                except Exception:
+                    pass
+    else:
+        try:
+            body_parts.append(message.get_content())
+        except Exception:
+            pass
+
+    return '\n'.join(body_parts), children
+
+
+def _import_expand_uploaded_files(uploaded_files):
+    expanded = []
+    total_bytes = 0
+
+    for original_name, content, mime_type in uploaded_files:
+        if len(expanded) >= IMPORT_MAX_EXPANDED_FILES:
+            break
+        if not content:
+            continue
+        if len(content) > IMPORT_MAX_FILE_BYTES:
+            raise HTTPException(status_code=413, detail=f'{original_name}: supera 25 MB.')
+
+        total_bytes += len(content)
+        if total_bytes > IMPORT_MAX_TOTAL_BYTES:
+            raise HTTPException(status_code=413, detail='La carga total supera 80 MB.')
+
+        extension = _import_extension(original_name)
+        if extension not in IMPORT_ALLOWED_EXTENSIONS:
+            continue
+
+        if extension == '.zip':
+            try:
+                with zipfile.ZipFile(BytesIO(content)) as archive:
+                    members = [member for member in archive.infolist() if not member.is_dir()]
+                    if sum(member.file_size for member in members) > IMPORT_MAX_ZIP_UNCOMPRESSED:
+                        raise HTTPException(status_code=413, detail=f'{original_name}: ZIP demasiado grande.')
+                    for member in members:
+                        if len(expanded) >= IMPORT_MAX_EXPANDED_FILES:
+                            break
+                        child_name = _import_safe_filename(member.filename)
+                        child_extension = _import_extension(child_name)
+                        if child_extension not in IMPORT_ALLOWED_EXTENSIONS or child_extension == '.zip':
+                            continue
+                        child_content = archive.read(member)
+                        if len(child_content) > IMPORT_MAX_FILE_BYTES:
+                            continue
+                        expanded.append((child_name, child_content, mimetypes.guess_type(child_name)[0] or 'application/octet-stream'))
+            except zipfile.BadZipFile:
+                raise HTTPException(status_code=400, detail=f'{original_name}: ZIP inválido.')
+            continue
+
+        if extension == '.eml':
+            body_text, children = _import_eml_parts(original_name, content)
+            expanded.append((original_name, content, mime_type or 'message/rfc822', body_text))
+            for child_name, child_content, child_mime in children:
+                if len(expanded) >= IMPORT_MAX_EXPANDED_FILES:
+                    break
+                if _import_extension(child_name) in IMPORT_ALLOWED_EXTENSIONS - {'.zip', '.eml'}:
+                    expanded.append((child_name, child_content, child_mime))
+            continue
+
+        expanded.append((original_name, content, mime_type))
+
+    return expanded
+
+
+def _import_extract_content(filename: str, content: bytes, mime_type: str, preloaded_text: str = ''):
+    extension = _import_extension(filename)
+    text_value = preloaded_text or ''
+    images = []
+
+    try:
+        if extension == '.pdf':
+            text_value, images = _import_pdf_content(content)
+        elif extension in {'.jpg', '.jpeg', '.png', '.webp'}:
+            image_mime = mime_type or mimetypes.guess_type(filename)[0] or 'image/jpeg'
+            images = [_import_image_data_url(content, image_mime)]
+        elif extension == '.docx':
+            text_value = _import_docx_text(content)
+        elif extension == '.xlsx':
+            text_value = _import_xlsx_text(content)
+    except Exception as exc:
+        print('IMPORTADOR EXTRACCIÓN:', filename, str(exc))
+
+    return (text_value or '')[:IMPORT_TEXT_LIMIT], images[:4]
+
+
+def _import_ai_analysis(patient, filename: str, text_value: str, images):
+    api_key = os.getenv('OPENAI_API_KEY', '').strip()
+    fallback_date = _import_date_from_text(text_value)
+    fallback_type = _import_guess_type(text_value, filename)
+    fallback = {
+        'date': fallback_date.isoformat() if fallback_date else argentina_now().date().isoformat(),
+        'event_type': fallback_type,
+        'title': os.path.splitext(filename)[0][:140],
+        'summary': (text_value[:900].strip() if text_value.strip() else 'Documento importado sin texto extraíble.'),
+        'patient_match': 'unknown',
+        'warnings': []
+    }
+
+    if not api_key:
+        fallback['warnings'].append('La IA no está configurada; revisar fecha, tipo y resumen antes de importar.')
+        return fallback
+
+    allowed_types = ', '.join(EVENT_TYPES)
+    prompt = f"""
+Sos un asistente veterinario que clasifica documentos para importar una historia clínica.
+No inventes diagnósticos ni datos ausentes.
+Elegí como fecha la fecha clínica del estudio o consulta, no la fecha de impresión, salvo que sea la única disponible.
+Comprobá si el documento parece pertenecer al paciente indicado.
+
+Paciente de destino:
+Nombre: {patient.name or ''}
+Especie: {patient.species or ''}
+Raza: {patient.breed or ''}
+Propietario: {patient.owner.name if patient.owner else ''}
+
+Archivo: {filename}
+Tipos permitidos: {allowed_types}
+Texto extraído:
+{text_value}
+
+Respondé únicamente JSON válido:
+{{
+  "date":"YYYY-MM-DD",
+  "event_type":"uno de los tipos permitidos",
+  "title":"título breve",
+  "summary":"resumen fiel de hasta 1200 caracteres",
+  "patient_match":"yes|no|unknown",
+  "warnings":[]
+}}
+"""
+
+    content_blocks = [{'type': 'input_text', 'text': prompt}]
+    for image_url in images[:4]:
+        content_blocks.append({'type': 'input_image', 'image_url': image_url})
+
+    payload = {
+        'model': os.getenv('OPENAI_MODEL', 'gpt-5.4-mini'),
+        'input': [{'role': 'user', 'content': content_blocks}],
+        'max_output_tokens': 900
+    }
+
+    try:
+        request_data = urllib.request.Request(
+            'https://api.openai.com/v1/responses',
+            data=json.dumps(payload).encode('utf-8'),
+            headers={
+                'Authorization': f'Bearer {api_key}',
+                'Content-Type': 'application/json'
+            },
+            method='POST'
+        )
+        with urllib.request.urlopen(request_data, timeout=60) as response:
+            response_data = json.loads(response.read().decode('utf-8'))
+
+        output_text = response_data.get('output_text', '')
+        if not output_text:
+            pieces = []
+            for output_item in response_data.get('output', []):
+                for content_item in output_item.get('content', []):
+                    if content_item.get('type') in {'output_text', 'text'}:
+                        pieces.append(content_item.get('text', ''))
+            output_text = '\n'.join(pieces)
+
+        cleaned = output_text.strip().replace('```json', '').replace('```', '').strip()
+        result = json.loads(cleaned)
+
+        parsed_date = None
+        try:
+            parsed_date = datetime.strptime(str(result.get('date', '')), '%Y-%m-%d').date()
+        except ValueError:
+            parsed_date = fallback_date or argentina_now().date()
+
+        event_type = result.get('event_type') or fallback_type
+        if event_type not in EVENT_TYPES:
+            event_type = fallback_type
+
+        return {
+            'date': parsed_date.isoformat(),
+            'event_type': event_type,
+            'title': str(result.get('title') or fallback['title'])[:180],
+            'summary': str(result.get('summary') or fallback['summary'])[:2500],
+            'patient_match': result.get('patient_match') if result.get('patient_match') in {'yes', 'no', 'unknown'} else 'unknown',
+            'warnings': result.get('warnings') if isinstance(result.get('warnings'), list) else []
+        }
+    except Exception as exc:
+        print('IMPORTADOR IA:', filename, str(exc))
+        fallback['warnings'].append('No se pudo completar el análisis IA; revisar manualmente.')
+        return fallback
+
+
+@app.post('/patients/{patient_id}/history-import/analyze')
+async def patient_history_import_analyze(
+    patient_id: int,
+    files: list[UploadFile] = File(...),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    patient = db.get(Patient, patient_id)
+    if not patient:
+        raise HTTPException(status_code=404, detail='Paciente no encontrado.')
+    if supabase is None:
+        raise HTTPException(status_code=500, detail='Supabase Storage no configurado.')
+
+    uploaded_files = []
+    for uploaded in files:
+        filename = _import_safe_filename(uploaded.filename or 'archivo')
+        content = await uploaded.read()
+        uploaded_files.append((filename, content, uploaded.content_type or mimetypes.guess_type(filename)[0] or 'application/octet-stream'))
+
+    expanded_files = _import_expand_uploaded_files(uploaded_files)
+    if not expanded_files:
+        raise HTTPException(status_code=400, detail='No se encontraron archivos compatibles.')
+
+    items = []
+    for entry in expanded_files:
+        if len(entry) == 4:
+            filename, content, mime_type, preloaded_text = entry
+        else:
+            filename, content, mime_type = entry
+            preloaded_text = ''
+
+        safe_name = _import_safe_filename(filename)
+        unique_name = f'{uuid.uuid4().hex}_{safe_name}'
+        storage_path = f'patient_{patient.id}/imports/{unique_name}'
+
+        supabase.storage.from_('adjuntos').upload(
+            path=storage_path,
+            file=content,
+            file_options={'content-type': mime_type or 'application/octet-stream', 'upsert': 'false'}
+        )
+
+        text_value, images = _import_extract_content(safe_name, content, mime_type, preloaded_text)
+        analysis = _import_ai_analysis(patient, safe_name, text_value, images)
+        analysis.update({
+            'filename': safe_name,
+            'storage_path': storage_path,
+            'mime_type': mime_type or 'application/octet-stream',
+            'size_bytes': len(content),
+            'selected': analysis.get('patient_match') != 'no'
+        })
+        items.append(analysis)
+
+    items.sort(key=lambda item: (item.get('date') or '', item.get('filename') or ''))
+    return JSONResponse({'ok': True, 'count': len(items), 'items': items})
+
+
+@app.post('/patients/{patient_id}/history-import/confirm')
+async def patient_history_import_confirm(
+    patient_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    patient = db.get(Patient, patient_id)
+    if not patient:
+        raise HTTPException(status_code=404, detail='Paciente no encontrado.')
+    if supabase is None:
+        raise HTTPException(status_code=500, detail='Supabase Storage no configurado.')
+
+    payload = await request.json()
+    items = payload.get('items', []) if isinstance(payload, dict) else []
+    imported = 0
+    skipped = 0
+    errors = []
+
+    for item in items:
+        if not item.get('selected', True):
+            skipped += 1
+            continue
+
+        filename = _import_safe_filename(str(item.get('filename') or 'archivo'))
+        storage_path = str(item.get('storage_path') or '')
+        expected_prefix = f'patient_{patient.id}/imports/'
+        if not storage_path.startswith(expected_prefix):
+            errors.append(f'{filename}: ubicación de archivo inválida.')
+            continue
+
+        try:
+            event_day = datetime.strptime(str(item.get('date') or ''), '%Y-%m-%d').date()
+        except ValueError:
+            errors.append(f'{filename}: fecha inválida.')
+            continue
+
+        day_start = datetime.combine(event_day, datetime.min.time())
+        day_end = day_start + timedelta(days=1)
+        existing = (
+            db.query(EventAttachment)
+            .join(ClinicalEvent, EventAttachment.event_id == ClinicalEvent.id)
+            .filter(ClinicalEvent.patient_id == patient.id)
+            .filter(ClinicalEvent.event_date >= day_start)
+            .filter(ClinicalEvent.event_date < day_end)
+            .filter(EventAttachment.filename == filename)
+            .first()
+        )
+        if existing:
+            skipped += 1
+            continue
+
+        event_type = str(item.get('event_type') or 'Consulta clínica')
+        if event_type not in EVENT_TYPES:
+            event_type = 'Consulta clínica'
+
+        title = str(item.get('title') or os.path.splitext(filename)[0])[:180]
+        summary = str(item.get('summary') or 'Documento importado.')[:5000]
+        event = ClinicalEvent(
+            patient_id=patient.id,
+            event_date=datetime.combine(event_day, datetime.min.time().replace(hour=12)),
+            event_type=event_type,
+            title=title,
+            description=f'📥 Importado desde historia clínica externa\nArchivo original: {filename}\n\n{summary}',
+            created_by=user.username
+        )
+        db.add(event)
+        db.flush()
+
+        public_url = supabase.storage.from_('adjuntos').get_public_url(storage_path)
+        db.add(EventAttachment(event_id=event.id, filename=filename, file_path=public_url))
+        imported += 1
+
+    db.commit()
+    return JSONResponse({
+        'ok': len(errors) == 0,
+        'imported': imported,
+        'skipped': skipped,
+        'errors': errors
+    })
 @app.post('/patients/{patient_id}/visits')
 async def patient_visit_create(
     patient_id: int,
