@@ -2864,11 +2864,30 @@ IMPORT_TEXT_LIMIT = 30000
 
 
 def _import_safe_filename(filename: str) -> str:
+    import unicodedata
+
     name = os.path.basename(filename or 'archivo').strip() or 'archivo'
-    name = re.sub(r'[^A-Za-z0-9._áéíóúÁÉÍÓÚñÑ()-]+', '_', name)
-    return name[:180]
 
+    # Convierte Analía → Analia, Muñoz → Munoz, etc.
+    name = unicodedata.normalize('NFKD', name)
+    name = name.encode('ascii', 'ignore').decode('ascii')
 
+    # Supabase Storage: dejar solamente caracteres seguros.
+    name = re.sub(r'[^A-Za-z0-9._()-]+', '_', name)
+
+    # Evitar nombres que comiencen o terminen con puntos o guiones bajos.
+    name = name.strip('._')
+
+    if not name:
+        name = 'archivo'
+
+    # Conservar la extensión y limitar longitud.
+    base, extension = os.path.splitext(name)
+    extension = re.sub(r'[^A-Za-z0-9.]', '', extension.lower())
+
+    base = base[:150].strip('._') or 'archivo'
+
+    return f'{base}{extension}'
 def _import_extension(filename: str) -> str:
     return os.path.splitext(filename or '')[1].lower()
 
@@ -3197,54 +3216,189 @@ async def patient_history_import_analyze(
     user: User = Depends(require_user)
 ):
     patient = db.get(Patient, patient_id)
+
     if not patient:
-        raise HTTPException(status_code=404, detail='Paciente no encontrado.')
-    if supabase is None:
-        raise HTTPException(status_code=500, detail='Supabase Storage no configurado.')
-
-    uploaded_files = []
-    for uploaded in files:
-        filename = _import_safe_filename(uploaded.filename or 'archivo')
-        content = await uploaded.read()
-        uploaded_files.append((filename, content, uploaded.content_type or mimetypes.guess_type(filename)[0] or 'application/octet-stream'))
-
-    expanded_files = _import_expand_uploaded_files(uploaded_files)
-    if not expanded_files:
-        raise HTTPException(status_code=400, detail='No se encontraron archivos compatibles.')
-
-    items = []
-    for entry in expanded_files:
-        if len(entry) == 4:
-            filename, content, mime_type, preloaded_text = entry
-        else:
-            filename, content, mime_type = entry
-            preloaded_text = ''
-
-        safe_name = _import_safe_filename(filename)
-        unique_name = f'{uuid.uuid4().hex}_{safe_name}'
-        storage_path = f'patient_{patient.id}/imports/{unique_name}'
-
-        supabase.storage.from_('adjuntos').upload(
-            path=storage_path,
-            file=content,
-            file_options={'content-type': mime_type or 'application/octet-stream', 'upsert': 'false'}
+        return JSONResponse(
+            status_code=404,
+            content={
+                'ok': False,
+                'detail': 'Paciente no encontrado.',
+                'items': []
+            }
         )
 
-        text_value, images = _import_extract_content(safe_name, content, mime_type, preloaded_text)
-        analysis = _import_ai_analysis(patient, safe_name, text_value, images)
-        analysis.update({
-            'filename': safe_name,
-            'storage_path': storage_path,
-            'mime_type': mime_type or 'application/octet-stream',
-            'size_bytes': len(content),
-            'selected': analysis.get('patient_match') != 'no'
+    if supabase is None:
+        return JSONResponse(
+            status_code=500,
+            content={
+                'ok': False,
+                'detail': 'Supabase Storage no configurado.',
+                'items': []
+            }
+        )
+
+    try:
+        uploaded_files = []
+
+        for uploaded in files:
+            original_filename = uploaded.filename or 'archivo'
+            safe_filename = _import_safe_filename(original_filename)
+            content = await uploaded.read()
+
+            mime_type = (
+                uploaded.content_type
+                or mimetypes.guess_type(safe_filename)[0]
+                or 'application/octet-stream'
+            )
+
+            uploaded_files.append(
+                (safe_filename, content, mime_type)
+            )
+
+        expanded_files = _import_expand_uploaded_files(uploaded_files)
+
+        if not expanded_files:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    'ok': False,
+                    'detail': 'No se encontraron archivos compatibles.',
+                    'items': []
+                }
+            )
+
+        items = []
+        failed_files = []
+
+        for entry in expanded_files:
+            if len(entry) == 4:
+                filename, content, mime_type, preloaded_text = entry
+            else:
+                filename, content, mime_type = entry
+                preloaded_text = ''
+
+            safe_name = _import_safe_filename(filename)
+
+            try:
+                unique_name = f'{uuid.uuid4().hex}_{safe_name}'
+                storage_path = (
+                    f'patient_{patient.id}/imports/{unique_name}'
+                )
+
+                supabase.storage.from_('adjuntos').upload(
+                    path=storage_path,
+                    file=content,
+                    file_options={
+                        'content-type': (
+                            mime_type
+                            or 'application/octet-stream'
+                        ),
+                        'upsert': 'false'
+                    }
+                )
+
+                text_value, images = _import_extract_content(
+                    safe_name,
+                    content,
+                    mime_type,
+                    preloaded_text
+                )
+
+                analysis = _import_ai_analysis(
+                    patient,
+                    safe_name,
+                    text_value,
+                    images
+                )
+
+                analysis.update({
+                    'filename': safe_name,
+                    'storage_path': storage_path,
+                    'mime_type': (
+                        mime_type
+                        or 'application/octet-stream'
+                    ),
+                    'size_bytes': len(content),
+                    'selected': (
+                        analysis.get('patient_match') != 'no'
+                    )
+                })
+
+                items.append(analysis)
+
+            except Exception as file_error:
+                print(
+                    'ERROR IMPORTANDO ARCHIVO:',
+                    safe_name,
+                    str(file_error)
+                )
+
+                failed_files.append({
+                    'filename': safe_name,
+                    'error': str(file_error)
+                })
+
+        items.sort(
+            key=lambda item: (
+                item.get('date') or '',
+                item.get('filename') or ''
+            )
+        )
+
+        if not items and failed_files:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    'ok': False,
+                    'detail': (
+                        'No se pudo procesar ninguno de los archivos. '
+                        + ' | '.join(
+                            f"{item['filename']}: {item['error']}"
+                            for item in failed_files
+                        )
+                    ),
+                    'items': [],
+                    'failed_files': failed_files
+                }
+            )
+
+        return JSONResponse({
+            'ok': True,
+            'count': len(items),
+            'items': items,
+            'failed_files': failed_files,
+            'warnings': [
+                (
+                    f"{item['filename']}: no pudo procesarse."
+                )
+                for item in failed_files
+            ]
         })
-        items.append(analysis)
 
-    items.sort(key=lambda item: (item.get('date') or '', item.get('filename') or ''))
-    return JSONResponse({'ok': True, 'count': len(items), 'items': items})
+    except HTTPException as exc:
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={
+                'ok': False,
+                'detail': str(exc.detail),
+                'items': []
+            }
+        )
 
+    except Exception as exc:
+        print('ERROR GENERAL IMPORTADOR:', str(exc))
 
+        return JSONResponse(
+            status_code=500,
+            content={
+                'ok': False,
+                'detail': (
+                    'Ocurrió un error al analizar los documentos: '
+                    f'{str(exc)}'
+                ),
+                'items': []
+            }
+        )
 @app.post('/patients/{patient_id}/history-import/confirm')
 async def patient_history_import_confirm(
     patient_id: int,
