@@ -117,6 +117,12 @@
         </div>
 
         <button type="button"
+                onclick="openHistoryImportModal()"
+                style="width:100%; margin-top:8px; border:1px solid #f3c6d8; background:#fff8fb; color:#d85b9a; border-radius:12px; padding:10px 12px; font-weight:bold; cursor:pointer;">
+            📥 Importar historia clínica
+        </button>
+
+        <button type="button"
                 onclick="openClinicalAiMock('💬 Consultar a la IA')"
                 style="width:100%; margin-top:8px; border:1px solid #f3c6d8; background:#fff; color:#d85b9a; border-radius:12px; padding:10px 12px; font-weight:bold; cursor:pointer;">
             💬 Consultar a la IA (Chat)
@@ -535,6 +541,219 @@ if (clinicalAiModal) {
         if (event.target === this) {
             closeClinicalAiModal();
         }
+    });
+}
+</script>
+<!-- ==========================================================
+     IMPORTADOR INTELIGENTE DE HISTORIA CLÍNICA
+========================================================== -->
+<div id="historyImportModal"
+     style="display:none; position:fixed; inset:0; background:rgba(17,24,39,.48); z-index:10020; align-items:center; justify-content:center; padding:18px;">
+    <div style="width:100%; max-width:980px; max-height:92vh; background:#fff; border-radius:24px; border:1px solid #f3c6d8; box-shadow:0 20px 55px rgba(0,0,0,.2); overflow:hidden; display:flex; flex-direction:column;">
+        <div style="padding:16px 18px; background:#fff8fb; border-bottom:1px solid #f3c6d8; display:flex; justify-content:space-between; align-items:center; gap:12px;">
+            <div>
+                <h3 style="margin:0; color:#1f2937;">📥 Importar historia clínica</h3>
+                <div class="hc2-muted" style="margin-top:4px;">PDF, imágenes, ZIP, DOCX, XLSX y correos EML.</div>
+            </div>
+            <button type="button" onclick="closeHistoryImportModal()" style="border:none; background:white; color:#d85b9a; border-radius:999px; width:34px; height:34px; font-size:18px; cursor:pointer;">×</button>
+        </div>
+
+        <div style="padding:18px; overflow:auto;">
+            <div id="historyImportUploadStep">
+                <label for="historyImportFiles"
+                       style="display:block; border:2px dashed #f3c6d8; border-radius:18px; padding:28px 18px; text-align:center; background:#fff8fb; cursor:pointer;">
+                    <div style="font-size:34px;">📚</div>
+                    <b style="display:block; margin-top:6px; color:#d85b9a;">Seleccionar archivos</b>
+                    <span class="hc2-muted">Podés elegir varios juntos o cargar un ZIP.</span>
+                </label>
+                <input id="historyImportFiles" type="file" multiple
+                       accept=".pdf,.jpg,.jpeg,.png,.webp,.zip,.docx,.xlsx,.eml"
+                       style="display:none;">
+                <div id="historyImportSelected" class="hc2-muted" style="margin-top:10px;"></div>
+                <div style="margin-top:14px; padding:10px 12px; border:1px solid #fde68a; background:#fffbeb; border-radius:12px; color:#92400e; font-size:12px;">
+                    Antes de guardar, Aromos Cloud mostrará fecha, tipo, título y resumen para que los revises.
+                </div>
+            </div>
+
+            <div id="historyImportLoading" style="display:none; padding:34px 10px; text-align:center;">
+                <div class="hc2-ai-loading" style="justify-content:center;"><span></span>Analizando y ordenando documentos...</div>
+                <div class="hc2-muted" style="margin-top:8px;">Los PDF escaneados y las imágenes pueden demorar un poco más.</div>
+            </div>
+
+            <div id="historyImportPreview" style="display:none;">
+                <div id="historyImportSummary" style="margin-bottom:12px; padding:10px 12px; border:1px solid #bbf7d0; background:#f0fdf4; border-radius:12px; color:#166534;"></div>
+                <div style="overflow:auto; border:1px solid #f3c6d8; border-radius:14px;">
+                    <table style="width:100%; border-collapse:collapse; min-width:820px; font-size:13px;">
+                        <thead style="background:#fff8fb; color:#374151;">
+                            <tr>
+                                <th style="padding:10px; text-align:center;">Importar</th>
+                                <th style="padding:10px; text-align:left;">Archivo</th>
+                                <th style="padding:10px; text-align:left;">Fecha</th>
+                                <th style="padding:10px; text-align:left;">Tipo</th>
+                                <th style="padding:10px; text-align:left;">Título y resumen</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyImportRows"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div style="padding:14px 18px; border-top:1px solid #f3c6d8; display:flex; justify-content:flex-end; flex-wrap:wrap; gap:8px;">
+            <button type="button" class="hc2-btn" onclick="closeHistoryImportModal()">Cancelar</button>
+            <button id="historyImportAnalyzeButton" type="button" class="hc2-btn primary" onclick="analyzeHistoryImport()" disabled>Analizar archivos</button>
+            <button id="historyImportConfirmButton" type="button" class="hc2-btn primary" onclick="confirmHistoryImport()" style="display:none;">Importar seleccionados</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const historyImportEventTypes = ['Consulta clínica','Control','Vacuna','Desparasitación','Radiografía','ECG','Ecocardiografía','Ecografía','Laboratorio','Cirugía','Anestesia','Internación','Alta','Otro procedimiento'];
+let historyImportItems = [];
+
+function openHistoryImportModal() {
+    const modal = document.getElementById('historyImportModal');
+    if (!modal) return;
+    modal.style.display = 'flex';
+}
+
+function closeHistoryImportModal() {
+    const modal = document.getElementById('historyImportModal');
+    if (modal) modal.style.display = 'none';
+}
+
+function escapeHistoryImportText(value) {
+    return String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+}
+
+function renderHistoryImportRows() {
+    const rows = document.getElementById('historyImportRows');
+    if (!rows) return;
+
+    rows.innerHTML = historyImportItems.map((item, index) => {
+        const options = historyImportEventTypes.map(type =>
+            `<option value="${escapeHistoryImportText(type)}" ${type === item.event_type ? 'selected' : ''}>${escapeHistoryImportText(type)}</option>`
+        ).join('');
+        const warning = item.patient_match === 'no'
+            ? '<div style="margin-top:5px; color:#b91c1c; font-weight:bold;">⚠️ Parece corresponder a otro paciente. Queda desmarcado.</div>'
+            : (item.warnings || []).map(text => `<div style="margin-top:5px; color:#92400e;">⚠️ ${escapeHistoryImportText(text)}</div>`).join('');
+
+        return `
+            <tr style="border-top:1px solid #f7d8e5; vertical-align:top;">
+                <td style="padding:10px; text-align:center;">
+                    <input type="checkbox" data-field="selected" data-index="${index}" ${item.selected ? 'checked' : ''}>
+                </td>
+                <td style="padding:10px; max-width:180px; word-break:break-word;">
+                    <b>${escapeHistoryImportText(item.filename)}</b>
+                </td>
+                <td style="padding:10px;">
+                    <input type="date" data-field="date" data-index="${index}" value="${escapeHistoryImportText(item.date)}" style="border:1px solid #ead7e1; border-radius:9px; padding:7px;">
+                </td>
+                <td style="padding:10px;">
+                    <select data-field="event_type" data-index="${index}" style="border:1px solid #ead7e1; border-radius:9px; padding:7px; min-width:145px;">${options}</select>
+                </td>
+                <td style="padding:10px; min-width:320px;">
+                    <input type="text" data-field="title" data-index="${index}" value="${escapeHistoryImportText(item.title)}" style="width:100%; border:1px solid #ead7e1; border-radius:9px; padding:7px; font-weight:bold; box-sizing:border-box;">
+                    <textarea data-field="summary" data-index="${index}" style="width:100%; min-height:92px; margin-top:6px; border:1px solid #ead7e1; border-radius:9px; padding:7px; resize:vertical; box-sizing:border-box;">${escapeHistoryImportText(item.summary)}</textarea>
+                    ${warning}
+                </td>
+            </tr>`;
+    }).join('');
+}
+
+function collectHistoryImportEdits() {
+    document.querySelectorAll('#historyImportRows [data-index]').forEach(control => {
+        const index = Number(control.dataset.index);
+        const field = control.dataset.field;
+        if (!historyImportItems[index] || !field) return;
+        historyImportItems[index][field] = control.type === 'checkbox' ? control.checked : control.value;
+    });
+}
+
+async function analyzeHistoryImport() {
+    const input = document.getElementById('historyImportFiles');
+    if (!input || !input.files.length) return;
+
+    const formData = new FormData();
+    Array.from(input.files).forEach(file => formData.append('files', file));
+
+    document.getElementById('historyImportUploadStep').style.display = 'none';
+    document.getElementById('historyImportLoading').style.display = 'block';
+    document.getElementById('historyImportAnalyzeButton').style.display = 'none';
+
+    try {
+        const response = await fetch('/patients/{{ patient.id }}/history-import/analyze', {
+            method: 'POST',
+            body: formData
+        });
+        const data = await response.json();
+        if (!response.ok || !data.ok) throw new Error(data.detail || 'No se pudieron analizar los archivos.');
+
+        historyImportItems = data.items || [];
+        document.getElementById('historyImportLoading').style.display = 'none';
+        document.getElementById('historyImportPreview').style.display = 'block';
+        document.getElementById('historyImportConfirmButton').style.display = 'inline-flex';
+        document.getElementById('historyImportSummary').innerHTML = `<b>${historyImportItems.length} documento(s) analizado(s).</b> Revisá los datos antes de importar.`;
+        renderHistoryImportRows();
+    } catch (error) {
+        document.getElementById('historyImportLoading').style.display = 'none';
+        document.getElementById('historyImportUploadStep').style.display = 'block';
+        document.getElementById('historyImportAnalyzeButton').style.display = 'inline-flex';
+        alert('No se pudo analizar: ' + error.message);
+    }
+}
+
+async function confirmHistoryImport() {
+    collectHistoryImportEdits();
+    const selectedCount = historyImportItems.filter(item => item.selected).length;
+    if (!selectedCount) {
+        alert('No hay documentos seleccionados para importar.');
+        return;
+    }
+
+    const button = document.getElementById('historyImportConfirmButton');
+    button.disabled = true;
+    button.innerText = 'Importando...';
+
+    try {
+        const response = await fetch('/patients/{{ patient.id }}/history-import/confirm', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({items: historyImportItems})
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.detail || 'No se pudo completar la importación.');
+
+        const errorText = (data.errors || []).length ? `\nErrores: ${(data.errors || []).join(' | ')}` : '';
+        alert(`Importación terminada.\nImportados: ${data.imported}\nOmitidos o duplicados: ${data.skipped}${errorText}`);
+        window.location.reload();
+    } catch (error) {
+        button.disabled = false;
+        button.innerText = 'Importar seleccionados';
+        alert('No se pudo importar: ' + error.message);
+    }
+}
+
+const historyImportFileInput = document.getElementById('historyImportFiles');
+if (historyImportFileInput) {
+    historyImportFileInput.addEventListener('change', function() {
+        const selected = document.getElementById('historyImportSelected');
+        const analyzeButton = document.getElementById('historyImportAnalyzeButton');
+        const count = this.files.length;
+        selected.innerText = count ? `${count} archivo(s) seleccionado(s).` : '';
+        analyzeButton.disabled = count === 0;
+    });
+}
+
+const historyImportModal = document.getElementById('historyImportModal');
+if (historyImportModal) {
+    historyImportModal.addEventListener('click', function(event) {
+        if (event.target === this) closeHistoryImportModal();
     });
 }
 </script>
