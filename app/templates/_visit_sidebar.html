@@ -677,37 +677,130 @@ function collectHistoryImportEdits() {
 
 async function analyzeHistoryImport() {
     const input = document.getElementById('historyImportFiles');
-    if (!input || !input.files.length) return;
+
+    if (!input || !input.files.length) {
+        return;
+    }
 
     const formData = new FormData();
-    Array.from(input.files).forEach(file => formData.append('files', file));
 
-    document.getElementById('historyImportUploadStep').style.display = 'none';
-    document.getElementById('historyImportLoading').style.display = 'block';
-    document.getElementById('historyImportAnalyzeButton').style.display = 'none';
+    Array.from(input.files).forEach(file => {
+        formData.append('files', file);
+    });
+
+    document.getElementById(
+        'historyImportUploadStep'
+    ).style.display = 'none';
+
+    document.getElementById(
+        'historyImportLoading'
+    ).style.display = 'block';
+
+    document.getElementById(
+        'historyImportAnalyzeButton'
+    ).style.display = 'none';
 
     try {
-        const response = await fetch('/patients/{{ patient.id }}/history-import/analyze', {
-            method: 'POST',
-            body: formData
-        });
-        const data = await response.json();
-        if (!response.ok || !data.ok) throw new Error(data.detail || 'No se pudieron analizar los archivos.');
+        const response = await fetch(
+            '/patients/{{ patient.id }}/history-import/analyze',
+            {
+                method: 'POST',
+                body: formData
+            }
+        );
+
+        const responseText = await response.text();
+
+        let data = {};
+
+        try {
+            data = responseText
+                ? JSON.parse(responseText)
+                : {};
+        } catch (jsonError) {
+            throw new Error(
+                response.ok
+                    ? 'El servidor devolvió una respuesta inválida.'
+                    : 'El servidor tuvo un error interno. Revisá el log de Render.'
+            );
+        }
+
+        if (!response.ok || !data.ok) {
+            throw new Error(
+                data.detail
+                || 'No se pudieron analizar los archivos.'
+            );
+        }
 
         historyImportItems = data.items || [];
-        document.getElementById('historyImportLoading').style.display = 'none';
-        document.getElementById('historyImportPreview').style.display = 'block';
-        document.getElementById('historyImportConfirmButton').style.display = 'inline-flex';
-        document.getElementById('historyImportSummary').innerHTML = `<b>${historyImportItems.length} documento(s) analizado(s).</b> Revisá los datos antes de importar.`;
+
+        document.getElementById(
+            'historyImportLoading'
+        ).style.display = 'none';
+
+        document.getElementById(
+            'historyImportPreview'
+        ).style.display = 'block';
+
+        document.getElementById(
+            'historyImportConfirmButton'
+        ).style.display = 'inline-flex';
+
+        const failedFiles = data.failed_files || [];
+
+        let warningHtml = '';
+
+        if (failedFiles.length) {
+            warningHtml = `
+                <div style="
+                    margin-top:8px;
+                    padding:9px 11px;
+                    border:1px solid #f59e0b;
+                    background:#fffbeb;
+                    color:#92400e;
+                    border-radius:10px;
+                ">
+                    ⚠️ ${failedFiles.length} archivo(s) no pudieron
+                    procesarse. Los demás continúan disponibles.
+                </div>
+            `;
+        }
+
+        document.getElementById(
+            'historyImportSummary'
+        ).innerHTML = `
+            <b>
+                ${historyImportItems.length}
+                documento(s) analizado(s).
+            </b>
+            Revisá los datos antes de importar.
+            ${warningHtml}
+        `;
+
         renderHistoryImportRows();
+
     } catch (error) {
-        document.getElementById('historyImportLoading').style.display = 'none';
-        document.getElementById('historyImportUploadStep').style.display = 'block';
-        document.getElementById('historyImportAnalyzeButton').style.display = 'inline-flex';
-        alert('No se pudo analizar: ' + error.message);
+        document.getElementById(
+            'historyImportLoading'
+        ).style.display = 'none';
+
+        document.getElementById(
+            'historyImportUploadStep'
+        ).style.display = 'block';
+
+        document.getElementById(
+            'historyImportAnalyzeButton'
+        ).style.display = 'inline-flex';
+
+        alert(
+            'No se pudo analizar: '
+            + (
+                error.message
+                || 'Error desconocido.'
+            )
+        );
     }
 }
-
 async function confirmHistoryImport() {
     collectHistoryImportEdits();
     const selectedCount = historyImportItems.filter(item => item.selected).length;
