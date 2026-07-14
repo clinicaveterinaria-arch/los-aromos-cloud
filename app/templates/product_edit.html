@@ -124,6 +124,41 @@
         background:white;
         color:#d85b9a;
     }
+
+    .danger-card {
+        border-color:#fecaca;
+        background:#fffafa;
+    }
+
+    .danger-card h2 {
+        color:#991b1b;
+    }
+
+    .danger-card p {
+        margin:0;
+        color:#6b7280;
+        line-height:1.5;
+    }
+
+    .danger-btn {
+        margin-top:16px;
+        border-radius:13px;
+        padding:13px 18px;
+        font-weight:bold;
+        border:1px solid #dc2626;
+        background:#dc2626;
+        color:white;
+        cursor:pointer;
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        gap:7px;
+    }
+
+    .danger-btn:hover {
+        background:#b91c1c;
+        border-color:#b91c1c;
+    }
 </style>
 
 <div class="edit-product-page">
@@ -329,6 +364,28 @@
         </div>
 
     </form>
+
+    <div class="edit-card danger-card">
+        <h2>🗑 Eliminar producto</h2>
+        <p>
+            El producto desaparecerá del listado y ya no podrá utilizarse en nuevas ventas.
+            Los comprobantes y movimientos anteriores se conservarán sin cambios.
+        </p>
+
+        <form
+            method="post"
+            action="/products/{{ product.id }}/delete"
+            onsubmit="return confirm('¿Eliminar {{ product.name|e }}?\n\nEl producto desaparecerá del listado y no podrá utilizarse en nuevas ventas. Esta acción no se puede deshacer desde esta pantalla.');">
+
+            <input type="hidden" name="page" value="{{ page }}">
+            <input type="hidden" name="return_q" value="{{ q }}">
+            <input type="hidden" name="return_rubro" value="{{ rubro }}">
+
+            <button type="submit" class="danger-btn">
+                🗑 Eliminar producto
+            </button>
+        </form>
+    </div>
 
 </div>
 
