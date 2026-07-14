@@ -6412,22 +6412,12 @@ def product_edit_save(
         url=return_url,
         status_code=303
     )
-@app.post('/products/{product_id}/edit')
-def product_edit_save(
+@app.post('/products/{product_id}/delete')
+def product_delete(
     product_id: int,
-    name: str = Form(''),
-    rubro: str = Form(''),
-    tipo: str = Form(''),
-    code: str = Form(''),
-    barcode: str = Form(''),
-    cost_price: str = Form(''),
-    sale_price: str = Form(''),
-    margin_percent: str = Form(''),
-    stock: str = Form(''),
-    min_stock: str = Form(''),
-    provider: str = Form(''),
-    manufacturer: str = Form(''),
-    notes: str = Form(''),
+    page: int = Form(1),
+    return_q: str = Form(''),
+    return_rubro: str = Form(''),
     db: Session = Depends(get_db),
     user: User = Depends(require_user)
 ):
@@ -6439,34 +6429,32 @@ def product_edit_save(
             detail="Producto no encontrado"
         )
 
-    def to_float(value):
-        try:
-            return float(value.replace(',', '.')) if value and value.strip() else None
-        except ValueError:
-            return None
-
-    product.name = name
-    product.rubro = rubro
-    product.tipo = tipo
-    product.code = code
-    product.barcode = barcode
-    product.cost_price = to_float(cost_price)
-    product.sale_price = to_float(sale_price)
-    product.margin_percent = to_float(margin_percent)
-    product.stock = to_float(stock)
-    product.min_stock = to_float(min_stock)
-    product.provider = provider
-    product.manufacturer = manufacturer
-    product.notes = notes
-
-    
+    # No se borra físicamente de la base.
+    # Se desactiva para conservar ventas, presupuestos,
+    # facturas y movimientos históricos.
+    product.active = False
 
     db.commit()
 
+    if page < 1:
+        page = 1
+
+    return_params = {
+        'page': page,
+        'q': return_q or '',
+        'rubro': return_rubro or '',
+        'deleted': 'Producto eliminado correctamente'
+    }
+
+    return_url = '/products?' + urlencode(return_params)
+
     return RedirectResponse(
-        url='/products',
+        url=return_url,
         status_code=303
     )
+
+
+
 @app.post('/products/{product_id}/adjust')
 def product_adjust_stock(
     product_id: int,
