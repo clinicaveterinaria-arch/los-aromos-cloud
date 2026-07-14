@@ -13,6 +13,7 @@ import json
 import zipfile
 import urllib.request
 import urllib.error
+from urllib.parse import urlencode
 import unicodedata
 from difflib import SequenceMatcher
 from pypdf import PdfReader
