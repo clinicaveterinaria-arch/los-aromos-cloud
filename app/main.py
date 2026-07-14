@@ -7262,25 +7262,41 @@ def sale_add_item(
         .all()
     )
 
-    has_credit_payment = any(
-        (payment.method or '').strip().lower() == 'crédito'
-        and (payment.amount or 0) > 0
+    credit_payment_total = sum(
+        payment.amount or 0
         for payment in payments
+        if (
+            payment.method or ''
+        ).strip().lower() in {
+            'crédito',
+            'credito'
+        }
     )
-
+    
     surcharge_percent = max(
         0.0,
-        sale.credit_surcharge_percent or 0
+        min(
+            sale.credit_surcharge_percent or 0,
+            100.0
+        )
     )
-
+    
     surcharge_amount = 0.0
-
-    if has_credit_payment:
+    
+    if (
+        credit_payment_total > 0
+        and surcharge_percent > 0
+    ):
         surcharge_amount = round(
-            total_after_discount
+            credit_payment_total
             * surcharge_percent
-            / 100,
+            / (
+                100
+                + surcharge_percent
+            ),
             2
+        )
+   
         )
 
     final_total = round(
