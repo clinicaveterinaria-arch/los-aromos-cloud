@@ -3,123 +3,401 @@
 {% block content %}
 
 <style>
-    .edit-product-page { padding:24px 28px; }
-    .edit-hero {
-        background:white; border:1px solid #f3c6d8; border-radius:22px;
-        padding:22px; box-shadow:0 8px 26px rgba(0,0,0,0.05);
-        margin-bottom:18px; display:flex; justify-content:space-between;
-        gap:18px; align-items:flex-start; flex-wrap:wrap;
+    .edit-product-page {
+        padding:24px 28px;
     }
-    .edit-hero h1 { margin:0 0 6px 0; font-size:32px; color:#1f2937; }
-    .edit-hero p { margin:0; color:#6b7280; }
+
+    .edit-hero {
+        background:white;
+        border:1px solid #f3c6d8;
+        border-radius:22px;
+        padding:22px;
+        box-shadow:0 8px 26px rgba(0,0,0,0.05);
+        margin-bottom:18px;
+        display:flex;
+        justify-content:space-between;
+        gap:18px;
+        align-items:flex-start;
+        flex-wrap:wrap;
+    }
+
+    .edit-hero h1 {
+        margin:0 0 6px 0;
+        font-size:32px;
+        color:#1f2937;
+    }
+
+    .edit-hero p {
+        margin:0;
+        color:#6b7280;
+    }
+
     .edit-card {
-        background:white; border:1px solid #f3c6d8; border-radius:22px;
-        padding:22px; box-shadow:0 8px 26px rgba(0,0,0,0.04);
+        background:white;
+        border:1px solid #f3c6d8;
+        border-radius:22px;
+        padding:22px;
+        box-shadow:0 8px 26px rgba(0,0,0,0.04);
         margin-bottom:18px;
     }
-    .edit-card h2 { margin:0 0 16px 0; color:#1f2937; }
+
+    .edit-card h2 {
+        margin:0 0 16px 0;
+        color:#1f2937;
+    }
+
     .form-grid {
-        display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
         gap:14px;
     }
-    .field-box label { display:block; font-weight:bold; color:#374151; font-size:13px; margin-bottom:6px; }
-    .field-box input, .field-box textarea {
-        width:100%; border:1px solid #ead7e1; border-radius:13px;
-        padding:12px 13px; font-size:14px; background:white;
+
+    .field-box label {
+        display:block;
+        font-weight:bold;
+        color:#374151;
+        font-size:13px;
+        margin-bottom:6px;
     }
-    .field-box textarea { min-height:110px; resize:vertical; }
-    .field-full { grid-column:1 / -1; }
+
+    .field-box input,
+    .field-box textarea {
+        width:100%;
+        border:1px solid #ead7e1;
+        border-radius:13px;
+        padding:12px 13px;
+        font-size:14px;
+        background:white;
+        box-sizing:border-box;
+    }
+
+    .field-box textarea {
+        min-height:110px;
+        resize:vertical;
+    }
+
+    .field-full {
+        grid-column:1 / -1;
+    }
+
     .profit-box {
-        background:#fff0f7; color:#d85b9a; border:1px solid #f3c6d8;
-        border-radius:13px; padding:12px 13px; font-weight:bold;
-        min-height:45px; display:flex; align-items:center;
+        background:#fff0f7;
+        color:#d85b9a;
+        border:1px solid #f3c6d8;
+        border-radius:13px;
+        padding:12px 13px;
+        font-weight:bold;
+        min-height:45px;
+        display:flex;
+        align-items:center;
+        box-sizing:border-box;
     }
-    .actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:18px; }
-    .pink-btn, .soft-btn {
-        border-radius:13px; padding:13px 18px; font-weight:bold; text-decoration:none;
-        border:1px solid #f3c6d8; cursor:pointer; display:inline-flex;
-        align-items:center; justify-content:center; gap:7px;
+
+    .actions {
+        display:flex;
+        gap:10px;
+        flex-wrap:wrap;
+        margin-top:18px;
     }
-    .pink-btn { background:#d85b9a; color:white; border-color:#d85b9a; }
-    .soft-btn { background:white; color:#d85b9a; }
+
+    .pink-btn,
+    .soft-btn {
+        border-radius:13px;
+        padding:13px 18px;
+        font-weight:bold;
+        text-decoration:none;
+        border:1px solid #f3c6d8;
+        cursor:pointer;
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        gap:7px;
+    }
+
+    .pink-btn {
+        background:#d85b9a;
+        color:white;
+        border-color:#d85b9a;
+    }
+
+    .soft-btn {
+        background:white;
+        color:#d85b9a;
+    }
 </style>
 
 <div class="edit-product-page">
+
     <div class="edit-hero">
         <div>
             <h1>✏️ Editar producto</h1>
-            <p>Actualizá precios, margen, stock y datos comerciales de {{ product.name }}.</p>
+            <p>
+                Actualizá precios, margen, stock y datos comerciales de
+                {{ product.name }}.
+            </p>
         </div>
-        <a href="/products?page={{ page }}&q={{ q }}&rubro={{ rubro }}&alert={{ alert }}" class="soft-btn">
+
+        <a
+            href="/products?page={{ page }}&q={{ q|urlencode }}&rubro={{ rubro|urlencode }}"
+            class="soft-btn">
             ↩️ Volver a productos
         </a>
     </div>
 
-    <form method="post">
-    <input type="hidden" name="page" value="{{ page }}">
-    <input type="hidden" name="q" value="{{ q }}">
-    <input type="hidden" name="rubro" value="{{ rubro }}">
-    <input type="hidden" name="alert" value="{{ alert }}">
+    <form
+        method="post"
+        action="/products/{{ product.id }}/edit">
+
+        <!-- Datos para volver al mismo listado -->
+        <input
+            type="hidden"
+            name="page"
+            value="{{ page }}">
+
+        <input
+            type="hidden"
+            name="return_q"
+            value="{{ q }}">
+
+        <input
+            type="hidden"
+            name="return_rubro"
+            value="{{ rubro }}">
+
+        <input
+            type="hidden"
+            name="return_alert"
+            value="{{ alert or '' }}">
+
         <div class="edit-card">
             <h2>📦 Datos generales</h2>
+
             <div class="form-grid">
-                <div class="field-box"><label>Nombre</label><input name="name" value="{{ product.name }}" placeholder="Nombre" required></div>
-                <div class="field-box"><label>Rubro</label><input name="rubro" value="{{ product.rubro or '' }}" placeholder="Rubro"></div>
-                <div class="field-box"><label>Tipo</label><input name="tipo" value="{{ product.tipo or '' }}" placeholder="Tipo"></div>
-                <div class="field-box"><label>Código</label><input name="code" value="{{ product.code or '' }}" placeholder="Código"></div>
-                <div class="field-box"><label>Código de barras</label><input name="barcode" value="{{ product.barcode or '' }}" placeholder="Código de barras"></div>
+
+                <div class="field-box">
+                    <label>Nombre</label>
+                    <input
+                        name="name"
+                        value="{{ product.name }}"
+                        placeholder="Nombre"
+                        required>
+                </div>
+
+                <div class="field-box">
+                    <label>Rubro</label>
+                    <input
+                        name="rubro"
+                        value="{{ product.rubro or '' }}"
+                        placeholder="Rubro">
+                </div>
+
+                <div class="field-box">
+                    <label>Tipo</label>
+                    <input
+                        name="tipo"
+                        value="{{ product.tipo or '' }}"
+                        placeholder="Tipo">
+                </div>
+
+                <div class="field-box">
+                    <label>Código</label>
+                    <input
+                        name="code"
+                        value="{{ product.code or '' }}"
+                        placeholder="Código">
+                </div>
+
+                <div class="field-box">
+                    <label>Código de barras</label>
+                    <input
+                        name="barcode"
+                        value="{{ product.barcode or '' }}"
+                        placeholder="Código de barras">
+                </div>
+
             </div>
         </div>
 
         <div class="edit-card">
             <h2>💰 Precios y margen</h2>
+
             <div class="form-grid">
-                <div class="field-box"><label>Precio costo</label><input id="cost_price" name="cost_price" value="{{ product.cost_price or '' }}" placeholder="Precio costo" oninput="recalculateSalePrice()"></div>
-                <div class="field-box"><label>Margen %</label><input id="margin_percent" name="margin_percent" value="{{ product.margin_percent or '' }}" placeholder="Margen %" oninput="recalculateSalePrice()"></div>
-                <div class="field-box"><label>Precio venta</label><input id="sale_price" name="sale_price" value="{{ product.sale_price or '' }}" placeholder="Precio venta"></div>
-                <div class="field-box"><label>Ganancia estimada</label><div id="profit_preview" class="profit-box">Ganancia por unidad: $0</div></div>
+
+                <div class="field-box">
+                    <label>Precio costo</label>
+                    <input
+                        id="cost_price"
+                        name="cost_price"
+                        value="{{ product.cost_price if product.cost_price is not none else '' }}"
+                        placeholder="Precio costo"
+                        oninput="recalculateSalePrice()">
+                </div>
+
+                <div class="field-box">
+                    <label>Margen %</label>
+                    <input
+                        id="margin_percent"
+                        name="margin_percent"
+                        value="{{ product.margin_percent if product.margin_percent is not none else '' }}"
+                        placeholder="Margen %"
+                        oninput="recalculateSalePrice()">
+                </div>
+
+                <div class="field-box">
+                    <label>Precio venta</label>
+                    <input
+                        id="sale_price"
+                        name="sale_price"
+                        value="{{ product.sale_price if product.sale_price is not none else '' }}"
+                        placeholder="Precio venta">
+                </div>
+
+                <div class="field-box">
+                    <label>Ganancia estimada</label>
+                    <div
+                        id="profit_preview"
+                        class="profit-box">
+                        Ganancia por unidad: $0
+                    </div>
+                </div>
+
             </div>
         </div>
 
         <div class="edit-card">
             <h2>📊 Stock y proveedor</h2>
+
             <div class="form-grid">
-                <div class="field-box"><label>Stock</label><input name="stock" value="{{ product.stock or '' }}" placeholder="Stock"></div>
-                <div class="field-box"><label>Stock mínimo</label><input name="min_stock" value="{{ product.min_stock or '' }}" placeholder="Stock mínimo"></div>
-                <div class="field-box"><label>Proveedor</label><input name="provider" value="{{ product.provider or '' }}" placeholder="Proveedor"></div>
-                <div class="field-box"><label>Elaborador / laboratorio</label><input name="manufacturer" value="{{ product.manufacturer or '' }}" placeholder="Elaborador"></div>
-                <div class="field-box field-full"><label>Observaciones</label><textarea name="notes" rows="4" placeholder="Observaciones">{{ product.notes or '' }}</textarea></div>
+
+                <div class="field-box">
+                    <label>Stock</label>
+                    <input
+                        name="stock"
+                        value="{{ product.stock if product.stock is not none else '' }}"
+                        placeholder="Stock">
+                </div>
+
+                <div class="field-box">
+                    <label>Stock mínimo</label>
+                    <input
+                        name="min_stock"
+                        value="{{ product.min_stock if product.min_stock is not none else '' }}"
+                        placeholder="Stock mínimo">
+                </div>
+
+                <div class="field-box">
+                    <label>Proveedor</label>
+                    <input
+                        name="provider"
+                        value="{{ product.provider or '' }}"
+                        placeholder="Proveedor">
+                </div>
+
+                <div class="field-box">
+                    <label>Elaborador / laboratorio</label>
+                    <input
+                        name="manufacturer"
+                        value="{{ product.manufacturer or '' }}"
+                        placeholder="Elaborador">
+                </div>
+
+                <div class="field-box field-full">
+                    <label>Observaciones</label>
+                    <textarea
+                        name="notes"
+                        rows="4"
+                        placeholder="Observaciones">{{ product.notes or '' }}</textarea>
+                </div>
+
             </div>
 
             <div class="actions">
-                <button type="submit" class="pink-btn">💾 Guardar cambios</button>
-                <a href="/products?page={{ page }}&q={{ q }}&rubro={{ rubro }}&alert={{ alert }}" class="soft-btn">
+
+                <button
+                    type="submit"
+                    class="pink-btn">
+                    💾 Guardar cambios
+                </button>
+
+                <a
+                    href="/products?page={{ page }}&q={{ q|urlencode }}&rubro={{ rubro|urlencode }}"
+                    class="soft-btn">
                     Cancelar
                 </a>
+
             </div>
         </div>
+
     </form>
+
 </div>
 
 <script>
 function parseNumber(value) {
-    if (!value) return 0;
-    return parseFloat(String(value).replace(",", ".")) || 0;
-}
-function recalculateSalePrice() {
-    const cost = parseNumber(document.getElementById("cost_price").value);
-    const margin = parseNumber(document.getElementById("margin_percent").value);
-    const saleInput = document.getElementById("sale_price");
-    const profitPreview = document.getElementById("profit_preview");
-    const sale = cost + (cost * margin / 100);
-    const profit = sale - cost;
-    if (cost > 0 && margin >= 0) {
-        saleInput.value = sale.toFixed(2);
-        profitPreview.innerText = "Ganancia por unidad: $" + profit.toFixed(2);
-    } else {
-        profitPreview.innerText = "Ganancia por unidad: $0";
+    if (!value) {
+        return 0;
     }
+
+    return parseFloat(
+        String(value)
+            .replace(/\s/g, "")
+            .replace(",", ".")
+    ) || 0;
 }
-document.addEventListener("DOMContentLoaded", recalculateSalePrice);
+
+function updateProfitPreview() {
+    const cost = parseNumber(
+        document.getElementById("cost_price").value
+    );
+
+    const sale = parseNumber(
+        document.getElementById("sale_price").value
+    );
+
+    const profitPreview = document.getElementById(
+        "profit_preview"
+    );
+
+    const profit = sale - cost;
+
+    profitPreview.innerText =
+        "Ganancia por unidad: $" + profit.toFixed(2);
+}
+
+function recalculateSalePrice() {
+    const cost = parseNumber(
+        document.getElementById("cost_price").value
+    );
+
+    const margin = parseNumber(
+        document.getElementById("margin_percent").value
+    );
+
+    const saleInput = document.getElementById(
+        "sale_price"
+    );
+
+    if (cost > 0 && margin >= 0) {
+        const sale = cost + (cost * margin / 100);
+        saleInput.value = sale.toFixed(2);
+    }
+
+    updateProfitPreview();
+}
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+        updateProfitPreview();
+
+        document
+            .getElementById("sale_price")
+            .addEventListener(
+                "input",
+                updateProfitPreview
+            );
+    }
+);
 </script>
+
 {% endblock %}
