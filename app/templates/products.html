@@ -233,7 +233,11 @@
                                     <span class="status-pill status-ok">🟢 OK</span>
                                 {% endif %}
 
-                                <a href="/products/{{ p.id }}/edit" class="mini-btn">✏️ Editar</a>
+                                <a
+                                    href="/products/{{ p.id }}/edit?page={{ page }}&q={{ q|urlencode }}&rubro={{ rubro|urlencode }}"
+                                    class="mini-btn">
+                                    ✏️ Editar
+                                </a>
 
                                 <form method="post" action="/products/{{ p.id }}/adjust" class="adjust-form">
                                     <input type="hidden" name="qty" value="-1">
