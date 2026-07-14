@@ -7297,7 +7297,7 @@ def sale_add_item(
             2
         )
    
-        )
+    
 
     final_total = round(
         total_after_discount + surcharge_amount,
