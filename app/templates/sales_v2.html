@@ -743,87 +743,297 @@ function updateCommandVisibility() {
     document.getElementById("empty-command").style.display = hasRows ? "none" : "block";
 }
 
-function calculateTotal() {
+function getPaymentInput(fieldName) {
+    return document.querySelector(`[name="${fieldName}"]`);
+}
+
+function getPaymentValue(fieldName) {
+    const input = getPaymentInput(fieldName);
+
+    if (!input) {
+        return 0;
+    }
+
+    return Math.max(
+        0,
+        parseFloat(input.value) || 0
+    );
+}
+
+function getSaleBaseTotal() {
     let subtotal = 0;
+
+    document.querySelectorAll("#command-body tr").forEach(row => {
+        const qty =
+            parseFloat(
+                row.querySelector(".qty-input").value
+            ) || 0;
+
+        const price =
+            parseFloat(
+                row.querySelector(".price-input").value
+            ) || 0;
+
+        const rowTotal = qty * price;
+
+        subtotal += rowTotal;
+    });
+
+    const discountInput =
+        document.getElementById("discount-percent");
+
+    let discountPercent =
+        parseFloat(discountInput.value) || 0;
+
+    discountPercent = Math.max(
+        0,
+        Math.min(discountPercent, 100)
+    );
+
+    const discountAmount =
+        subtotal * discountPercent / 100;
+
+    return {
+        subtotal: subtotal,
+        discountPercent: discountPercent,
+        discountAmount: discountAmount,
+        baseTotal: Math.max(
+            0,
+            subtotal - discountAmount
+        )
+    };
+}
+
+function calculateTotal() {
+    const saleData = getSaleBaseTotal();
+
     let costTotal = 0;
 
     document.querySelectorAll("#command-body tr").forEach(row => {
-        const qty = parseFloat(row.querySelector(".qty-input").value) || 0;
-        const price = parseFloat(row.querySelector(".price-input").value) || 0;
-        const cost = parseFloat(row.querySelector(".cost-input").value) || 0;
+        const qty =
+            parseFloat(
+                row.querySelector(".qty-input").value
+            ) || 0;
+
+        const price =
+            parseFloat(
+                row.querySelector(".price-input").value
+            ) || 0;
+
+        const cost =
+            parseFloat(
+                row.querySelector(".cost-input").value
+            ) || 0;
+
         const rowTotal = qty * price;
 
-        row.querySelector(".row-subtotal").innerText = "$ " + rowTotal.toFixed(2);
+        row.querySelector(".row-subtotal").innerText =
+            "$ " + rowTotal.toFixed(2);
 
-        subtotal += rowTotal;
         costTotal += qty * cost;
     });
 
-    const discountPercent = parseFloat(document.getElementById("discount-percent").value) || 0;
-    let discountAmount = subtotal * (discountPercent / 100);
+    const creditPayment =
+        getPaymentValue("pay_credito");
 
-    if (discountAmount > subtotal) {
-        discountAmount = subtotal;
-    }
+    const surchargeInput =
+        document.getElementById(
+            "credit-surcharge-percent"
+        );
 
-    let total = subtotal - discountAmount;
+    let surchargePercent =
+        parseFloat(surchargeInput.value) || 0;
 
-    const credito = parseFloat(document.querySelector('[name="pay_credito"]').value) || 0;
-    const surchargePercent = parseFloat(document.getElementById("credit-surcharge-percent").value) || 0;
+    surchargePercent = Math.max(
+        0,
+        Math.min(surchargePercent, 100)
+    );
+
+    /*
+    El valor ingresado en Crédito representa el importe
+    final efectivamente cobrado en la tarjeta.
+
+    Por eso extraemos de ese importe cuánto corresponde
+    al recargo, sin volver a recargarlo una segunda vez.
+    */
     let surchargeAmount = 0;
 
-    if (credito > 0) {
-        surchargeAmount = total * (surchargePercent / 100);
-        total += surchargeAmount;
+    if (creditPayment > 0 && surchargePercent > 0) {
+        surchargeAmount =
+            creditPayment
+            * surchargePercent
+            / (100 + surchargePercent);
     }
 
-    document.getElementById("subtotal-display").innerText = "$ " + subtotal.toFixed(2);
-    document.getElementById("total-display").innerText = "$ " + total.toFixed(2);
+    const finalTotal =
+        saleData.baseTotal + surchargeAmount;
 
-    document.getElementById("discount-percent-hidden").value = discountPercent.toFixed(2);
-    document.getElementById("discount-amount-hidden").value = discountAmount.toFixed(2);
-    document.getElementById("credit-surcharge-percent-hidden").value = surchargePercent.toFixed(2);
-    document.getElementById("credit-surcharge-amount-hidden").value = surchargeAmount.toFixed(2);
+    document.getElementById(
+        "subtotal-display"
+    ).innerText =
+        "$ " + saleData.subtotal.toFixed(2);
 
-    calculatePayments(total);
+    document.getElementById(
+        "total-display"
+    ).innerText =
+        "$ " + finalTotal.toFixed(2);
+
+    document.getElementById(
+        "discount-percent-hidden"
+    ).value =
+        saleData.discountPercent.toFixed(2);
+
+    document.getElementById(
+        "discount-amount-hidden"
+    ).value =
+        saleData.discountAmount.toFixed(2);
+
+    document.getElementById(
+        "credit-surcharge-percent-hidden"
+    ).value =
+        surchargePercent.toFixed(2);
+
+    document.getElementById(
+        "credit-surcharge-amount-hidden"
+    ).value =
+        surchargeAmount.toFixed(2);
+
+    calculatePayments(finalTotal);
 }
 
 function calculatePayments(totalOverride = null) {
-    const totalText = document.getElementById("total-display").innerText.replace("$", "").trim();
-    const total = totalOverride !== null ? totalOverride : (parseFloat(totalText) || 0);
+    const totalText =
+        document.getElementById("total-display")
+        .innerText
+        .replace("$", "")
+        .trim();
 
-    const efectivo = parseFloat(document.querySelector('[name="pay_efectivo"]').value) || 0;
-    const debito = parseFloat(document.querySelector('[name="pay_debito"]').value) || 0;
-    const credito = parseFloat(document.querySelector('[name="pay_credito"]').value) || 0;
-    const transferencia = parseFloat(document.querySelector('[name="pay_transferencia"]').value) || 0;
-    const cuenta = parseFloat(document.querySelector('[name="pay_cuenta_corriente"]').value) || 0;
+    const total =
+        totalOverride !== null
+            ? totalOverride
+            : (parseFloat(totalText) || 0);
 
-    const payments = efectivo + debito + credito + transferencia + cuenta;
-    const balance = total - payments;
+    const efectivo =
+        getPaymentValue("pay_efectivo");
 
-    document.getElementById("payments-display").innerText = payments.toFixed(2);
-    document.getElementById("balance-display").innerText = balance.toFixed(2);
+    const debito =
+        getPaymentValue("pay_debito");
+
+    const credito =
+        getPaymentValue("pay_credito");
+
+    const transferencia =
+        getPaymentValue("pay_transferencia");
+
+    const cuenta =
+        getPaymentValue("pay_cuenta_corriente");
+
+    const payments =
+        efectivo
+        + debito
+        + credito
+        + transferencia
+        + cuenta;
+
+    const balance =
+        total - payments;
+
+    document.getElementById(
+        "payments-display"
+    ).innerText =
+        payments.toFixed(2);
+
+    document.getElementById(
+        "balance-display"
+    ).innerText =
+        Math.max(0, balance).toFixed(2);
 }
 
 function quickPay(fieldName) {
-    document.querySelectorAll('[name="pay_efectivo"], [name="pay_debito"], [name="pay_credito"], [name="pay_transferencia"], [name="pay_cuenta_corriente"]').forEach(input => {
-        input.value = 0;
-    });
+    const selectedInput =
+        getPaymentInput(fieldName);
 
-    calculateTotal();
+    if (!selectedInput) {
+        return;
+    }
 
-    const totalText = document.getElementById("total-display").innerText.replace("$", "").trim();
-    const total = parseFloat(totalText) || 0;
+    const saleData = getSaleBaseTotal();
 
-    const input = document.querySelector(`[name="${fieldName}"]`);
+    const efectivo =
+        fieldName === "pay_efectivo"
+            ? 0
+            : getPaymentValue("pay_efectivo");
 
-    if (input) {
-        input.value = total.toFixed(2);
+    const debito =
+        fieldName === "pay_debito"
+            ? 0
+            : getPaymentValue("pay_debito");
+
+    const transferencia =
+        fieldName === "pay_transferencia"
+            ? 0
+            : getPaymentValue("pay_transferencia");
+
+    const cuenta =
+        fieldName === "pay_cuenta_corriente"
+            ? 0
+            : getPaymentValue("pay_cuenta_corriente");
+
+    const creditoFinal =
+        fieldName === "pay_credito"
+            ? 0
+            : getPaymentValue("pay_credito");
+
+    const surchargePercent =
+        Math.max(
+            0,
+            Math.min(
+                parseFloat(
+                    document.getElementById(
+                        "credit-surcharge-percent"
+                    ).value
+                ) || 0,
+                100
+            )
+        );
+
+    /*
+    Convertimos el pago ya cargado con crédito a su
+    equivalente de precio base, sin recargo.
+    */
+    const creditBaseAlreadyPaid =
+        surchargePercent > 0
+            ? creditFinal
+                / (1 + surchargePercent / 100)
+            : creditFinal;
+
+    const baseAlreadyCovered =
+        efectivo
+        + debito
+        + transferencia
+        + cuenta
+        + creditBaseAlreadyPaid;
+
+    const remainingBase =
+        Math.max(
+            0,
+            saleData.baseTotal - baseAlreadyCovered
+        );
+
+    if (fieldName === "pay_credito") {
+        const creditFinalAmount =
+            remainingBase
+            * (1 + surchargePercent / 100);
+
+        selectedInput.value =
+            creditFinalAmount.toFixed(2);
+    } else {
+        selectedInput.value =
+            remainingBase.toFixed(2);
     }
 
     calculateTotal();
 }
-
 function filterPatientsByOwner(ownerId, keepPatientId = "") {
     const patientSelect = document.querySelector('select[name="patient_id"]');
 
