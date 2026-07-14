@@ -6304,6 +6304,10 @@ def product_create(
 def product_edit_page(
     request: Request,
     product_id: int,
+    page: int = 1,
+    q: str = '',
+    rubro: str = '',
+    alert: str = '',
     db: Session = Depends(get_db),
     user: User = Depends(require_user)
 ):
@@ -6315,12 +6319,98 @@ def product_edit_page(
             detail="Producto no encontrado"
         )
 
+    if page < 1:
+        page = 1
+
     return templates.TemplateResponse(
         'product_edit.html',
         {
             'request': request,
-            'product': product
+            'product': product,
+            'page': page,
+            'q': q or '',
+            'rubro': rubro or '',
+            'alert': alert or ''
         }
+    )
+
+
+@app.post('/products/{product_id}/edit')
+def product_edit_save(
+    product_id: int,
+    name: str = Form(''),
+    rubro: str = Form(''),
+    tipo: str = Form(''),
+    code: str = Form(''),
+    barcode: str = Form(''),
+    cost_price: str = Form(''),
+    sale_price: str = Form(''),
+    margin_percent: str = Form(''),
+    stock: str = Form(''),
+    min_stock: str = Form(''),
+    provider: str = Form(''),
+    manufacturer: str = Form(''),
+    notes: str = Form(''),
+
+    page: int = Form(1),
+    return_q: str = Form(''),
+    return_rubro: str = Form(''),
+    return_alert: str = Form(''),
+
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    product = db.get(Product, product_id)
+
+    if not product:
+        raise HTTPException(
+            status_code=404,
+            detail="Producto no encontrado"
+        )
+
+    def to_float(value):
+        try:
+            return (
+                float(str(value).replace(',', '.'))
+                if value is not None and str(value).strip()
+                else None
+            )
+        except (ValueError, TypeError):
+            return None
+
+    product.name = name or ''
+    product.rubro = rubro or ''
+    product.tipo = tipo or ''
+    product.code = code or ''
+    product.barcode = barcode or ''
+    product.cost_price = to_float(cost_price)
+    product.sale_price = to_float(sale_price)
+    product.margin_percent = to_float(margin_percent)
+    product.stock = to_float(stock)
+    product.min_stock = to_float(min_stock)
+    product.provider = provider or ''
+    product.manufacturer = manufacturer or ''
+    product.notes = notes or ''
+
+    db.commit()
+
+    if page < 1:
+        page = 1
+
+    return_params = {
+        'page': page,
+        'q': return_q or '',
+        'rubro': return_rubro or ''
+    }
+
+    if return_alert:
+        return_params['alert'] = return_alert
+
+    return_url = '/products?' + urlencode(return_params)
+
+    return RedirectResponse(
+        url=return_url,
+        status_code=303
     )
 @app.post('/products/{product_id}/edit')
 def product_edit_save(
