@@ -126,6 +126,12 @@
     {% if request.query_params.get('invoice_error') %}
         <div class="page-message error">⚠️ {{ request.query_params.get('invoice_error') }}</div>
     {% endif %}
+    {% if request.query_params.get('deleted') %}
+        <div class="page-message ok">✅ {{ request.query_params.get('deleted') }}</div>
+    {% endif %}
+    {% if request.query_params.get('delete_error') %}
+        <div class="page-message error">⚠️ {{ request.query_params.get('delete_error') }}</div>
+    {% endif %}
 
     <div class="prod-hero">
         <div>
