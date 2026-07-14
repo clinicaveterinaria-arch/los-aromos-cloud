@@ -105,6 +105,9 @@
     .form-grid textarea { min-height:90px; resize:vertical; }
     .form-grid label { font-size:13px; font-weight:bold; color:#374151; margin-top:3px; }
     .empty-state { text-align:center; padding:45px 20px; color:#6b7280; }
+    .page-message { margin-bottom:14px; border-radius:14px; padding:12px 14px; font-weight:700; }
+    .page-message.ok { background:#dcfce7; color:#166534; border:1px solid #bbf7d0; }
+    .page-message.error { background:#fee2e2; color:#991b1b; border:1px solid #fecaca; }
     @media (max-width:1100px) {
         .layout { grid-template-columns:1fr; }
         .new-product-panel { position:static; }
@@ -116,6 +119,13 @@
 </style>
 
 <div class="products-page">
+
+    {% if request.query_params.get('invoice_ok') %}
+        <div class="page-message ok">✅ {{ request.query_params.get('invoice_ok') }}</div>
+    {% endif %}
+    {% if request.query_params.get('invoice_error') %}
+        <div class="page-message error">⚠️ {{ request.query_params.get('invoice_error') }}</div>
+    {% endif %}
 
     <div class="prod-hero">
         <div>
@@ -144,6 +154,17 @@
             </select>
             <button type="submit" class="pink-btn">Buscar</button>
         </form>
+
+        <div class="import-box">
+            <h3 style="margin:0 0 10px 0; color:#d85b9a;">📄 Actualizar desde factura PDF</h3>
+            <form method="post" action="/products/invoice/preview" enctype="multipart/form-data" class="tools-row">
+                <input type="file" name="file" accept="application/pdf,.pdf" required style="flex:1;">
+                <button type="submit" class="pink-btn">Analizar factura</button>
+            </form>
+            <p style="margin:10px 0 0;color:#6b7280;font-size:13px;">
+                Primero muestra una vista previa. No modifica costos, precios ni stock hasta que confirmes.
+            </p>
+        </div>
 
         <div class="import-box">
             <h3 style="margin:0 0 10px 0; color:#d85b9a;">📥 Importar Excel MyVete</h3>
