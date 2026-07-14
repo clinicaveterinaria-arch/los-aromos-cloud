@@ -6704,6 +6704,11 @@ def sales_create(
     unit_price: list[str] = Form([]),
     notes: str = Form(''),
 
+    discount_percent: str = Form('0'),
+    discount_amount: str = Form('0'),
+    credit_surcharge_percent: str = Form('0'),
+    credit_surcharge_amount: str = Form('0'),
+
     pay_efectivo: str = Form('0'),
     pay_debito: str = Form('0'),
     pay_credito: str = Form('0'),
@@ -6715,36 +6720,47 @@ def sales_create(
 ):
     def to_float(value):
         try:
-            return float(str(value).replace(',', '.')) if value and str(value).strip() else 0
-        except ValueError:
-            return 0
-    has_product = False
+            if value is None or not str(value).strip():
+                return 0.0
 
-    for pid in product_id:
-        if pid and str(pid).strip():
-            has_product = True
-            break
+            return float(str(value).replace(',', '.'))
+
+        except (TypeError, ValueError):
+            return 0.0
+
+    has_product = any(
+        pid and str(pid).strip()
+        for pid in product_id
+    )
 
     if not has_product:
         return RedirectResponse(
             url='/sales',
             status_code=303
         )
+
+    is_quote = bool(save_as_quote)
+
     sale = Sale(
-        status='quote' if save_as_quote else 'paid',
+        status='quote' if is_quote else 'pending',
         total=0,
         payment_method='Mixto',
         patient_id=int(patient_id) if patient_id else None,
         owner_id=int(owner_id) if owner_id else None,
         notes=notes or ''
     )
+
     db.add(sale)
     db.flush()
-    
-    total = 0
-    cost_total = 0
-    for pid, qty_raw, price_raw in zip(product_id, quantity, unit_price):
 
+    subtotal_total = 0.0
+    cost_total = 0.0
+
+    for pid, qty_raw, price_raw in zip(
+        product_id,
+        quantity,
+        unit_price
+    ):
         if not pid:
             continue
 
@@ -6759,76 +6775,164 @@ def sales_create(
         if qty <= 0:
             continue
 
-        subtotal = qty * price
+        if price < 0:
+            price = 0
+
+        item_subtotal = round(qty * price, 2)
         product_cost = product.cost_price or 0
+
+        subtotal_total += item_subtotal
         cost_total += qty * product_cost
-        total += subtotal
 
         item = SaleItem(
             sale_id=sale.id,
             product_id=product.id,
             quantity=qty,
             unit_price=price,
-            subtotal=subtotal
+            subtotal=item_subtotal
         )
 
         db.add(item)
 
-        current_stock = product.stock or 0
-        if not save_as_quote:
+        if not is_quote:
+            current_stock = product.stock or 0
             product.stock = current_stock - qty
 
-    sale.total = total
+    subtotal_total = round(subtotal_total, 2)
+    cost_total = round(cost_total, 2)
+
+    applied_discount_percent = max(
+        0.0,
+        min(to_float(discount_percent), 100.0)
+    )
+
+    calculated_discount_amount = round(
+        subtotal_total * applied_discount_percent / 100,
+        2
+    )
+
+    calculated_discount_amount = min(
+        calculated_discount_amount,
+        subtotal_total
+    )
+
+    total_after_discount = round(
+        subtotal_total - calculated_discount_amount,
+        2
+    )
+
+    credit_payment = to_float(pay_credito)
+
+    applied_surcharge_percent = max(
+        0.0,
+        to_float(credit_surcharge_percent)
+    )
+
+    calculated_surcharge_amount = 0.0
+
+    if credit_payment > 0:
+        calculated_surcharge_amount = round(
+            total_after_discount * applied_surcharge_percent / 100,
+            2
+        )
+
+    final_total = round(
+        total_after_discount + calculated_surcharge_amount,
+        2
+    )
+
+    sale.discount_percent = applied_discount_percent
+    sale.discount_amount = calculated_discount_amount
+    sale.credit_surcharge_percent = applied_surcharge_percent
+    sale.credit_surcharge_amount = calculated_surcharge_amount
+
+    sale.total = final_total
     sale.cost_total = cost_total
-    sale.profit_amount = total - cost_total
-    sale.margin_percent = ((total - cost_total) / total * 100) if total > 0 else 0
+    sale.profit_amount = round(final_total - cost_total, 2)
+    sale.margin_percent = (
+        round(
+            ((final_total - cost_total) / final_total) * 100,
+            2
+        )
+        if final_total > 0
+        else 0
+    )
 
     payments_to_create = [
         ('Efectivo', to_float(pay_efectivo)),
         ('Débito', to_float(pay_debito)),
-        ('Crédito', to_float(pay_credito)),
+        ('Crédito', credit_payment),
         ('Transferencia', to_float(pay_transferencia)),
         ('Cuenta corriente', to_float(pay_cuenta_corriente)),
     ]
 
-    total_paid = 0
-    sum_payments = sum(
+    real_payment_total = sum(
         amount
         for method, amount in payments_to_create
-        if method != 'Cuenta corriente'
+        if method != 'Cuenta corriente' and amount > 0
     )
 
     has_account_debt = any(
         method == 'Cuenta corriente' and amount > 0
         for method, amount in payments_to_create
     )
-    
-    if total > 0 and sum_payments <= 0 and not has_account_debt and not save_as_quote:
+
+    if (
+        final_total > 0
+        and real_payment_total <= 0
+        and not has_account_debt
+        and not is_quote
+    ):
         payments_to_create = [
-            ('Efectivo', total)
+            ('Efectivo', final_total)
         ]
-    if not save_as_quote:
+
+    if not is_quote:
+        real_payment_total = 0.0
+        registered_methods = []
+
         for method, amount in payments_to_create:
             if amount <= 0:
                 continue
-    
+
             payment = SalePayment(
                 sale_id=sale.id,
                 method=method,
-                amount=amount
+                amount=round(amount, 2)
             )
-    
-            db.add(payment)
-    
-            if method != 'Cuenta corriente':
-                total_paid += amount
 
-    if save_as_quote:
-        sale.status = 'quote'
-    elif total_paid >= total:
-        sale.status = 'paid'
+            db.add(payment)
+            registered_methods.append(method)
+
+            if method != 'Cuenta corriente':
+                real_payment_total += amount
+
+        real_payment_total = round(real_payment_total, 2)
+
+        if real_payment_total >= final_total - 0.01:
+            sale.status = 'paid'
+        else:
+            sale.status = 'pending'
+
+        real_methods = [
+            method
+            for method in registered_methods
+            if method != 'Cuenta corriente'
+        ]
+
+        if sale.status == 'paid':
+            if len(real_methods) == 1:
+                sale.payment_method = real_methods[0]
+            elif len(real_methods) > 1:
+                sale.payment_method = 'Mixto'
+            else:
+                sale.payment_method = 'Efectivo'
+        else:
+            sale.payment_method = 'Cuenta corriente'
+
     else:
-        sale.status = 'pending'
+        sale.status = 'quote'
+        sale.payment_method = 'Presupuesto'
 
     db.commit()
 
@@ -6845,7 +6949,10 @@ def sales_convert(
     sale = db.get(Sale, sale_id)
 
     if not sale:
-        raise HTTPException(status_code=404, detail='Venta no encontrada')
+        raise HTTPException(
+            status_code=404,
+            detail='Venta no encontrada'
+        )
 
     if sale.status != 'quote':
         return RedirectResponse(
@@ -6863,9 +6970,36 @@ def sales_convert(
         product = db.get(Product, item.product_id)
 
         if product:
-            product.stock = (product.stock or 0) - (item.quantity or 0)
+            product.stock = (
+                product.stock or 0
+            ) - (
+                item.quantity or 0
+            )
 
-    sale.status = 'pending'
+    real_paid = sum(
+        payment.amount or 0
+        for payment in (
+            db.query(SalePayment)
+            .filter(SalePayment.sale_id == sale.id)
+            .all()
+        )
+        if not (
+            'cuenta' in (payment.method or '').strip().lower()
+            and
+            'corriente' in (payment.method or '').strip().lower()
+        )
+    )
+
+    if real_paid >= (sale.total or 0) - 0.01:
+        sale.status = 'paid'
+    else:
+        sale.status = 'pending'
+
+    sale.payment_method = (
+        'Mixto'
+        if real_paid > 0
+        else 'Cuenta corriente'
+    )
 
     db.commit()
 
@@ -6992,14 +7126,27 @@ def sale_add_item(
 ):
     def to_float(value):
         try:
-            return float(str(value).replace(',', '.')) if value and str(value).strip() else 0
-        except ValueError:
-            return 0
+            if value is None or not str(value).strip():
+                return 0.0
+
+            return float(str(value).replace(',', '.'))
+
+        except (TypeError, ValueError):
+            return 0.0
 
     sale = db.get(Sale, sale_id)
 
     if not sale:
-        raise HTTPException(status_code=404, detail='Venta no encontrada')
+        raise HTTPException(
+            status_code=404,
+            detail='Venta no encontrada'
+        )
+
+    if sale.status == 'cancelled':
+        return RedirectResponse(
+            url=f'/sales/{sale.id}',
+            status_code=303
+        )
 
     if not product_id:
         return RedirectResponse(
@@ -7010,30 +7157,154 @@ def sale_add_item(
     product = db.get(Product, int(product_id))
 
     if not product:
-        raise HTTPException(status_code=404, detail='Producto no encontrado')
+        raise HTTPException(
+            status_code=404,
+            detail='Producto no encontrado'
+        )
 
     qty = to_float(quantity)
     price = to_float(unit_price)
 
+    if qty <= 0:
+        return RedirectResponse(
+            url=f'/sales/{sale.id}',
+            status_code=303
+        )
+
     if price <= 0:
         price = product.sale_price or 0
 
-    subtotal = qty * price
+    item_subtotal = round(qty * price, 2)
 
     item = SaleItem(
         sale_id=sale.id,
         product_id=product.id,
         quantity=qty,
         unit_price=price,
-        subtotal=subtotal
+        subtotal=item_subtotal
     )
 
     db.add(item)
 
-    sale.total = (sale.total or 0) + subtotal
-
-    if product.stock is not None:
+    if sale.status != 'quote' and product.stock is not None:
         product.stock = (product.stock or 0) - qty
+
+    db.flush()
+
+    all_items = (
+        db.query(SaleItem)
+        .filter(SaleItem.sale_id == sale.id)
+        .all()
+    )
+
+    subtotal_total = 0.0
+    cost_total = 0.0
+
+    for current_item in all_items:
+        current_product = db.get(
+            Product,
+            current_item.product_id
+        )
+
+        current_subtotal = (
+            current_item.subtotal
+            if current_item.subtotal is not None
+            else
+            (current_item.quantity or 0)
+            * (current_item.unit_price or 0)
+        )
+
+        subtotal_total += current_subtotal or 0
+
+        if current_product:
+            cost_total += (
+                current_item.quantity or 0
+            ) * (
+                current_product.cost_price or 0
+            )
+
+    subtotal_total = round(subtotal_total, 2)
+    cost_total = round(cost_total, 2)
+
+    discount_percent = max(
+        0.0,
+        min(sale.discount_percent or 0, 100.0)
+    )
+
+    discount_amount = round(
+        subtotal_total * discount_percent / 100,
+        2
+    )
+
+    total_after_discount = round(
+        subtotal_total - discount_amount,
+        2
+    )
+
+    payments = (
+        db.query(SalePayment)
+        .filter(SalePayment.sale_id == sale.id)
+        .all()
+    )
+
+    has_credit_payment = any(
+        (payment.method or '').strip().lower() == 'crédito'
+        and (payment.amount or 0) > 0
+        for payment in payments
+    )
+
+    surcharge_percent = max(
+        0.0,
+        sale.credit_surcharge_percent or 0
+    )
+
+    surcharge_amount = 0.0
+
+    if has_credit_payment:
+        surcharge_amount = round(
+            total_after_discount
+            * surcharge_percent
+            / 100,
+            2
+        )
+
+    final_total = round(
+        total_after_discount + surcharge_amount,
+        2
+    )
+
+    sale.discount_amount = discount_amount
+    sale.credit_surcharge_amount = surcharge_amount
+    sale.total = final_total
+    sale.cost_total = cost_total
+    sale.profit_amount = round(
+        final_total - cost_total,
+        2
+    )
+    sale.margin_percent = (
+        round(
+            ((final_total - cost_total) / final_total) * 100,
+            2
+        )
+        if final_total > 0
+        else 0
+    )
+
+    real_paid = sum(
+        payment.amount or 0
+        for payment in payments
+        if not (
+            'cuenta' in (payment.method or '').strip().lower()
+            and
+            'corriente' in (payment.method or '').strip().lower()
+        )
+    )
+
+    if sale.status != 'quote':
+        if real_paid >= final_total - 0.01:
+            sale.status = 'paid'
+        else:
+            sale.status = 'pending'
 
     db.commit()
 
@@ -7071,16 +7342,32 @@ def sale_add_payment(
 ):
     def to_float(value):
         try:
-            return float(str(value).replace(',', '.')) if value and str(value).strip() else 0
-        except ValueError:
-            return 0
+            if value is None or not str(value).strip():
+                return 0.0
+
+            return float(str(value).replace(',', '.'))
+
+        except (TypeError, ValueError):
+            return 0.0
 
     sale = db.get(Sale, sale_id)
 
     if not sale:
-        raise HTTPException(status_code=404, detail='Venta no encontrada')
+        raise HTTPException(
+            status_code=404,
+            detail='Venta no encontrada'
+        )
 
-    payment_amount = to_float(amount)
+    if sale.status == 'cancelled':
+        return RedirectResponse(
+            url=f'/sales/{sale.id}',
+            status_code=303
+        )
+
+    payment_amount = round(
+        to_float(amount),
+        2
+    )
 
     if payment_amount <= 0:
         return RedirectResponse(
@@ -7088,13 +7375,18 @@ def sale_add_payment(
             status_code=303
         )
 
+    payment_method = (
+        method or 'Efectivo'
+    ).strip()
+
     payment = SalePayment(
         sale_id=sale.id,
-        method=method or 'Efectivo',
+        method=payment_method,
         amount=payment_amount
     )
 
     db.add(payment)
+    db.flush()
 
     payments = (
         db.query(SalePayment)
@@ -7102,20 +7394,52 @@ def sale_add_payment(
         .all()
     )
 
-    total_paid = sum(p.amount or 0 for p in payments) + payment_amount
-    balance_due = (sale.total or 0) - total_paid
-    if balance_due > 0 and sale.status != 'cancelled':
-        sale.status = 'pending'
-    elif balance_due <= 0 and sale.status != 'cancelled':
+    real_paid = 0.0
+    real_methods = []
+
+    for current_payment in payments:
+        current_method = (
+            current_payment.method or ''
+        ).strip()
+
+        current_method_clean = current_method.lower()
+
+        is_account_payment = (
+            'cuenta' in current_method_clean
+            and
+            'corriente' in current_method_clean
+        )
+
+        if is_account_payment:
+            continue
+
+        real_paid += current_payment.amount or 0
+
+        if current_method:
+            real_methods.append(current_method)
+
+    real_paid = round(real_paid, 2)
+    balance_due = round(
+        (sale.total or 0) - real_paid,
+        2
+    )
+
+    if balance_due <= 0.01:
         sale.status = 'paid'
-    if balance_due <= 0:
-        sale.status = 'paid'
+
+        unique_methods = list(dict.fromkeys(real_methods))
+
+        if len(unique_methods) == 1:
+            sale.payment_method = unique_methods[0]
+        elif len(unique_methods) > 1:
+            sale.payment_method = 'Mixto'
+        else:
+            sale.payment_method = payment_method
+
     else:
         sale.status = 'pending'
-    if sale.status == 'paid':
-        sale.payment_method = method
-    else:
         sale.payment_method = 'Cuenta corriente'
+
     db.commit()
 
     return RedirectResponse(
