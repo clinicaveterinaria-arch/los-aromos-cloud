@@ -523,7 +523,15 @@ textarea {
 
                     <div class="total-line">
                         <span>Recargo crédito</span>
-                        <input type="number" id="credit-surcharge-percent" value="26" min="0" max="100" style="width:80px;">
+                        <input
+                            type="number"
+                            id="credit-surcharge-percent"
+                            value="26"
+                            min="0"
+                            max="100"
+                            oninput="calculateTotal()"
+                            style="width:80px;"
+                        >
                     </div>
 
                     <div class="total-line big">
