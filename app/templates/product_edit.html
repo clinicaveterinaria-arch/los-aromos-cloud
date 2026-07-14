@@ -50,10 +50,16 @@
             <h1>✏️ Editar producto</h1>
             <p>Actualizá precios, margen, stock y datos comerciales de {{ product.name }}.</p>
         </div>
-        <a href="/products" class="soft-btn">↩️ Volver a productos</a>
+        <a href="/products?page={{ page }}&q={{ q }}&rubro={{ rubro }}&alert={{ alert }}" class="soft-btn">
+            ↩️ Volver a productos
+        </a>
     </div>
 
     <form method="post">
+    <input type="hidden" name="page" value="{{ page }}">
+    <input type="hidden" name="q" value="{{ q }}">
+    <input type="hidden" name="rubro" value="{{ rubro }}">
+    <input type="hidden" name="alert" value="{{ alert }}">
         <div class="edit-card">
             <h2>📦 Datos generales</h2>
             <div class="form-grid">
@@ -87,7 +93,9 @@
 
             <div class="actions">
                 <button type="submit" class="pink-btn">💾 Guardar cambios</button>
-                <a href="/products" class="soft-btn">Cancelar</a>
+                <a href="/products?page={{ page }}&q={{ q }}&rubro={{ rubro }}&alert={{ alert }}" class="soft-btn">
+                    Cancelar
+                </a>
             </div>
         </div>
     </form>
