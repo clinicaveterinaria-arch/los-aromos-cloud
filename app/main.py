@@ -6821,23 +6821,38 @@ def sales_create(
         2
     )
 
-    credit_payment = to_float(pay_credito)
-
+    credit_payment = round(
+        max(0.0, to_float(pay_credito)),
+        2
+    )
+    
     applied_surcharge_percent = max(
         0.0,
-        to_float(credit_surcharge_percent)
+        min(
+            to_float(credit_surcharge_percent),
+            100.0
+        )
     )
-
+    
     calculated_surcharge_amount = 0.0
-
-    if credit_payment > 0:
+    
+    if (
+        credit_payment > 0
+        and applied_surcharge_percent > 0
+    ):
         calculated_surcharge_amount = round(
-            total_after_discount * applied_surcharge_percent / 100,
+            credit_payment
+            * applied_surcharge_percent
+            / (
+                100
+                + applied_surcharge_percent
+            ),
             2
         )
-
+    
     final_total = round(
-        total_after_discount + calculated_surcharge_amount,
+        total_after_discount
+        + calculated_surcharge_amount,
         2
     )
 
