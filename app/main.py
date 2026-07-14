@@ -13,6 +13,9 @@ import json
 import zipfile
 import urllib.request
 import urllib.error
+import unicodedata
+from difflib import SequenceMatcher
+from pypdf import PdfReader
 from fastapi import FastAPI, Request, Form, Depends, HTTPException, UploadFile, File
 from fastapi.responses import RedirectResponse, HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
@@ -351,6 +354,282 @@ os.makedirs("app/uploads", exist_ok=True)
 os.makedirs('app/uploads', exist_ok=True)
 app.mount('/uploads', StaticFiles(directory='app/uploads'), name='uploads')
 templates = Jinja2Templates(directory='app/templates')
+# ==========================================================
+# ACTUALIZADOR DE PRODUCTOS DESDE FACTURA PDF
+# ==========================================================
+
+INVOICE_PREVIEW_DIR = "app/uploads/invoice_previews"
+os.makedirs(INVOICE_PREVIEW_DIR, exist_ok=True)
+
+INVOICE_STOPWORDS = {
+    "X", "DE", "DEL", "CON", "AL", "EL", "LA", "LOS", "LAS", "PARA",
+    "JM", "LABYES", "COMP", "COMPRIMIDO", "COMPRIMIDOS", "INY", "INYECTABLE",
+    "ML", "CC", "GR", "GRS", "G", "MG", "KG", "DOSIS", "DS"
+}
+
+
+def invoice_money(value: str) -> float:
+    value = (value or "").strip().replace("$", "").replace(" ", "")
+    if not value:
+        return 0.0
+    if "," in value and "." in value:
+        value = value.replace(",", "")
+    elif "," in value:
+        value = value.replace(".", "").replace(",", ".")
+    try:
+        return float(value)
+    except ValueError:
+        return 0.0
+
+
+def invoice_normalize(text_value: str) -> str:
+    text_value = unicodedata.normalize("NFKD", text_value or "")
+    text_value = "".join(ch for ch in text_value if not unicodedata.combining(ch))
+    text_value = text_value.upper().replace("REPEXXIN", "REPEXXXIN")
+    text_value = re.sub(r"\bC\s*/\s*", " ", text_value)
+    text_value = re.sub(r"[^A-Z0-9,.]+", " ", text_value)
+    text_value = re.sub(r"\s+", " ", text_value).strip()
+    return text_value
+
+
+def invoice_tokens(text_value: str) -> set[str]:
+    normalized = invoice_normalize(text_value)
+    return {
+        token for token in normalized.split()
+        if token and token not in INVOICE_STOPWORDS
+    }
+
+
+def invoice_numbers(text_value: str, unit: str) -> list[float]:
+    normalized = invoice_normalize(text_value).replace(",", ".")
+    pattern = rf"(?<!\d)(\d+(?:\.\d+)?)\s*{unit}\b"
+    return [float(v) for v in re.findall(pattern, normalized)]
+
+
+def invoice_weight_ranges(text_value: str) -> list[tuple[float, float]]:
+    normalized = invoice_normalize(text_value).replace(",", ".")
+    return [
+        (float(a), float(b))
+        for a, b in re.findall(r"(\d+(?:\.\d+)?)\s*A\s*(\d+(?:\.\d+)?)\s*KG", normalized)
+    ]
+
+
+def invoice_has_numeric_conflict(source: str, target: str) -> bool:
+    for unit in ("MG", "ML", "GR", "KG"):
+        source_values = invoice_numbers(source, unit)
+        target_values = invoice_numbers(target, unit)
+        if source_values and target_values and not set(source_values).intersection(target_values):
+            return True
+
+    source_ranges = invoice_weight_ranges(source)
+    target_ranges = invoice_weight_ranges(target)
+    if source_ranges and target_ranges and not set(source_ranges).intersection(target_ranges):
+        return True
+
+    return False
+
+
+def invoice_explicit_product(source_name: str, products: list[Product]):
+    source = invoice_normalize(source_name)
+
+    def find_name(*needles):
+        for product in products:
+            name = invoice_normalize(product.name or "")
+            if all(invoice_normalize(n) in name for n in needles):
+                return product
+        return None
+
+    if "MELTRA GOLD" in source and re.search(r"10\s*A\s*20\s*KG", source):
+        return find_name("MELTRA GOLD", "GRANDE")
+
+    if "MELTRA GOLD" in source and re.search(r"\b10\s*KG\b", source) and " A " not in source:
+        return find_name("MELTRA GOLD", "CHICO")
+
+    if "NEXGARD COMBO L" in source or ("NEXGARD COMBO" in source and "0.9 ML" in source.replace(",", ".")):
+        return find_name("NEXGARD", "CAT", "GRANDE")
+
+    if "REPEXXXIN" in source and re.search(r"4\s*A\s*25\s*KG", source):
+        return find_name("REPEXXXIN", "4", "25")
+
+    if "REPEXXXIN" in source and re.search(r"25\s*A\s*50\s*KG", source):
+        product = find_name("REPEXXXIN", "25", "60")
+        return product or find_name("REPEXXXIN", "25", "50")
+
+    return None
+
+
+def invoice_match_score(source_name: str, product_name: str) -> float:
+    source_norm = invoice_normalize(source_name)
+    product_norm = invoice_normalize(product_name)
+
+    if invoice_has_numeric_conflict(source_norm, product_norm):
+        return 0.0
+
+    source_tokens = invoice_tokens(source_norm)
+    product_tokens = invoice_tokens(product_norm)
+    union = source_tokens | product_tokens
+    token_score = len(source_tokens & product_tokens) / len(union) if union else 0.0
+    sequence_score = SequenceMatcher(None, source_norm, product_norm).ratio()
+
+    return round((token_score * 0.65) + (sequence_score * 0.35), 4)
+
+
+def invoice_find_match(db: Session, provider_cuit: str, description: str, products: list[Product]):
+    alias_row = db.execute(
+        text("""
+            SELECT product_id
+            FROM product_invoice_aliases
+            WHERE provider_cuit = :provider_cuit
+              AND source_normalized = :source_normalized
+            LIMIT 1
+        """),
+        {
+            "provider_cuit": provider_cuit or "",
+            "source_normalized": invoice_normalize(description),
+        }
+    ).mappings().first()
+
+    if alias_row:
+        product = db.get(Product, alias_row["product_id"])
+        if product and product.active:
+            return product, 1.0, "alias"
+
+    explicit = invoice_explicit_product(description, products)
+    if explicit:
+        return explicit, 1.0, "regla"
+
+    scored = sorted(
+        ((invoice_match_score(description, p.name or ""), p) for p in products),
+        key=lambda item: item[0],
+        reverse=True
+    )
+
+    best_score, best_product = scored[0] if scored else (0.0, None)
+    second_score = scored[1][0] if len(scored) > 1 else 0.0
+
+    if best_product and best_score >= 0.78 and (best_score - second_score) >= 0.08:
+        return best_product, best_score, "texto"
+
+    return None, best_score, "revisar"
+
+
+def invoice_parse_pdf(content: bytes) -> dict:
+    reader = PdfReader(BytesIO(content))
+    page_texts = [(page.extract_text(extraction_mode="layout") or "") for page in reader.pages]
+    metadata_pages = [(page.extract_text() or "") for page in reader.pages]
+
+    selected_pages = []
+    for page_text in page_texts:
+        upper = page_text.upper()
+        if "DUPLICADO" in upper and any("ORIGINAL" in p.upper() for p in page_texts):
+            continue
+        selected_pages.append(page_text)
+
+    full_text = "\n".join(selected_pages)
+    metadata_text = "\n".join(metadata_pages)
+    invoice_number_match = re.search(r"N[º°]?\s*:?\s*([0-9]{4}-[0-9]{8})", metadata_text, re.I)
+    date_match = re.search(r"\b(\d{2}/\d{2}/\d{4})\b", metadata_text)
+    vat_match = re.search(r"IVA\s*(\d+(?:[.,]\d+)?)\s*%", metadata_text, re.I)
+    cuit_matches = re.findall(r"\b\d{2}-\d{8}-\d\b", metadata_text)
+
+    provider_name = ""
+    for candidate in ("LA RED COMERCIAL SRL",):
+        if candidate in metadata_text.upper():
+            provider_name = candidate.title()
+            break
+
+    provider_cuit = ""
+    if cuit_matches:
+        provider_cuit = "30-71657247-8" if "30-71657247-8" in cuit_matches else cuit_matches[-1]
+
+    vat_percent = invoice_money(vat_match.group(1)) if vat_match else 21.0
+
+    line_pattern = re.compile(
+        r"^\s*(\d+(?:[.,]\d+)?)\s+(.+?)\s+"
+        r"(?:(\d+(?:[.,]\d+)?)%\s+)?"
+        r"(?:(\d+(?:[.,]\d+)?)%\s+)?"
+        r"([\d.,]+)\s+([\d.,]+)\s*$"
+    )
+
+    items = []
+    seen = set()
+    in_items = False
+
+    for raw_line in full_text.splitlines():
+        line = re.sub(r"\s+", " ", raw_line).strip()
+        upper = line.upper()
+
+        if "CANTIDAD" in upper and "DESCRIP" in upper and "PRECIO" in upper:
+            in_items = True
+            continue
+        if upper in {"ORIGINAL", "DUPLICADO"} or upper.startswith("SUBTOTAL"):
+            in_items = False
+        if not in_items:
+            continue
+
+        match = line_pattern.match(line)
+        if not match:
+            continue
+
+        quantity = invoice_money(match.group(1))
+        description = match.group(2).strip()
+        discount_1 = invoice_money(match.group(3)) if match.group(3) else 0.0
+        discount_2 = invoice_money(match.group(4)) if match.group(4) else 0.0
+        unit_net = invoice_money(match.group(5))
+        line_total = invoice_money(match.group(6))
+
+        if quantity <= 0 or unit_net <= 0 or not re.search(r"[A-ZÁÉÍÓÚÑ]", description.upper()):
+            continue
+
+        key = (quantity, invoice_normalize(description), unit_net, line_total)
+        if key in seen:
+            continue
+        seen.add(key)
+
+        calculated_total = quantity * unit_net
+        if line_total and abs(calculated_total - line_total) > max(1.0, line_total * 0.015):
+            unit_net = line_total / quantity
+
+        items.append({
+            "quantity": quantity,
+            "description": description,
+            "discount_percent": max(discount_1, discount_2),
+            "unit_net": round(unit_net, 4),
+            "unit_cost_vat": round(unit_net * (1 + vat_percent / 100), 4),
+            "line_total": round(line_total, 4),
+        })
+
+    if not items:
+        raise ValueError("No se pudieron reconocer renglones de productos en el PDF.")
+
+    return {
+        "provider_name": provider_name,
+        "provider_cuit": provider_cuit,
+        "invoice_number": invoice_number_match.group(1) if invoice_number_match else "",
+        "invoice_date": date_match.group(1) if date_match else "",
+        "vat_percent": vat_percent,
+        "items": items,
+    }
+
+
+def invoice_preview_path(token: str) -> str:
+    safe_token = re.sub(r"[^a-zA-Z0-9_-]", "", token or "")
+    return os.path.join(INVOICE_PREVIEW_DIR, f"{safe_token}.json")
+
+
+def invoice_save_preview(payload: dict) -> str:
+    token = uuid.uuid4().hex
+    with open(invoice_preview_path(token), "w", encoding="utf-8") as file:
+        json.dump(payload, file, ensure_ascii=False, indent=2)
+    return token
+
+
+def invoice_load_preview(token: str) -> dict:
+    path = invoice_preview_path(token)
+    if not os.path.exists(path):
+        raise HTTPException(status_code=404, detail="La vista previa venció o no existe.")
+    with open(path, "r", encoding="utf-8") as file:
+        return json.load(file)
 def get_pending_count():
     return 0
 
@@ -647,7 +926,54 @@ def init_db():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
         """))
-
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS product_invoice_aliases (
+                id SERIAL PRIMARY KEY,
+                provider_cuit VARCHAR(30) DEFAULT '',
+                provider_name VARCHAR(180) DEFAULT '',
+                source_description TEXT DEFAULT '',
+                source_normalized TEXT NOT NULL,
+                product_id INTEGER NOT NULL REFERENCES products(id),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(provider_cuit, source_normalized)
+            )
+        """))
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS purchase_invoices (
+                id SERIAL PRIMARY KEY,
+                provider_cuit VARCHAR(30) DEFAULT '',
+                provider_name VARCHAR(180) DEFAULT '',
+                invoice_number VARCHAR(50) DEFAULT '',
+                invoice_date VARCHAR(20) DEFAULT '',
+                vat_percent FLOAT DEFAULT 21,
+                items_count INTEGER DEFAULT 0,
+                updated_products INTEGER DEFAULT 0,
+                created_products INTEGER DEFAULT 0,
+                skipped_items INTEGER DEFAULT 0,
+                created_by VARCHAR(100) DEFAULT '',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(provider_cuit, invoice_number)
+            )
+        """))
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS product_cost_history (
+                id SERIAL PRIMARY KEY,
+                product_id INTEGER NOT NULL REFERENCES products(id),
+                provider_cuit VARCHAR(30) DEFAULT '',
+                provider_name VARCHAR(180) DEFAULT '',
+                invoice_number VARCHAR(50) DEFAULT '',
+                invoice_date VARCHAR(20) DEFAULT '',
+                old_cost FLOAT DEFAULT 0,
+                new_cost FLOAT DEFAULT 0,
+                old_sale FLOAT DEFAULT 0,
+                new_sale FLOAT DEFAULT 0,
+                margin_percent FLOAT DEFAULT 0,
+                quantity_added FLOAT DEFAULT 0,
+                created_by VARCHAR(100) DEFAULT '',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """))
     try:
         admin = db.query(User).filter(User.username == 'admin').first()
         if not admin:
@@ -5496,6 +5822,284 @@ def export_products_excel(
             'Content-Disposition': f'attachment; filename="{filename}"'
         }
     )    
+@app.post('/products/invoice/preview', response_class=HTMLResponse)
+async def products_invoice_preview(
+    request: Request,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    filename = (file.filename or "").lower()
+    if not filename.endswith(".pdf"):
+        return RedirectResponse('/products?invoice_error=Solo+se+admiten+facturas+PDF', status_code=303)
+
+    content = await file.read()
+    if not content:
+        return RedirectResponse('/products?invoice_error=El+archivo+está+vacío', status_code=303)
+
+    try:
+        payload = invoice_parse_pdf(content)
+    except Exception as exc:
+        message = str(exc).replace(' ', '+')
+        return RedirectResponse(f'/products?invoice_error={message}', status_code=303)
+
+    if payload.get("provider_cuit") and payload.get("invoice_number"):
+        existing_invoice = db.execute(
+            text("""
+                SELECT id
+                FROM purchase_invoices
+                WHERE provider_cuit = :provider_cuit
+                  AND invoice_number = :invoice_number
+                LIMIT 1
+            """),
+            {
+                "provider_cuit": payload["provider_cuit"],
+                "invoice_number": payload["invoice_number"],
+            }
+        ).first()
+        if existing_invoice:
+            return RedirectResponse('/products?invoice_error=Esta+factura+ya+fue+importada', status_code=303)
+
+    products = (
+        db.query(Product)
+        .filter(Product.active == True)
+        .order_by(Product.name)
+        .all()
+    )
+
+    for index, item in enumerate(payload["items"]):
+        matched, score, match_type = invoice_find_match(
+            db,
+            payload.get("provider_cuit", ""),
+            item["description"],
+            products,
+        )
+        item["index"] = index
+        item["matched_product_id"] = matched.id if matched else None
+        item["matched_product_name"] = matched.name if matched else ""
+        item["confidence"] = round(score * 100, 1)
+        item["match_type"] = match_type
+
+        if matched:
+            current_cost = matched.cost_price or 0
+            current_sale = matched.sale_price or 0
+            margin = matched.margin_percent
+            if margin is None and current_cost > 0:
+                margin = ((current_sale - current_cost) / current_cost) * 100
+            if margin is None or margin < -100 or margin > 1000:
+                margin = 0
+
+            item["current_cost"] = current_cost
+            item["current_sale"] = current_sale
+            item["current_margin"] = margin
+            item["new_sale"] = round(item["unit_cost_vat"] * (1 + margin / 100), 2)
+            item["status"] = "safe" if match_type in {"alias", "regla"} or score >= 0.86 else "review"
+        else:
+            item["current_cost"] = 0
+            item["current_sale"] = 0
+            item["current_margin"] = 0
+            item["new_sale"] = round(item["unit_cost_vat"], 2)
+            item["status"] = "new"
+
+    token = invoice_save_preview(payload)
+
+    return templates.TemplateResponse(
+        'product_invoice_preview.html',
+        {
+            'request': request,
+            'invoice': payload,
+            'products': products,
+            'token': token,
+        }
+    )
+
+
+@app.post('/products/invoice/confirm')
+async def products_invoice_confirm(
+    request: Request,
+    token: str = Form(...),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    payload = invoice_load_preview(token)
+    form = await request.form()
+
+    provider_cuit = payload.get("provider_cuit", "")
+    invoice_number = payload.get("invoice_number", "")
+
+    if provider_cuit and invoice_number:
+        already_imported = db.execute(
+            text("""
+                SELECT id FROM purchase_invoices
+                WHERE provider_cuit = :provider_cuit
+                  AND invoice_number = :invoice_number
+                LIMIT 1
+            """),
+            {"provider_cuit": provider_cuit, "invoice_number": invoice_number}
+        ).first()
+        if already_imported:
+            return RedirectResponse('/products?invoice_error=Esta+factura+ya+fue+importada', status_code=303)
+
+    updated = 0
+    created = 0
+    skipped = 0
+
+    try:
+        for item in payload.get("items", []):
+            index = item["index"]
+            if form.get(f"include_{index}") != "1":
+                skipped += 1
+                continue
+
+            selected_id = (form.get(f"product_id_{index}") or "").strip()
+            create_new = form.get(f"create_new_{index}") == "1" or not selected_id
+            quantity = float(item.get("quantity") or 0)
+            new_cost = round(float(item.get("unit_cost_vat") or 0), 4)
+
+            if quantity <= 0 or new_cost <= 0:
+                raise ValueError(f"Datos inválidos en {item.get('description', 'un producto')}")
+
+            if create_new:
+                new_name = (form.get(f"new_name_{index}") or item["description"]).strip()
+                rubro = (form.get(f"new_rubro_{index}") or "").strip()
+                tipo = (form.get(f"new_tipo_{index}") or "").strip()
+
+                product = Product(
+                    name=new_name,
+                    rubro=rubro,
+                    tipo=tipo,
+                    cost_price=new_cost,
+                    sale_price=new_cost,
+                    margin_percent=0,
+                    stock=quantity,
+                    min_stock=0,
+                    provider=payload.get("provider_name", ""),
+                    manufacturer="",
+                    notes=(
+                        f"Creado desde factura {invoice_number}. "
+                        "Producto nuevo con margen 0%; revisar precio de venta."
+                    )
+                )
+                db.add(product)
+                db.flush()
+                created += 1
+            else:
+                product = db.get(Product, int(selected_id))
+                if not product or not product.active:
+                    raise ValueError(f"Producto seleccionado inválido para {item['description']}")
+
+                old_cost = product.cost_price or 0
+                old_sale = product.sale_price or 0
+                margin = product.margin_percent
+
+                if margin is None and old_cost > 0:
+                    margin = ((old_sale - old_cost) / old_cost) * 100
+                if margin is None or margin < -100 or margin > 1000:
+                    margin = 0
+
+                db.execute(
+                    text("""
+                        INSERT INTO product_cost_history (
+                            product_id, provider_cuit, provider_name, invoice_number,
+                            invoice_date, old_cost, new_cost, old_sale, new_sale,
+                            margin_percent, quantity_added, created_by
+                        ) VALUES (
+                            :product_id, :provider_cuit, :provider_name, :invoice_number,
+                            :invoice_date, :old_cost, :new_cost, :old_sale, :new_sale,
+                            :margin_percent, :quantity_added, :created_by
+                        )
+                    """),
+                    {
+                        "product_id": product.id,
+                        "provider_cuit": provider_cuit,
+                        "provider_name": payload.get("provider_name", ""),
+                        "invoice_number": invoice_number,
+                        "invoice_date": payload.get("invoice_date", ""),
+                        "old_cost": old_cost,
+                        "new_cost": new_cost,
+                        "old_sale": old_sale,
+                        "new_sale": round(new_cost * (1 + margin / 100), 2),
+                        "margin_percent": margin,
+                        "quantity_added": quantity,
+                        "created_by": user.username,
+                    }
+                )
+
+                product.cost_price = new_cost
+                product.sale_price = round(new_cost * (1 + margin / 100), 2)
+                product.margin_percent = margin
+                product.stock = (product.stock or 0) + quantity
+                if payload.get("provider_name"):
+                    product.provider = payload["provider_name"]
+                updated += 1
+
+            db.execute(
+                text("""
+                    INSERT INTO product_invoice_aliases (
+                        provider_cuit, provider_name, source_description,
+                        source_normalized, product_id, updated_at
+                    ) VALUES (
+                        :provider_cuit, :provider_name, :source_description,
+                        :source_normalized, :product_id, CURRENT_TIMESTAMP
+                    )
+                    ON CONFLICT (provider_cuit, source_normalized)
+                    DO UPDATE SET
+                        product_id = EXCLUDED.product_id,
+                        source_description = EXCLUDED.source_description,
+                        provider_name = EXCLUDED.provider_name,
+                        updated_at = CURRENT_TIMESTAMP
+                """),
+                {
+                    "provider_cuit": provider_cuit,
+                    "provider_name": payload.get("provider_name", ""),
+                    "source_description": item["description"],
+                    "source_normalized": invoice_normalize(item["description"]),
+                    "product_id": product.id,
+                }
+            )
+
+        db.execute(
+            text("""
+                INSERT INTO purchase_invoices (
+                    provider_cuit, provider_name, invoice_number,
+                    invoice_date, vat_percent, items_count,
+                    updated_products, created_products, skipped_items, created_by
+                ) VALUES (
+                    :provider_cuit, :provider_name, :invoice_number,
+                    :invoice_date, :vat_percent, :items_count,
+                    :updated_products, :created_products, :skipped_items, :created_by
+                )
+            """),
+            {
+                "provider_cuit": provider_cuit,
+                "provider_name": payload.get("provider_name", ""),
+                "invoice_number": invoice_number,
+                "invoice_date": payload.get("invoice_date", ""),
+                "vat_percent": payload.get("vat_percent", 21),
+                "items_count": len(payload.get("items", [])),
+                "updated_products": updated,
+                "created_products": created,
+                "skipped_items": skipped,
+                "created_by": user.username,
+            }
+        )
+
+        db.commit()
+        try:
+            os.remove(invoice_preview_path(token))
+        except OSError:
+            pass
+
+    except Exception as exc:
+        db.rollback()
+        message = str(exc).replace(' ', '+')
+        return RedirectResponse(f'/products?invoice_error={message}', status_code=303)
+
+    return RedirectResponse(
+        f'/products?invoice_ok=Actualizados:+{updated}+|+Nuevos:+{created}+|+Omitidos:+{skipped}',
+        status_code=303
+    )
+
 @app.post('/products/import')
 async def import_products(
     file: UploadFile = File(...),
