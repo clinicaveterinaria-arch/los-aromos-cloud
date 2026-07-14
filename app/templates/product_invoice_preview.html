@@ -3,80 +3,258 @@
 <style>
 .invoice-page{padding:24px 28px}.invoice-card{background:#fff;border:1px solid #f3c6d8;border-radius:22px;padding:20px;box-shadow:0 8px 26px rgba(0,0,0,.05);margin-bottom:18px}.invoice-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap}.invoice-head h1{margin:0 0 6px;color:#1f2937}.invoice-meta{color:#6b7280;line-height:1.6}.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-top:16px}.summary-box{border:1px solid #f1d6e2;border-radius:16px;padding:13px;background:#fff8fb}.summary-box b{display:block;font-size:21px;color:#d85b9a}.table-wrap{overflow:auto}.invoice-table{width:100%;border-collapse:collapse;min-width:1200px}.invoice-table th,.invoice-table td{padding:10px;border-bottom:1px solid #f5e2eb;text-align:left;vertical-align:top}.invoice-table th{font-size:12px;color:#6b7280;background:#fff8fb;position:sticky;top:0}.invoice-table select,.invoice-table input{width:100%;border:1px solid #ead7e1;border-radius:10px;padding:8px;background:#fff}.pill{display:inline-block;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:700}.safe{background:#dcfce7;color:#166534}.review{background:#fef3c7;color:#92400e}.new{background:#fee2e2;color:#991b1b}.actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}.pink-btn,.soft-btn{border-radius:13px;padding:12px 16px;font-weight:bold;text-decoration:none;border:1px solid #f3c6d8;cursor:pointer}.pink-btn{background:#d85b9a;color:#fff}.soft-btn{background:#fff0f7;color:#d85b9a}.new-fields{display:none;margin-top:8px;gap:6px}.new-fields.show{display:grid}.small{font-size:12px;color:#6b7280}.money{white-space:nowrap;font-weight:700}.warning{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;border-radius:14px;padding:12px;margin-top:12px}
 </style>
+
 <div class="invoice-page">
+
   <div class="invoice-card">
+
     <div class="invoice-head">
+
       <div>
         <h1>📄 Revisar factura de compra</h1>
+
         <div class="invoice-meta">
           <b>{{ invoice.provider_name or 'Proveedor no detectado' }}</b><br>
-          CUIT: {{ invoice.provider_cuit or 'No detectado' }} · Factura: {{ invoice.invoice_number or 'No detectada' }} · Fecha: {{ invoice.invoice_date or 'No detectada' }} · IVA: {{ invoice.vat_percent }}%
+
+          CUIT:
+          {{ invoice.provider_cuit or 'No detectado' }}
+          ·
+          Factura:
+          {{ invoice.invoice_number or 'No detectada' }}
+          ·
+          Fecha:
+          {{ invoice.invoice_date or 'No detectada' }}
+          ·
+          IVA:
+          {{ invoice.vat_percent }}%
         </div>
+
       </div>
+
       <a href="/products" class="soft-btn">Cancelar</a>
+
     </div>
-    <div class="warning">Nada se modifica todavía. Revisá las coincidencias y recién después presioná <b>Confirmar actualización</b>.</div>
+
+    <div class="warning">
+      Nada se modifica todavía.
+      Revisá las coincidencias y recién después presioná
+      <b>Confirmar actualización</b>.
+    </div>
+
     <div class="summary-grid">
-      <div class="summary-box"><b>{{ invoice.items|length }}</b><span>Renglones detectados</span></div>
-      <div class="summary-box"><b>{{ invoice.items|selectattr('status','equalto','safe')|list|length }}</b><span>Coincidencias seguras</span></div>
-      <div class="summary-box"><b>{{ invoice.items|selectattr('status','equalto','review')|list|length }}</b><span>Requieren revisión</span></div>
-      <div class="summary-box"><b>{{ invoice.items|selectattr('status','equalto','new')|list|length }}</b><span>Productos nuevos</span></div>
+
+      <div class="summary-box">
+        <b>{{ invoice["items"]|length }}</b>
+        <span>Renglones detectados</span>
+      </div>
+
+      <div class="summary-box">
+        <b>{{ invoice["items"]|selectattr("status","equalto","safe")|list|length }}</b>
+        <span>Coincidencias seguras</span>
+      </div>
+
+      <div class="summary-box">
+        <b>{{ invoice["items"]|selectattr("status","equalto","review")|list|length }}</b>
+        <span>Requieren revisión</span>
+      </div>
+
+      <div class="summary-box">
+        <b>{{ invoice["items"]|selectattr("status","equalto","new")|list|length }}</b>
+        <span>Productos nuevos</span>
+      </div>
+
     </div>
+
   </div>
 
   <form method="post" action="/products/invoice/confirm">
+
     <input type="hidden" name="token" value="{{ token }}">
+
     <div class="invoice-card table-wrap">
+
       <table class="invoice-table">
-        <thead><tr><th>Usar</th><th>Factura</th><th>Cant.</th><th>Costo neto</th><th>Costo c/IVA</th><th>Coincidencia</th><th>Estado</th><th>Costo anterior</th><th>Margen</th><th>Venta nueva</th></tr></thead>
-        <tbody>
-        {% for item in invoice.items %}
+
+        <thead>
+
           <tr>
-            <td><input type="checkbox" name="include_{{ item.index }}" value="1" checked style="width:auto"></td>
-            <td><b>{{ item.description }}</b>{% if item.discount_percent %}<div class="small">Dto. informado: {{ item.discount_percent }}%</div>{% endif %}</td>
-            <td>{{ item.quantity }}</td>
-            <td class="money">$ {{ "%.2f"|format(item.unit_net) }}</td>
-            <td class="money">$ {{ "%.2f"|format(item.unit_cost_vat) }}</td>
-            <td style="min-width:290px">
-              <select name="product_id_{{ item.index }}" onchange="toggleNew({{ item.index }}, this.value)">
-                <option value="">➕ Crear producto nuevo</option>
-                {% for p in products %}
-                  <option value="{{ p.id }}" {% if item.matched_product_id == p.id %}selected{% endif %}>{{ p.name }}</option>
-                {% endfor %}
-              </select>
-              <input type="hidden" name="create_new_{{ item.index }}" id="create_new_{{ item.index }}" value="{% if item.matched_product_id %}0{% else %}1{% endif %}">
-              <div class="new-fields {% if not item.matched_product_id %}show{% endif %}" id="new_fields_{{ item.index }}">
-                <input name="new_name_{{ item.index }}" value="{{ item.description }}" placeholder="Nombre del producto nuevo">
-                <input name="new_rubro_{{ item.index }}" placeholder="Rubro">
-                <input name="new_tipo_{{ item.index }}" placeholder="Tipo">
-                <div class="small">Se crea con costo y venta iguales, margen 0% y stock según factura.</div>
-              </div>
-            </td>
-            <td>
-              {% if item.status == 'safe' %}<span class="pill safe">🟢 Segura {{ item.confidence }}%</span>
-              {% elif item.status == 'review' %}<span class="pill review">🟡 Revisar {{ item.confidence }}%</span>
-              {% else %}<span class="pill new">🔴 Nuevo</span>{% endif %}
-              <div class="small">{{ item.match_type }}</div>
-            </td>
-            <td class="money">$ {{ "%.2f"|format(item.current_cost) }}</td>
-            <td>{{ "%.2f"|format(item.current_margin) }}%</td>
-            <td class="money">$ {{ "%.2f"|format(item.new_sale) }}</td>
+            <th>Usar</th>
+            <th>Factura</th>
+            <th>Cant.</th>
+            <th>Costo neto</th>
+            <th>Costo c/IVA</th>
+            <th>Coincidencia</th>
+            <th>Estado</th>
+            <th>Costo anterior</th>
+            <th>Margen</th>
+            <th>Venta nueva</th>
           </tr>
+
+        </thead>
+
+        <tbody>
+
+        {% for item in invoice["items"] %}
+
+          <tr>
+
+            <td>
+              <input
+                type="checkbox"
+                name="include_{{ item.index }}"
+                value="1"
+                checked
+                style="width:auto">
+            </td>
+
+            <td>
+              <b>{{ item.description }}</b>
+
+              {% if item.discount_percent %}
+                <div class="small">
+                  Dto. informado:
+                  {{ item.discount_percent }}%
+                </div>
+              {% endif %}
+            </td>
+
+            <td>{{ item.quantity }}</td>
+
+            <td class="money">
+              $ {{ "%.2f"|format(item.unit_net) }}
+            </td>
+
+            <td class="money">
+              $ {{ "%.2f"|format(item.unit_cost_vat) }}
+            </td>
+
+            <td style="min-width:290px">
+
+              <select
+                name="product_id_{{ item.index }}"
+                onchange="toggleNew({{ item.index }}, this.value)">
+
+                <option value="">➕ Crear producto nuevo</option>
+
+                {% for p in products %}
+
+                  <option
+                    value="{{ p.id }}"
+                    {% if item.matched_product_id == p.id %}
+                    selected
+                    {% endif %}>
+                    {{ p.name }}
+                  </option>
+
+                {% endfor %}
+
+              </select>
+
+              <input
+                type="hidden"
+                id="create_new_{{ item.index }}"
+                name="create_new_{{ item.index }}"
+                value="{% if item.matched_product_id %}0{% else %}1{% endif %}">
+
+              <div
+                id="new_fields_{{ item.index }}"
+                class="new-fields {% if not item.matched_product_id %}show{% endif %}">
+
+                <input
+                  name="new_name_{{ item.index }}"
+                  value="{{ item.description }}"
+                  placeholder="Nombre del producto nuevo">
+
+                <input
+                  name="new_rubro_{{ item.index }}"
+                  placeholder="Rubro">
+
+                <input
+                  name="new_tipo_{{ item.index }}"
+                  placeholder="Tipo">
+
+                <div class="small">
+                  Se crea con costo y venta iguales,
+                  margen 0% y stock según factura.
+                </div>
+
+              </div>
+
+            </td>
+
+            <td>
+
+              {% if item.status=="safe" %}
+                <span class="pill safe">
+                  🟢 Segura {{ item.confidence }}%
+                </span>
+
+              {% elif item.status=="review" %}
+                <span class="pill review">
+                  🟡 Revisar {{ item.confidence }}%
+                </span>
+
+              {% else %}
+                <span class="pill new">
+                  🔴 Nuevo
+                </span>
+              {% endif %}
+
+              <div class="small">
+                {{ item.match_type }}
+              </div>
+
+            </td>
+
+            <td class="money">
+              $ {{ "%.2f"|format(item.current_cost) }}
+            </td>
+
+            <td>
+              {{ "%.2f"|format(item.current_margin) }}%
+            </td>
+
+            <td class="money">
+              $ {{ "%.2f"|format(item.new_sale) }}
+            </td>
+
+          </tr>
+
         {% endfor %}
+
         </tbody>
+
       </table>
+
     </div>
+
     <div class="invoice-card actions">
-      <a href="/products" class="soft-btn">Cancelar</a>
-      <button type="submit" class="pink-btn" onclick="return confirm('¿Confirmar actualización de costos, precios y stock?');">✅ Confirmar actualización</button>
+
+      <a href="/products" class="soft-btn">
+        Cancelar
+      </a>
+
+      <button
+        type="submit"
+        class="pink-btn"
+        onclick="return confirm('¿Confirmar actualización de costos, precios y stock?');">
+
+        ✅ Confirmar actualización
+
+      </button>
+
     </div>
+
   </form>
+
 </div>
+
 <script>
-function toggleNew(index, value){
-  const isNew = !value;
-  document.getElementById('create_new_'+index).value = isNew ? '1' : '0';
-  document.getElementById('new_fields_'+index).classList.toggle('show', isNew);
+function toggleNew(index,value){
+    const isNew=!value;
+    document.getElementById("create_new_"+index).value=isNew?"1":"0";
+    document.getElementById("new_fields_"+index).classList.toggle("show",isNew);
 }
 </script>
+
 {% endblock %}
