@@ -1276,9 +1276,15 @@ def patient_create(
     db: Session = Depends(get_db),
     user: User = Depends(require_user)
 ):
-    owner_id_value = int(owner_id) if owner_id and owner_id.strip() else None
+    owner_id_value = None
     
-    if not owner_id_value:
+    if owner_id and owner_id.strip():
+        try:
+            owner_id_value = int(owner_id)
+        except ValueError:
+            owner_id_value = None
+    
+    if owner_id_value is None:
         if owner_name.strip():
             owner = Owner(
                 name=owner_name.strip(),
@@ -1287,12 +1293,17 @@ def patient_create(
                 address=owner_address.strip(),
                 email=owner_email.strip()
             )
+    
             db.add(owner)
             db.commit()
             db.refresh(owner)
+    
             owner_id_value = owner.id
         else:
-            owner_id = None
+            raise HTTPException(
+                status_code=400,
+                detail="Debe seleccionar un propietario existente o crear uno nuevo."
+            )
 
     w = float(weight.replace(',', '.')) if weight.strip() else None
 
