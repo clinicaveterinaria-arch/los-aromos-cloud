@@ -269,17 +269,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
         function filterOwners() {
             const search = (ownerSearch.value || '').toLowerCase();
-
-            ownerSelect.innerHTML = '';
-
-            allOwnerOptions.forEach(option => {
-                const text = (option.textContent || '').toLowerCase();
-
-                if (option.value === '' || text.includes(search)) {
-                    ownerSelect.appendChild(option.cloneNode(true));
+        
+            Array.from(ownerSelect.options).forEach(option => {
+        
+                if (option.value === "") {
+                    option.hidden = false;
+                    return;
                 }
+        
+                const text = (option.textContent || '').toLowerCase();
+        
+                option.hidden = !text.includes(search);
             });
-
+        
             toggleNewOwnerBox();
         }
 
