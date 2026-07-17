@@ -1277,7 +1277,7 @@ def patient_create(
     user: User = Depends(require_user)
 ):
     owner_id_value = int(owner_id) if owner_id and owner_id.strip() else None
-
+    
     if not owner_id_value:
         if owner_name.strip():
             owner = Owner(
