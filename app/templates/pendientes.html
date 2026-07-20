@@ -64,6 +64,11 @@
         color: #1d4ed8;
     }
 
+    .pending-btn:disabled {
+        opacity: .72;
+        cursor: wait;
+    }
+
     .pending-stats {
         display: grid;
         grid-template-columns: repeat(5, minmax(130px, 1fr));
@@ -342,13 +347,13 @@
                                 Ver ficha
                             </a>
 
-                            <a
-                                href="/events/{{ event.id }}/whatsapp"
+                            <button
+                                type="button"
                                 class="pending-btn whatsapp"
-                                target="_blank"
+                                onclick="resendPendingWhatsApp(this, {{ event.id }})"
                             >
                                 Reenviar WhatsApp
-                            </a>
+                            </button>
                         </div>
                     </div>
                 {% else %}
@@ -392,25 +397,13 @@
                     </div>
 
                     <div class="pending-actions">
-                        <a
-                            href="/events/{{ event.id }}/whatsapp"
+                        <button
+                            type="button"
                             class="pending-btn whatsapp"
-                            target="_blank"
+                            onclick="sendPendingWhatsApp(this, {{ event.id }})"
                         >
                             WhatsApp
-                        </a>
-
-                        <form
-                            action="/events/{{ event.id }}/done"
-                            method="post"
-                        >
-                            <button
-                                type="submit"
-                                class="pending-btn sent"
-                            >
-                                ✅ Enviado
-                            </button>
-                        </form>
+                        </button>
 
                         <a
                             href="/patients/{{ event.patient_id }}/v2"
@@ -454,25 +447,13 @@
                     </div>
 
                     <div class="pending-actions">
-                        <a
-                            href="/events/{{ event.id }}/whatsapp"
+                        <button
+                            type="button"
                             class="pending-btn whatsapp"
-                            target="_blank"
+                            onclick="sendPendingWhatsApp(this, {{ event.id }})"
                         >
                             WhatsApp
-                        </a>
-
-                        <form
-                            action="/events/{{ event.id }}/done"
-                            method="post"
-                        >
-                            <button
-                                type="submit"
-                                class="pending-btn sent"
-                            >
-                                ✅ Enviado
-                            </button>
-                        </form>
+                        </button>
 
                         <a
                             href="/patients/{{ event.patient_id }}/v2"
@@ -519,25 +500,13 @@
                     </div>
 
                     <div class="pending-actions">
-                        <a
-                            href="/events/{{ event.id }}/whatsapp"
+                        <button
+                            type="button"
                             class="pending-btn whatsapp"
-                            target="_blank"
+                            onclick="sendPendingWhatsApp(this, {{ event.id }})"
                         >
                             WhatsApp
-                        </a>
-
-                        <form
-                            action="/events/{{ event.id }}/done"
-                            method="post"
-                        >
-                            <button
-                                type="submit"
-                                class="pending-btn sent"
-                            >
-                                ✅ Enviado
-                            </button>
-                        </form>
+                        </button>
 
                         <a
                             href="/patients/{{ event.patient_id }}/v2"
@@ -556,5 +525,57 @@
 
     </div>
 </div>
+
+
+<script>
+    function openWhatsAppAndRefresh(button, eventId, confirmationText) {
+        if (!window.confirm(confirmationText)) {
+            return;
+        }
+
+        const originalText = button.textContent.trim();
+        button.disabled = true;
+        button.textContent = "✓ Abriendo...";
+
+        const whatsappWindow = window.open(
+            `/events/${eventId}/whatsapp`,
+            "_blank"
+        );
+
+        if (!whatsappWindow) {
+            button.disabled = false;
+            button.textContent = originalText;
+
+            alert(
+                "El navegador bloqueó la apertura de WhatsApp. " +
+                "Habilitá las ventanas emergentes para Aromos Cloud " +
+                "y volvé a intentarlo."
+            );
+            return;
+        }
+
+        window.setTimeout(function () {
+            window.location.reload();
+        }, 900);
+    }
+
+    function sendPendingWhatsApp(button, eventId) {
+        openWhatsAppAndRefresh(
+            button,
+            eventId,
+            "Se abrirá WhatsApp y este recordatorio quedará marcado " +
+            "automáticamente como avisado y aún pendiente. ¿Continuar?"
+        );
+    }
+
+    function resendPendingWhatsApp(button, eventId) {
+        openWhatsAppAndRefresh(
+            button,
+            eventId,
+            "Se abrirá nuevamente WhatsApp y se actualizará la fecha " +
+            "del último aviso. ¿Continuar?"
+        );
+    }
+</script>
 
 {% endblock %}
