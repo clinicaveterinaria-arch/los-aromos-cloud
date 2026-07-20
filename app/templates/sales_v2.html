@@ -258,6 +258,83 @@ textarea {
     border-color:#fecdd3;
 }
 
+.sales-history-head {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:14px;
+}
+
+.sales-history-head h2 {
+    margin:0;
+}
+
+.sales-history-tools {
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+    justify-content:flex-end;
+}
+
+.sales-period-select {
+    width:auto;
+    min-width:145px;
+    padding:7px 10px;
+    border-radius:10px;
+    font-size:13px;
+    font-weight:700;
+    color:#374151;
+    background:white;
+    border:1px solid #f3c6d8;
+}
+
+.sales-count {
+    color:#6b7280;
+    font-size:12px;
+    white-space:nowrap;
+}
+
+.custom-sales-range {
+    display:flex;
+    align-items:end;
+    gap:8px;
+    flex-wrap:wrap;
+    padding:10px 12px;
+    margin:0 0 14px 0;
+    background:#fffafd;
+    border:1px solid #f3c6d8;
+    border-radius:14px;
+}
+
+.custom-sales-range > div {
+    min-width:145px;
+}
+
+.custom-sales-range label {
+    font-size:12px;
+    margin-bottom:4px;
+}
+
+.custom-sales-range input {
+    padding:7px 9px;
+    border-radius:10px;
+    font-size:13px;
+}
+
+@media(max-width:700px) {
+    .sales-history-head {
+        align-items:flex-start;
+        flex-direction:column;
+    }
+
+    .sales-history-tools {
+        width:100%;
+        justify-content:flex-start;
+    }
+}
+
 @media(max-width:1000px) {
     .sales-grid {
         grid-template-columns:1fr;
@@ -404,7 +481,50 @@ textarea {
                     {% endif %}
                 </div>
                 <div class="card">
-                    <h2>💰 Últimas ventas</h2>
+                    <div class="sales-history-head">
+                        <h2>💰 Últimas ventas</h2>
+
+                        <div class="sales-history-tools">
+                            <span class="sales-count">
+                                {{ sales_result_count }} resultado{% if sales_result_count != 1 %}s{% endif %}
+                            </span>
+
+                            <select
+                                id="sales-period-select"
+                                class="sales-period-select"
+                                onchange="changeSalesPeriod(this.value)"
+                                aria-label="Período de ventas"
+                            >
+                                <option value="today" {% if selected_period == 'today' %}selected{% endif %}>Hoy</option>
+                                <option value="yesterday" {% if selected_period == 'yesterday' %}selected{% endif %}>Ayer</option>
+                                <option value="7days" {% if selected_period == '7days' %}selected{% endif %}>Últimos 7 días</option>
+                                <option value="month" {% if selected_period == 'month' %}selected{% endif %}>Este mes</option>
+                                <option value="last_month" {% if selected_period == 'last_month' %}selected{% endif %}>Mes anterior</option>
+                                <option value="all" {% if selected_period == 'all' %}selected{% endif %}>Todas</option>
+                                <option value="custom" {% if selected_period == 'custom' %}selected{% endif %}>Personalizado...</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div
+                        id="custom-sales-range"
+                        class="custom-sales-range"
+                        {% if selected_period != 'custom' %}style="display:none;"{% endif %}
+                    >
+                        <div>
+                            <label for="sales-date-from">Desde</label>
+                            <input type="date" id="sales-date-from" value="{{ selected_date_from }}">
+                        </div>
+
+                        <div>
+                            <label for="sales-date-to">Hasta</label>
+                            <input type="date" id="sales-date-to" value="{{ selected_date_to }}">
+                        </div>
+
+                        <button type="button" class="mini-btn primary" onclick="applyCustomSalesRange()">
+                            Ver
+                        </button>
+                    </div>
 
                     {% if sales %}
                         {% for sale in sales %}
@@ -602,6 +722,30 @@ const PRODUCTS = [
 ];
 
 const patientOwnerMap = {{ patient_owner_map | tojson }};
+
+function changeSalesPeriod(period) {
+    const customRange = document.getElementById("custom-sales-range");
+
+    if (period === "custom") {
+        customRange.style.display = "flex";
+        return;
+    }
+
+    window.location.href = `/sales?period=${encodeURIComponent(period)}`;
+}
+
+function applyCustomSalesRange() {
+    const dateFrom = document.getElementById("sales-date-from").value;
+    const dateTo = document.getElementById("sales-date-to").value;
+
+    if (!dateFrom || !dateTo) {
+        alert("Elegí la fecha desde y la fecha hasta.");
+        return;
+    }
+
+    window.location.href = `/sales?period=custom&date_from=${encodeURIComponent(dateFrom)}&date_to=${encodeURIComponent(dateTo)}`;
+}
+
 let activeSearchIndex = -1;
 let currentResults = [];
 
