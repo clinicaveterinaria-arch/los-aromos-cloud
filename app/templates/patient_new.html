@@ -2,92 +2,175 @@
 {% block content %}
 
 <style>
-    .patient-page { padding:24px 28px; }
-    .patient-hero {
-        background:white; border:1px solid #f3c6d8; border-radius:22px;
-        padding:22px; box-shadow:0 8px 26px rgba(0,0,0,0.05);
-        margin-bottom:18px;
+    .patient-page {
+        padding: 24px 28px;
     }
-    .patient-hero h1 { margin:0 0 6px 0; font-size:32px; color:#1f2937; }
-    .patient-hero p { margin:0; color:#6b7280; }
+
+    .patient-hero {
+        background: white;
+        border: 1px solid #f3c6d8;
+        border-radius: 22px;
+        padding: 22px;
+        box-shadow: 0 8px 26px rgba(0,0,0,0.05);
+        margin-bottom: 18px;
+    }
+
+    .patient-hero h1 {
+        margin: 0 0 6px 0;
+        font-size: 32px;
+        color: #1f2937;
+    }
+
+    .patient-hero p {
+        margin: 0;
+        color: #6b7280;
+    }
 
     .patient-card {
-        background:white; border:1px solid #f3c6d8; border-radius:22px;
-        padding:22px; box-shadow:0 8px 26px rgba(0,0,0,0.04);
-        margin-bottom:18px;
+        background: white;
+        border: 1px solid #f3c6d8;
+        border-radius: 22px;
+        padding: 22px;
+        box-shadow: 0 8px 26px rgba(0,0,0,0.04);
+        margin-bottom: 18px;
     }
 
     .patient-card h2 {
-        margin:0 0 16px 0; color:#1f2937;
-        display:flex; gap:10px; align-items:center;
+        margin: 0 0 16px 0;
+        color: #1f2937;
+        display: flex;
+        gap: 10px;
+        align-items: center;
     }
 
     .form-grid {
-        display:grid;
-        grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-        gap:14px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 14px;
     }
 
     .field-box label {
-        display:block; font-weight:bold; color:#374151;
-        font-size:13px; margin-bottom:6px;
+        display: block;
+        font-weight: bold;
+        color: #374151;
+        font-size: 13px;
+        margin-bottom: 6px;
     }
 
     .field-box input,
     .field-box select,
     .field-box textarea {
-        width:100%; border:1px solid #ead7e1; border-radius:13px;
-        padding:12px 13px; font-size:14px; background:white;
+        width: 100%;
+        border: 1px solid #ead7e1;
+        border-radius: 13px;
+        padding: 12px 13px;
+        font-size: 14px;
+        background: white;
+        box-sizing: border-box;
     }
 
-    .field-box textarea { min-height:96px; resize:vertical; }
-    .field-full { grid-column:1 / -1; }
+    .field-box textarea {
+        min-height: 96px;
+        resize: vertical;
+    }
+
+    .field-full {
+        grid-column: 1 / -1;
+    }
 
     .soft-panel {
-        background:#fff8fb; border:1px solid #f3c6d8;
-        border-radius:18px; padding:16px; margin-top:14px;
+        background: #fff8fb;
+        border: 1px solid #f3c6d8;
+        border-radius: 18px;
+        padding: 16px;
+        margin-top: 14px;
     }
 
     .pink-btn {
-        background:#d85b9a; color:white; border:none; border-radius:13px;
-        padding:13px 18px; font-weight:bold; cursor:pointer;
-        text-decoration:none; display:inline-flex; align-items:center;
-        justify-content:center; gap:7px;
+        background: #d85b9a;
+        color: white;
+        border: none;
+        border-radius: 13px;
+        padding: 13px 18px;
+        font-weight: bold;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
     }
 
     .soft-btn {
-        background:white; color:#d85b9a; border:1px solid #f3c6d8;
-        border-radius:13px; padding:13px 18px; font-weight:bold;
-        text-decoration:none;
+        background: white;
+        color: #d85b9a;
+        border: 1px solid #f3c6d8;
+        border-radius: 13px;
+        padding: 13px 18px;
+        font-weight: bold;
+        text-decoration: none;
     }
 
     .age-box {
-        background:#fff0f7; color:#d85b9a; border:1px solid #f3c6d8;
-        border-radius:13px; padding:12px 13px; font-weight:bold;
-        min-height:45px; display:flex; align-items:center;
+        background: #fff0f7;
+        color: #d85b9a;
+        border: 1px solid #f3c6d8;
+        border-radius: 13px;
+        padding: 12px 13px;
+        font-weight: bold;
+        min-height: 45px;
+        display: flex;
+        align-items: center;
+        box-sizing: border-box;
     }
 
     .alert-box textarea {
-        background:#fff7f7;
-        border-color:#fecaca;
+        background: #fff7f7;
+        border-color: #fecaca;
     }
 
     .form-actions {
-        display:flex; gap:10px; flex-wrap:wrap; margin-top:18px;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 18px;
     }
 
     .owner-new-box {
-        display:none;
-        margin-top:14px;
+        display: none;
+        margin-top: 14px;
     }
 
     .hint-card {
-        background:#f8fafc;
-        border:1px solid #e5e7eb;
-        border-radius:18px;
-        padding:16px;
-        color:#4b5563;
-        font-size:14px;
+        background: #f8fafc;
+        border: 1px solid #e5e7eb;
+        border-radius: 18px;
+        padding: 16px;
+        color: #4b5563;
+        font-size: 14px;
+    }
+
+    .owner-selected-message {
+        display: none;
+        margin-top: 9px;
+        padding: 10px 12px;
+        background: #f0fdf4;
+        color: #166534;
+        border: 1px solid #bbf7d0;
+        border-radius: 12px;
+        font-size: 13px;
+        font-weight: bold;
+    }
+
+    .owner-search-message {
+        display: none;
+        margin-top: 9px;
+        padding: 10px 12px;
+        background: #fff7ed;
+        color: #9a3412;
+        border: 1px solid #fed7aa;
+        border-radius: 12px;
+        font-size: 13px;
     }
 </style>
 
@@ -98,58 +181,133 @@
         <p>Cargá un paciente nuevo y asociá su propietario en pocos segundos.</p>
     </div>
 
-    <form method="post" action="/patients">
+    <form method="post" action="/patients" id="patientForm">
+
+        <!--
+            Este campo oculto es el que realmente se envía al backend.
+            Se sincroniza automáticamente con el propietario seleccionado.
+        -->
+        <input
+            type="hidden"
+            name="owner_id"
+            id="ownerIdHidden"
+            value="{{ owner_id or '' }}"
+        >
 
         <div class="patient-card">
             <h2>👤 Propietario</h2>
 
             <div class="form-grid">
+
                 <div class="field-box field-full">
-                    <label>Buscar propietario existente</label>
-                    <input id="ownerSearch" type="text" placeholder="🔎 Escribí nombre, teléfono o WhatsApp...">
+                    <label for="ownerSearch">Buscar propietario existente</label>
+
+                    <input
+                        id="ownerSearch"
+                        type="text"
+                        autocomplete="off"
+                        placeholder="🔎 Escribí nombre, teléfono o WhatsApp..."
+                    >
+
+                    <div
+                        class="owner-selected-message"
+                        id="ownerSelectedMessage"
+                    ></div>
+
+                    <div
+                        class="owner-search-message"
+                        id="ownerSearchMessage"
+                    ></div>
                 </div>
 
                 <div class="field-box field-full">
-                    <label>Seleccionar propietario</label>
-                    <select name="owner_id" id="ownerSelect">
+                    <label for="ownerSelect">Seleccionar propietario</label>
+
+                    <!--
+                        No lleva name="owner_id" para evitar valores duplicados.
+                        El valor se envía mediante ownerIdHidden.
+                    -->
+                    <select id="ownerSelect">
                         <option value="">➕ Crear propietario nuevo</option>
+
                         {% for o in owners %}
-                            <option value="{{ o.id }}" {% if owner_id==o.id %}selected{% endif %}>
-                                {{ o.name }}{% if o.phone %} - {{ o.phone }}{% endif %}{% if o.whatsapp %} - WhatsApp: {{ o.whatsapp }}{% endif %}
+                            <option
+                                value="{{ o.id }}"
+                                {% if owner_id and owner_id == o.id %}selected{% endif %}
+                            >
+                                {{ o.name }}
+                                {% if o.phone %}
+                                    - {{ o.phone }}
+                                {% endif %}
+                                {% if o.whatsapp %}
+                                    - WhatsApp: {{ o.whatsapp }}
+                                {% endif %}
                             </option>
                         {% endfor %}
                     </select>
                 </div>
+
             </div>
 
-            <div class="soft-panel owner-new-box" id="newOwnerBox">
+            <div
+                class="soft-panel owner-new-box"
+                id="newOwnerBox"
+            >
                 <h2>➕ Alta rápida de propietario</h2>
 
                 <div class="form-grid">
+
                     <div class="field-box">
-                        <label>Nombre del propietario</label>
-                        <input name="owner_name" placeholder="Ej: Juan Pérez">
+                        <label for="ownerName">Nombre del propietario</label>
+
+                        <input
+                            id="ownerName"
+                            name="owner_name"
+                            placeholder="Ej: Juan Pérez"
+                        >
                     </div>
 
                     <div class="field-box">
-                        <label>Teléfono</label>
-                        <input name="owner_phone" placeholder="Ej: 3456250361">
+                        <label for="ownerPhone">Teléfono</label>
+
+                        <input
+                            id="ownerPhone"
+                            name="owner_phone"
+                            placeholder="Ej: 3456250361"
+                        >
                     </div>
 
                     <div class="field-box">
-                        <label>WhatsApp</label>
-                        <input name="owner_whatsapp" placeholder="Ej: 3456250361">
+                        <label for="ownerWhatsapp">WhatsApp</label>
+
+                        <input
+                            id="ownerWhatsapp"
+                            name="owner_whatsapp"
+                            placeholder="Ej: 3456250361"
+                        >
                     </div>
 
                     <div class="field-box">
-                        <label>Email</label>
-                        <input name="owner_email" placeholder="cliente@email.com">
+                        <label for="ownerEmail">Email</label>
+
+                        <input
+                            id="ownerEmail"
+                            name="owner_email"
+                            type="email"
+                            placeholder="cliente@email.com"
+                        >
                     </div>
 
                     <div class="field-box field-full">
-                        <label>Dirección</label>
-                        <input name="owner_address" placeholder="Dirección">
+                        <label for="ownerAddress">Dirección</label>
+
+                        <input
+                            id="ownerAddress"
+                            name="owner_address"
+                            placeholder="Dirección"
+                        >
                     </div>
+
                 </div>
             </div>
         </div>
@@ -158,45 +316,71 @@
             <h2>🐶 Datos del paciente</h2>
 
             <div class="form-grid">
+
                 <div class="field-box">
-                    <label>Nombre del paciente</label>
-                    <input name="name" placeholder="Ej: Luna" required>
+                    <label for="patientName">Nombre del paciente</label>
+
+                    <input
+                        id="patientName"
+                        name="name"
+                        placeholder="Ej: Luna"
+                        required
+                    >
                 </div>
 
                 <div class="field-box">
-                    <label>Especie</label>
-                    <input name="species" placeholder="Canino / Felino">
+                    <label for="species">Especie</label>
+
+                    <input
+                        id="species"
+                        name="species"
+                        placeholder="Canino / Felino"
+                    >
                 </div>
 
                 <div class="field-box">
-                    <label>Raza</label>
-                    <input name="breed" placeholder="Ej: Caniche">
+                    <label for="breed">Raza</label>
+
+                    <input
+                        id="breed"
+                        name="breed"
+                        placeholder="Ej: Caniche"
+                    >
                 </div>
 
                 <div class="field-box">
-                    <label>Sexo</label>
-                    <select name="sex">
+                    <label for="sex">Sexo</label>
+
+                    <select id="sex" name="sex">
                         <option value="">Seleccionar</option>
-                        <option>Hembra</option>
-                        <option>Macho</option>
-                        <option>Hembra castrada</option>
-                        <option>Macho castrado</option>
+                        <option value="Hembra">Hembra</option>
+                        <option value="Macho">Macho</option>
+                        <option value="Hembra castrada">Hembra castrada</option>
+                        <option value="Macho castrado">Macho castrado</option>
                     </select>
                 </div>
 
                 <div class="field-box">
-                    <label>Fecha de nacimiento</label>
-                    <input type="date" name="birth_date" id="birthDate">
-                
-                    <div style="display:flex; gap:8px; margin-top:8px;">
+                    <label for="birthDate">Fecha de nacimiento</label>
+
+                    <input
+                        type="date"
+                        name="birth_date"
+                        id="birthDate"
+                    >
+
+                    <div
+                        style="display:flex; gap:8px; margin-top:8px;"
+                    >
                         <input
                             type="number"
                             id="approxAgeValue"
                             placeholder="Edad"
                             min="0"
+                            step="1"
                             style="flex:1;"
                         >
-                
+
                         <select
                             id="approxAgeUnit"
                             style="width:120px;"
@@ -207,157 +391,550 @@
                             <option value="years">Años</option>
                         </select>
                     </div>
-                
+
                     <small style="color:#888;">
                         Si no conocés la fecha exacta, ingresá una edad aproximada.
                     </small>
                 </div>
-                
+
                 <div class="field-box">
                     <label>Edad automática</label>
-                    <div class="age-box" id="ageBox">Sin fecha cargada</div>
+
+                    <div class="age-box" id="ageBox">
+                        Sin fecha cargada
+                    </div>
                 </div>
 
                 <div class="field-box">
-                    <label>Peso kg</label>
-                    <input name="weight" placeholder="Ej: 12,5">
+                    <label for="weight">Peso kg</label>
+
+                    <input
+                        id="weight"
+                        name="weight"
+                        inputmode="decimal"
+                        placeholder="Ej: 12,5"
+                    >
                 </div>
 
                 <div class="field-box alert-box field-full">
-                    <label>🚨 Alertas clínicas</label>
-                    <textarea name="alerts" placeholder="Ej: alérgico, cardiópata, agresivo, convulsiones..."></textarea>
+                    <label for="alerts">🚨 Alertas clínicas</label>
+
+                    <textarea
+                        id="alerts"
+                        name="alerts"
+                        placeholder="Ej: alérgico, cardiópata, agresivo, convulsiones..."
+                    ></textarea>
                 </div>
 
                 <div class="field-box field-full">
-                    <label>📝 Observaciones</label>
-                    <textarea name="notes" placeholder="Observaciones generales del paciente..."></textarea>
+                    <label for="notes">📝 Observaciones</label>
+
+                    <textarea
+                        id="notes"
+                        name="notes"
+                        placeholder="Observaciones generales del paciente..."
+                    ></textarea>
                 </div>
+
             </div>
 
             <div class="form-actions">
-                <button class="pink-btn" type="submit">💾 Guardar paciente</button>
-                <a href="/search" class="soft-btn">↩️ Cancelar</a>
+                <button
+                    class="pink-btn"
+                    type="submit"
+                    id="savePatientButton"
+                >
+                    💾 Guardar paciente
+                </button>
+
+                <a href="/search" class="soft-btn">
+                    ↩️ Cancelar
+                </a>
             </div>
         </div>
 
     </form>
 
     <div class="hint-card">
-        💡 Consejo: si el propietario ya existe, usá el buscador. Si no existe, dejá seleccionado “Crear propietario nuevo” y completá el alta rápida.
+        💡 Consejo: escribí el nombre, teléfono o WhatsApp del propietario.
+        El sistema seleccionará automáticamente la primera coincidencia.
+        También podés elegirlo directamente desde la lista.
     </div>
 
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+
+    const patientForm = document.getElementById('patientForm');
+
     const ownerSearch = document.getElementById('ownerSearch');
     const ownerSelect = document.getElementById('ownerSelect');
+    const ownerIdHidden = document.getElementById('ownerIdHidden');
+
     const newOwnerBox = document.getElementById('newOwnerBox');
+    const ownerName = document.getElementById('ownerName');
+
+    const ownerSelectedMessage = document.getElementById(
+        'ownerSelectedMessage'
+    );
+
+    const ownerSearchMessage = document.getElementById(
+        'ownerSearchMessage'
+    );
+
     const birthDate = document.getElementById('birthDate');
     const ageBox = document.getElementById('ageBox');
     const approxAgeValue = document.getElementById('approxAgeValue');
     const approxAgeUnit = document.getElementById('approxAgeUnit');
 
-    if (ownerSelect) {
-        const allOwnerOptions = Array.from(ownerSelect.querySelectorAll('option'));
-
-        function toggleNewOwnerBox() {
-            if (newOwnerBox) {
-                newOwnerBox.style.display = ownerSelect.value ? 'none' : 'block';
-            }
+    /*
+     * Devuelve el texto limpio de una opción.
+     */
+    function getOptionText(option) {
+        if (!option) {
+            return '';
         }
 
-        function filterOwners() {
-            const search = (ownerSearch.value || '').toLowerCase();
-        
-            Array.from(ownerSelect.options).forEach(option => {
-        
-                if (option.value === "") {
-                    option.hidden = false;
-                    return;
-                }
-        
-                const text = (option.textContent || '').toLowerCase();
-        
-                option.hidden = !text.includes(search);
-            });
-        
-            toggleNewOwnerBox();
-        }
-
-        ownerSearch.addEventListener('input', filterOwners);
-        ownerSelect.addEventListener('change', toggleNewOwnerBox);
-        toggleNewOwnerBox();
+        return (option.textContent || '')
+            .replace(/\s+/g, ' ')
+            .trim();
     }
 
-    function calculateAge() {
-        if (!birthDate || !ageBox || !birthDate.value) {
-            if (ageBox) ageBox.textContent = 'Sin fecha cargada';
+    /*
+     * Sincroniza el propietario seleccionado con el campo oculto.
+     * Éste es el valor que finalmente recibe FastAPI.
+     */
+    function syncOwnerId() {
+        if (!ownerSelect || !ownerIdHidden) {
             return;
         }
 
-        const birth = new Date(birthDate.value);
+        ownerIdHidden.value = ownerSelect.value || '';
+    }
+
+    /*
+     * Muestra u oculta el formulario para crear propietario.
+     */
+    function toggleNewOwnerBox() {
+        if (!ownerSelect || !newOwnerBox) {
+            return;
+        }
+
+        const hasExistingOwner = Boolean(ownerSelect.value);
+
+        newOwnerBox.style.display = hasExistingOwner
+            ? 'none'
+            : 'block';
+
+        if (ownerName) {
+            ownerName.required = !hasExistingOwner;
+        }
+
+        updateOwnerMessages();
+    }
+
+    /*
+     * Muestra visualmente qué propietario quedó seleccionado.
+     */
+    function updateOwnerMessages() {
+        if (
+            !ownerSelect ||
+            !ownerSelectedMessage ||
+            !ownerSearchMessage
+        ) {
+            return;
+        }
+
+        const selectedOption =
+            ownerSelect.options[ownerSelect.selectedIndex];
+
+        if (ownerSelect.value && selectedOption) {
+            ownerSelectedMessage.textContent =
+                '✅ Propietario seleccionado: ' +
+                getOptionText(selectedOption);
+
+            ownerSelectedMessage.style.display = 'block';
+            ownerSearchMessage.style.display = 'none';
+        } else {
+            ownerSelectedMessage.textContent = '';
+            ownerSelectedMessage.style.display = 'none';
+        }
+    }
+
+    /*
+     * Filtra propietarios y selecciona automáticamente
+     * la primera coincidencia encontrada.
+     */
+    function filterOwners() {
+        if (!ownerSelect || !ownerSearch) {
+            return;
+        }
+
+        const search = (ownerSearch.value || '')
+            .toLowerCase()
+            .trim();
+
+        const options = Array.from(ownerSelect.options);
+
+        let firstMatch = null;
+        let matchCount = 0;
+
+        options.forEach(function (option) {
+
+            /*
+             * Mantener siempre visible la opción de crear propietario.
+             */
+            if (option.value === '') {
+                option.hidden = false;
+                return;
+            }
+
+            const optionText = getOptionText(option).toLowerCase();
+
+            const matches =
+                search === '' ||
+                optionText.includes(search);
+
+            option.hidden = !matches;
+
+            if (matches && search !== '') {
+                matchCount += 1;
+
+                if (!firstMatch) {
+                    firstMatch = option;
+                }
+            }
+        });
+
+        /*
+         * Cuando se escribe una búsqueda y hay resultados,
+         * se selecciona automáticamente la primera coincidencia.
+         */
+        if (search !== '' && firstMatch) {
+            ownerSelect.value = firstMatch.value;
+            syncOwnerId();
+            toggleNewOwnerBox();
+
+            if (matchCount === 1) {
+                ownerSearchMessage.style.display = 'none';
+            } else {
+                ownerSearchMessage.textContent =
+                    'Se encontraron ' +
+                    matchCount +
+                    ' propietarios. Revisá la selección si necesitás elegir otro.';
+
+                ownerSearchMessage.style.display = 'block';
+            }
+
+            updateOwnerMessages();
+            return;
+        }
+
+        /*
+         * Si no hay coincidencias, permite crear propietario nuevo.
+         */
+        if (search !== '' && !firstMatch) {
+            ownerSelect.value = '';
+            syncOwnerId();
+            toggleNewOwnerBox();
+
+            ownerSearchMessage.textContent =
+                'No se encontró un propietario existente. Podés crearlo debajo.';
+
+            ownerSearchMessage.style.display = 'block';
+            return;
+        }
+
+        /*
+         * Si se borra la búsqueda, se muestran todos los propietarios.
+         * Se conserva el propietario que ya estuviera seleccionado.
+         */
+        ownerSearchMessage.textContent = '';
+        ownerSearchMessage.style.display = 'none';
+
+        syncOwnerId();
+        toggleNewOwnerBox();
+    }
+
+    if (ownerSelect) {
+
+        ownerSelect.addEventListener('change', function () {
+            syncOwnerId();
+            toggleNewOwnerBox();
+
+            const selectedOption =
+                ownerSelect.options[ownerSelect.selectedIndex];
+
+            if (
+                ownerSearch &&
+                ownerSelect.value &&
+                selectedOption
+            ) {
+                ownerSearch.value = getOptionText(selectedOption);
+            }
+        });
+
+        /*
+         * Si la pantalla se abrió desde un propietario concreto,
+         * mantiene y envía ese propietario.
+         */
+        if (ownerIdHidden && ownerIdHidden.value) {
+            ownerSelect.value = ownerIdHidden.value;
+        }
+
+        syncOwnerId();
+        toggleNewOwnerBox();
+    }
+
+    if (ownerSearch) {
+        ownerSearch.addEventListener('input', filterOwners);
+
+        ownerSearch.addEventListener('focus', function () {
+            ownerSearch.select();
+        });
+    }
+
+    /*
+     * Verificación final antes de enviar.
+     */
+    if (patientForm) {
+        patientForm.addEventListener('submit', function (event) {
+
+            syncOwnerId();
+
+            const hasExistingOwner =
+                ownerIdHidden &&
+                ownerIdHidden.value.trim() !== '';
+
+            const hasNewOwner =
+                ownerName &&
+                ownerName.value.trim() !== '';
+
+            if (!hasExistingOwner && !hasNewOwner) {
+                event.preventDefault();
+
+                alert(
+                    'Seleccioná un propietario existente o completá el nombre del propietario nuevo.'
+                );
+
+                if (ownerSearch) {
+                    ownerSearch.focus();
+                }
+
+                return;
+            }
+
+            const saveButton =
+                document.getElementById('savePatientButton');
+
+            if (saveButton) {
+                saveButton.disabled = true;
+                saveButton.textContent = 'Guardando...';
+            }
+        });
+    }
+
+    /*
+     * Calcula la edad desde la fecha de nacimiento.
+     */
+    function calculateAge() {
+        if (!birthDate || !ageBox || !birthDate.value) {
+            if (ageBox) {
+                ageBox.textContent = 'Sin fecha cargada';
+            }
+
+            return;
+        }
+
+        const birthParts = birthDate.value.split('-');
+
+        if (birthParts.length !== 3) {
+            ageBox.textContent = 'Fecha inválida';
+            return;
+        }
+
+        const birth = new Date(
+            Number(birthParts[0]),
+            Number(birthParts[1]) - 1,
+            Number(birthParts[2])
+        );
+
         const today = new Date();
 
-        let years = today.getFullYear() - birth.getFullYear();
-        let months = today.getMonth() - birth.getMonth();
+        if (
+            Number.isNaN(birth.getTime()) ||
+            birth > today
+        ) {
+            ageBox.textContent = 'Fecha inválida';
+            return;
+        }
 
-        if (today.getDate() < birth.getDate()) {
-            months--;
+        let years =
+            today.getFullYear() -
+            birth.getFullYear();
+
+        let months =
+            today.getMonth() -
+            birth.getMonth();
+
+        let days =
+            today.getDate() -
+            birth.getDate();
+
+        if (days < 0) {
+            months -= 1;
+
+            const previousMonthLastDay =
+                new Date(
+                    today.getFullYear(),
+                    today.getMonth(),
+                    0
+                ).getDate();
+
+            days += previousMonthLastDay;
         }
 
         if (months < 0) {
-            years--;
+            years -= 1;
             months += 12;
         }
 
         if (years < 0) {
             ageBox.textContent = 'Fecha inválida';
-        } else if (years === 0) {
-            ageBox.textContent = months + ' meses';
-        } else {
-            ageBox.textContent = years + ' años y ' + months + ' meses';
+            return;
         }
+
+        if (years === 0 && months === 0) {
+            ageBox.textContent =
+                days === 1
+                    ? '1 día'
+                    : days + ' días';
+
+            return;
+        }
+
+        if (years === 0) {
+            let result =
+                months === 1
+                    ? '1 mes'
+                    : months + ' meses';
+
+            if (days > 0) {
+                result +=
+                    days === 1
+                        ? ' y 1 día'
+                        : ' y ' + days + ' días';
+            }
+
+            ageBox.textContent = result;
+            return;
+        }
+
+        let result =
+            years === 1
+                ? '1 año'
+                : years + ' años';
+
+        if (months > 0) {
+            result +=
+                months === 1
+                    ? ' y 1 mes'
+                    : ' y ' + months + ' meses';
+        }
+
+        ageBox.textContent = result;
     }
+
+    /*
+     * Calcula una fecha de nacimiento aproximada desde la edad.
+     */
     function calculateBirthDateFromApproxAge() {
-        if (!birthDate || !approxAgeValue || !approxAgeUnit) return;
-    
-        const value = parseInt(approxAgeValue.value, 10);
+        if (
+            !birthDate ||
+            !approxAgeValue ||
+            !approxAgeUnit
+        ) {
+            return;
+        }
+
+        const value = parseInt(
+            approxAgeValue.value,
+            10
+        );
+
         const unit = approxAgeUnit.value;
-    
-        if (!value || value < 0) return;
-    
+
+        if (
+            Number.isNaN(value) ||
+            value < 0 ||
+            approxAgeValue.value === ''
+        ) {
+            return;
+        }
+
         const date = new Date();
-    
+
         if (unit === 'days') {
-            date.setDate(date.getDate() - value);
+            date.setDate(
+                date.getDate() - value
+            );
         }
-    
+
         if (unit === 'weeks') {
-            date.setDate(date.getDate() - (value * 7));
+            date.setDate(
+                date.getDate() - (value * 7)
+            );
         }
-    
+
         if (unit === 'months') {
-            date.setMonth(date.getMonth() - value);
+            date.setMonth(
+                date.getMonth() - value
+            );
         }
-    
+
         if (unit === 'years') {
-            date.setFullYear(date.getFullYear() - value);
+            date.setFullYear(
+                date.getFullYear() - value
+            );
         }
-    
-        birthDate.value = date.toISOString().split('T')[0];
+
+        const year = date.getFullYear();
+
+        const month = String(
+            date.getMonth() + 1
+        ).padStart(2, '0');
+
+        const day = String(
+            date.getDate()
+        ).padStart(2, '0');
+
+        birthDate.value =
+            year + '-' + month + '-' + day;
+
         calculateAge();
     }
-    
+
     if (approxAgeValue) {
-        approxAgeValue.addEventListener('input', calculateBirthDateFromApproxAge);
+        approxAgeValue.addEventListener(
+            'input',
+            calculateBirthDateFromApproxAge
+        );
     }
-    
+
     if (approxAgeUnit) {
-        approxAgeUnit.addEventListener('change', calculateBirthDateFromApproxAge);
+        approxAgeUnit.addEventListener(
+            'change',
+            calculateBirthDateFromApproxAge
+        );
     }
+
     if (birthDate) {
-        birthDate.addEventListener('change', calculateAge);
+        birthDate.addEventListener(
+            'change',
+            calculateAge
+        );
+
         calculateAge();
     }
 });
