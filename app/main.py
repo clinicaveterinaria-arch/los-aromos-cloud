@@ -1253,9 +1253,26 @@ def owner_edit_save(
     db.commit()
     return RedirectResponse('/owners', status_code=303)
 @app.get('/patients/new', response_class=HTMLResponse)
-def patient_new(request: Request, owner_id: Optional[int] = None, db: Session = Depends(get_db), user: User = Depends(require_user)):
-    owners = db.query(Owner).order_by(Owner.name).limit(500).all()
-    return templates.TemplateResponse('patient_new.html', {'request': request, 'owners': owners, 'owner_id': owner_id})
+def patient_new(
+    request: Request,
+    owner_id: Optional[int] = None,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    owners = (
+        db.query(Owner)
+        .order_by(Owner.name)
+        .all()
+    )
+
+    return templates.TemplateResponse(
+        'patient_new.html',
+        {
+            'request': request,
+            'owners': owners,
+            'owner_id': owner_id
+        }
+    )
 
 @app.post('/patients')
 def patient_create(
