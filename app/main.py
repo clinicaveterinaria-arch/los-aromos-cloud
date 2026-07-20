@@ -6501,6 +6501,9 @@ def product_adjust_stock(
 def sales_page(
     request: Request,
     sale_date: str = '',
+    period: str = 'today',
+    date_from: str = '',
+    date_to: str = '',
     db: Session = Depends(get_db),
     user: User = Depends(require_user)
 ):
@@ -6510,25 +6513,127 @@ def sales_page(
         .order_by(Product.name)
         .all()
     )
+
     patients = db.query(Patient).order_by(Patient.name).all()
     owners = db.query(Owner).order_by(Owner.name).all()
     patient_owner_map = {}
 
     for patient in patients:
-        patient_owner_map[str(patient.id)] = patient.owner_id if patient.owner_id else ''
-    selected_date = datetime.strptime(sale_date, "%Y-%m-%d").date() if sale_date else argentina_now().date()
-    
-    day_start = datetime.combine(selected_date, datetime.min.time())
-    day_end = datetime.combine(selected_date, datetime.max.time())
-    
-    sales = (
+        patient_owner_map[str(patient.id)] = (
+            patient.owner_id if patient.owner_id else ''
+        )
+
+    today = argentina_now().date()
+
+    valid_periods = {
+        'today',
+        'yesterday',
+        '7days',
+        'month',
+        'last_month',
+        'all',
+        'custom'
+    }
+
+    selected_period = period if period in valid_periods else 'today'
+    selected_date = today
+    selected_date_from = date_from
+    selected_date_to = date_to
+
+    # Mantiene compatibilidad con el filtro anterior por una sola fecha.
+    if sale_date:
+        try:
+            selected_date = datetime.strptime(
+                sale_date,
+                '%Y-%m-%d'
+            ).date()
+
+            selected_period = 'custom'
+            selected_date_from = sale_date
+            selected_date_to = sale_date
+
+        except ValueError:
+            selected_date = today
+
+    if selected_period == 'yesterday':
+        start_date = today - timedelta(days=1)
+        end_date = start_date
+
+    elif selected_period == '7days':
+        start_date = today - timedelta(days=6)
+        end_date = today
+
+    elif selected_period == 'month':
+        start_date = today.replace(day=1)
+        end_date = today
+
+    elif selected_period == 'last_month':
+        first_this_month = today.replace(day=1)
+        end_date = first_this_month - timedelta(days=1)
+        start_date = end_date.replace(day=1)
+
+    elif selected_period == 'all':
+        start_date = None
+        end_date = None
+
+    elif selected_period == 'custom':
+        try:
+            start_date = datetime.strptime(
+                selected_date_from,
+                '%Y-%m-%d'
+            ).date()
+
+            end_date = datetime.strptime(
+                selected_date_to,
+                '%Y-%m-%d'
+            ).date()
+
+            if start_date > end_date:
+                start_date, end_date = end_date, start_date
+                selected_date_from = start_date.isoformat()
+                selected_date_to = end_date.isoformat()
+
+        except ValueError:
+            selected_period = 'today'
+            start_date = today
+            end_date = today
+            selected_date_from = ''
+            selected_date_to = ''
+
+    else:
+        selected_period = 'today'
+        start_date = today
+        end_date = today
+
+    sales_query = (
         db.query(Sale)
-        .filter(Sale.date >= day_start, Sale.date <= day_end)
         .filter(Sale.status != 'quote')
         .filter(Sale.status != 'cancelled')
+    )
+
+    if start_date is not None and end_date is not None:
+        filter_start = datetime.combine(
+            start_date,
+            datetime.min.time()
+        )
+
+        filter_end = datetime.combine(
+            end_date,
+            datetime.max.time()
+        )
+
+        sales_query = sales_query.filter(
+            Sale.date >= filter_start,
+            Sale.date <= filter_end
+        )
+
+    sales = (
+        sales_query
         .order_by(Sale.date.desc())
         .all()
     )
+
+    sales_result_count = len(sales)
 
     for sale in sales:
         sale.items_count = (
@@ -6536,17 +6641,19 @@ def sales_page(
             .filter(SaleItem.sale_id == sale.id)
             .count()
         )
+
         sale.patient_name = ''
         sale.owner_name = ''
         sale.items_detail = []
-        sale.total_paid = (
-            sum(
-                p.amount or 0
-                for p in db.query(SalePayment)
+
+        sale.total_paid = sum(
+            payment.amount or 0
+            for payment in (
+                db.query(SalePayment)
                 .filter(SalePayment.sale_id == sale.id)
                 .all()
-                if p.method != 'Cuenta corriente'
             )
+            if payment.method != 'Cuenta corriente'
         )
 
         sale.balance_due = (sale.total or 0) - sale.total_paid
@@ -6556,11 +6663,16 @@ def sales_page(
             .filter(SaleItem.sale_id == sale.id)
             .all()
         )
-    
+
         for item in items:
             product = db.get(Product, item.product_id)
+
             sale.items_detail.append({
-                'product_name': product.name if product else 'Producto eliminado',
+                'product_name': (
+                    product.name
+                    if product
+                    else 'Producto eliminado'
+                ),
                 'quantity': item.quantity,
                 'unit_price': item.unit_price,
                 'subtotal': item.subtotal
@@ -6568,14 +6680,16 @@ def sales_page(
 
         if sale.patient_id:
             patient = db.get(Patient, sale.patient_id)
+
             if patient:
                 sale.patient_name = patient.name
 
         if sale.owner_id:
             owner = db.get(Owner, sale.owner_id)
+
             if owner:
                 sale.owner_name = owner.name
-    today = argentina_now().date()
+
     month_start = today.replace(day=1)
 
     today_sales_total = 0
@@ -6585,61 +6699,83 @@ def sales_page(
     month_cost_total = 0
     month_sales_count = 0
     ticket_average = 0
+
     all_sales = db.query(Sale).all()
 
     for sale in all_sales:
-        sale_date = sale.date.date() if sale.date else None
+        current_sale_date = sale.date.date() if sale.date else None
 
-        if sale_date == today:
+        if current_sale_date == today:
             today_sales_total += sale.total or 0
 
-        if sale_date and sale_date >= month_start:
+        if current_sale_date and current_sale_date >= month_start:
             month_sales_total += sale.total or 0
             month_cost_total += sale.cost_total or 0
             month_profit_total += sale.profit_amount or 0
             month_sales_count += 1
-        if month_sales_count > 0:
-            ticket_average = month_sales_total / month_sales_count
-        today_items = (
+
+    if month_sales_count > 0:
+        ticket_average = month_sales_total / month_sales_count
+
+    today_items = (
         db.query(SaleItem)
         .join(Sale, SaleItem.sale_id == Sale.id)
-        .filter(Sale.date >= datetime.combine(today, datetime.min.time()))
+        .filter(
+            Sale.date >= datetime.combine(
+                today,
+                datetime.min.time()
+            )
+        )
         .all()
     )
 
     for item in today_items:
         today_products_count += item.quantity or 0
+
     month_items = (
         db.query(SaleItem)
         .join(Sale, SaleItem.sale_id == Sale.id)
-        .filter(Sale.date >= datetime.combine(month_start, datetime.min.time()))
+        .filter(
+            Sale.date >= datetime.combine(
+                month_start,
+                datetime.min.time()
+            )
+        )
         .all()
     )
-    
+
     product_stats = {}
-    
+
     for item in month_items:
         product = db.get(Product, item.product_id)
+
         if not product:
             continue
-    
+
         name = product.name
-    
+
         if name not in product_stats:
             product_stats[name] = 0
-    
+
         product_stats[name] += item.quantity or 0
-    
-    top_product_name = "-"
+
+    top_product_name = '-'
     top_product_qty = 0
+
     top_products_sold = sorted(
         product_stats.items(),
         key=lambda item: item[1],
         reverse=True
     )[:10]
+
     if product_stats:
-        top_product_name = max(product_stats, key=product_stats.get)
+        top_product_name = max(
+            product_stats,
+            key=product_stats.get
+        )
+
         top_product_qty = product_stats[top_product_name]
+
     quote_sales = (
         db.query(Sale)
         .filter(Sale.status == 'quote')
@@ -6653,6 +6789,7 @@ def sales_page(
             .filter(SaleItem.sale_id == quote.id)
             .count()
         )
+
         quote.patient_name = ''
         quote.owner_name = ''
         quote.items_detail = []
@@ -6665,8 +6802,13 @@ def sales_page(
 
         for item in items:
             product = db.get(Product, item.product_id)
+
             quote.items_detail.append({
-                'product_name': product.name if product else 'Producto eliminado',
+                'product_name': (
+                    product.name
+                    if product
+                    else 'Producto eliminado'
+                ),
                 'quantity': item.quantity,
                 'unit_price': item.unit_price,
                 'subtotal': item.subtotal
@@ -6674,13 +6816,16 @@ def sales_page(
 
         if quote.patient_id:
             patient = db.get(Patient, quote.patient_id)
+
             if patient:
                 quote.patient_name = patient.name
 
         if quote.owner_id:
             owner = db.get(Owner, quote.owner_id)
+
             if owner:
-                quote.owner_name = owner.name    
+                quote.owner_name = owner.name
+
     return templates.TemplateResponse(
         'sales_v2.html',
         {
@@ -6690,8 +6835,12 @@ def sales_page(
             'patient_owner_map': patient_owner_map,
             'owners': owners,
             'sales': sales,
-            'quote_sales': quote_sales,            
+            'quote_sales': quote_sales,
             'selected_date': selected_date,
+            'selected_period': selected_period,
+            'selected_date_from': selected_date_from,
+            'selected_date_to': selected_date_to,
+            'sales_result_count': sales_result_count,
             'today_sales_total': today_sales_total,
             'month_sales_total': month_sales_total,
             'today_products_count': today_products_count,
@@ -6702,8 +6851,6 @@ def sales_page(
             'top_product_name': top_product_name,
             'top_product_qty': top_product_qty,
             'top_products_sold': top_products_sold
-            
-            
         }
     )
 @app.post('/sales')
