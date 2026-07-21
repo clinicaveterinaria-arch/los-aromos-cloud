@@ -9047,7 +9047,56 @@ def event_done(
         status_code=303
     )
 
+@app.post('/events/{event_id}/complete-pending')
+def complete_pending_event(
+    event_id: int,
+    return_to: str = Form('pendientes'),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    event = db.get(ClinicalEvent, event_id)
 
+    if not event:
+        raise HTTPException(
+            status_code=404,
+            detail='Evento no encontrado'
+        )
+
+    description = event.description or ''
+
+    if DUE_CLOSED_MARKER not in description:
+        if DUE_ACTIVE_MARKER in description:
+            description = description.replace(
+                DUE_ACTIVE_MARKER,
+                DUE_CLOSED_MARKER
+            )
+        else:
+            description = (
+                description.rstrip()
+                + '\n\n'
+                + DUE_CLOSED_MARKER
+            ).strip()
+
+        description += (
+            '\n\n'
+            '✅ Pendiente marcado manualmente como realizado.\n'
+            f'Fecha real: {argentina_now().strftime("%d/%m/%Y %H:%M")}\n'
+            f'Registrado por: {user.username}.'
+        )
+
+        event.description = description
+        event.reminder_date = None
+        db.commit()
+
+    if return_to == 'patient':
+        destination = f'/patients/{event.patient_id}/v2'
+    else:
+        destination = '/pendientes'
+
+    return RedirectResponse(
+        destination,
+        status_code=303
+    )
 @app.post('/events/{event_id}/delete')
 def delete_event(
     event_id: int,
