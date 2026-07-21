@@ -73,11 +73,36 @@
 
         <div class="stats-filters">
             <a class="stats-filter {% if period == 'today' %}active{% endif %}" href="/stats?period=today">Día</a>
-            <a class="stats-filter {% if period == 'week' %}active{% endif %}" href="/stats?period=week">Semana</a>
+            <a class="stats-filter {% if period == 'week' %}active{% endif %}" href="/stats?period=week&week_start={{ week_start }}&compare_week_start={{ compare_week_start }}">Semana</a>
             <a class="stats-filter {% if period == 'month' %}active{% endif %}" href="/stats?period=month&month={{ month }}&compare_month={{ compare_month }}">Mes</a>
             <button class="export-btn" type="button" onclick="window.print()">🖨 Imprimir</button>
         </div>
     </div>
+
+    {% if period == 'week' %}
+        <div class="stats-card">
+            <form method="get" action="/stats" class="comparison-form">
+                <input type="hidden" name="period" value="week">
+                <div>
+                    <label>Semana principal · lunes a domingo</label>
+                    <select name="week_start">
+                        {% for item in available_weeks %}
+                            <option value="{{ item.value }}" {% if item.value == week_start %}selected{% endif %}>{{ item.label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label>Comparar con</label>
+                    <select name="compare_week_start">
+                        {% for item in available_weeks %}
+                            <option value="{{ item.value }}" {% if item.value == compare_week_start %}selected{% endif %}>{{ item.label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit">Comparar</button>
+            </form>
+        </div>
+    {% endif %}
 
     {% if period == 'month' %}
         <div class="stats-card">
