@@ -59,14 +59,20 @@
         .stats-filters, .kpi-grid, .category-grid { grid-template-columns:1fr; }
     }
     @media print {
-        @page { size:A4 portrait; margin:16mm 12mm 15mm; }
+        @page { size:A4 portrait; margin:12mm 11mm 14mm; }
 
         * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
-        html, body { background:#fff !important; }
+        html, body { background:#fff !important; margin:0 !important; padding:0 !important; }
         body { color:#28313f; font-size:10px; }
-        aside, body > nav, body > header, .sidebar, .mobile-menu, .menu-toggle,
+
+        /* Aísla el informe del menú y de la cabecera general de base.html. */
+        body * { visibility:hidden !important; }
+        .stats-page, .stats-page * { visibility:visible !important; }
+        .stats-page {
+            position:absolute !important; inset:0 auto auto 0 !important;
+            width:100% !important; margin:0 !important; padding:0 !important;
+        }
         .stats-filters, .comparison-form, .screen-only, .comparison-card { display:none !important; }
-        main, .main-content, .content { width:100% !important; max-width:none !important; margin:0 !important; padding:0 !important; }
 
         .stats-page { padding:0 !important; max-width:none !important; }
         .print-report-header {
@@ -79,13 +85,13 @@
         .print-period { text-align:right; color:#6b7280; line-height:1.5; white-space:nowrap; }
         .print-period b { color:#1f2937; }
         .print-report-footer {
-            display:block; position:fixed; left:0; right:0; bottom:-10mm;
+            display:block !important; position:fixed; left:0; right:0; bottom:-9mm;
             padding-top:5px; border-top:1px solid #f3c6d8; color:#8a7480;
             font-size:8px; text-align:center;
         }
         .print-page-number::after { content:"Página " counter(page); }
 
-        .stats-hero { display:none; }
+        .stats-hero { display:none !important; }
         .stats-card, .kpi-card, .category-card {
             box-shadow:none !important; border-color:#edc7d7; border-radius:10px;
             break-inside:avoid; page-break-inside:avoid;
@@ -118,10 +124,15 @@
 
         .daily-card { break-before:page; page-break-before:always; break-inside:auto; page-break-inside:auto; }
         .daily-card table { break-inside:auto; page-break-inside:auto; }
-        .ranking-grid { display:block; }
-        .ranking-card { break-inside:auto; page-break-inside:auto; }
-        .ranking-card table { break-inside:auto; page-break-inside:auto; }
-        .ranking-card + .ranking-card { margin-top:10px; }
+        .ranking-grid {
+            display:grid !important; grid-template-columns:1fr 1fr !important; gap:10px;
+            break-before:page; page-break-before:always;
+        }
+        .ranking-card {
+            margin:0 !important; break-inside:avoid !important; page-break-inside:avoid !important;
+        }
+        .ranking-card table { break-inside:avoid; page-break-inside:avoid; table-layout:fixed; }
+        .ranking-card th:first-child, .ranking-card td:first-child { width:58%; overflow-wrap:anywhere; }
     }
 </style>
 
