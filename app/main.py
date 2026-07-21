@@ -9646,6 +9646,8 @@ def stats_page(
     period: str = 'month',
     month: str = '',
     compare_month: str = '',
+    week_start: str = '',
+    compare_week_start: str = '',
     db: Session = Depends(get_db),
     user: User = Depends(require_user)
 ):
@@ -9696,12 +9698,50 @@ def stats_page(
         compare_label = compare_start.strftime('%d/%m/%Y')
 
     elif period == 'week':
-        start_date = today - timedelta(days=today.weekday())
-        end_date = today
-        compare_start = start_date - timedelta(days=7)
-        compare_end = end_date - timedelta(days=7)
-        period_label = f'{start_date.strftime("%d/%m")} al {end_date.strftime("%d/%m/%Y")}'
-        compare_label = f'{compare_start.strftime("%d/%m")} al {compare_end.strftime("%d/%m/%Y")}'
+        current_week_start = today - timedelta(days=today.weekday())
+
+        try:
+            requested_week_start = datetime.strptime(
+                week_start,
+                '%Y-%m-%d'
+            ).date()
+
+            start_date = (
+                requested_week_start
+                - timedelta(days=requested_week_start.weekday())
+            )
+        except Exception:
+            start_date = current_week_start
+
+        end_date = start_date + timedelta(days=6)
+
+        try:
+            requested_compare_start = datetime.strptime(
+                compare_week_start,
+                '%Y-%m-%d'
+            ).date()
+
+            compare_start = (
+                requested_compare_start
+                - timedelta(days=requested_compare_start.weekday())
+            )
+        except Exception:
+            compare_start = start_date - timedelta(days=7)
+
+        compare_end = compare_start + timedelta(days=6)
+
+        week_start = start_date.strftime('%Y-%m-%d')
+        compare_week_start = compare_start.strftime('%Y-%m-%d')
+
+        period_label = (
+            f'{start_date.strftime("%d/%m/%Y")} '
+            f'al {end_date.strftime("%d/%m/%Y")}'
+        )
+
+        compare_label = (
+            f'{compare_start.strftime("%d/%m/%Y")} '
+            f'al {compare_end.strftime("%d/%m/%Y")}'
+        )
 
     else:
         period = 'month'
@@ -9713,15 +9753,32 @@ def stats_page(
         compare_label = compare_start.strftime('%m/%Y')
 
     category_meta = {
-        'clinical': {'label': 'Servicios clínicos', 'icon': '🩺'},
-        'pharmacy': {'label': 'Farmacia', 'icon': '💊'},
-        'food': {'label': 'Alimentos balanceados', 'icon': '🥣'},
-        'petshop': {'label': 'Pet Shop', 'icon': '🐾'},
-        'other': {'label': 'Otros', 'icon': '📦'}
+        'clinical': {
+            'label': 'Servicios clínicos',
+            'icon': '🩺'
+        },
+        'pharmacy': {
+            'label': 'Farmacia',
+            'icon': '💊'
+        },
+        'food': {
+            'label': 'Alimentos balanceados',
+            'icon': '🥣'
+        },
+        'petshop': {
+            'label': 'Pet Shop',
+            'icon': '🐾'
+        },
+        'other': {
+            'label': 'Otros',
+            'icon': '📦'
+        }
     }
 
     def classify_product(product, rubro_value=''):
-        rubro_text = normalize(rubro_value or getattr(product, 'rubro', ''))
+        rubro_text = normalize(
+            rubro_value or getattr(product, 'rubro', '')
+        )
         tipo_text = normalize(getattr(product, 'tipo', ''))
         name_text = normalize(getattr(product, 'name', ''))
         full_text = f'{rubro_text} {tipo_text} {name_text}'.strip()
@@ -9729,7 +9786,12 @@ def stats_page(
         if (
             'servicio clinico' in rubro_text
             or 'servicios clinicos' in rubro_text
-            or rubro_text in {'servicio', 'servicios', 'clinica', 'clinico'}
+            or rubro_text in {
+                'servicio',
+                'servicios',
+                'clinica',
+                'clinico'
+            }
         ):
             return 'clinical'
 
@@ -9757,36 +9819,83 @@ def stats_page(
             return 'pharmacy'
 
         clinical_words = [
-            'consulta', 'control', 'ecg', 'radiografia', 'ecografia',
-            'cirugia', 'internacion', 'anestesia', 'curacion',
-            'laboratorio', 'vacunacion', 'servicio'
+            'consulta',
+            'control',
+            'ecg',
+            'radiografia',
+            'ecografia',
+            'cirugia',
+            'internacion',
+            'anestesia',
+            'curacion',
+            'laboratorio',
+            'vacunacion',
+            'servicio'
         ]
-        food_words = ['balanceado', 'alimento', 'racion', 'dieta']
+
+        food_words = [
+            'balanceado',
+            'alimento',
+            'racion',
+            'dieta'
+        ]
+
         petshop_words = [
-            'collar', 'correa', 'pretal', 'juguete', 'cama', 'comedero',
-            'bebedero', 'transportadora', 'arena', 'piedras sanitarias',
-            'shampoo', 'cepillo', 'ropa'
+            'collar',
+            'correa',
+            'pretal',
+            'juguete',
+            'cama',
+            'comedero',
+            'bebedero',
+            'transportadora',
+            'arena',
+            'piedras sanitarias',
+            'shampoo',
+            'cepillo',
+            'ropa'
         ]
+
         pharmacy_words = [
-            'farmacia', 'medicamento', 'comprimido', 'inyectable', 'ampolla',
-            'antibiotico', 'analgesico', 'antiinflamatorio', 'pipeta',
-            'antiparasitario', 'vacuna', 'jarabe', 'suspension'
+            'farmacia',
+            'medicamento',
+            'comprimido',
+            'inyectable',
+            'ampolla',
+            'antibiotico',
+            'analgesico',
+            'antiinflamatorio',
+            'pipeta',
+            'antiparasitario',
+            'vacuna',
+            'jarabe',
+            'suspension'
         ]
 
         if any(word in full_text for word in clinical_words):
             return 'clinical'
+
         if any(word in full_text for word in food_words):
             return 'food'
+
         if any(word in full_text for word in petshop_words):
             return 'petshop'
+
         if any(word in full_text for word in pharmacy_words):
             return 'pharmacy'
 
         return 'other'
 
     def build_period_data(range_start, range_end):
-        start_dt = datetime.combine(range_start, datetime.min.time())
-        end_dt = datetime.combine(range_end, datetime.max.time())
+        start_dt = datetime.combine(
+            range_start,
+            datetime.min.time()
+        )
+
+        end_dt = datetime.combine(
+            range_end,
+            datetime.max.time()
+        )
 
         sales = (
             db.query(Sale)
@@ -9798,7 +9907,10 @@ def stats_page(
         )
 
         sale_ids = [sale.id for sale in sales]
-        sales_by_id = {sale.id: sale for sale in sales}
+        sales_by_id = {
+            sale.id: sale
+            for sale in sales
+        }
 
         category_stats = {
             key: {
@@ -9846,10 +9958,17 @@ def stats_page(
             )
 
             for item in items:
-                sale_item_totals[item.sale_id] += item.subtotal or 0
+                sale_item_totals[item.sale_id] += (
+                    item.subtotal or 0
+                )
 
         for sale in sales:
-            sale_day = sale.date.date() if sale.date else range_start
+            sale_day = (
+                sale.date.date()
+                if sale.date
+                else range_start
+            )
+
             daily_stats[sale_day]['date'] = sale_day
             daily_stats[sale_day]['sales'] += sale.total or 0
             daily_stats[sale_day]['count'] += 1
@@ -9861,13 +9980,25 @@ def stats_page(
             if not sale or not product:
                 continue
 
-            raw_subtotal = item.subtotal or ((item.quantity or 0) * (item.unit_price or 0))
-            item_total_for_sale = sale_item_totals.get(item.sale_id, 0)
+            raw_subtotal = (
+                item.subtotal
+                or (
+                    (item.quantity or 0)
+                    * (item.unit_price or 0)
+                )
+            )
+
+            item_total_for_sale = sale_item_totals.get(
+                item.sale_id,
+                0
+            )
+
             allocation_factor = (
                 (sale.total or 0) / item_total_for_sale
                 if item_total_for_sale > 0
                 else 1
             )
+
             allocated_sales = raw_subtotal * allocation_factor
 
             category = classify_product(product)
@@ -9877,7 +10008,10 @@ def stats_page(
                 cost = 0
                 profit = allocated_sales
             else:
-                cost = (product.cost_price or 0) * qty
+                cost = (
+                    (product.cost_price or 0)
+                    * qty
+                )
                 profit = allocated_sales - cost
 
             category_stats[category]['sales'] += allocated_sales
@@ -9885,42 +10019,113 @@ def stats_page(
             category_stats[category]['profit'] += profit
             category_stats[category]['qty'] += qty
 
-            product_key = (category, product.id)
-            product_stats[product_key]['name'] = product.name or 'Sin nombre'
+            product_key = (
+                category,
+                product.id
+            )
+
+            product_stats[product_key]['name'] = (
+                product.name or 'Sin nombre'
+            )
+
             product_stats[product_key]['category'] = category
             product_stats[product_key]['qty'] += qty
             product_stats[product_key]['sales'] += allocated_sales
             product_stats[product_key]['cost'] += cost
             product_stats[product_key]['profit'] += profit
 
-            sale_day = sale.date.date() if sale.date else range_start
+            sale_day = (
+                sale.date.date()
+                if sale.date
+                else range_start
+            )
+
             daily_stats[sale_day]['profit'] += profit
 
-        sales_total = sum(sale.total or 0 for sale in sales)
+        sales_total = sum(
+            sale.total or 0
+            for sale in sales
+        )
+
         sales_count = len(sales)
-        profit_total = sum(data['profit'] for data in category_stats.values())
-        cost_total = sum(data['cost'] for data in category_stats.values())
-        ticket_average = sales_total / sales_count if sales_count else 0
-        patients_seen = len({sale.patient_id for sale in sales if sale.patient_id})
-        margin_percent = (profit_total / sales_total * 100) if sales_total else 0
+
+        profit_total = sum(
+            data['profit']
+            for data in category_stats.values()
+        )
+
+        cost_total = sum(
+            data['cost']
+            for data in category_stats.values()
+        )
+
+        ticket_average = (
+            sales_total / sales_count
+            if sales_count
+            else 0
+        )
+
+        patients_seen = len({
+            sale.patient_id
+            for sale in sales
+            if sale.patient_id
+        })
+
+        margin_percent = (
+            profit_total / sales_total * 100
+            if sales_total
+            else 0
+        )
 
         for data in category_stats.values():
-            data['percent'] = (data['sales'] / sales_total * 100) if sales_total else 0
+            data['percent'] = (
+                data['sales'] / sales_total * 100
+                if sales_total
+                else 0
+            )
 
         daily_rows = []
         cursor = range_start
+
         while cursor <= range_end:
             data = daily_stats[cursor]
             data['date'] = cursor
-            data['ticket'] = data['sales'] / data['count'] if data['count'] else 0
+
+            data['ticket'] = (
+                data['sales'] / data['count']
+                if data['count']
+                else 0
+            )
+
             daily_rows.append(dict(data))
             cursor += timedelta(days=1)
 
-        days_with_sales = [row for row in daily_rows if row['count'] > 0]
-        best_day = max(days_with_sales, key=lambda row: row['sales']) if days_with_sales else None
-        worst_day = min(days_with_sales, key=lambda row: row['sales']) if days_with_sales else None
+        days_with_sales = [
+            row
+            for row in daily_rows
+            if row['count'] > 0
+        ]
+
+        best_day = (
+            max(
+                days_with_sales,
+                key=lambda row: row['sales']
+            )
+            if days_with_sales
+            else None
+        )
+
+        worst_day = (
+            min(
+                days_with_sales,
+                key=lambda row: row['sales']
+            )
+            if days_with_sales
+            else None
+        )
 
         payments_by_method = {}
+
         if sale_ids:
             payments = (
                 db.query(SalePayment)
@@ -9928,15 +10133,32 @@ def stats_page(
                 .all()
             )
 
-            payment_stats = defaultdict(lambda: {'count': 0, 'total': 0.0, 'percent': 0.0})
+            payment_stats = defaultdict(
+                lambda: {
+                    'count': 0,
+                    'total': 0.0,
+                    'percent': 0.0
+                }
+            )
+
             for payment in payments:
                 method = payment.method or 'Sin método'
                 payment_stats[method]['count'] += 1
-                payment_stats[method]['total'] += payment.amount or 0
+                payment_stats[method]['total'] += (
+                    payment.amount or 0
+                )
 
-            payment_total = sum(data['total'] for data in payment_stats.values())
+            payment_total = sum(
+                data['total']
+                for data in payment_stats.values()
+            )
+
             for data in payment_stats.values():
-                data['percent'] = (data['total'] / payment_total * 100) if payment_total else 0
+                data['percent'] = (
+                    data['total'] / payment_total * 100
+                    if payment_total
+                    else 0
+                )
 
             payments_by_method = dict(
                 sorted(
@@ -9947,11 +10169,14 @@ def stats_page(
             )
 
         top_by_category = {}
+
         for category_key in category_meta:
             rows = [
-                data for data in product_stats.values()
+                data
+                for data in product_stats.values()
                 if data['category'] == category_key
             ]
+
             top_by_category[category_key] = sorted(
                 rows,
                 key=lambda row: row['sales'],
@@ -9976,12 +10201,28 @@ def stats_page(
             'top_by_category': top_by_category
         }
 
-    current = build_period_data(start_date, end_date)
-    comparison = build_period_data(compare_start, compare_end)
+    current = build_period_data(
+        start_date,
+        end_date
+    )
+
+    comparison = build_period_data(
+        compare_start,
+        compare_end
+    )
 
     def diff(current_value, previous_value):
-        amount = (current_value or 0) - (previous_value or 0)
-        percent = (amount / previous_value * 100) if previous_value else 0
+        amount = (
+            (current_value or 0)
+            - (previous_value or 0)
+        )
+
+        percent = (
+            amount / previous_value * 100
+            if previous_value
+            else 0
+        )
+
         return {
             'amount': amount,
             'percent': percent,
@@ -9989,14 +10230,30 @@ def stats_page(
         }
 
     comparison_stats = {
-        'sales_total': diff(current['sales_total'], comparison['sales_total']),
-        'profit_total': diff(current['profit_total'], comparison['profit_total']),
-        'sales_count': diff(current['sales_count'], comparison['sales_count']),
-        'ticket_average': diff(current['ticket_average'], comparison['ticket_average']),
-        'patients_seen': diff(current['patients_seen'], comparison['patients_seen'])
+        'sales_total': diff(
+            current['sales_total'],
+            comparison['sales_total']
+        ),
+        'profit_total': diff(
+            current['profit_total'],
+            comparison['profit_total']
+        ),
+        'sales_count': diff(
+            current['sales_count'],
+            comparison['sales_count']
+        ),
+        'ticket_average': diff(
+            current['ticket_average'],
+            comparison['ticket_average']
+        ),
+        'patients_seen': diff(
+            current['patients_seen'],
+            comparison['patients_seen']
+        )
     }
 
     category_comparison = {}
+
     for key in category_meta:
         category_comparison[key] = {
             'sales': diff(
@@ -10009,11 +10266,37 @@ def stats_page(
             )
         }
 
+    available_weeks = []
+    current_week_start = (
+        today - timedelta(days=today.weekday())
+    )
+
+    for i in range(104):
+        option_start = (
+            current_week_start
+            - timedelta(weeks=i)
+        )
+
+        option_end = (
+            option_start
+            + timedelta(days=6)
+        )
+
+        available_weeks.append({
+            'value': option_start.strftime('%Y-%m-%d'),
+            'label': (
+                f'{option_start.strftime("%d/%m/%Y")} '
+                f'al {option_end.strftime("%d/%m/%Y")}'
+            )
+        })
+
     available_months = []
     ref = today.replace(day=1)
+
     for i in range(60):
         year = ref.year
         month_number = ref.month - i
+
         while month_number <= 0:
             month_number += 12
             year -= 1
@@ -10034,6 +10317,9 @@ def stats_page(
             'end_date': end_date,
             'month': month,
             'compare_month': compare_month,
+            'week_start': week_start,
+            'compare_week_start': compare_week_start,
+            'available_weeks': available_weeks,
             'available_months': available_months,
             'current': current,
             'comparison': comparison,
@@ -10042,7 +10328,6 @@ def stats_page(
             'category_meta': category_meta
         }
     )
-
 # ===== VADEMÉCUM =====
 
 @app.get('/vademecum', response_class=HTMLResponse)
