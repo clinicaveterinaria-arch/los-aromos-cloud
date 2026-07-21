@@ -354,6 +354,26 @@
                             >
                                 Reenviar WhatsApp
                             </button>
+
+                            <form
+                                method="post"
+                                action="/events/{{ event.id }}/complete-pending"
+                                style="display:inline;"
+                                onsubmit="return confirm('¿Confirmás que este pendiente ya fue realizado?');"
+                            >
+                                <input
+                                    type="hidden"
+                                    name="return_to"
+                                    value="pendientes"
+                                >
+
+                                <button
+                                    type="submit"
+                                    class="pending-btn"
+                                >
+                                    ✓ Marcar realizado
+                                </button>
+                            </form>
                         </div>
                     </div>
                 {% else %}
@@ -486,6 +506,7 @@
                             <div class="pending-meta">
                                 Fecha:
                                 {{ event.reminder_date.strftime('%d/%m/%Y') }}
+
                                 {% if event.patient.owner %}
                                     <br>
                                     Propietario:
@@ -525,7 +546,6 @@
 
     </div>
 </div>
-
 
 <script>
     function openWhatsAppAndRefresh(button, eventId, confirmationText) {
