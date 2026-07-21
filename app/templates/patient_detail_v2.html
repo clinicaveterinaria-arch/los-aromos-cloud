@@ -173,6 +173,7 @@
     <div class="hc2-shell">
 
         {% include "_visit_header.html" ignore missing %}
+
         {% if whatsapp_pending_alerts %}
         <div
             class="hc2-card"
@@ -209,12 +210,33 @@
 
                         Todavía no se registró su realización.
                     </div>
+
+                    <form
+                        method="post"
+                        action="/events/{{ pending.id }}/complete-pending"
+                        style="margin-top:9px;"
+                        onsubmit="return confirm('¿Confirmás que este pendiente ya fue realizado?');"
+                    >
+                        <input
+                            type="hidden"
+                            name="return_to"
+                            value="patient"
+                        >
+
+                        <button
+                            type="submit"
+                            class="hc2-btn"
+                            style="padding:7px 11px;"
+                        >
+                            ✓ Marcar como realizado
+                        </button>
+                    </form>
                 </div>
             {% endfor %}
         </div>
         {% endif %}
-        <div class="hc2-grid">
 
+        <div class="hc2-grid">
             <main>
                 {% include "_visit_form.html" ignore missing %}
                 {% include "_visit_timeline.html" ignore missing %}
@@ -223,7 +245,6 @@
             <aside>
                 {% include "_visit_sidebar.html" ignore missing %}
             </aside>
-
         </div>
 
         {% include "_visit_modals.html" ignore missing %}
