@@ -386,6 +386,13 @@ Clínica Veterinaria Los Aromos.
     </a>
 </div>
 
+<div class="print-footer">
+    <div>¡Gracias por confiar en nosotros!</div>
+    <div class="print-paw">🐾</div>
+    <div>Clínica Veterinaria Los Aromos</div>
+    <div>Concordia - Entre Ríos</div>
+</div>
+
 <script>
 function updateDetailPrice(select) {
     const selected = select.options[select.selectedIndex];
@@ -398,69 +405,230 @@ function updateDetailPrice(select) {
 }
 </script>
 <style>
-@media print {
-    body {
-        background: white !important;
-        font-size: 12px;
-    }
-.sidebar,
-.topbar {
-    display: none !important;
+.print-footer {
+    display: none;
 }
 
-.content {
-    margin: 0 !important;
-    padding: 0 !important;
-}
+@media print {
+    @page {
+        size: 58mm auto;
+        margin: 0;
+    }
+
+    html,
+    body {
+        width: 58mm !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #fff !important;
+    }
+
+    body {
+        font-family: Arial, Helvetica, sans-serif !important;
+        font-size: 10px !important;
+        line-height: 1.25 !important;
+        color: #000 !important;
+        overflow: visible !important;
+    }
+
+    .sidebar,
+    .topbar,
     .btn,
     a,
     form,
-    .no-print {
+    .no-print,
+    .internal-profit {
         display: none !important;
     }
 
-    .card {
-        border: none !important;
+    .content,
+    main,
+    .container,
+    .container-fluid {
+        width: 58mm !important;
+        max-width: 58mm !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .card,
+    .card-body,
+    .card-header {
+        width: auto !important;
+        max-width: none !important;
+        margin: 0 !important;
         box-shadow: none !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+    }
+
+    .card {
+        border: 0 !important;
+        border-bottom: 1px solid #777 !important;
+        padding: 2.2mm 2.5mm !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    .card-body {
+        padding: 0 !important;
+    }
+
+    .card-header {
+        border: 0 !important;
+        padding: 0 0 1.5mm 0 !important;
+        font-size: 11px !important;
+        font-weight: 700 !important;
     }
 
     h2 {
-        text-align: center;
-        font-size: 18px;
-        margin-bottom: 8px !important;
+        width: auto !important;
+        margin: 0 !important;
+        padding: 3mm 2.5mm 2.5mm !important;
+        text-align: center !important;
+        font-size: 15px !important;
+        line-height: 1.15 !important;
+        border-bottom: 1px solid #777;
     }
 
     h2::before {
         content: "CLÍNICA VETERINARIA LOS AROMOS\A";
         white-space: pre;
         display: block;
-        font-size: 16px;
-        font-weight: bold;
-        margin-bottom: 6px;
+        font-size: 14px;
+        font-weight: 800;
+        margin-bottom: 1.2mm;
     }
 
     h2::after {
         content: "Comprobante de venta";
         display: block;
-        font-size: 13px;
-        font-weight: normal;
-        margin-top: 4px;
+        font-size: 10px;
+        font-weight: 400;
+        margin-top: 1mm;
+    }
+
+    h5 {
+        margin: 2mm 0 1.5mm !important;
+        font-size: 10px !important;
+        line-height: 1.2 !important;
+    }
+
+    hr {
+        border: 0 !important;
+        border-top: 1px solid #777 !important;
+        margin: 2mm 0 !important;
+        opacity: 1 !important;
     }
 
     table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 10px;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        border-collapse: collapse !important;
+        table-layout: fixed !important;
     }
 
-    th, td {
-        border-bottom: 1px solid #ccc;
-        padding: 4px;
-        font-size: 12px;
-    }
-
-    .internal-profit {
+    thead {
         display: none !important;
+    }
+
+    tbody,
+    tr {
+        display: block !important;
+        width: 100% !important;
+    }
+
+    tr {
+        padding: 1.5mm 0 !important;
+        border-bottom: 1px dotted #aaa !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    td {
+        display: block !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        border: 0 !important;
+        padding: 0.4mm 0 !important;
+        font-size: 9.5px !important;
+        white-space: normal !important;
+        overflow: visible !important;
+        overflow-wrap: anywhere !important;
+        word-break: break-word !important;
+    }
+
+    td:first-child {
+        font-weight: 700 !important;
+        font-size: 10px !important;
+        margin-bottom: 0.5mm !important;
+    }
+
+    td:nth-child(2)::before {
+        content: "Cantidad: ";
+        font-weight: 700;
+    }
+
+    td:nth-child(3)::before {
+        content: "Precio unitario: ";
+        font-weight: 700;
+    }
+
+    td:nth-child(4)::before {
+        content: "Subtotal: ";
+        font-weight: 700;
+    }
+
+    td:nth-child(2),
+    td:nth-child(3),
+    td:nth-child(4) {
+        display: inline-block !important;
+        width: auto !important;
+        margin-right: 2mm !important;
+        font-size: 9px !important;
+    }
+
+    .card-body > div[style*="display:grid"] {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 2.5mm 3mm !important;
+    }
+
+    .card-body > div[style*="max-width:520px"] {
+        max-width: none !important;
+        width: 100% !important;
+        margin-bottom: 2mm !important;
+    }
+
+    .card-body > div[style*="max-width:420px"] {
+        max-width: none !important;
+        width: 100% !important;
+    }
+
+    .card-body > div[style*="max-width:420px"] > div {
+        padding: 1.5mm 2mm !important;
+        margin-bottom: 1.5mm !important;
+        border: 1px solid #aaa !important;
+        border-radius: 2mm !important;
+        background: transparent !important;
+    }
+
+    .print-footer {
+        display: block !important;
+        width: auto !important;
+        margin: 0 !important;
+        padding: 3mm 2.5mm 4mm !important;
+        text-align: center !important;
+        font-size: 9px !important;
+        line-height: 1.35 !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    .print-paw {
+        font-size: 20px !important;
+        line-height: 1 !important;
+        margin: 1.5mm 0 !important;
     }
 }
 </style>
