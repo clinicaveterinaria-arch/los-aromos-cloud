@@ -2,165 +2,515 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <title>Historia Clínica - {{ patient.name }}</title>
 
 <style>
-
-body{
-    font-family: Arial, sans-serif;
-    margin:40px;
-    color:#222;
-}
-
-h1{
-    margin-bottom:5px;
-}
-
-h2{
-    margin-top:30px;
-    border-bottom:1px solid #ccc;
-    padding-bottom:5px;
-}
-
-.header{
-    margin-bottom:30px;
-}
-
-.event{
-    margin-bottom:25px;
-    padding:15px;
-    border:1px solid #ddd;
-    border-radius:8px;
-}
-
-.date{
-    color:#666;
-    font-size:14px;
-}
-
-img{
-    max-width:400px;
-    max-height:400px;
-    margin-top:10px;
-}
-
-@media print{
-    button{
-        display:none;
+    :root {
+        --pink: #d85b9f;
+        --pink-soft: #fff4f9;
+        --pink-line: #efbfd7;
+        --ink: #252525;
+        --muted: #6b7280;
+        --line: #dedede;
     }
-}
 
+    * {
+        box-sizing: border-box;
+    }
+
+    @page {
+        size: A4;
+        margin: 16mm 16mm 18mm;
+    }
+
+    body {
+        max-width: 178mm;
+        margin: 28px auto;
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 14px;
+        line-height: 1.42;
+        color: var(--ink);
+        background: #fff;
+    }
+
+    .print-button {
+        margin-bottom: 18px;
+        padding: 10px 16px;
+        border: 0;
+        border-radius: 9px;
+        background: var(--pink);
+        color: #fff;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .clinic-header {
+        display: flex;
+        align-items: center;
+        gap: 17px;
+        padding-bottom: 13px;
+        margin-bottom: 19px;
+        border-bottom: 2px solid var(--pink);
+    }
+
+    .clinic-logo {
+        width: 74px;
+        height: 74px;
+        object-fit: contain;
+        flex: 0 0 74px;
+    }
+
+    .clinic-name {
+        margin: 0 0 3px;
+        font-size: 22px;
+        line-height: 1.15;
+        font-weight: 700;
+    }
+
+    .clinic-details {
+        margin: 0;
+        font-size: 13px;
+        line-height: 1.35;
+        color: #3f3f46;
+    }
+
+    .document-title {
+        margin: 0 0 12px;
+        font-size: 25px;
+        line-height: 1.15;
+    }
+
+    .patient-card {
+        display: grid;
+        grid-template-columns:
+            minmax(150px, 1.4fr)
+            repeat(3, minmax(90px, 1fr));
+        gap: 10px 18px;
+        margin-bottom: 20px;
+        padding: 13px 15px;
+        border: 1px solid var(--pink-line);
+        border-left: 5px solid var(--pink);
+        border-radius: 10px;
+        background: var(--pink-soft);
+    }
+
+    .patient-name {
+        font-size: 20px;
+        font-weight: 700;
+        color: #9d356c;
+    }
+
+    .patient-label {
+        display: block;
+        margin-bottom: 1px;
+        color: var(--muted);
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.45px;
+        text-transform: uppercase;
+    }
+
+    .section-title {
+        margin: 0 0 12px;
+        padding-bottom: 6px;
+        border-bottom: 1px solid var(--pink-line);
+        font-size: 19px;
+    }
+
+    .event {
+        position: relative;
+        margin: 0 0 13px;
+        padding: 13px 15px 12px;
+        border: 1px solid var(--line);
+        border-left: 4px solid var(--pink);
+        border-radius: 9px;
+        background: #fff;
+        break-inside: avoid-page;
+        page-break-inside: avoid;
+    }
+
+    .event-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 9px;
+        padding-bottom: 7px;
+        border-bottom: 1px solid #eeeeee;
+    }
+
+    .date {
+        font-size: 13px;
+        font-weight: 700;
+        color: #9d356c;
+    }
+
+    .event-type {
+        padding: 3px 8px;
+        border-radius: 999px;
+        background: var(--pink-soft);
+        color: #9d356c;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    .field {
+        margin: 0 0 8px;
+    }
+
+    .field:last-child {
+        margin-bottom: 0;
+    }
+
+    .field-label {
+        display: block;
+        margin-bottom: 1px;
+        font-size: 12px;
+        font-weight: 700;
+        color: #3f3f46;
+    }
+
+    .field-content {
+        margin: 0;
+        white-space: pre-line;
+        overflow-wrap: anywhere;
+    }
+
+    .attachments {
+        margin: 4px 0 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .attachment-name {
+        margin-top: 3px;
+        color: #555;
+        font-size: 12px;
+        overflow-wrap: anywhere;
+    }
+
+    .attachment-image {
+        display: block;
+        max-width: 100%;
+        max-height: 115mm;
+        margin: 8px auto 2px;
+        object-fit: contain;
+        break-inside: avoid-page;
+        page-break-inside: avoid;
+    }
+
+    .signature {
+        width: 280px;
+        margin: 30px 0 0 auto;
+        padding-top: 7px;
+        border-top: 1px solid #555;
+        text-align: center;
+        font-size: 13px;
+        break-inside: avoid-page;
+        page-break-inside: avoid;
+    }
+
+    .signature p {
+        margin: 0;
+    }
+
+    .print-footer {
+        display: none;
+    }
+
+    @media print {
+        body {
+            max-width: none;
+            margin: 0;
+            font-size: 11.5pt;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .print-button {
+            display: none;
+        }
+
+        .clinic-header {
+            margin-bottom: 15px;
+        }
+
+        .document-title {
+            font-size: 22pt;
+        }
+
+        .patient-card {
+            margin-bottom: 16px;
+        }
+
+        .event {
+            box-shadow: none;
+        }
+
+        .print-footer {
+            display: flex;
+            position: fixed;
+            right: 0;
+            bottom: -10mm;
+            left: 0;
+            justify-content: space-between;
+            padding-top: 4px;
+            border-top: 1px solid #e2e2e2;
+            color: #777;
+            font-size: 8.5pt;
+        }
+    }
+
+    @media screen and (max-width: 700px) {
+        body {
+            margin: 16px;
+        }
+
+        .patient-card {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .patient-name {
+            grid-column: 1 / -1;
+        }
+    }
 </style>
-
 </head>
-
-
 
 <body>
 
-<button onclick="window.print()">
-    Imprimir / Guardar PDF
-</button>
+    <button
+        type="button"
+        class="print-button"
+        onclick="window.print()"
+    >
+        Imprimir / Guardar PDF
+    </button>
 
-<div class="header" style="border-bottom:2px solid #d85b9f;padding-bottom:15px;margin-bottom:25px;">
+    <header class="clinic-header">
 
-    <div style="display:flex;align-items:center;gap:20px;">
-        <img src="/static/logo.jpg" style="width:90px;height:auto;">
+        <img
+            class="clinic-logo"
+            src="/static/logo.jpg"
+            alt="Clínica Veterinaria Los Aromos"
+        >
 
         <div>
-            <h2 style="margin:0;">Clínica Veterinaria Los Aromos</h2>
-            <p style="margin:4px 0;">
-                Médica Veterinaria Carolina Villani — MP 1525<br>
+            <p class="clinic-name">
+                Clínica Veterinaria Los Aromos
+            </p>
+
+            <p class="clinic-details">
+                Médica Veterinaria Carolina Villani - MP 1525<br>
                 Concordia, Entre Ríos
             </p>
         </div>
+
+    </header>
+
+    <h1 class="document-title">
+        Historia Clínica
+    </h1>
+
+    <section
+        class="patient-card"
+        aria-label="Datos del paciente"
+    >
+
+        <div class="patient-name">
+            <span class="patient-label">
+                Paciente
+            </span>
+
+            {{ patient.name }}
+        </div>
+
+        {% if patient.species %}
+        <div>
+            <span class="patient-label">
+                Especie
+            </span>
+
+            {{ patient.species }}
+        </div>
+        {% endif %}
+
+        {% if patient.breed %}
+        <div>
+            <span class="patient-label">
+                Raza
+            </span>
+
+            {{ patient.breed }}
+        </div>
+        {% endif %}
+
+        {% if patient.sex %}
+        <div>
+            <span class="patient-label">
+                Sexo
+            </span>
+
+            {{ patient.sex }}
+        </div>
+        {% endif %}
+
+        {% if patient.age %}
+        <div>
+            <span class="patient-label">
+                Edad
+            </span>
+
+            {{ patient.age }}
+        </div>
+        {% endif %}
+
+    </section>
+
+    <h2 class="section-title">
+        Evolución clínica
+    </h2>
+
+    {% for e in events %}
+
+    <article class="event">
+
+        <div class="event-head">
+
+            <time class="date">
+                {{ e.event_date.strftime('%d/%m/%Y - %H:%M') }}
+            </time>
+
+            {% if e.event_type %}
+            <span class="event-type">
+                {{ e.event_type }}
+            </span>
+            {% endif %}
+
+        </div>
+
+        {% if e.title %}
+        <div class="field">
+
+            <span class="field-label">
+                Motivo / título
+            </span>
+
+            <p class="field-content">
+                {{ e.title }}
+            </p>
+
+        </div>
+        {% endif %}
+
+        {% if e.description %}
+        <div class="field">
+
+            <span class="field-label">
+                Descripción
+            </span>
+
+            <p class="field-content">
+                {{ e.description }}
+            </p>
+
+        </div>
+        {% endif %}
+
+        {% if e.diagnosis %}
+        <div class="field">
+
+            <span class="field-label">
+                Diagnóstico
+            </span>
+
+            <p class="field-content">
+                {{ e.diagnosis }}
+            </p>
+
+        </div>
+        {% endif %}
+
+        {% if e.treatment %}
+        <div class="field">
+
+            <span class="field-label">
+                Tratamiento
+            </span>
+
+            <p class="field-content">
+                {{ e.treatment }}
+            </p>
+
+        </div>
+        {% endif %}
+
+        {% if e.attachments %}
+        <div class="field">
+
+            <span class="field-label">
+                Adjuntos
+            </span>
+
+            <ul class="attachments">
+
+                {% for a in e.attachments %}
+
+                    {% if a.filename.lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.webp')) %}
+
+                    <li>
+                        <img
+                            class="attachment-image"
+                            src="{{ a.file_path }}"
+                            alt="Adjunto de la historia clínica"
+                        >
+                    </li>
+
+                    {% else %}
+
+                    <li class="attachment-name">
+                        • {{ a.filename }}
+                    </li>
+
+                    {% endif %}
+
+                {% endfor %}
+
+            </ul>
+
+        </div>
+        {% endif %}
+
+    </article>
+
+    {% endfor %}
+
+    <footer class="signature">
+
+        <p>
+            Médica Veterinaria Carolina Villani
+        </p>
+
+        <p>
+            MP 1525
+        </p>
+
+    </footer>
+
+    <div
+        class="print-footer"
+        aria-hidden="true"
+    >
+        <span>
+            Clínica Veterinaria Los Aromos · {{ patient.name }}
+        </span>
+
+        <span>
+            Historia Clínica
+        </span>
     </div>
 
-</div>
-
-<h1>Historia Clínica</h1>
-
-<h2>{{ patient.name }}</h2>
-<p>
-<b>Especie:</b> {{ patient.species or '' }}<br>
-<b>Raza:</b> {{ patient.breed or '' }}<br>
-<b>Sexo:</b> {{ patient.sex or '' }}<br>
-<b>Edad:</b> {{ patient.age or '' }}
-</p>
-
-</div>
-
-<h2>Historia clínica</h2>
-
-{% for e in events %}
-
-<div class="event">
-
-<div class="date">
-{{ e.event_date.strftime('%d/%m/%Y %H:%M') }}
-</div>
-
-<p>
-<b>Tipo:</b> {{ e.event_type }}
-</p>
-
-{% if e.title %}
-<p>
-<b>Título:</b><br>
-{{ e.title }}
-</p>
-{% endif %}
-
-{% if e.description %}
-<p>
-<b>Descripción:</b><br>
-{{ e.description }}
-</p>
-{% endif %}
-
-{% if e.diagnosis %}
-<p>
-<b>Diagnóstico:</b><br>
-{{ e.diagnosis }}
-</p>
-{% endif %}
-
-{% if e.treatment %}
-<p>
-<b>Tratamiento:</b><br>
-{{ e.treatment }}
-</p>
-{% endif %}
-
-{% if e.attachments %}
-<p><b>Adjuntos:</b></p>
-
-{% for a in e.attachments %}
-
-{% if a.filename.lower().endswith(('.jpg','.jpeg','.png','.gif','.webp')) %}
-
-<img src="{{ a.file_path }}">
-
-{% else %}
-
-<p>{{ a.filename }}</p>
-
-{% endif %}
-
-{% endfor %}
-
-{% endif %}
-
-</div>
-
-{% endfor %}
-<div style="margin-top:50px;text-align:right;">
-    <p>______________________________</p>
-    <p>
-        Médica Veterinaria Carolina Villani<br>
-        MP 1525
-    </p>
-</div>
 </body>
 </html>
