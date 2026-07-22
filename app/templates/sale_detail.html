@@ -415,12 +415,21 @@ function updateDetailPrice(select) {
         margin: 0;
     }
 
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box !important;
+    }
+
     html,
     body {
         width: 58mm !important;
+        max-width: 58mm !important;
+        min-width: 58mm !important;
         margin: 0 !important;
         padding: 0 !important;
         background: #fff !important;
+        overflow-x: hidden !important;
     }
 
     body {
@@ -428,7 +437,6 @@ function updateDetailPrice(select) {
         font-size: 10px !important;
         line-height: 1.25 !important;
         color: #000 !important;
-        overflow: visible !important;
     }
 
     .sidebar,
@@ -445,36 +453,51 @@ function updateDetailPrice(select) {
     main,
     .container,
     .container-fluid {
-        width: 58mm !important;
-        max-width: 58mm !important;
+        display: block !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
         margin: 0 !important;
         padding: 0 !important;
+        overflow: hidden !important;
+    }
+
+    h2,
+    .card,
+    .print-footer {
+        width: calc(100% - 6mm) !important;
+        max-width: calc(100% - 6mm) !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
     }
 
     .card,
     .card-body,
     .card-header {
-        width: auto !important;
-        max-width: none !important;
-        margin: 0 !important;
+        min-width: 0 !important;
         box-shadow: none !important;
         border-radius: 0 !important;
         background: transparent !important;
+        overflow: visible !important;
     }
 
     .card {
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
         border: 0 !important;
         border-bottom: 1px solid #777 !important;
-        padding: 2.2mm 2.5mm !important;
+        padding: 2.2mm 0 !important;
         break-inside: avoid;
         page-break-inside: avoid;
     }
 
     .card-body {
+        width: 100% !important;
         padding: 0 !important;
     }
 
     .card-header {
+        width: 100% !important;
         border: 0 !important;
         padding: 0 0 1.5mm 0 !important;
         font-size: 11px !important;
@@ -482,22 +505,24 @@ function updateDetailPrice(select) {
     }
 
     h2 {
-        width: auto !important;
-        margin: 0 !important;
-        padding: 3mm 2.5mm 2.5mm !important;
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+        padding: 3mm 0 2.5mm !important;
         text-align: center !important;
-        font-size: 15px !important;
+        font-size: 14px !important;
         line-height: 1.15 !important;
-        border-bottom: 1px solid #777;
+        border-bottom: 1px solid #777 !important;
+        white-space: normal !important;
     }
 
     h2::before {
-        content: "CLÍNICA VETERINARIA LOS AROMOS\A";
-        white-space: pre;
+        content: "CLÍNICA VETERINARIA\A LOS AROMOS";
+        white-space: pre-line;
         display: block;
         font-size: 14px;
+        line-height: 1.15;
         font-weight: 800;
-        margin-bottom: 1.2mm;
+        margin-bottom: 1.5mm;
     }
 
     h2::after {
@@ -522,11 +547,14 @@ function updateDetailPrice(select) {
     }
 
     table {
+        display: block !important;
         width: 100% !important;
         max-width: 100% !important;
+        min-width: 0 !important;
         margin: 0 !important;
         border-collapse: collapse !important;
         table-layout: fixed !important;
+        overflow: visible !important;
     }
 
     thead {
@@ -537,6 +565,8 @@ function updateDetailPrice(select) {
     tr {
         display: block !important;
         width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
     }
 
     tr {
@@ -550,9 +580,10 @@ function updateDetailPrice(select) {
         display: block !important;
         width: 100% !important;
         max-width: 100% !important;
+        min-width: 0 !important;
         border: 0 !important;
-        padding: 0.4mm 0 !important;
-        font-size: 9.5px !important;
+        padding: 0.35mm 0 !important;
+        font-size: 9.2px !important;
         white-space: normal !important;
         overflow: visible !important;
         overflow-wrap: anywhere !important;
@@ -561,8 +592,8 @@ function updateDetailPrice(select) {
 
     td:first-child {
         font-weight: 700 !important;
-        font-size: 10px !important;
-        margin-bottom: 0.5mm !important;
+        font-size: 9.8px !important;
+        margin-bottom: 0.7mm !important;
     }
 
     td:nth-child(2)::before {
@@ -580,53 +611,52 @@ function updateDetailPrice(select) {
         font-weight: 700;
     }
 
-    td:nth-child(2),
-    td:nth-child(3),
-    td:nth-child(4) {
-        display: inline-block !important;
-        width: auto !important;
-        margin-right: 2mm !important;
-        font-size: 9px !important;
-    }
-
     .card-body > div[style*="display:grid"] {
+        display: grid !important;
         grid-template-columns: 1fr 1fr !important;
         gap: 2.5mm 3mm !important;
+        width: 100% !important;
+        min-width: 0 !important;
     }
 
-    .card-body > div[style*="max-width:520px"] {
-        max-width: none !important;
+    .card-body > div[style*="display:grid"] > div {
+        min-width: 0 !important;
+        overflow-wrap: anywhere !important;
+    }
+
+    .card-body > div[style*="max-width:520px"],
+    .card-body > div[style*="max-width:420px"] {
         width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
         margin-bottom: 2mm !important;
     }
 
-    .card-body > div[style*="max-width:420px"] {
-        max-width: none !important;
-        width: 100% !important;
-    }
-
     .card-body > div[style*="max-width:420px"] > div {
+        width: 100% !important;
+        min-width: 0 !important;
         padding: 1.5mm 2mm !important;
         margin-bottom: 1.5mm !important;
         border: 1px solid #aaa !important;
         border-radius: 2mm !important;
         background: transparent !important;
+        overflow-wrap: anywhere !important;
     }
 
     .print-footer {
         display: block !important;
-        width: auto !important;
-        margin: 0 !important;
-        padding: 3mm 2.5mm 4mm !important;
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+        padding: 3mm 0 4mm !important;
         text-align: center !important;
-        font-size: 9px !important;
+        font-size: 8.5px !important;
         line-height: 1.35 !important;
         break-inside: avoid;
         page-break-inside: avoid;
     }
 
     .print-paw {
-        font-size: 20px !important;
+        font-size: 19px !important;
         line-height: 1 !important;
         margin: 1.5mm 0 !important;
     }
