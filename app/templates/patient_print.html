@@ -166,7 +166,7 @@
 
     .field-label {
         display: block;
-        margin-bottom: 1px;
+        margin-bottom: 2px;
         font-size: 12px;
         font-weight: 700;
         color: #3f3f46;
@@ -216,10 +216,6 @@
         margin: 0;
     }
 
-    .print-footer {
-        display: none;
-    }
-
     @media print {
         body {
             max-width: none;
@@ -247,19 +243,6 @@
 
         .event {
             box-shadow: none;
-        }
-
-        .print-footer {
-            display: flex;
-            position: fixed;
-            right: 0;
-            bottom: -10mm;
-            left: 0;
-            justify-content: space-between;
-            padding-top: 4px;
-            border-top: 1px solid #e2e2e2;
-            color: #777;
-            font-size: 8.5pt;
         }
     }
 
@@ -398,9 +381,7 @@
                 Motivo / título
             </span>
 
-            <p class="field-content">
-                {{ e.title }}
-            </p>
+            <p class="field-content">{{ e.title }}</p>
 
         </div>
         {% endif %}
@@ -412,9 +393,7 @@
                 Descripción
             </span>
 
-            <p class="field-content">
-                {{ e.description }}
-            </p>
+            <p class="field-content">{{ e.description }}</p>
 
         </div>
         {% endif %}
@@ -426,9 +405,7 @@
                 Diagnóstico
             </span>
 
-            <p class="field-content">
-                {{ e.diagnosis }}
-            </p>
+            <p class="field-content">{{ e.diagnosis }}</p>
 
         </div>
         {% endif %}
@@ -440,9 +417,7 @@
                 Tratamiento
             </span>
 
-            <p class="field-content">
-                {{ e.treatment }}
-            </p>
+            <p class="field-content">{{ e.treatment }}</p>
 
         </div>
         {% endif %}
@@ -498,19 +473,6 @@
         </p>
 
     </footer>
-
-    <div
-        class="print-footer"
-        aria-hidden="true"
-    >
-        <span>
-            Clínica Veterinaria Los Aromos · {{ patient.name }}
-        </span>
-
-        <span>
-            Historia Clínica
-        </span>
-    </div>
 
 </body>
 </html>
