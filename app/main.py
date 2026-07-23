@@ -9809,7 +9809,12 @@ def stats_page(
         except Exception:
             start_date = current_week_start
 
-        end_date = start_date + timedelta(days=6)
+        natural_end_date = start_date + timedelta(days=6)
+        end_date = (
+            today
+            if start_date <= today <= natural_end_date
+            else natural_end_date
+        )
 
         try:
             requested_compare_start = datetime.strptime(
@@ -9824,7 +9829,12 @@ def stats_page(
         except Exception:
             compare_start = start_date - timedelta(days=7)
 
-        compare_end = compare_start + timedelta(days=6)
+        compared_days = (end_date - start_date).days
+        compare_natural_end = compare_start + timedelta(days=6)
+        compare_end = min(
+            compare_start + timedelta(days=compared_days),
+            compare_natural_end
+        )
 
         week_start = start_date.strftime('%Y-%m-%d')
         compare_week_start = compare_start.strftime('%Y-%m-%d')
