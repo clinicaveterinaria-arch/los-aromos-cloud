@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Informe electrocardiográfico · {{ patient.name }}</title>
+
+    <style>
+        :root {
+            --rosa: #d85b9a;
+            --rosa-claro: #fff3f8;
+            --rosa-borde: #efc4d7;
+            --gris: #5f6368;
+            --gris-oscuro: #30343b;
+            --gris-claro: #f5f5f6;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        @page {
+            size: A4;
+            margin: 11mm 13mm 11mm;
+        }
+
+        body {
+            margin: 0;
+            background: #ececef;
+            color: var(--gris-oscuro);
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 11px;
+            line-height: 1.35;
+        }
+
+        .screen-actions {
+            width: 190mm;
+            margin: 12px auto 8px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .screen-actions button,
+        .screen-actions a {
+            border: 1px solid var(--rosa-borde);
+            border-radius: 9px;
+            padding: 9px 13px;
+            background: white;
+            color: var(--rosa);
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .screen-actions .primary {
+            background: var(--rosa);
+            color: white;
+            border-color: var(--rosa);
+        }
+
+        .sheet {
+            width: 190mm;
+            min-height: 273mm;
+            margin: 0 auto 18px;
+            background: white;
+            padding: 9mm 10mm;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, .12);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            display: grid;
+            grid-template-columns: 28mm 1fr 58mm;
+            gap: 6mm;
+            align-items: center;
+            padding-bottom: 4mm;
+            border-bottom: 2px solid var(--rosa);
+        }
+
+        .logo-wrap {
+            height: 24mm;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        .logo {
+            max-width: 27mm;
+            max-height: 24mm;
+            object-fit: contain;
+        }
+
+        .clinic-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--rosa);
+            letter-spacing: .2px;
+        }
+
+        .clinic-sub {
+            font-size: 10px;
+            color: var(--gris);
+            margin-top: 2px;
+        }
+
+        .professional {
+            text-align: right;
+            color: var(--gris);
+            font-size: 9.5px;
+            line-height: 1.45;
+        }
+
+        .professional b {
+            font-size: 11px;
+            color: var(--gris-oscuro);
+        }
+
+        h1 {
+            margin: 5mm 0 3mm;
+            text-align: center;
+            color: var(--rosa);
+            font-size: 19px;
+            letter-spacing: .4px;
+            text-transform: uppercase;
+        }
+
+        .study-date {
+            text-align: center;
+            color: var(--gris);
+            margin-top: -2mm;
+            margin-bottom: 4mm;
+        }
+
+        .patient-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr 1.1fr 1fr;
+            gap: 0;
+            border: 1px solid var(--rosa-borde);
+            border-radius: 9px;
+            overflow: hidden;
+            margin-bottom: 4mm;
+        }
+
+        .patient-item {
+            padding: 2.6mm 3mm;
+            background: var(--rosa-claro);
+            border-right: 1px solid var(--rosa-borde);
+        }
+
+        .patient-item:last-child {
+            border-right: 0;
+        }
+
+        .label {
+            display: block;
+            font-size: 8px;
+            text-transform: uppercase;
+            letter-spacing: .45px;
+            color: var(--gris);
+            margin-bottom: 1mm;
+        }
+
+        .value {
+            font-size: 10.5px;
+            font-weight: 700;
+            color: var(--gris-oscuro);
+        }
+
+        .section {
+            margin-top: 3.5mm;
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+
+        .section-title {
+            margin: 0 0 2mm;
+            padding: 1.7mm 2.5mm;
+            background: var(--rosa-claro);
+            border-left: 3px solid var(--rosa);
+            color: var(--rosa);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .35px;
+        }
+
+        .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .meta-item {
+            padding: 2.2mm 2.5mm;
+            border-right: 1px solid #ddd;
+            background: #fff;
+        }
+
+        .meta-item:last-child {
+            border-right: 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #ddd;
+            table-layout: fixed;
+        }
+
+        th {
+            padding: 2mm 2.3mm;
+            background: var(--gris-claro);
+            color: var(--gris);
+            font-size: 8.5px;
+            text-align: left;
+            text-transform: uppercase;
+            letter-spacing: .25px;
+        }
+
+        td {
+            padding: 2.2mm 2.3mm;
+            border-top: 1px solid #e5e5e5;
+            font-size: 10px;
+            vertical-align: top;
+        }
+
+        tr:nth-child(even) td {
+            background: #fcfafb;
+        }
+
+        .measure {
+            font-weight: 700;
+            color: var(--gris-oscuro);
+        }
+
+        .text-box {
+            min-height: 13mm;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 2.7mm 3mm;
+            white-space: pre-wrap;
+            color: var(--gris-oscuro);
+            font-size: 10.2px;
+        }
+
+        .conclusion {
+            border: 1px solid var(--rosa-borde);
+            background: var(--rosa-claro);
+            border-radius: 8px;
+            padding: 3mm;
+            white-space: pre-wrap;
+            font-size: 10.5px;
+        }
+
+        .muted {
+            color: #85888d;
+            font-style: italic;
+        }
+
+        .footer {
+            margin-top: auto;
+            padding-top: 5mm;
+            display: grid;
+            grid-template-columns: 1fr 55mm;
+            align-items: end;
+        }
+
+        .legal {
+            font-size: 8px;
+            color: #92959a;
+            line-height: 1.35;
+        }
+
+        .signature {
+            text-align: center;
+            min-height: 27mm;
+        }
+
+        .signature img {
+            display: block;
+            max-width: 48mm;
+            max-height: 18mm;
+            object-fit: contain;
+            margin: 0 auto -1mm;
+        }
+
+        .signature .line {
+            border-top: 1px solid #9a9a9a;
+            padding-top: 1.5mm;
+            font-size: 9px;
+            color: var(--gris);
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+
+            .screen-actions {
+                display: none !important;
+            }
+
+            .sheet {
+                width: auto;
+                min-height: 271mm;
+                margin: 0;
+                padding: 0;
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="screen-actions">
+        <a href="/patients/{{ patient.id }}/cardiology">
+            Volver
+        </a>
+
+        <button
+            type="button"
+            class="primary"
+            onclick="window.print()"
+        >
+            Imprimir / Guardar PDF
+        </button>
+    </div>
+
+    <main class="sheet">
+
+        <header class="header">
+
+            <div class="logo-wrap">
+                <img
+                    class="logo"
+                    src="/static/logo.png"
+                    alt="Clínica Veterinaria Los Aromos"
+                    onerror="this.style.display='none'"
+                >
+            </div>
+
+            <div>
+                <div class="clinic-name">
+                    Clínica Veterinaria Los Aromos
+                </div>
+
+                <div class="clinic-sub">
+                    Medicina clínica · Diagnóstico cardiológico
+                </div>
+            </div>
+
+            <div class="professional">
+                <b>Méd. Vet. Carolina Villani</b><br>
+                Médica Veterinaria · MP 1525<br>
+                Concordia, Entre Ríos
+            </div>
+
+        </header>
+
+        <h1>Informe electrocardiográfico</h1>
+
+        <div class="study-date">
+            Estudio realizado el
+            {{ ecg.event_date.strftime('%d/%m/%Y') if ecg.event_date else '-' }}
+        </div>
+
+        <section class="patient-grid">
+
+            <div class="patient-item">
+                <span class="label">Paciente</span>
+                <span class="value">
+                    {{ patient.name or '-' }}
+                </span>
+            </div>
+
+            <div class="patient-item">
+                <span class="label">Especie / Raza</span>
+                <span class="value">
+                    {{ patient.species or '-' }}
+                    {% if patient.breed %}
+                        · {{ patient.breed }}
+                    {% endif %}
+                </span>
+            </div>
+
+            <div class="patient-item">
+                <span class="label">Sexo / Edad</span>
+                <span class="value">
+                    {{ patient.sex or '-' }}
+
+                    {% if patient.birth_date %}
+                        · {{ ((today - patient.birth_date).days // 365) }} años
+                    {% endif %}
+                </span>
+            </div>
+
+            <div class="patient-item">
+                <span class="label">Peso</span>
+                <span class="value">
+                    {{ patient.weight if patient.weight else '-' }}
+
+                    {% if patient.weight %}
+                        kg
+                    {% endif %}
+                </span>
+            </div>
+
+        </section>
+
+        <section class="section">
+
+            <h2 class="section-title">
+                Datos del registro
+            </h2>
+
+            <div class="meta-grid">
+
+                <div class="meta-item">
+                    <span class="label">Frecuencia cardíaca</span>
+
+                    <span class="value">
+                        {{ ecg.ecg_hr or '-' }}
+
+                        {% if ecg.ecg_hr %}
+                            lpm
+                        {% endif %}
+                    </span>
+                </div>
+
+                <div class="meta-item">
+                    <span class="label">Ritmo</span>
+
+                    <span class="value">
+                        {{ ecg.ecg_rhythm or '-' }}
+                    </span>
+                </div>
+
+                <div class="meta-item">
+                    <span class="label">Velocidad</span>
+                    <span class="value">50 mm/s</span>
+                </div>
+
+                <div class="meta-item">
+                    <span class="label">Sensibilidad</span>
+                    <span class="value">5 mm/mV</span>
+                </div>
+
+            </div>
+
+        </section>
+
+        <section class="section">
+
+            <h2 class="section-title">
+                Mediciones electrocardiográficas
+            </h2>
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th style="width: 24%;">Parámetro</th>
+                        <th style="width: 25%;">Duración / intervalo</th>
+                        <th style="width: 25%;">Amplitud</th>
+                        <th style="width: 26%;">Dato complementario</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    <tr>
+                        <td class="measure">Onda P</td>
+
+                        <td>
+                            {{ ecg.ecg_p or '-' }}
+
+                            {% if ecg.ecg_p %}
+                                s
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {{ ecg.ecg_p_mv or '-' }}
+
+                            {% if ecg.ecg_p_mv %}
+                                mV
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {{ ecg.ecg_polarity or '-' }}
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td class="measure">Intervalo PR</td>
+
+                        <td>
+                            {{ ecg.ecg_pr or '-' }}
+
+                            {% if ecg.ecg_pr %}
+                                s
+                            {% endif %}
+                        </td>
+
+                        <td>—</td>
+
+                        <td>
+                            {{ ecg.ecg_conduction or '-' }}
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td class="measure">Complejo QRS</td>
+
+                        <td>
+                            {{ ecg.ecg_qrs or '-' }}
+
+                            {% if ecg.ecg_qrs %}
+                                s
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {{ ecg.ecg_qrs_mv or '-' }}
+
+                            {% if ecg.ecg_qrs_mv %}
+                                mV
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            Eje:
+                            {{ ecg.ecg_axis or '-' }}
+
+                            {% if ecg.ecg_axis %}
+                                °
+                            {% endif %}
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td class="measure">Segmento ST</td>
+
+                        <td>
+                            {{ ecg.ecg_st or '-' }}
+
+                            {% if ecg.ecg_st %}
+                                s
+                            {% endif %}
+                        </td>
+
+                        <td>—</td>
+                        <td>—</td>
+                    </tr>
+
+                    <tr>
+                        <td class="measure">Onda T</td>
+
+                        <td>
+                            {{ ecg.ecg_t or '-' }}
+
+                            {% if ecg.ecg_t %}
+                                s
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {{ ecg.ecg_t_mv or '-' }}
+
+                            {% if ecg.ecg_t_mv %}
+                                mV
+                            {% endif %}
+                        </td>
+
+                        <td>—</td>
+                    </tr>
+
+                    <tr>
+                        <td class="measure">Intervalo QT</td>
+
+                        <td>
+                            {{ ecg.ecg_qt or '-' }}
+
+                            {% if ecg.ecg_qt %}
+                                s
+                            {% endif %}
+                        </td>
+
+                        <td>—</td>
+
+                        <td>
+                            QTc:
+                            {{ ecg.ecg_qtc or '-' }}
+
+                            {% if ecg.ecg_qtc %}
+                                s
+                            {% endif %}
+                        </td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </section>
+
+        {% if ecg.anamnesis or ecg.physical_exam or ecg.description %}
+
+            <section class="section">
+
+                <h2 class="section-title">
+                    Datos clínicos relevantes
+                </h2>
+
+                <div class="text-box">{{ ecg.anamnesis or ecg.physical_exam or ecg.description }}</div>
+
+            </section>
+
+        {% endif %}
+
+        {% if ecg.ecg_arrhythmia or ecg.ecg_notes %}
+
+            <section class="section">
+
+                <h2 class="section-title">
+                    Observaciones
+                </h2>
+
+                <div class="text-box">{% if ecg.ecg_arrhythmia %}<b>Arritmia:</b> {{ ecg.ecg_arrhythmia }}{% endif %}{% if ecg.ecg_arrhythmia and ecg.ecg_notes %}
+
+{% endif %}{{ ecg.ecg_notes or '' }}</div>
+
+            </section>
+
+        {% endif %}
+
+        <section class="section">
+
+            <h2 class="section-title">
+                Interpretación y conclusión
+            </h2>
+
+            <div class="conclusion">
+                {% if ecg.ecg_interpretation %}
+                    {{ ecg.ecg_interpretation }}
+                {% else %}
+                    <span class="muted">
+                        Sin interpretación consignada.
+                    </span>
+                {% endif %}
+            </div>
+
+        </section>
+
+        <footer class="footer">
+
+            <div class="legal">
+                Este informe debe interpretarse en conjunto con la anamnesis,
+                el examen clínico y los demás estudios complementarios del
+                paciente.
+            </div>
+
+            <div class="signature">
+
+                <img
+                    src="/static/firma_carolina.png"
+                    alt="Firma"
+                    onerror="this.style.display='none'"
+                >
+
+                <div class="line">
+                    Méd. Vet. Carolina Villani · MP 1525
+                </div>
+
+            </div>
+
+        </footer>
+
+    </main>
+
+</body>
+</html>
