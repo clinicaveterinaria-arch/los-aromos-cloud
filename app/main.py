@@ -9852,11 +9852,30 @@ def stats_page(
     else:
         period = 'month'
         start_date = selected_start
-        end_date = selected_end
+        end_date = (
+            today
+            if selected_start <= today <= selected_end
+            else selected_end
+        )
         compare_start = compare_month_start
-        compare_end = compare_month_end
-        period_label = selected_start.strftime('%m/%Y')
-        compare_label = compare_start.strftime('%m/%Y')
+        compared_days = (end_date - start_date).days
+        compare_end = min(
+            compare_start + timedelta(days=compared_days),
+            compare_month_end
+        )
+
+        if end_date < selected_end:
+            period_label = (
+                f'{start_date.strftime("%d/%m/%Y")} '
+                f'al {end_date.strftime("%d/%m/%Y")}'
+            )
+            compare_label = (
+                f'{compare_start.strftime("%d/%m/%Y")} '
+                f'al {compare_end.strftime("%d/%m/%Y")}'
+            )
+        else:
+            period_label = selected_start.strftime('%m/%Y')
+            compare_label = compare_start.strftime('%m/%Y')
 
     category_meta = {
         'clinical': {
