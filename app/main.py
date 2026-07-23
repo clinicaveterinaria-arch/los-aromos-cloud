@@ -10342,16 +10342,19 @@ def stats_page(
             - (previous_value or 0)
         )
 
+        has_base = previous_value not in (None, 0)
+
         percent = (
             amount / previous_value * 100
-            if previous_value
-            else 0
+            if has_base
+            else None
         )
 
         return {
             'amount': amount,
             'percent': percent,
-            'up': amount >= 0
+            'up': amount >= 0,
+            'has_base': has_base
         }
 
     comparison_stats = {
@@ -10391,12 +10394,44 @@ def stats_page(
             )
         }
 
+    comparison_has_data = comparison['sales_count'] > 0
+
+    earliest_sale = (
+        db.query(Sale)
+        .filter(Sale.status != 'cancelled')
+        .filter(Sale.status != 'quote')
+        .filter(Sale.date.isnot(None))
+        .order_by(Sale.date.asc())
+        .first()
+    )
+
+    earliest_sale_date = (
+        earliest_sale.date
+        if earliest_sale
+        else None
+    )
+
+    first_data_date = (
+        earliest_sale_date.date()
+        if earliest_sale_date
+        else today
+    )
+
+    first_week_start = (
+        first_data_date
+        - timedelta(days=first_data_date.weekday())
+    )
+
     available_weeks = []
     current_week_start = (
         today - timedelta(days=today.weekday())
     )
 
-    for i in range(104):
+    weeks_available = (
+        (current_week_start - first_week_start).days // 7
+    ) + 1
+
+    for i in range(max(1, weeks_available)):
         option_start = (
             current_week_start
             - timedelta(weeks=i)
@@ -10417,8 +10452,16 @@ def stats_page(
 
     available_months = []
     ref = today.replace(day=1)
+    first_month = first_data_date.replace(day=1)
 
-    for i in range(60):
+    months_available = (
+        (ref.year - first_month.year) * 12
+        + ref.month
+        - first_month.month
+        + 1
+    )
+
+    for i in range(max(1, months_available)):
         year = ref.year
         month_number = ref.month - i
 
@@ -10448,6 +10491,7 @@ def stats_page(
             'available_months': available_months,
             'current': current,
             'comparison': comparison,
+            'comparison_has_data': comparison_has_data,
             'comparison_stats': comparison_stats,
             'category_comparison': category_comparison,
             'category_meta': category_meta
