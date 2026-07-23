@@ -4974,6 +4974,53 @@ def patient_cardiology(
             "today": argentina_now().date()
         }
     )
+@app.get('/patients/{patient_id}/cardiology/print', response_class=HTMLResponse)
+def patient_cardiology_print(
+    request: Request,
+    patient_id: int,
+    event_id: Optional[int] = None,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    patient = db.get(Patient, patient_id)
+
+    if not patient:
+        raise HTTPException(
+            status_code=404,
+            detail="Paciente no encontrado"
+        )
+
+    ecg_query = db.query(ClinicalEvent).filter(
+        ClinicalEvent.patient_id == patient.id,
+        ClinicalEvent.event_type == "ECG"
+    )
+
+    if event_id is not None:
+        ecg = ecg_query.filter(
+            ClinicalEvent.id == event_id
+        ).first()
+    else:
+        ecg = (
+            ecg_query
+            .order_by(ClinicalEvent.event_date.desc())
+            .first()
+        )
+
+    if not ecg:
+        raise HTTPException(
+            status_code=404,
+            detail="No se encontró el electrocardiograma solicitado"
+        )
+
+    return templates.TemplateResponse(
+        "patient_cardiology_print.html",
+        {
+            "request": request,
+            "patient": patient,
+            "ecg": ecg,
+            "today": argentina_now().date()
+        }
+    )    
 @app.get('/patients/{patient_id}/edit', response_class=HTMLResponse)
 def patient_edit_form(request: Request, patient_id: int, db: Session = Depends(get_db), user: User = Depends(require_user)):
     patient = db.get(Patient, patient_id)
