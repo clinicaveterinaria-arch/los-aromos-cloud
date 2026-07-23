@@ -24,6 +24,8 @@
     .kpi-card h2 { margin:8px 0 5px; font-size:26px; color:#1f2937; }
     .trend-up { color:#166534 !important; }
     .trend-down { color:#991b1b !important; }
+    .trend-neutral { color:#6b7280 !important; }
+    .comparison-warning { margin-top:8px; color:#9d174d; font-weight:700; }
     .category-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; margin-bottom:18px; }
     .category-card { background:white; border:1px solid #f3c6d8; border-radius:18px; padding:17px; box-shadow:0 8px 24px rgba(0,0,0,.035); }
     .category-head { display:flex; justify-content:space-between; gap:10px; align-items:center; margin-bottom:12px; }
@@ -219,6 +221,11 @@
 
     <div class="stats-card period-summary">
         <p class="period-note">Mostrando <b>{{ period_label }}</b> comparado con <b>{{ compare_label }}</b>.</p>
+        {% if not comparison_has_data %}
+            <p class="comparison-warning">
+                El período {{ compare_label }} no tiene ventas registradas. Se muestran los valores actuales, pero no se calcula un porcentaje de variación.
+            </p>
+        {% endif %}
     </div>
 
     <div class="kpi-grid">
@@ -237,11 +244,22 @@
                 <h2>
                     {% if is_money %}$ {{ "{:,.0f}".format(value).replace(",", ".") }}{% else %}{{ value }}{% endif %}
                 </h2>
-                <small class="{% if trend.up %}trend-up{% else %}trend-down{% endif %}">
-                    {% if trend.up %}▲{% else %}▼{% endif %}
-                    {% if is_money %}$ {{ "{:,.0f}".format(trend.amount|abs).replace(",", ".") }}{% else %}{{ trend.amount|abs|int }}{% endif %}
-                    · {{ "{:,.1f}".format(trend.percent|abs).replace(",", ".") }}%
-                </small>
+                {% if trend.has_base %}
+                    <small class="{% if trend.up %}trend-up{% else %}trend-down{% endif %}">
+                        {% if trend.up %}▲{% else %}▼{% endif %}
+                        {% if is_money %}$ {{ "{:,.0f}".format(trend.amount|abs).replace(",", ".") }}{% else %}{{ trend.amount|abs|int }}{% endif %}
+                        · {{ "{:,.1f}".format(trend.percent|abs).replace(",", ".") }}%
+                    </small>
+                {% else %}
+                    <small class="trend-neutral">
+                        Sin base de comparación
+                        {% if trend.amount %}
+                            · diferencia:
+                            {% if trend.amount > 0 %}+{% endif %}
+                            {% if is_money %}$ {{ "{:,.0f}".format(trend.amount).replace(",", ".") }}{% else %}{{ trend.amount|int }}{% endif %}
+                        {% endif %}
+                    </small>
+                {% endif %}
             </div>
         {% endfor %}
 
@@ -267,9 +285,13 @@
                 <div class="category-row"><span>Participación</span><strong>{{ "{:,.1f}".format(category.percent).replace(",", ".") }}%</strong></div>
                 <div class="category-row">
                     <span>Vs. período anterior</span>
-                    <strong class="{% if trend.sales.up %}trend-up{% else %}trend-down{% endif %}">
-                        {% if trend.sales.up %}▲{% else %}▼{% endif %} {{ "{:,.1f}".format(trend.sales.percent|abs).replace(",", ".") }}%
-                    </strong>
+                    {% if trend.sales.has_base %}
+                        <strong class="{% if trend.sales.up %}trend-up{% else %}trend-down{% endif %}">
+                            {% if trend.sales.up %}▲{% else %}▼{% endif %} {{ "{:,.1f}".format(trend.sales.percent|abs).replace(",", ".") }}%
+                        </strong>
+                    {% else %}
+                        <strong class="trend-neutral">Sin base</strong>
+                    {% endif %}
                 </div>
             </div>
         {% endfor %}
