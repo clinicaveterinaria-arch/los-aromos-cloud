@@ -152,7 +152,11 @@
         <div class="cardio-actions">
             <a href="/patients/{{ patient.id }}" class="cardio-btn">← Volver a HC</a>
             <a href="/patients/{{ patient.id }}/cardiology/ecg" class="cardio-btn">📈 ECG</a>
-            <a href="/patients/{{ patient.id }}/print" target="_blank" class="cardio-btn">🖨️ Imprimir</a>
+            {% if last_ecg %}
+                <a href="/patients/{{ patient.id }}/cardiology/print?event_id={{ last_ecg.id }}" target="_blank" class="cardio-btn">🖨️ Informe ECG</a>
+            {% else %}
+                <span class="cardio-btn" style="opacity:.55;cursor:not-allowed;" title="Primero cargá un ECG">🖨️ Informe ECG</span>
+            {% endif %}
             <a href="#ia-cardiologica" class="cardio-btn primary">🤖 Ver análisis IA</a>
         </div>
     </div>
