@@ -3,143 +3,404 @@
 
 <style>
     .event-page { padding:24px 28px; }
-    .event-toolbar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px; }
+    .event-toolbar {
+        display:flex;
+        gap:10px;
+        flex-wrap:wrap;
+        margin-bottom:16px;
+    }
     .event-btn {
-        border:1px solid #f3c6d8; background:white; color:#d85b9a; border-radius:13px;
-        padding:10px 14px; font-weight:bold; text-decoration:none; cursor:pointer; display:inline-flex; gap:7px; align-items:center;
+        border:1px solid #f3c6d8;
+        background:white;
+        color:#d85b9a;
+        border-radius:13px;
+        padding:10px 14px;
+        font-weight:bold;
+        text-decoration:none;
+        cursor:pointer;
+        display:inline-flex;
+        gap:7px;
+        align-items:center;
     }
-    .event-btn.primary { background:#d85b9a; color:white; border-color:#d85b9a; }
+    .event-btn.primary {
+        background:#d85b9a;
+        color:white;
+        border-color:#d85b9a;
+    }
     .event-hero {
-        background:white; border:1px solid #f3c6d8; border-radius:24px;
-        padding:24px; box-shadow:0 10px 30px rgba(0,0,0,.05); margin-bottom:18px;
-        display:flex; justify-content:space-between; gap:18px; flex-wrap:wrap; align-items:flex-start;
+        background:white;
+        border:1px solid #f3c6d8;
+        border-radius:24px;
+        padding:24px;
+        box-shadow:0 10px 30px rgba(0,0,0,.05);
+        margin-bottom:18px;
+        display:flex;
+        justify-content:space-between;
+        gap:18px;
+        flex-wrap:wrap;
+        align-items:flex-start;
     }
-    .event-hero h1 { margin:0 0 6px 0; font-size:32px; color:#1f2937; }
-    .event-hero p { margin:6px 0; color:#4b5563; }
-    .event-pill { background:#fff0f7; color:#d85b9a; border:1px solid #f3c6d8; border-radius:999px; padding:8px 12px; font-weight:bold; }
-    .event-card { background:white; border:1px solid #f3c6d8; border-radius:22px; padding:20px; box-shadow:0 8px 26px rgba(0,0,0,.04); margin-bottom:18px; }
-    .event-card h2 { margin:0 0 14px 0; color:#1f2937; }
-    .info-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; }
-    .info-box { border:1px solid #f3edf1; border-radius:14px; padding:13px; background:#fff8fb; }
-    .info-box b { color:#1f2937; display:block; margin-bottom:5px; }
-    .text-block { border-left:4px solid #d85b9a; padding:10px 14px; background:#fff8fb; border-radius:12px; margin-bottom:12px; white-space:pre-wrap; }
-    .modern-table { width:100%; border-collapse:collapse; overflow:hidden; border-radius:14px; }
-    .modern-table th { background:#fff0f7; color:#d85b9a; text-align:left; padding:10px; border-bottom:1px solid #f3c6d8; }
-    .modern-table td { padding:10px; border-bottom:1px solid #f3edf1; }
-    .modern-table tr:last-child td { border-bottom:none; }
-
+    .event-hero h1 {
+        margin:0 0 6px 0;
+        font-size:32px;
+        color:#1f2937;
+    }
+    .event-hero p {
+        margin:6px 0;
+        color:#4b5563;
+    }
+    .event-pill {
+        background:#fff0f7;
+        color:#d85b9a;
+        border:1px solid #f3c6d8;
+        border-radius:999px;
+        padding:8px 12px;
+        font-weight:bold;
+    }
+    .event-card {
+        background:white;
+        border:1px solid #f3c6d8;
+        border-radius:22px;
+        padding:20px;
+        box-shadow:0 8px 26px rgba(0,0,0,.04);
+        margin-bottom:18px;
+    }
+    .event-card h2 {
+        margin:0 0 14px 0;
+        color:#1f2937;
+    }
+    .info-grid {
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+        gap:12px;
+    }
+    .info-box {
+        border:1px solid #f3edf1;
+        border-radius:14px;
+        padding:13px;
+        background:#fff8fb;
+    }
+    .info-box b {
+        color:#1f2937;
+        display:block;
+        margin-bottom:5px;
+    }
+    .text-block {
+        border-left:4px solid #d85b9a;
+        padding:10px 14px;
+        background:#fff8fb;
+        border-radius:12px;
+        margin-bottom:12px;
+        white-space:pre-wrap;
+    }
+    .modern-table {
+        width:100%;
+        border-collapse:collapse;
+        overflow:hidden;
+        border-radius:14px;
+    }
+    .modern-table th {
+        background:#fff0f7;
+        color:#d85b9a;
+        text-align:left;
+        padding:10px;
+        border-bottom:1px solid #f3c6d8;
+    }
+    .modern-table td {
+        padding:10px;
+        border-bottom:1px solid #f3edf1;
+    }
+    .modern-table tr:last-child td {
+        border-bottom:none;
+    }
     .ai-card {
         background:linear-gradient(135deg,#fff8fb,#ffffff);
         border:2px solid #f3c6d8;
     }
-    .ai-head { display:flex; justify-content:space-between; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:12px; }
+    .ai-head {
+        display:flex;
+        justify-content:space-between;
+        gap:12px;
+        align-items:center;
+        flex-wrap:wrap;
+        margin-bottom:12px;
+    }
     .ai-head h2 { margin:0; }
     .ai-priority {
-        border-radius:999px; padding:8px 12px; font-weight:bold; border:1px solid #f3c6d8;
-        background:#fff0f7; color:#d85b9a;
-    }
-    .ai-priority.alta { background:#fff7ed; color:#c2410c; border-color:#fed7aa; }
-    .ai-priority.critica { background:#fff1f2; color:#991b1b; border-color:#fecdd3; }
-    .ai-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; }
-    .ai-box { background:white; border:1px solid #f3edf1; border-radius:16px; padding:14px; }
-    .ai-box h3 { margin:0 0 8px 0; color:#1f2937; font-size:15px; }
-    .ai-box ul { margin:0; padding-left:18px; color:#4b5563; }
-    .ai-box li { margin:5px 0; }
-    .ai-empty { color:#6b7280; margin:0; }
-    .ai-priority-label {
+        border-radius:999px;
+        padding:8px 12px;
         font-weight:bold;
+        border:1px solid #f3c6d8;
+        background:#fff0f7;
+        color:#d85b9a;
     }
-    .ai-priority-label.normal {
-        color:#16a34a;
-    }
-    .ai-priority-label.alta {
+    .ai-priority.alta {
+        background:#fff7ed;
         color:#c2410c;
+        border-color:#fed7aa;
     }
-    .ai-priority-label.critica {
+    .ai-priority.critica {
+        background:#fff1f2;
         color:#991b1b;
+        border-color:#fecdd3;
     }
+    .ai-grid {
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+        gap:12px;
+    }
+    .ai-box {
+        background:white;
+        border:1px solid #f3edf1;
+        border-radius:16px;
+        padding:14px;
+    }
+    .ai-box h3 {
+        margin:0 0 8px 0;
+        color:#1f2937;
+        font-size:15px;
+    }
+    .ai-box ul {
+        margin:0;
+        padding-left:18px;
+        color:#4b5563;
+    }
+    .ai-box li { margin:5px 0; }
+    .ai-empty {
+        color:#6b7280;
+        margin:0;
+    }
+    .ai-priority-label { font-weight:bold; }
+    .ai-priority-label.normal { color:#16a34a; }
+    .ai-priority-label.alta { color:#c2410c; }
+    .ai-priority-label.critica { color:#991b1b; }
+
     @media print {
-        .sidebar, .topbar, .event-toolbar { display:none !important; }
+        .sidebar,
+        .topbar,
+        .event-toolbar {
+            display:none !important;
+        }
         .content { margin-left:0 !important; }
         .event-page { padding:0; }
-        .event-card, .event-hero { box-shadow:none; }
+        .event-card,
+        .event-hero {
+            box-shadow:none;
+        }
     }
 </style>
 
 <div class="event-page">
 
     <div class="event-toolbar">
-        <a href="/patients/{{ patient.id }}" class="event-btn">← Volver a historia clínica</a>
-    
+        <a href="/patients/{{ patient.id }}" class="event-btn">
+            ← Volver a historia clínica
+        </a>
+
         {% if event.event_type in ['ECG', 'Ecocardiografía', 'Radiografía'] %}
-            <a href="/patients/{{ patient.id }}/cardiology" class="event-btn">❤️ Centro Cardiológico</a>
+            <a href="/patients/{{ patient.id }}/cardiology" class="event-btn">
+                ❤️ Centro Cardiológico
+            </a>
         {% endif %}
-    
-        <a href="/patients/{{ patient.id }}/events/{{ event.id }}/edit" class="event-btn">✏️ Editar</a>
-        <button onclick="window.print()" class="event-btn primary">🖨️ Imprimir / Guardar PDF</button>
+
+        <a
+            href="/patients/{{ patient.id }}/events/{{ event.id }}/edit"
+            class="event-btn"
+        >
+            ✏️ Editar
+        </a>
+
+        <button
+            onclick="window.print()"
+            class="event-btn primary"
+        >
+            🖨️ Imprimir / Guardar PDF
+        </button>
     </div>
 
     <div class="event-hero">
         <div>
             <h1>{{ event.event_type }}</h1>
             <p><b>Paciente:</b> {{ patient.name }}</p>
-            <p><b>Fecha:</b> {{ event.event_date.strftime('%d/%m/%Y %H:%M') }}</p>
+            <p>
+                <b>Fecha:</b>
+                {{ event.event_date.strftime('%d/%m/%Y %H:%M') }}
+            </p>
         </div>
-        <span class="event-pill">{{ event.title or event.event_type }}</span>
+
+        <span class="event-pill">
+            {{ event.title or event.event_type }}
+        </span>
     </div>
 
     <div class="event-card">
         <h2>📋 Detalle clínico</h2>
+
         <div class="info-grid">
-            <div class="info-box"><b>Título</b>{{ event.title or '-' }}</div>
-            <div class="info-box"><b>Tipo</b>{{ event.event_type }}</div>
-            <div class="info-box"><b>Creado por</b>{{ event.created_by or '-' }}</div>
+            <div class="info-box">
+                <b>Título</b>
+                {{ event.title or '-' }}
+            </div>
+
+            <div class="info-box">
+                <b>Tipo</b>
+                {{ event.event_type }}
+            </div>
+
+            <div class="info-box">
+                <b>Creado por</b>
+                {{ event.created_by or '-' }}
+            </div>
         </div>
-        {% if event.description %}<h3>Descripción</h3><div class="text-block">{{ event.description }}</div>{% endif %}
-        {% if event.anamnesis %}<h3>Anamnesis</h3><div class="text-block">{{ event.anamnesis }}</div>{% endif %}
-        {% if event.physical_exam %}<h3>Examen físico</h3><div class="text-block">{{ event.physical_exam }}</div>{% endif %}
-        {% if event.diagnosis %}<h3>Diagnóstico</h3><div class="text-block">{{ event.diagnosis }}</div>{% endif %}
-        {% if event.treatment %}<h3>Tratamiento</h3><div class="text-block">{{ event.treatment }}</div>{% endif %}
+
+        {% if event.description %}
+            <h3>Descripción</h3>
+            <div class="text-block">{{ event.description }}</div>
+        {% endif %}
+
+        {% if event.anamnesis %}
+            <h3>Anamnesis</h3>
+            <div class="text-block">{{ event.anamnesis }}</div>
+        {% endif %}
+
+        {% if event.physical_exam %}
+            <h3>Examen físico</h3>
+            <div class="text-block">{{ event.physical_exam }}</div>
+        {% endif %}
+
+        {% if event.diagnosis %}
+            <h3>Diagnóstico</h3>
+            <div class="text-block">{{ event.diagnosis }}</div>
+        {% endif %}
+
+        {% if event.treatment %}
+            <h3>Tratamiento</h3>
+            <div class="text-block">{{ event.treatment }}</div>
+        {% endif %}
     </div>
+
+    {% if event.weight is not none
+        or event.temperature is not none
+        or event.heart_rate is not none
+        or event.respiratory_rate is not none
+        or event.mucous_membranes
+        or event.crt
+        or event.hydration
+    %}
+    <div class="event-card">
+        <h2>🩺 Examen clínico y signos vitales</h2>
+
+        <div class="info-grid">
+
+            {% if event.weight is not none %}
+                <div class="info-box">
+                    <b>Peso</b>
+                    {{ event.weight }} kg
+                </div>
+            {% endif %}
+
+            {% if event.temperature is not none %}
+                <div class="info-box">
+                    <b>Temperatura</b>
+                    {{ event.temperature }} °C
+                </div>
+            {% endif %}
+
+            {% if event.heart_rate is not none %}
+                <div class="info-box">
+                    <b>Frecuencia cardíaca</b>
+                    {{ event.heart_rate }} lpm
+                </div>
+            {% endif %}
+
+            {% if event.respiratory_rate is not none %}
+                <div class="info-box">
+                    <b>Frecuencia respiratoria</b>
+                    {{ event.respiratory_rate }} rpm
+                </div>
+            {% endif %}
+
+            {% if event.mucous_membranes %}
+                <div class="info-box">
+                    <b>Mucosas</b>
+                    {{ event.mucous_membranes }}
+                </div>
+            {% endif %}
+
+            {% if event.crt %}
+                <div class="info-box">
+                    <b>Tiempo de llenado capilar</b>
+                    {{ event.crt }}
+                    {% if 'seg' not in event.crt|string|lower %}
+                        seg
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            {% if event.hydration %}
+                <div class="info-box">
+                    <b>Hidratación</b>
+                    {{ event.hydration }}
+                </div>
+            {% endif %}
+
+        </div>
+    </div>
+    {% endif %}
 
     <div class="event-card ai-card">
-    <div class="ai-head">
-        <h2>🧠 Asistente Clínico IA</h2>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;">
-    
-        <button type="button"
-                onclick="analizarEventoIA()"
-                class="event-btn primary">
-            🧠 Analizar con IA
-        </button>
-    
-        <button type="button"
-                onclick="copiarAnalisisIA()"
-                class="event-btn"
-                id="ai-copy-btn"
-                style="display:none;">
-            📋 Copiar
-        </button>
-    
-        <button type="button"
-                onclick="guardarAnalisisIA()"
-                class="event-btn"
-                id="ai-save-btn"
-                style="display:none;">
-            💾 Agregar al evento
-        </button>
-    
-    </div>
-    </div>v>
+        <div class="ai-head">
+            <h2>🧠 Asistente Clínico IA</h2>
 
-        <div id="ai-loading" class="text-block" style="display:none;">
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button
+                    type="button"
+                    onclick="analizarEventoIA()"
+                    class="event-btn primary"
+                >
+                    🧠 Analizar con IA
+                </button>
+
+                <button
+                    type="button"
+                    onclick="copiarAnalisisIA()"
+                    class="event-btn"
+                    id="ai-copy-btn"
+                    style="display:none;"
+                >
+                    📋 Copiar
+                </button>
+
+                <button
+                    type="button"
+                    onclick="guardarAnalisisIA()"
+                    class="event-btn"
+                    id="ai-save-btn"
+                    style="display:none;"
+                >
+                    💾 Agregar al evento
+                </button>
+            </div>
+        </div>
+
+        <div
+            id="ai-loading"
+            class="text-block"
+            style="display:none;"
+        >
             ⏳ Analizando evento clínico...
         </div>
 
         <div id="ai-result" style="display:none;">
-        <div class="text-block" id="ai-priority-box" style="margin-bottom:14px;">
-            <b>Prioridad:</b> <span id="ai-priority">-</span>
-        </div>
+            <div
+                class="text-block"
+                id="ai-priority-box"
+                style="margin-bottom:14px;"
+            >
+                <b>Prioridad:</b>
+                <span id="ai-priority">-</span>
+            </div>
+
             <div class="text-block" id="ai-summary"></div>
 
             <div class="ai-grid">
@@ -169,98 +430,618 @@
                 </div>
             </div>
 
-            <div class="text-block" id="ai-owner" style="margin-top:14px;"></div>
+            <div
+                class="text-block"
+                id="ai-owner"
+                style="margin-top:14px;"
+            ></div>
         </div>
     </div>
-    {% if event.event_type == 'ECG' %}
+
+    {% if event.event_type == 'ECG'
+        or event.ecg_hr
+        or event.ecg_rhythm
+        or event.ecg_p
+        or event.ecg_pr
+        or event.ecg_qrs
+        or event.ecg_st
+        or event.ecg_t
+        or event.ecg_qt
+        or event.ecg_axis
+        or event.ecg_interpretation
+        or event.ecg_p_mv
+        or event.ecg_qrs_mv
+        or event.ecg_t_mv
+        or event.ecg_qtc
+        or event.ecg_polarity
+        or event.ecg_arrhythmia
+        or event.ecg_conduction
+        or event.ecg_notes
+    %}
     <div class="event-card">
         <h2>💗 Electrocardiograma</h2>
-        <table class="modern-table">
-            <tr><th>Parámetro</th><th>Valor</th><th>Valor normal</th></tr>
-            <tr><td>FC</td><td>{{ event.ecg_hr }} lpm</td><td>60–160 lpm</td></tr>
-            <tr><td>Ritmo</td><td>{{ event.ecg_rhythm }}</td><td>Sinusal / según contexto</td></tr>
-            <tr><td>Onda P</td><td>{{ event.ecg_p }}</td><td>&lt; 0.04 seg / &lt; 0.4 mV</td></tr>
-            <tr><td>Intervalo PR</td><td>{{ event.ecg_pr }}</td><td>0.06–0.13 seg</td></tr>
-            <tr><td>QRS</td><td>{{ event.ecg_qrs }}</td><td>&lt; 0.06 seg / hasta 3.0 mV</td></tr>
-            <tr><td>Segmento ST</td><td>{{ event.ecg_st }}</td><td>Isoeléctrico o mínima variación</td></tr>
-            <tr><td>Onda T</td><td>{{ event.ecg_t }}</td><td>≤ 25% de R</td></tr>
-            <tr><td>Intervalo QT</td><td>{{ event.ecg_qt }}</td><td>Variable según FC</td></tr>
-            <tr><td>Eje eléctrico</td><td>{{ event.ecg_axis }}°</td><td>+40° a +100°</td></tr>
-        </table>
-        {% if event.ecg_interpretation %}<h3>Interpretación</h3><div class="text-block">{{ event.ecg_interpretation }}</div>{% endif %}
-    </div>
 
+        <table class="modern-table">
+            <tr>
+                <th>Parámetro</th>
+                <th>Valor registrado</th>
+            </tr>
+
+            {% if event.ecg_hr %}
+                <tr>
+                    <td>Frecuencia cardíaca ECG</td>
+                    <td>{{ event.ecg_hr }} lpm</td>
+                </tr>
+            {% endif %}
+
+            {% if event.ecg_rhythm %}
+                <tr>
+                    <td>Ritmo</td>
+                    <td>{{ event.ecg_rhythm }}</td>
+                </tr>
+            {% endif %}
+
+            {% if event.ecg_p %}
+                <tr>
+                    <td>Duración de onda P</td>
+                    <td>{{ event.ecg_p }}</td>
+                </tr>
+            {% endif %}
+
+            {% if event.ecg_p_mv %}
+                <tr>
+                    <td>Amplitud de onda P</td>
+                    <td>{{ event.ecg_p_mv }}</td>
+                </tr>
+            {% endif %}
+
+            {% if event.ecg_pr %}
+                <tr>
+                    <td>Intervalo PR</td>
+                    <td>{{ event.ecg_pr }}</td>
+                </tr>
+            {% endif %}
+
+            {% if event.ecg_qrs %}
+                <tr>
+                    <td>Duración QRS</td>
+                    <td>{{ event.ecg_qrs }}</td>
+                </tr>
+            {% endif %}
+
+            {% if event.ecg_qrs_mv %}
+                <tr>
+                    <td>Amplitud QRS</td>
+                    <td>{{ event.ecg_qrs_mv }}</td>
+                </tr>
+            {% endif %}
+
+            {% if event.ecg_st %}
+                <tr>
+                    <td>Segmento ST</td>
+                    <td>{{ event.ecg_st }}</td>
+                </tr>
+            {% endif %}
+
+            {% if event.ecg_t %}
+                <tr>
+                    <td>Duración de onda T</td>
+                    <td>{{ event.ecg_t }}</td>
+                </tr>
+            {% endif %}
+
+            {% if event.ecg_t_mv %}
+                <tr>
+                    <td>Amplitud de onda T</td>
+                    <td>{{ event.ecg_t_mv }}</td>
+                </tr>
+            {% endif %}
+
+            {% if event.ecg_polarity %}
+                <tr>
+                    <td>Polaridad de onda T</td>
+                    <td>{{ event.ecg_polarity }}</td>
+                </tr>
+            {% endif %}
+
+            {% if event.ecg_qt %}
+                <tr>
+                    <td>Intervalo QT</td>
+                    <td>{{ event.ecg_qt }}</td>
+                </tr>
+            {% endif %}
+
+            {% if event.ecg_qtc %}
+                <tr>
+                    <td>QT corregido</td>
+                    <td>{{ event.ecg_qtc }}</td>
+                </tr>
+            {% endif %}
+
+            {% if event.ecg_axis %}
+                <tr>
+                    <td>Eje eléctrico</td>
+                    <td>{{ event.ecg_axis }}°</td>
+                </tr>
+            {% endif %}
+
+            {% if event.ecg_arrhythmia %}
+                <tr>
+                    <td>Arritmias</td>
+                    <td>{{ event.ecg_arrhythmia }}</td>
+                </tr>
+            {% endif %}
+
+            {% if event.ecg_conduction %}
+                <tr>
+                    <td>Conducción</td>
+                    <td>{{ event.ecg_conduction }}</td>
+                </tr>
+            {% endif %}
+        </table>
+
+        {% if event.ecg_interpretation %}
+            <h3>Interpretación</h3>
+            <div class="text-block">
+                {{ event.ecg_interpretation }}
+            </div>
+        {% endif %}
+
+        {% if event.ecg_notes %}
+            <h3>Observaciones</h3>
+            <div class="text-block">
+                {{ event.ecg_notes }}
+            </div>
+        {% endif %}
+    </div>
     {% if previous_ecg %}
     <div class="event-card">
         <h2>📈 Comparación con ECG previo</h2>
+
         <table class="modern-table">
-            <tr><th>Parámetro</th><th>ECG actual</th><th>ECG previo</th></tr>
-            <tr><td>Fecha</td><td>{{ event.event_date.strftime('%d/%m/%Y') }}</td><td>{{ previous_ecg.event_date.strftime('%d/%m/%Y') }}</td></tr>
-            <tr><td>FC</td><td>{{ event.ecg_hr }} lpm</td><td>{{ previous_ecg.ecg_hr }} lpm</td></tr>
-            <tr><td>Ritmo</td><td>{{ event.ecg_rhythm }}</td><td>{{ previous_ecg.ecg_rhythm }}</td></tr>
-            <tr><td>QRS</td><td>{{ event.ecg_qrs }}</td><td>{{ previous_ecg.ecg_qrs }}</td></tr>
-            <tr><td>QT</td><td>{{ event.ecg_qt }}</td><td>{{ previous_ecg.ecg_qt }}</td></tr>
-            <tr><td>Eje eléctrico</td><td>{{ event.ecg_axis }}°</td><td>{{ previous_ecg.ecg_axis }}°</td></tr>
+            <tr>
+                <th>Parámetro</th>
+                <th>ECG actual</th>
+                <th>ECG previo</th>
+            </tr>
+            <tr>
+                <td>Fecha</td>
+                <td>{{ event.event_date.strftime('%d/%m/%Y') }}</td>
+                <td>{{ previous_ecg.event_date.strftime('%d/%m/%Y') }}</td>
+            </tr>
+            <tr>
+                <td>FC</td>
+                <td>{{ event.ecg_hr }} lpm</td>
+                <td>{{ previous_ecg.ecg_hr }} lpm</td>
+            </tr>
+            <tr>
+                <td>Ritmo</td>
+                <td>{{ event.ecg_rhythm }}</td>
+                <td>{{ previous_ecg.ecg_rhythm }}</td>
+            </tr>
+            <tr>
+                <td>QRS</td>
+                <td>{{ event.ecg_qrs }}</td>
+                <td>{{ previous_ecg.ecg_qrs }}</td>
+            </tr>
+            <tr>
+                <td>QT</td>
+                <td>{{ event.ecg_qt }}</td>
+                <td>{{ previous_ecg.ecg_qt }}</td>
+            </tr>
+            <tr>
+                <td>Eje eléctrico</td>
+                <td>{{ event.ecg_axis }}°</td>
+                <td>{{ previous_ecg.ecg_axis }}°</td>
+            </tr>
         </table>
     </div>
     {% endif %}
     {% endif %}
 
-    {% if event.event_type == 'Ecocardiografía' %}
+    {% if event.event_type == 'Ecocardiografía'
+        or event.eco_aiao
+        or event.eco_fs
+        or event.eco_acvim
+        or event.eco_diagnosis
+        or event.eco_treatment
+        or event.eco_epss
+        or event.eco_lvidd
+        or event.eco_lvids
+        or event.eco_ivsd
+        or event.eco_ivss
+        or event.eco_lvpwd
+        or event.eco_lvpws
+        or event.eco_fe
+        or event.eco_la_size
+        or event.eco_lv_size
+        or event.eco_rv_size
+        or event.eco_ra_size
+        or event.eco_mitral
+        or event.eco_tricuspid
+        or event.eco_aortic
+        or event.eco_pulmonary
+        or event.eco_pulmonary_htn
+        or event.eco_pericardium
+        or event.eco_doppler
+        or event.eco_observations
+    %}
     <div class="event-card">
         <h2>🫀 Ecocardiografía</h2>
+
         <div class="info-grid">
-            <div class="info-box"><b>AI/Ao</b>{{ event.eco_aiao or '-' }}</div>
-            <div class="info-box"><b>Fracción de acortamiento</b>{{ event.eco_fs or '-' }}%</div>
-            <div class="info-box"><b>Clasificación ACVIM</b>{{ event.eco_acvim or '-' }}</div>
+            {% if event.eco_aiao %}
+                <div class="info-box">
+                    <b>AI/Ao</b>
+                    {{ event.eco_aiao }}
+                </div>
+            {% endif %}
+
+            {% if event.eco_fs %}
+                <div class="info-box">
+                    <b>Fracción de acortamiento</b>
+                    {{ event.eco_fs }}
+                </div>
+            {% endif %}
+
+            {% if event.eco_fe %}
+                <div class="info-box">
+                    <b>Fracción de eyección</b>
+                    {{ event.eco_fe }}
+                </div>
+            {% endif %}
+
+            {% if event.eco_epss %}
+                <div class="info-box">
+                    <b>EPSS</b>
+                    {{ event.eco_epss }}
+                </div>
+            {% endif %}
+
+            {% if event.eco_lvidd %}
+                <div class="info-box">
+                    <b>LVIDd</b>
+                    {{ event.eco_lvidd }}
+                </div>
+            {% endif %}
+
+            {% if event.eco_lvids %}
+                <div class="info-box">
+                    <b>LVIDs</b>
+                    {{ event.eco_lvids }}
+                </div>
+            {% endif %}
+
+            {% if event.eco_ivsd %}
+                <div class="info-box">
+                    <b>IVSd</b>
+                    {{ event.eco_ivsd }}
+                </div>
+            {% endif %}
+
+            {% if event.eco_ivss %}
+                <div class="info-box">
+                    <b>IVSs</b>
+                    {{ event.eco_ivss }}
+                </div>
+            {% endif %}
+
+            {% if event.eco_lvpwd %}
+                <div class="info-box">
+                    <b>LVPWd</b>
+                    {{ event.eco_lvpwd }}
+                </div>
+            {% endif %}
+
+            {% if event.eco_lvpws %}
+                <div class="info-box">
+                    <b>LVPWs</b>
+                    {{ event.eco_lvpws }}
+                </div>
+            {% endif %}
+
+            {% if event.eco_la_size %}
+                <div class="info-box">
+                    <b>Atrio izquierdo</b>
+                    {{ event.eco_la_size }}
+                </div>
+            {% endif %}
+
+            {% if event.eco_lv_size %}
+                <div class="info-box">
+                    <b>Ventrículo izquierdo</b>
+                    {{ event.eco_lv_size }}
+                </div>
+            {% endif %}
+
+            {% if event.eco_ra_size %}
+                <div class="info-box">
+                    <b>Atrio derecho</b>
+                    {{ event.eco_ra_size }}
+                </div>
+            {% endif %}
+
+            {% if event.eco_rv_size %}
+                <div class="info-box">
+                    <b>Ventrículo derecho</b>
+                    {{ event.eco_rv_size }}
+                </div>
+            {% endif %}
+
+            {% if event.eco_acvim %}
+                <div class="info-box">
+                    <b>Clasificación ACVIM</b>
+                    {{ event.eco_acvim }}
+                </div>
+            {% endif %}
         </div>
-        {% if event.eco_diagnosis %}<h3>Diagnóstico ecocardiográfico</h3><div class="text-block">{{ event.eco_diagnosis }}</div>{% endif %}
-        {% if event.eco_treatment %}<h3>Tratamiento cardiológico</h3><div class="text-block">{{ event.eco_treatment }}</div>{% endif %}
+
+        {% if event.eco_mitral %}
+            <h3>Válvula mitral</h3>
+            <div class="text-block">{{ event.eco_mitral }}</div>
+        {% endif %}
+
+        {% if event.eco_tricuspid %}
+            <h3>Válvula tricúspide</h3>
+            <div class="text-block">{{ event.eco_tricuspid }}</div>
+        {% endif %}
+
+        {% if event.eco_aortic %}
+            <h3>Válvula aórtica</h3>
+            <div class="text-block">{{ event.eco_aortic }}</div>
+        {% endif %}
+
+        {% if event.eco_pulmonary %}
+            <h3>Válvula pulmonar</h3>
+            <div class="text-block">{{ event.eco_pulmonary }}</div>
+        {% endif %}
+
+        {% if event.eco_pulmonary_htn %}
+            <h3>Hipertensión pulmonar</h3>
+            <div class="text-block">{{ event.eco_pulmonary_htn }}</div>
+        {% endif %}
+
+        {% if event.eco_pericardium %}
+            <h3>Pericardio</h3>
+            <div class="text-block">{{ event.eco_pericardium }}</div>
+        {% endif %}
+
+        {% if event.eco_doppler %}
+            <h3>Doppler</h3>
+            <div class="text-block">{{ event.eco_doppler }}</div>
+        {% endif %}
+
+        {% if event.eco_diagnosis %}
+            <h3>Diagnóstico ecocardiográfico</h3>
+            <div class="text-block">{{ event.eco_diagnosis }}</div>
+        {% endif %}
+
+        {% if event.eco_treatment %}
+            <h3>Tratamiento cardiológico</h3>
+            <div class="text-block">{{ event.eco_treatment }}</div>
+        {% endif %}
+
+        {% if event.eco_observations %}
+            <h3>Observaciones</h3>
+            <div class="text-block">{{ event.eco_observations }}</div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if event.event_type == 'Radiografía'
+        or event.rx_vhs
+        or event.rx_vlas
+        or event.rx_heart_size
+        or event.rx_left_atrium
+        or event.rx_left_heart
+        or event.rx_right_heart
+        or event.rx_pulmonary_vessels
+        or event.rx_lung_pattern
+        or event.rx_edema
+        or event.rx_congestion
+        or event.rx_trachea
+        or event.rx_observations
+    %}
+    <div class="event-card">
+        <h2>🩻 Evaluación radiográfica</h2>
+
+        <div class="info-grid">
+            {% if event.rx_vhs %}
+                <div class="info-box"><b>VHS</b>{{ event.rx_vhs }}</div>
+            {% endif %}
+
+            {% if event.rx_vlas %}
+                <div class="info-box"><b>VLAS</b>{{ event.rx_vlas }}</div>
+            {% endif %}
+
+            {% if event.rx_heart_size %}
+                <div class="info-box">
+                    <b>Tamaño cardíaco</b>
+                    {{ event.rx_heart_size }}
+                </div>
+            {% endif %}
+
+            {% if event.rx_left_atrium %}
+                <div class="info-box">
+                    <b>Atrio izquierdo</b>
+                    {{ event.rx_left_atrium }}
+                </div>
+            {% endif %}
+
+            {% if event.rx_left_heart %}
+                <div class="info-box">
+                    <b>Corazón izquierdo</b>
+                    {{ event.rx_left_heart }}
+                </div>
+            {% endif %}
+
+            {% if event.rx_right_heart %}
+                <div class="info-box">
+                    <b>Corazón derecho</b>
+                    {{ event.rx_right_heart }}
+                </div>
+            {% endif %}
+
+            {% if event.rx_pulmonary_vessels %}
+                <div class="info-box">
+                    <b>Vasos pulmonares</b>
+                    {{ event.rx_pulmonary_vessels }}
+                </div>
+            {% endif %}
+
+            {% if event.rx_lung_pattern %}
+                <div class="info-box">
+                    <b>Patrón pulmonar</b>
+                    {{ event.rx_lung_pattern }}
+                </div>
+            {% endif %}
+
+            {% if event.rx_edema %}
+                <div class="info-box">
+                    <b>Edema</b>
+                    {{ event.rx_edema }}
+                </div>
+            {% endif %}
+
+            {% if event.rx_congestion %}
+                <div class="info-box">
+                    <b>Congestión</b>
+                    {{ event.rx_congestion }}
+                </div>
+            {% endif %}
+
+            {% if event.rx_trachea %}
+                <div class="info-box">
+                    <b>Tráquea</b>
+                    {{ event.rx_trachea }}
+                </div>
+            {% endif %}
+        </div>
+
+        {% if event.rx_observations %}
+            <h3>Observaciones radiográficas</h3>
+            <div class="text-block">
+                {{ event.rx_observations }}
+            </div>
+        {% endif %}
     </div>
     {% endif %}
 
     {% if event.event_type == 'Vacuna' %}
     <div class="event-card">
         <h2>💉 Vacunación</h2>
+
         <div class="info-grid">
-            <div class="info-box"><b>Vacuna</b>{{ event.vaccine_name or '-' }}</div>
-            <div class="info-box"><b>Lote</b>{{ event.vaccine_lot or '-' }}</div>
-            <div class="info-box"><b>Refuerzo</b>{{ event.vaccine_expiration or '-' }}</div>
-            <div class="info-box"><b>Próxima vacuna</b>{{ event.next_vaccine_date or '-' }}</div>
+            <div class="info-box">
+                <b>Vacuna</b>
+                {{ event.vaccine_name or '-' }}
+            </div>
+
+            <div class="info-box">
+                <b>Lote</b>
+                {{ event.vaccine_lot or '-' }}
+            </div>
+
+            <div class="info-box">
+                <b>Vencimiento</b>
+                {{ event.vaccine_expiration or '-' }}
+            </div>
+
+            <div class="info-box">
+                <b>Próxima vacuna</b>
+                {{ event.next_vaccine_date or '-' }}
+            </div>
         </div>
     </div>
     {% endif %}
+
+    {% if event.event_type == 'Desparasitación' %}
+    <div class="event-card">
+        <h2>🪱 Desparasitación</h2>
+
+        <div class="info-grid">
+            <div class="info-box">
+                <b>Producto</b>
+                {{ event.dewormer_product or '-' }}
+            </div>
+
+            <div class="info-box">
+                <b>Droga</b>
+                {{ event.dewormer_drug or '-' }}
+            </div>
+
+            <div class="info-box">
+                <b>Dosis</b>
+                {{ event.dewormer_dose or '-' }}
+            </div>
+
+            <div class="info-box">
+                <b>Próxima desparasitación</b>
+                {{ event.next_deworming_date or '-' }}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if event.reminder_date %}
+    <div class="event-card">
+        <h2>📅 Seguimiento</h2>
+
+        <div class="info-grid">
+            <div class="info-box">
+                <b>Recordatorio / próximo control</b>
+                {{ event.reminder_date.strftime('%d/%m/%Y') }}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     {% if event.attachments %}
     <div class="event-card">
         <h2>📎 Adjuntos / estudios</h2>
 
         {% for a in event.attachments %}
             {% set lower_name = a.filename.lower() %}
+
             <div style="margin-bottom:18px;">
                 <p><b>{{ a.filename }}</b></p>
 
-                {% if lower_name.endswith('.jpg') or lower_name.endswith('.jpeg') or lower_name.endswith('.png') or lower_name.endswith('.webp') %}
+                {% if lower_name.endswith('.jpg')
+                    or lower_name.endswith('.jpeg')
+                    or lower_name.endswith('.png')
+                    or lower_name.endswith('.webp')
+                %}
                     <a href="{{ a.file_path }}" target="_blank">
-                        <img src="{{ a.file_path }}" style="max-width:100%; border-radius:16px; border:1px solid #f3c6d8;">
+                        <img
+                            src="{{ a.file_path }}"
+                            style="
+                                max-width:100%;
+                                border-radius:16px;
+                                border:1px solid #f3c6d8;
+                            "
+                        >
                     </a>
+
                 {% elif lower_name.endswith('.pdf') %}
-                    <a href="{{ a.file_path }}" target="_blank" class="event-btn">📄 Ver PDF</a>
+                    <a
+                        href="{{ a.file_path }}"
+                        target="_blank"
+                        class="event-btn"
+                    >
+                        📄 Ver PDF
+                    </a>
+
                 {% else %}
-                    <a href="{{ a.file_path }}" target="_blank" class="event-btn">📎 Ver archivo</a>
+                    <a
+                        href="{{ a.file_path }}"
+                        target="_blank"
+                        class="event-btn"
+                    >
+                        📎 Ver archivo
+                    </a>
                 {% endif %}
             </div>
         {% endfor %}
-    </div>
-    {% endif %}
-    {% if event.event_type == 'Desparasitación' %}
-    <div class="event-card">
-        <h2>🪱 Desparasitación</h2>
-        <div class="info-grid">
-            <div class="info-box"><b>Producto</b>{{ event.dewormer_product or '-' }}</div>
-            <div class="info-box"><b>Droga</b>{{ event.dewormer_drug or '-' }}</div>
-            <div class="info-box"><b>Dosis</b>{{ event.dewormer_dose or '-' }}</div>
-            <div class="info-box"><b>Próxima</b>{{ event.next_deworming_date or '-' }}</div>
-        </div>
     </div>
     {% endif %}
 
@@ -270,7 +1051,9 @@
 async function analizarEventoIA() {
     const loading = document.getElementById("ai-loading");
     const resultBox = document.getElementById("ai-result");
-    const button = document.querySelector("button[onclick='analizarEventoIA()']");
+    const button = document.querySelector(
+        "button[onclick='analizarEventoIA()']"
+    );
 
     button.disabled = true;
     button.innerHTML = "⏳ Analizando...";
@@ -280,14 +1063,19 @@ async function analizarEventoIA() {
     resultBox.style.display = "none";
 
     try {
-        const response = await fetch("/patients/{{ patient.id }}/events/{{ event.id }}/ai", {
-            method: "POST"
-        });
+        const response = await fetch(
+            "/patients/{{ patient.id }}/events/{{ event.id }}/ai",
+            {
+                method: "POST"
+            }
+        );
 
         const data = await response.json();
 
         if (!response.ok) {
-            throw new Error(data.detail || "Error al analizar con IA.");
+            throw new Error(
+                data.detail || "Error al analizar con IA."
+            );
         }
 
         function fillList(id, items) {
@@ -305,13 +1093,14 @@ async function analizarEventoIA() {
                 ul.appendChild(li);
             });
         }
+
         const priority = data.priority || "Normal";
-        const prioritySpan = document.getElementById("ai-priority");
-        
+        const prioritySpan =
+            document.getElementById("ai-priority");
+
         prioritySpan.textContent = priority;
-        
         prioritySpan.className = "ai-priority-label";
-        
+
         if (priority.toLowerCase().includes("alta")) {
             prioritySpan.classList.add("alta");
         } else if (priority.toLowerCase().includes("cr")) {
@@ -319,11 +1108,17 @@ async function analizarEventoIA() {
         } else {
             prioritySpan.classList.add("normal");
         }
+
         document.getElementById("ai-summary").innerHTML =
-            "<b>Resumen clínico:</b><br>" + (data.summary || "Sin resumen generado.");
+            "<b>Resumen clínico:</b><br>" +
+            (data.summary || "Sin resumen generado.");
 
         document.getElementById("ai-owner").innerHTML =
-            "<b>Explicación para propietario:</b><br>" + (data.owner_explanation || "Sin explicación generada.");
+            "<b>Explicación para propietario:</b><br>" +
+            (
+                data.owner_explanation ||
+                "Sin explicación generada."
+            );
 
         fillList("ai-problems", data.problems);
         fillList("ai-differentials", data.differentials);
@@ -333,8 +1128,12 @@ async function analizarEventoIA() {
 
         loading.style.display = "none";
         resultBox.style.display = "block";
-        document.getElementById("ai-copy-btn").style.display = "inline-flex";
-        document.getElementById("ai-save-btn").style.display = "inline-flex";
+
+        document.getElementById("ai-copy-btn").style.display =
+            "inline-flex";
+
+        document.getElementById("ai-save-btn").style.display =
+            "inline-flex";
 
     } catch (error) {
         loading.style.display = "block";
@@ -344,17 +1143,26 @@ async function analizarEventoIA() {
         button.innerHTML = "🧠 Analizar con IA";
     }
 }
+
 function copiarTextoAnalisisIA() {
-    const priority = document.getElementById("ai-priority")?.innerText || "";
-    const summary = document.getElementById("ai-summary")?.innerText || "";
-    const owner = document.getElementById("ai-owner")?.innerText || "";
+    const priority =
+        document.getElementById("ai-priority")?.innerText || "";
+
+    const summary =
+        document.getElementById("ai-summary")?.innerText || "";
+
+    const owner =
+        document.getElementById("ai-owner")?.innerText || "";
 
     function listText(id, title) {
-        const items = Array.from(document.querySelectorAll("#" + id + " li"))
+        const items = Array.from(
+            document.querySelectorAll("#" + id + " li")
+        )
             .map(li => "- " + li.innerText)
             .join("\n");
 
-        return title + "\n" + (items || "- Sin datos suficientes.");
+        return title + "\n" +
+            (items || "- Sin datos suficientes.");
     }
 
     return [
@@ -364,15 +1172,30 @@ function copiarTextoAnalisisIA() {
         "",
         summary,
         "",
-        listText("ai-problems", "🧩 Problemas detectados"),
+        listText(
+            "ai-problems",
+            "🧩 Problemas detectados"
+        ),
         "",
-        listText("ai-differentials", "🔎 Diferenciales posibles"),
+        listText(
+            "ai-differentials",
+            "🔎 Diferenciales posibles"
+        ),
         "",
-        listText("ai-tests", "🧪 Estudios sugeridos"),
+        listText(
+            "ai-tests",
+            "🧪 Estudios sugeridos"
+        ),
         "",
-        listText("ai-treatment", "💊 Sugerencias terapéuticas"),
+        listText(
+            "ai-treatment",
+            "💊 Sugerencias terapéuticas"
+        ),
         "",
-        listText("ai-alerts", "🚨 Alertas"),
+        listText(
+            "ai-alerts",
+            "🚨 Alertas"
+        ),
         "",
         owner
     ].join("\n");
@@ -389,24 +1212,31 @@ function copiarAnalisisIA() {
 async function guardarAnalisisIA() {
     const text = copiarTextoAnalisisIA();
 
-    const response = await fetch("/patients/{{ patient.id }}/events/{{ event.id }}/ai/save", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/x-www-form-urlencoded"
-        },
-        body: new URLSearchParams({
-            ai_text: text
-        })
-    });
+    const response = await fetch(
+        "/patients/{{ patient.id }}/events/{{ event.id }}/ai/save",
+        {
+            method: "POST",
+            headers: {
+                "Content-Type":
+                    "application/x-www-form-urlencoded"
+            },
+            body: new URLSearchParams({
+                ai_text: text
+            })
+        }
+    );
 
     const data = await response.json();
 
     if (data.ok) {
         alert("✅ El análisis IA fue agregado al evento.");
     } else {
-        alert(data.message || "No se pudo guardar el análisis IA.");
+        alert(
+            data.message ||
+            "No se pudo guardar el análisis IA."
+        );
     }
 }
 </script>
 
-{% endblock %}
+{% endblock %}    
