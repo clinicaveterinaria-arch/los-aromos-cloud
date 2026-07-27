@@ -1,36 +1,37 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
 <meta charset="UTF-8">
+
 <title>Protocolo Anestésico</title>
 
 <style>
-body{
+body {
     font-family: Arial, sans-serif;
     margin: 18px;
     color: #111;
     font-size: 13px;
 }
 
-h1{
+h1 {
     text-align: center;
     font-size: 24px;
     margin-bottom: 18px;
 }
 
-h2{
+h2 {
     font-size: 17px;
     border-bottom: 1px solid #ccc;
     padding-bottom: 4px;
     margin-top: 4px;
 }
 
-h3{
+h3 {
     font-size: 14px;
     margin-bottom: 4px;
 }
 
-.panel{
+.panel {
     border: 1px solid #ccc;
     border-radius: 6px;
     padding: 10px 12px;
@@ -38,239 +39,496 @@ h3{
     page-break-inside: avoid;
 }
 
-p{
+p {
     margin: 5px 0;
 }
 
-ul{
+ul {
     margin-top: 4px;
     margin-bottom: 8px;
 }
 
-.btn{
+.btn {
     padding: 8px 14px;
     margin-top: 10px;
 }
 
-@media print{
-    .btn{
-        display:none;
+.print-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    padding-bottom: 10px;
+    margin-bottom: 12px;
+    border-bottom: 2px solid #d85b9f;
+}
+
+.dose-ml {
+    font-weight: 700;
+    color: #111;
+}
+
+.dose-reference {
+    color: #555;
+}
+
+@media print {
+    .btn {
+        display: none;
     }
 
-    body{
+    body {
         margin: 8mm;
     }
 }
 </style>
 
-
 </head>
+
 <body>
+
 <div class="print-header">
     <div>
         <strong>Los Aromos</strong><br>
         Clínica Veterinaria
     </div>
+
     <div>
         <strong>Protocolo anestésico</strong><br>
         Hoja intraoperatoria
     </div>
 </div>
+
 <h1>Protocolo Anestésico</h1>
 
 <div class="panel">
-
     <h2>{{ patient.name }}</h2>
 
-    <p><strong>Propietario:</strong> {{ patient.owner.name }}</p>
-
-    <p><strong>Peso:</strong> {{ patient.weight or '-' }} kg</p>
-
-    <p><strong>Fecha:</strong>
-    {% if last_anesthesia %}
-        {{ last_anesthesia.event_date.strftime('%d/%m/%Y %H:%M') }}
-    {% endif %}
+    <p>
+        <strong>Propietario:</strong>
+        {{ patient.owner.name }}
     </p>
 
+    <p>
+        <strong>Peso:</strong>
+        {% if last_anesthesia and last_anesthesia.weight %}
+            {{ last_anesthesia.weight }} kg
+        {% else %}
+            {{ patient.weight or '-' }} kg
+        {% endif %}
+    </p>
+
+    <p>
+        <strong>Fecha:</strong>
+
+        {% if last_anesthesia %}
+            {{ last_anesthesia.event_date.strftime('%d/%m/%Y %H:%M') }}
+        {% else %}
+            -
+        {% endif %}
+    </p>
 </div>
+
 <div class="panel">
-    <h2>Resumen de dosis calculadas</h2>
+    <h2>Resumen de volúmenes calculados</h2>
 
     <h3>Premedicación</h3>
+
     <ul>
-        <li>Acepromacina: {{ doses.acepromacina_mg }} mg ({{ doses.acepromacina_ml }} ml)</li>
-        <li>Dexmedetomidina: {{ doses.dexmedetomidina_mcg_baja }} a {{ doses.dexmedetomidina_mcg_alta }} mcg ({{ doses.dexmedetomidina_ml_baja }} a {{ doses.dexmedetomidina_ml_alta }} ml)</li>
-        <li>Ketamina IM: {{ doses.ketamina_premed_mg }} mg ({{ doses.ketamina_premed_ml }} ml)</li>
-        <li>Midazolam: {{ doses.midazolam_mg }} mg ({{ doses.midazolam_ml }} ml)</li>
-        <li>Nalbufina: {{ doses.nalbufina_mg }} mg</li>
-        <li>Butorfanol: {{ doses.butorfanol_mg }} mg</li>
+        <li>
+            Acepromacina:
+            <span class="dose-ml">
+                {{ doses.acepromacina_ml }} ml
+            </span>
+            <span class="dose-reference">
+                ({{ doses.acepromacina_mg }} mg)
+            </span>
+        </li>
+
+        <li>
+            Dexmedetomidina:
+            <span class="dose-ml">
+                {{ doses.dexmedetomidina_ml_baja }}
+                a
+                {{ doses.dexmedetomidina_ml_alta }} ml
+            </span>
+            <span class="dose-reference">
+                (
+                {{ doses.dexmedetomidina_mcg_baja }}
+                a
+                {{ doses.dexmedetomidina_mcg_alta }} mcg
+                )
+            </span>
+        </li>
+
+        <li>
+            Ketamina IM:
+            <span class="dose-ml">
+                {{ doses.ketamina_premed_ml }} ml
+            </span>
+            <span class="dose-reference">
+                ({{ doses.ketamina_premed_mg }} mg)
+            </span>
+        </li>
+
+        <li>
+            Midazolam:
+            <span class="dose-ml">
+                {{ doses.midazolam_ml }} ml
+            </span>
+            <span class="dose-reference">
+                ({{ doses.midazolam_mg }} mg)
+            </span>
+        </li>
+
+        <li>
+            Nalbufina:
+            <span class="dose-ml">
+                {{ doses.nalbufina_ml }} ml
+            </span>
+            <span class="dose-reference">
+                ({{ doses.nalbufina_mg }} mg)
+            </span>
+        </li>
+
+        <li>
+            Butorfanol:
+            <span class="dose-ml">
+                {{ doses.butorfanol_ml }} ml
+            </span>
+            <span class="dose-reference">
+                ({{ doses.butorfanol_mg }} mg)
+            </span>
+        </li>
     </ul>
 
     <h3>Inducción</h3>
+
     <ul>
-        <li>Propofol: {{ doses.propofol_ind_ml }} ml</li>
-        <li>Ketamina: {{ doses.ketamina_ind_ml }} ml</li>
-        <li>Midazolam: {{ doses.midazolam_ind_ml }} ml</li>
+        <li>
+            Propofol:
+            <span class="dose-ml">
+                {{ doses.propofol_ind_ml }} ml
+            </span>
+            <span class="dose-reference">
+                ({{ doses.propofol_ind_mg }} mg)
+            </span>
+        </li>
+
+        <li>
+            Ketamina:
+            <span class="dose-ml">
+                {{ doses.ketamina_ind_ml }} ml
+            </span>
+            <span class="dose-reference">
+                ({{ doses.ketamina_ind_mg }} mg)
+            </span>
+        </li>
+
+        <li>
+            Midazolam:
+            <span class="dose-ml">
+                {{ doses.midazolam_ind_ml }} ml
+            </span>
+            <span class="dose-reference">
+                ({{ doses.midazolam_ind_mg }} mg)
+            </span>
+        </li>
     </ul>
 
-    <h3>Analgesia / soporte</h3>
+    <h3>Analgesia y soporte</h3>
+
     <ul>
-        <li>Meloxicam: {{ doses.meloxicam_mg }} mg</li>
-        <li>Fentanilo bolo: {{ doses.fentanilo_bolo_mcg }} mcg ({{ doses.fentanilo_bolo_ml }} ml)</li>
-        <li>FLK: {{ doses.flk_velocidad_ml_h }} ml/h</li>
-        <li>Ringer Lactato: {{ doses.rl_ml_h }} ml/h</li>
+        <li>
+            Meloxicam:
+            <span class="dose-ml">
+                {{ doses.meloxicam_ml }} ml
+            </span>
+            <span class="dose-reference">
+                ({{ doses.meloxicam_mg }} mg)
+            </span>
+        </li>
+
+        <li>
+            Fentanilo de carga:
+            <span class="dose-ml">
+                {{ doses.fentanilo_bolo_ml }} ml EV lento
+            </span>
+            <span class="dose-reference">
+                ({{ doses.fentanilo_bolo_mcg }} mcg)
+            </span>
+        </li>
+
+        <li>
+            Velocidad FLK:
+            <strong>{{ doses.flk_velocidad_ml_h }} ml/h</strong>
+        </li>
+
+        <li>
+            Ringer Lactato:
+            <strong>{{ doses.rl_ml_h }} ml/h</strong>
+        </li>
     </ul>
 </div>
-<div class="panel">
-    <h2>Último protocolo guardado</h2>
 
-    {% if last_anesthesia %}
-        <pre style="white-space: pre-wrap; font-family: Arial; margin:0;">
+{% if last_anesthesia %}
+<div class="panel">
+    <h2>Protocolo guardado</h2>
+
+    <pre style="white-space:pre-wrap;font-family:Arial;margin:0;">
 {{ last_anesthesia.description }}
-        </pre>
-    {% else %}
-        <p>No hay protocolos anestésicos guardados.</p>
-    {% endif %}
+    </pre>
 </div>
-<div class="panel">
+{% endif %}
 
+<div class="panel">
     <h2>Premedicación</h2>
 
     <ul>
-        <li>Acepromacina: {{ doses.acepromacina_mg }} mg ({{ doses.acepromacina_ml }} ml)</li>
-        <li>Dexmedetomidina: {{ doses.dexmedetomidina_mcg_baja }}–{{ doses.dexmedetomidina_mcg_alta }} mcg</li>
-        <li>Ketamina IM: {{ doses.ketamina_premed_mg }} mg ({{ doses.ketamina_premed_ml }} ml)</li>
-        <li>Midazolam: {{ doses.midazolam_mg }} mg ({{ doses.midazolam_ml }} ml)</li>
-    </ul>
+        <li>
+            <strong>
+                Acepromacina:
+                {{ doses.acepromacina_ml }} ml
+            </strong>
+            ({{ doses.acepromacina_mg }} mg)
+        </li>
 
+        <li>
+            <strong>
+                Dexmedetomidina:
+                {{ doses.dexmedetomidina_ml_baja }}
+                a
+                {{ doses.dexmedetomidina_ml_alta }} ml
+            </strong>
+            (
+            {{ doses.dexmedetomidina_mcg_baja }}
+            a
+            {{ doses.dexmedetomidina_mcg_alta }} mcg
+            )
+        </li>
+
+        <li>
+            <strong>
+                Ketamina IM:
+                {{ doses.ketamina_premed_ml }} ml
+            </strong>
+            ({{ doses.ketamina_premed_mg }} mg)
+        </li>
+
+        <li>
+            <strong>
+                Midazolam:
+                {{ doses.midazolam_ml }} ml
+            </strong>
+            ({{ doses.midazolam_mg }} mg)
+        </li>
+    </ul>
 </div>
 
 <div class="panel">
-
     <h2>Inducción</h2>
 
     <ul>
-        <li>Propofol: {{ doses.propofol_ind_mg }} mg ({{ doses.propofol_ind_ml }} ml)</li>
-        <li>Ketamina: {{ doses.ketamina_ind_mg }} mg ({{ doses.ketamina_ind_ml }} ml)</li>
-        <li>Midazolam: {{ doses.midazolam_ind_mg }} mg ({{ doses.midazolam_ind_ml }} ml)</li>
+        <li>
+            <strong>
+                Propofol:
+                {{ doses.propofol_ind_ml }} ml
+            </strong>
+            ({{ doses.propofol_ind_mg }} mg)
+        </li>
+
+        <li>
+            <strong>
+                Ketamina:
+                {{ doses.ketamina_ind_ml }} ml
+            </strong>
+            ({{ doses.ketamina_ind_mg }} mg)
+        </li>
+
+        <li>
+            <strong>
+                Midazolam:
+                {{ doses.midazolam_ind_ml }} ml
+            </strong>
+            ({{ doses.midazolam_ind_mg }} mg)
+        </li>
     </ul>
-
 </div>
-
-
 
 <div class="panel">
     <h2>FLK / Analgesia intraoperatoria</h2>
 
-    <p><strong>Bolo fentanilo:</strong> {{ doses.fentanilo_bolo_mcg }} mcg ({{ doses.fentanilo_bolo_ml }} ml) EV lento</p>
+    <p>
+        <strong>
+            Bolo de fentanilo:
+            {{ doses.fentanilo_bolo_ml }} ml EV lento
+        </strong>
+        ({{ doses.fentanilo_bolo_mcg }} mcg)
+    </p>
 
     <h3>CRI FLK en 100 ml SSF</h3>
+
     <ul>
-        <li>Fentanilo: {{ doses.flk_fentanilo_ml_100 }} ml</li>
-        <li>Lidocaína 2%: {{ doses.flk_lidocaina_ml_100 }} ml</li>
-        <li>Ketamina 5%: {{ doses.flk_ketamina_ml_100 }} ml</li>
-        <li>Total drogas: {{ doses.flk_total_drogas_ml_100 }} ml</li>
-        <li>Completar con SSF: {{ doses.flk_ssf_ml_100 }} ml</li>
+        <li>
+            Fentanilo:
+            <strong>{{ doses.flk_fentanilo_ml_100 }} ml</strong>
+        </li>
+        <li>
+            Lidocaína 2 %:
+            <strong>{{ doses.flk_lidocaina_ml_100 }} ml</strong>
+        </li>
+        <li>
+            Ketamina 5 %:
+            <strong>{{ doses.flk_ketamina_ml_100 }} ml</strong>
+        </li>
+        <li>
+            Total de drogas:
+            {{ doses.flk_total_drogas_ml_100 }} ml
+        </li>
+        <li>
+            Completar con SSF:
+            {{ doses.flk_ssf_ml_100 }} ml
+        </li>
     </ul>
 
     <h3>CRI FLK en 200 ml SSF</h3>
+
     <ul>
-        <li>Fentanilo: {{ doses.flk_fentanilo_ml_200 }} ml</li>
-        <li>Lidocaína 2%: {{ doses.flk_lidocaina_ml_200 }} ml</li>
-        <li>Ketamina 5%: {{ doses.flk_ketamina_ml_200 }} ml</li>
-        <li>Total drogas: {{ doses.flk_total_drogas_ml_200 }} ml</li>
-        <li>Completar con SSF: {{ doses.flk_ssf_ml_200 }} ml</li>
+        <li>
+            Fentanilo:
+            <strong>{{ doses.flk_fentanilo_ml_200 }} ml</strong>
+        </li>
+        <li>
+            Lidocaína 2 %:
+            <strong>{{ doses.flk_lidocaina_ml_200 }} ml</strong>
+        </li>
+        <li>
+            Ketamina 5 %:
+            <strong>{{ doses.flk_ketamina_ml_200 }} ml</strong>
+        </li>
+        <li>
+            Total de drogas:
+            {{ doses.flk_total_drogas_ml_200 }} ml
+        </li>
+        <li>
+            Completar con SSF:
+            {{ doses.flk_ssf_ml_200 }} ml
+        </li>
     </ul>
 
     <h3>CRI FLK en 250 ml SSF</h3>
+
     <ul>
-        <li>Fentanilo: {{ doses.flk_fentanilo_ml_250 }} ml</li>
-        <li>Lidocaína 2%: {{ doses.flk_lidocaina_ml_250 }} ml</li>
-        <li>Ketamina 5%: {{ doses.flk_ketamina_ml_250 }} ml</li>
-        <li>Total drogas: {{ doses.flk_total_drogas_ml_250 }} ml</li>
-        <li>Completar con SSF: {{ doses.flk_ssf_ml_250 }} ml</li>
+        <li>
+            Fentanilo:
+            <strong>{{ doses.flk_fentanilo_ml_250 }} ml</strong>
+        </li>
+        <li>
+            Lidocaína 2 %:
+            <strong>{{ doses.flk_lidocaina_ml_250 }} ml</strong>
+        </li>
+        <li>
+            Ketamina 5 %:
+            <strong>{{ doses.flk_ketamina_ml_250 }} ml</strong>
+        </li>
+        <li>
+            Total de drogas:
+            {{ doses.flk_total_drogas_ml_250 }} ml
+        </li>
+        <li>
+            Completar con SSF:
+            {{ doses.flk_ssf_ml_250 }} ml
+        </li>
     </ul>
 
-    <p><strong>Velocidad:</strong> {{ doses.flk_velocidad_ml_h }} ml/h</p>
-    <p><strong>Macrogotero:</strong> {{ doses.flk_macro_gtt_min }} gtt/min</p>
-    <p><strong>Microgotero:</strong> {{ doses.flk_micro_gtt_min }} gtt/min</p>
-</div>
-<div class="panel">
+    <p>
+        <strong>Velocidad:</strong>
+        {{ doses.flk_velocidad_ml_h }} ml/h
+    </p>
 
+    <p>
+        <strong>Macrogotero:</strong>
+        {{ doses.flk_macro_gtt_min }} gotas/min
+    </p>
+
+    <p>
+        <strong>Microgotero:</strong>
+        {{ doses.flk_micro_gtt_min }} gotas/min
+    </p>
+</div>
+
+<div class="panel">
     <h2>Fluidoterapia</h2>
 
     <p>
-    <strong>Ringer Lactato:</strong>
-    {{ doses.rl_ml_h }} ml/h
+        <strong>Ringer Lactato:</strong>
+        {{ doses.rl_ml_h }} ml/h
     </p>
 
     <p>
-    <strong>Macrogotero:</strong>
-    {{ doses.rl_macro_gtt_min }} gtt/min
+        <strong>Macrogotero:</strong>
+        {{ doses.rl_macro_gtt_min }} gotas/min
     </p>
 
     <p>
-    <strong>Microgotero:</strong>
-    {{ doses.rl_micro_gtt_min }} gtt/min
+        <strong>Microgotero:</strong>
+        {{ doses.rl_micro_gtt_min }} gotas/min
     </p>
-
 </div>
 
 <div class="panel">
-
     <h2>Dobutamina</h2>
 
-<p>
-    <strong>Dosis:</strong>
-    {{ doses.dobutamina_mcg_min_baja }}
-    a
-    {{ doses.dobutamina_mcg_min_alta }}
-    mcg/min
-</p>
+    <p>
+        <strong>Concentración utilizada:</strong>
+        250 mg en 20 ml = 12,5 mg/ml
+    </p>
 
-<p>
-    <strong>Velocidad:</strong>
-    {{ doses.dobutamina_ml_h_baja }}
-    a
-    {{ doses.dobutamina_ml_h_alta }}
-    ml/h
-</p>
+    <p>
+        <strong>Dosis:</strong>
+        {{ doses.dobutamina_mcg_min_baja }}
+        a
+        {{ doses.dobutamina_mcg_min_alta }} mcg/min
+    </p>
 
-<p>
-    <strong>Macrogotero:</strong>
-    {{ doses.dobutamina_macro_gtt_min_baja }}
-    a
-    {{ doses.dobutamina_macro_gtt_min_alta }}
-    gtt/min
-</p>
+    <p>
+        <strong>Velocidad:</strong>
+        {{ doses.dobutamina_ml_h_baja }}
+        a
+        {{ doses.dobutamina_ml_h_alta }} ml/h
+    </p>
 
-<p>
-    <strong>Microgotero:</strong>
-    {{ doses.dobutamina_micro_gtt_min_baja }}
-    a
-    {{ doses.dobutamina_micro_gtt_min_alta }}
-    gtt/min
-</p>
+    <p>
+        <strong>Macrogotero:</strong>
+        {{ doses.dobutamina_macro_gtt_min_baja }}
+        a
+        {{ doses.dobutamina_macro_gtt_min_alta }} gotas/min
+    </p>
 
-<p>
-    <strong>Macro:</strong>
-    1 gota cada
-    {{ doses.dobutamina_macro_seg_gota_alta }}
-    a
-    {{ doses.dobutamina_macro_seg_gota_baja }}
-    seg
-</p>
+    <p>
+        <strong>Microgotero:</strong>
+        {{ doses.dobutamina_micro_gtt_min_baja }}
+        a
+        {{ doses.dobutamina_micro_gtt_min_alta }} gotas/min
+    </p>
 
-<p>
-    <strong>Micro:</strong>
-    1 gota cada
-    {{ doses.dobutamina_micro_seg_gota_alta }}
-    a
-    {{ doses.dobutamina_micro_seg_gota_baja }}
-    seg
-</p>
+    <p>
+        <strong>Macro:</strong>
+        1 gota cada
+        {{ doses.dobutamina_macro_seg_gota_alta }}
+        a
+        {{ doses.dobutamina_macro_seg_gota_baja }} segundos
+    </p>
 
+    <p>
+        <strong>Micro:</strong>
+        1 gota cada
+        {{ doses.dobutamina_micro_seg_gota_alta }}
+        a
+        {{ doses.dobutamina_micro_seg_gota_baja }} segundos
+    </p>
 </div>
+
 <div class="panel">
     <h2>Checklist preinducción</h2>
 
@@ -283,6 +541,7 @@ ul{
     <p>☐ Tubo endotraqueal preparado</p>
     <p>☐ Fuente de oxígeno verificada</p>
 </div>
+
 <button onclick="window.print()" class="btn">
     Imprimir
 </button>
