@@ -22,7 +22,7 @@
 
     @page {
         size: A4;
-        margin: 16mm 16mm 18mm;
+        margin: 12mm 14mm 14mm;
     }
 
     body {
@@ -50,21 +50,21 @@
         display: flex;
         align-items: center;
         gap: 17px;
-        padding-bottom: 13px;
-        margin-bottom: 19px;
+        padding-bottom: 10px;
+        margin-bottom: 13px;
         border-bottom: 2px solid var(--pink);
     }
 
     .clinic-logo {
-        width: 74px;
-        height: 74px;
+        width: 62px;
+        height: 62px;
         object-fit: contain;
-        flex: 0 0 74px;
+        flex: 0 0 62px;
     }
 
     .clinic-name {
         margin: 0 0 3px;
-        font-size: 22px;
+        font-size: 20px;
         line-height: 1.15;
         font-weight: 700;
     }
@@ -77,8 +77,8 @@
     }
 
     .document-title {
-        margin: 0 0 12px;
-        font-size: 25px;
+        margin: 0 0 9px;
+        font-size: 23px;
         line-height: 1.15;
     }
 
@@ -88,8 +88,8 @@
             minmax(150px, 1.4fr)
             repeat(3, minmax(90px, 1fr));
         gap: 10px 18px;
-        margin-bottom: 20px;
-        padding: 13px 15px;
+        margin-bottom: 13px;
+        padding: 10px 13px;
         border: 1px solid var(--pink-line);
         border-left: 5px solid var(--pink);
         border-radius: 10px;
@@ -113,22 +113,27 @@
     }
 
     .section-title {
-        margin: 0 0 12px;
-        padding-bottom: 6px;
+        margin: 0 0 9px;
+        padding-bottom: 5px;
         border-bottom: 1px solid var(--pink-line);
         font-size: 19px;
     }
 
     .event {
         position: relative;
-        margin: 0 0 13px;
-        padding: 13px 15px 12px;
+        margin: 0 0 9px;
+        padding: 10px 12px;
         border: 1px solid var(--line);
         border-left: 4px solid var(--pink);
         border-radius: 9px;
         background: #fff;
-        break-inside: avoid-page;
-        page-break-inside: avoid;
+
+        /*
+        El evento completo puede continuar en otra página si es muy largo.
+        Esto evita que la primera página quede vacía.
+        */
+        break-inside: auto;
+        page-break-inside: auto;
     }
 
     .event-head {
@@ -139,6 +144,13 @@
         margin-bottom: 9px;
         padding-bottom: 7px;
         border-bottom: 1px solid #eeeeee;
+
+        /*
+        La fecha y el tipo de evento permanecen unidos
+        al primer dato clínico.
+        */
+        break-after: avoid-page;
+        page-break-after: avoid;
     }
 
     .date {
@@ -158,6 +170,13 @@
 
     .field {
         margin: 0 0 8px;
+
+        /*
+        Cada campo permanece unido: no se corta una anamnesis,
+        un diagnóstico o una tabla por la mitad.
+        */
+        break-inside: avoid-page;
+        page-break-inside: avoid;
     }
 
     .field:last-child {
@@ -211,7 +230,7 @@
     .attachment-image {
         display: block;
         max-width: 100%;
-        max-height: 115mm;
+        max-height: 92mm;
         margin: 8px auto 2px;
         object-fit: contain;
         break-inside: avoid-page;
@@ -220,7 +239,7 @@
 
     .signature {
         width: 280px;
-        margin: 30px 0 0 auto;
+        margin: 16px 0 0 auto;
         padding-top: 7px;
         border-top: 1px solid #555;
         text-align: center;
@@ -237,7 +256,7 @@
         body {
             max-width: none;
             margin: 0;
-            font-size: 11.5pt;
+            font-size: 10.5pt;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
         }
@@ -247,15 +266,15 @@
         }
 
         .clinic-header {
-            margin-bottom: 15px;
+            margin-bottom: 11px;
         }
 
         .document-title {
-            font-size: 22pt;
+            font-size: 20pt;
         }
 
         .patient-card {
-            margin-bottom: 16px;
+            margin-bottom: 12px;
         }
 
         .event {
@@ -414,7 +433,20 @@
                 Descripción
             </span>
 
-            <p class="field-content">{{ e.description }}</p>
+            {% set clean_description = e.description
+                |replace(
+                    '🧠 ANÁLISIS IA\r\n\r\n🧠 ANÁLISIS IA',
+                    '🧠 ANÁLISIS IA'
+                )
+                |replace(
+                    '🧠 ANÁLISIS IA\n\n🧠 ANÁLISIS IA',
+                    '🧠 ANÁLISIS IA'
+                )
+            %}
+
+            <p class="field-content">
+                {{ clean_description }}
+            </p>
 
         </div>
         {% endif %}
@@ -426,7 +458,9 @@
                 Anamnesis
             </span>
 
-            <p class="field-content">{{ e.anamnesis }}</p>
+            <p class="field-content">
+                {{ e.anamnesis }}
+            </p>
 
         </div>
         {% endif %}
@@ -438,12 +472,21 @@
                 Examen físico
             </span>
 
-            <p class="field-content">{{ e.physical_exam }}</p>
+            <p class="field-content">
+                {{ e.physical_exam }}
+            </p>
 
         </div>
         {% endif %}
 
-        {% if e.weight or e.temperature or e.heart_rate or e.respiratory_rate or e.mucous_membranes or e.crt or e.hydration %}
+        {% if e.weight
+            or e.temperature
+            or e.heart_rate
+            or e.respiratory_rate
+            or e.mucous_membranes
+            or e.crt
+            or e.hydration
+        %}
         <div class="field">
 
             <span class="field-label">
@@ -451,35 +494,57 @@
             </span>
 
             <div class="parameter-grid">
+
                 {% if e.weight %}
-                <div class="parameter"><strong>Peso:</strong> {{ e.weight }} kg</div>
+                <div class="parameter">
+                    <strong>Peso:</strong>
+                    {{ e.weight }} kg
+                </div>
                 {% endif %}
 
                 {% if e.temperature %}
-                <div class="parameter"><strong>Temperatura:</strong> {{ e.temperature }} °C</div>
+                <div class="parameter">
+                    <strong>Temperatura:</strong>
+                    {{ e.temperature }} °C
+                </div>
                 {% endif %}
 
                 {% if e.heart_rate %}
-                <div class="parameter"><strong>Frecuencia cardíaca:</strong> {{ e.heart_rate }} lpm</div>
+                <div class="parameter">
+                    <strong>Frecuencia cardíaca:</strong>
+                    {{ e.heart_rate }} lpm
+                </div>
                 {% endif %}
 
                 {% if e.respiratory_rate %}
-                <div class="parameter"><strong>Frecuencia respiratoria:</strong> {{ e.respiratory_rate }} rpm</div>
+                <div class="parameter">
+                    <strong>Frecuencia respiratoria:</strong>
+                    {{ e.respiratory_rate }} rpm
+                </div>
                 {% endif %}
 
                 {% if e.mucous_membranes %}
-                <div class="parameter"><strong>Mucosas:</strong> {{ e.mucous_membranes }}</div>
+                <div class="parameter">
+                    <strong>Mucosas:</strong>
+                    {{ e.mucous_membranes }}
+                </div>
                 {% endif %}
 
                 {% if e.crt %}
-                <div class="parameter"><strong>TRC:</strong> {{ e.crt }}</div>
+                <div class="parameter">
+                    <strong>TRC:</strong>
+                    {{ e.crt }}
+                </div>
                 {% endif %}
 
                 {% if e.hydration %}
-                <div class="parameter"><strong>Hidratación:</strong> {{ e.hydration }}</div>
+                <div class="parameter">
+                    <strong>Hidratación:</strong>
+                    {{ e.hydration }}
+                </div>
                 {% endif %}
-            </div>
 
+            </div>
         </div>
         {% endif %}
 
@@ -490,7 +555,9 @@
                 Diagnóstico
             </span>
 
-            <p class="field-content">{{ e.diagnosis }}</p>
+            <p class="field-content">
+                {{ e.diagnosis }}
+            </p>
 
         </div>
         {% endif %}
@@ -502,7 +569,9 @@
                 Tratamiento
             </span>
 
-            <p class="field-content">{{ e.treatment }}</p>
+            <p class="field-content">
+                {{ e.treatment }}
+            </p>
 
         </div>
         {% endif %}
@@ -514,30 +583,133 @@
             </span>
 
             <div class="parameter-grid">
-                {% if e.ecg_hr %}<div class="parameter"><strong>FC:</strong> {{ e.ecg_hr }} lpm</div>{% endif %}
-                {% if e.ecg_rhythm %}<div class="parameter"><strong>Ritmo:</strong> {{ e.ecg_rhythm }}</div>{% endif %}
-                {% if e.ecg_p %}<div class="parameter"><strong>Onda P:</strong> {{ e.ecg_p }} s</div>{% endif %}
-                {% if e.ecg_p_mv %}<div class="parameter"><strong>Onda P:</strong> {{ e.ecg_p_mv }} mV</div>{% endif %}
-                {% if e.ecg_pr %}<div class="parameter"><strong>Intervalo PR:</strong> {{ e.ecg_pr }} s</div>{% endif %}
-                {% if e.ecg_qrs %}<div class="parameter"><strong>QRS:</strong> {{ e.ecg_qrs }} s</div>{% endif %}
-                {% if e.ecg_qrs_mv %}<div class="parameter"><strong>QRS:</strong> {{ e.ecg_qrs_mv }} mV</div>{% endif %}
-                {% if e.ecg_st %}<div class="parameter"><strong>Segmento ST:</strong> {{ e.ecg_st }} s</div>{% endif %}
-                {% if e.ecg_t %}<div class="parameter"><strong>Onda T:</strong> {{ e.ecg_t }} s</div>{% endif %}
-                {% if e.ecg_t_mv %}<div class="parameter"><strong>Onda T:</strong> {{ e.ecg_t_mv }} mV</div>{% endif %}
-                {% if e.ecg_qt %}<div class="parameter"><strong>Intervalo QT:</strong> {{ e.ecg_qt }} s</div>{% endif %}
-                {% if e.ecg_qtc %}<div class="parameter"><strong>QTc:</strong> {{ e.ecg_qtc }}</div>{% endif %}
-                {% if e.ecg_axis %}<div class="parameter"><strong>Eje eléctrico:</strong> {{ e.ecg_axis }}°</div>{% endif %}
-                {% if e.ecg_polarity %}<div class="parameter"><strong>Polaridad:</strong> {{ e.ecg_polarity }}</div>{% endif %}
-                {% if e.ecg_arrhythmia %}<div class="parameter"><strong>Arritmia:</strong> {{ e.ecg_arrhythmia }}</div>{% endif %}
-                {% if e.ecg_conduction %}<div class="parameter"><strong>Conducción:</strong> {{ e.ecg_conduction }}</div>{% endif %}
+
+                {% if e.ecg_hr %}
+                <div class="parameter">
+                    <strong>FC:</strong>
+                    {{ e.ecg_hr }} lpm
+                </div>
+                {% endif %}
+
+                {% if e.ecg_rhythm %}
+                <div class="parameter">
+                    <strong>Ritmo:</strong>
+                    {{ e.ecg_rhythm }}
+                </div>
+                {% endif %}
+
+                {% if e.ecg_p %}
+                <div class="parameter">
+                    <strong>Onda P:</strong>
+                    {{ e.ecg_p }} s
+                </div>
+                {% endif %}
+
+                {% if e.ecg_p_mv %}
+                <div class="parameter">
+                    <strong>Onda P:</strong>
+                    {{ e.ecg_p_mv }} mV
+                </div>
+                {% endif %}
+
+                {% if e.ecg_pr %}
+                <div class="parameter">
+                    <strong>Intervalo PR:</strong>
+                    {{ e.ecg_pr }} s
+                </div>
+                {% endif %}
+
+                {% if e.ecg_qrs %}
+                <div class="parameter">
+                    <strong>QRS:</strong>
+                    {{ e.ecg_qrs }} s
+                </div>
+                {% endif %}
+
+                {% if e.ecg_qrs_mv %}
+                <div class="parameter">
+                    <strong>QRS:</strong>
+                    {{ e.ecg_qrs_mv }} mV
+                </div>
+                {% endif %}
+
+                {% if e.ecg_st %}
+                <div class="parameter">
+                    <strong>Segmento ST:</strong>
+                    {{ e.ecg_st }} s
+                </div>
+                {% endif %}
+
+                {% if e.ecg_t %}
+                <div class="parameter">
+                    <strong>Onda T:</strong>
+                    {{ e.ecg_t }} s
+                </div>
+                {% endif %}
+
+                {% if e.ecg_t_mv %}
+                <div class="parameter">
+                    <strong>Onda T:</strong>
+                    {{ e.ecg_t_mv }} mV
+                </div>
+                {% endif %}
+
+                {% if e.ecg_qt %}
+                <div class="parameter">
+                    <strong>Intervalo QT:</strong>
+                    {{ e.ecg_qt }} s
+                </div>
+                {% endif %}
+
+                {% if e.ecg_qtc %}
+                <div class="parameter">
+                    <strong>QTc:</strong>
+                    {{ e.ecg_qtc }}
+                </div>
+                {% endif %}
+
+                {% if e.ecg_axis %}
+                <div class="parameter">
+                    <strong>Eje eléctrico:</strong>
+                    {{ e.ecg_axis }}°
+                </div>
+                {% endif %}
+
+                {% if e.ecg_polarity %}
+                <div class="parameter">
+                    <strong>Polaridad:</strong>
+                    {{ e.ecg_polarity }}
+                </div>
+                {% endif %}
+
+                {% if e.ecg_arrhythmia %}
+                <div class="parameter">
+                    <strong>Arritmia:</strong>
+                    {{ e.ecg_arrhythmia }}
+                </div>
+                {% endif %}
+
+                {% if e.ecg_conduction %}
+                <div class="parameter">
+                    <strong>Conducción:</strong>
+                    {{ e.ecg_conduction }}
+                </div>
+                {% endif %}
+
             </div>
 
             {% if e.ecg_interpretation %}
-            <p class="field-content"><strong>Interpretación:</strong> {{ e.ecg_interpretation }}</p>
+            <p class="field-content">
+                <strong>Interpretación:</strong>
+                {{ e.ecg_interpretation }}
+            </p>
             {% endif %}
 
             {% if e.ecg_notes %}
-            <p class="field-content"><strong>Observaciones:</strong> {{ e.ecg_notes }}</p>
+            <p class="field-content">
+                <strong>Observaciones:</strong>
+                {{ e.ecg_notes }}
+            </p>
             {% endif %}
 
         </div>
@@ -551,37 +723,186 @@
             </span>
 
             <div class="parameter-grid">
-                {% if e.eco_aiao %}<div class="parameter"><strong>AI/Ao:</strong> {{ e.eco_aiao }}</div>{% endif %}
-                {% if e.eco_fs %}<div class="parameter"><strong>FS:</strong> {{ e.eco_fs }}</div>{% endif %}
-                {% if e.eco_fe %}<div class="parameter"><strong>FE:</strong> {{ e.eco_fe }}</div>{% endif %}
-                {% if e.eco_epss %}<div class="parameter"><strong>EPSS:</strong> {{ e.eco_epss }}</div>{% endif %}
-                {% if e.eco_lvidd %}<div class="parameter"><strong>LVIDd:</strong> {{ e.eco_lvidd }}</div>{% endif %}
-                {% if e.eco_lvids %}<div class="parameter"><strong>LVIDs:</strong> {{ e.eco_lvids }}</div>{% endif %}
-                {% if e.eco_ivsd %}<div class="parameter"><strong>IVSd:</strong> {{ e.eco_ivsd }}</div>{% endif %}
-                {% if e.eco_ivss %}<div class="parameter"><strong>IVSs:</strong> {{ e.eco_ivss }}</div>{% endif %}
-                {% if e.eco_lvpwd %}<div class="parameter"><strong>LVPWd:</strong> {{ e.eco_lvpwd }}</div>{% endif %}
-                {% if e.eco_lvpws %}<div class="parameter"><strong>LVPWs:</strong> {{ e.eco_lvpws }}</div>{% endif %}
-                {% if e.eco_la_size %}<div class="parameter"><strong>Aurícula izquierda:</strong> {{ e.eco_la_size }}</div>{% endif %}
-                {% if e.eco_lv_size %}<div class="parameter"><strong>Ventrículo izquierdo:</strong> {{ e.eco_lv_size }}</div>{% endif %}
-                {% if e.eco_rv_size %}<div class="parameter"><strong>Ventrículo derecho:</strong> {{ e.eco_rv_size }}</div>{% endif %}
-                {% if e.eco_ra_size %}<div class="parameter"><strong>Aurícula derecha:</strong> {{ e.eco_ra_size }}</div>{% endif %}
-                {% if e.eco_mitral %}<div class="parameter"><strong>Válvula mitral:</strong> {{ e.eco_mitral }}</div>{% endif %}
-                {% if e.eco_tricuspid %}<div class="parameter"><strong>Válvula tricúspide:</strong> {{ e.eco_tricuspid }}</div>{% endif %}
-                {% if e.eco_aortic %}<div class="parameter"><strong>Válvula aórtica:</strong> {{ e.eco_aortic }}</div>{% endif %}
-                {% if e.eco_pulmonary %}<div class="parameter"><strong>Válvula pulmonar:</strong> {{ e.eco_pulmonary }}</div>{% endif %}
-                {% if e.eco_pulmonary_htn %}<div class="parameter"><strong>Hipertensión pulmonar:</strong> {{ e.eco_pulmonary_htn }}</div>{% endif %}
-                {% if e.eco_pericardium %}<div class="parameter"><strong>Pericardio:</strong> {{ e.eco_pericardium }}</div>{% endif %}
-                {% if e.eco_acvim %}<div class="parameter"><strong>Clasificación ACVIM:</strong> {{ e.eco_acvim }}</div>{% endif %}
+
+                {% if e.eco_aiao %}
+                <div class="parameter">
+                    <strong>AI/Ao:</strong>
+                    {{ e.eco_aiao }}
+                </div>
+                {% endif %}
+
+                {% if e.eco_fs %}
+                <div class="parameter">
+                    <strong>FS:</strong>
+                    {{ e.eco_fs }}
+                </div>
+                {% endif %}
+
+                {% if e.eco_fe %}
+                <div class="parameter">
+                    <strong>FE:</strong>
+                    {{ e.eco_fe }}
+                </div>
+                {% endif %}
+
+                {% if e.eco_epss %}
+                <div class="parameter">
+                    <strong>EPSS:</strong>
+                    {{ e.eco_epss }}
+                </div>
+                {% endif %}
+
+                {% if e.eco_lvidd %}
+                <div class="parameter">
+                    <strong>LVIDd:</strong>
+                    {{ e.eco_lvidd }}
+                </div>
+                {% endif %}
+
+                {% if e.eco_lvids %}
+                <div class="parameter">
+                    <strong>LVIDs:</strong>
+                    {{ e.eco_lvids }}
+                </div>
+                {% endif %}
+
+                {% if e.eco_ivsd %}
+                <div class="parameter">
+                    <strong>IVSd:</strong>
+                    {{ e.eco_ivsd }}
+                </div>
+                {% endif %}
+
+                {% if e.eco_ivss %}
+                <div class="parameter">
+                    <strong>IVSs:</strong>
+                    {{ e.eco_ivss }}
+                </div>
+                {% endif %}
+
+                {% if e.eco_lvpwd %}
+                <div class="parameter">
+                    <strong>LVPWd:</strong>
+                    {{ e.eco_lvpwd }}
+                </div>
+                {% endif %}
+
+                {% if e.eco_lvpws %}
+                <div class="parameter">
+                    <strong>LVPWs:</strong>
+                    {{ e.eco_lvpws }}
+                </div>
+                {% endif %}
+
+                {% if e.eco_la_size %}
+                <div class="parameter">
+                    <strong>Aurícula izquierda:</strong>
+                    {{ e.eco_la_size }}
+                </div>
+                {% endif %}
+
+                {% if e.eco_lv_size %}
+                <div class="parameter">
+                    <strong>Ventrículo izquierdo:</strong>
+                    {{ e.eco_lv_size }}
+                </div>
+                {% endif %}
+
+                {% if e.eco_rv_size %}
+                <div class="parameter">
+                    <strong>Ventrículo derecho:</strong>
+                    {{ e.eco_rv_size }}
+                </div>
+                {% endif %}
+
+                {% if e.eco_ra_size %}
+                <div class="parameter">
+                    <strong>Aurícula derecha:</strong>
+                    {{ e.eco_ra_size }}
+                </div>
+                {% endif %}
+
+                {% if e.eco_mitral %}
+                <div class="parameter">
+                    <strong>Válvula mitral:</strong>
+                    {{ e.eco_mitral }}
+                </div>
+                {% endif %}
+
+                {% if e.eco_tricuspid %}
+                <div class="parameter">
+                    <strong>Válvula tricúspide:</strong>
+                    {{ e.eco_tricuspid }}
+                </div>
+                {% endif %}
+
+                {% if e.eco_aortic %}
+                <div class="parameter">
+                    <strong>Válvula aórtica:</strong>
+                    {{ e.eco_aortic }}
+                </div>
+                {% endif %}
+
+                {% if e.eco_pulmonary %}
+                <div class="parameter">
+                    <strong>Válvula pulmonar:</strong>
+                    {{ e.eco_pulmonary }}
+                </div>
+                {% endif %}
+
+                {% if e.eco_pulmonary_htn %}
+                <div class="parameter">
+                    <strong>Hipertensión pulmonar:</strong>
+                    {{ e.eco_pulmonary_htn }}
+                </div>
+                {% endif %}
+
+                {% if e.eco_pericardium %}
+                <div class="parameter">
+                    <strong>Pericardio:</strong>
+                    {{ e.eco_pericardium }}
+                </div>
+                {% endif %}
+
+                {% if e.eco_acvim %}
+                <div class="parameter">
+                    <strong>Clasificación ACVIM:</strong>
+                    {{ e.eco_acvim }}
+                </div>
+                {% endif %}
+
             </div>
 
-            {% if e.eco_doppler %}<p class="field-content"><strong>Doppler:</strong> {{ e.eco_doppler }}</p>{% endif %}
-            {% if e.eco_observations %}<p class="field-content"><strong>Observaciones:</strong> {{ e.eco_observations }}</p>{% endif %}
-            {% if e.eco_diagnosis %}<p class="field-content"><strong>Diagnóstico ecocardiográfico:</strong> {{ e.eco_diagnosis }}</p>{% endif %}
-            {% if e.eco_treatment %}<p class="field-content"><strong>Tratamiento cardiológico:</strong> {{ e.eco_treatment }}</p>{% endif %}
+            {% if e.eco_doppler %}
+            <p class="field-content">
+                <strong>Doppler:</strong>
+                {{ e.eco_doppler }}
+            </p>
+            {% endif %}
+
+            {% if e.eco_observations %}
+            <p class="field-content">
+                <strong>Observaciones:</strong>
+                {{ e.eco_observations }}
+            </p>
+            {% endif %}
+
+            {% if e.eco_diagnosis %}
+            <p class="field-content">
+                <strong>Diagnóstico ecocardiográfico:</strong>
+                {{ e.eco_diagnosis }}
+            </p>
+            {% endif %}
+
+            {% if e.eco_treatment %}
+            <p class="field-content">
+                <strong>Tratamiento cardiológico:</strong>
+                {{ e.eco_treatment }}
+            </p>
+            {% endif %}
 
         </div>
         {% endif %}
-
         {% if e.rx_vhs or e.rx_vlas or e.rx_heart_size or e.rx_left_atrium or e.rx_left_heart or e.rx_right_heart or e.rx_pulmonary_vessels or e.rx_lung_pattern or e.rx_edema or e.rx_congestion or e.rx_trachea or e.rx_observations %}
         <div class="field">
 
@@ -590,21 +911,91 @@
             </span>
 
             <div class="parameter-grid">
-                {% if e.rx_vhs %}<div class="parameter"><strong>VHS:</strong> {{ e.rx_vhs }}</div>{% endif %}
-                {% if e.rx_vlas %}<div class="parameter"><strong>VLAS:</strong> {{ e.rx_vlas }}</div>{% endif %}
-                {% if e.rx_heart_size %}<div class="parameter"><strong>Tamaño cardíaco:</strong> {{ e.rx_heart_size }}</div>{% endif %}
-                {% if e.rx_left_atrium %}<div class="parameter"><strong>Aurícula izquierda:</strong> {{ e.rx_left_atrium }}</div>{% endif %}
-                {% if e.rx_left_heart %}<div class="parameter"><strong>Corazón izquierdo:</strong> {{ e.rx_left_heart }}</div>{% endif %}
-                {% if e.rx_right_heart %}<div class="parameter"><strong>Corazón derecho:</strong> {{ e.rx_right_heart }}</div>{% endif %}
-                {% if e.rx_pulmonary_vessels %}<div class="parameter"><strong>Vasos pulmonares:</strong> {{ e.rx_pulmonary_vessels }}</div>{% endif %}
-                {% if e.rx_lung_pattern %}<div class="parameter"><strong>Patrón pulmonar:</strong> {{ e.rx_lung_pattern }}</div>{% endif %}
-                {% if e.rx_edema %}<div class="parameter"><strong>Edema:</strong> {{ e.rx_edema }}</div>{% endif %}
-                {% if e.rx_congestion %}<div class="parameter"><strong>Congestión:</strong> {{ e.rx_congestion }}</div>{% endif %}
-                {% if e.rx_trachea %}<div class="parameter"><strong>Tráquea:</strong> {{ e.rx_trachea }}</div>{% endif %}
+
+                {% if e.rx_vhs %}
+                <div class="parameter">
+                    <strong>VHS:</strong>
+                    {{ e.rx_vhs }}
+                </div>
+                {% endif %}
+
+                {% if e.rx_vlas %}
+                <div class="parameter">
+                    <strong>VLAS:</strong>
+                    {{ e.rx_vlas }}
+                </div>
+                {% endif %}
+
+                {% if e.rx_heart_size %}
+                <div class="parameter">
+                    <strong>Tamaño cardíaco:</strong>
+                    {{ e.rx_heart_size }}
+                </div>
+                {% endif %}
+
+                {% if e.rx_left_atrium %}
+                <div class="parameter">
+                    <strong>Aurícula izquierda:</strong>
+                    {{ e.rx_left_atrium }}
+                </div>
+                {% endif %}
+
+                {% if e.rx_left_heart %}
+                <div class="parameter">
+                    <strong>Corazón izquierdo:</strong>
+                    {{ e.rx_left_heart }}
+                </div>
+                {% endif %}
+
+                {% if e.rx_right_heart %}
+                <div class="parameter">
+                    <strong>Corazón derecho:</strong>
+                    {{ e.rx_right_heart }}
+                </div>
+                {% endif %}
+
+                {% if e.rx_pulmonary_vessels %}
+                <div class="parameter">
+                    <strong>Vasos pulmonares:</strong>
+                    {{ e.rx_pulmonary_vessels }}
+                </div>
+                {% endif %}
+
+                {% if e.rx_lung_pattern %}
+                <div class="parameter">
+                    <strong>Patrón pulmonar:</strong>
+                    {{ e.rx_lung_pattern }}
+                </div>
+                {% endif %}
+
+                {% if e.rx_edema %}
+                <div class="parameter">
+                    <strong>Edema:</strong>
+                    {{ e.rx_edema }}
+                </div>
+                {% endif %}
+
+                {% if e.rx_congestion %}
+                <div class="parameter">
+                    <strong>Congestión:</strong>
+                    {{ e.rx_congestion }}
+                </div>
+                {% endif %}
+
+                {% if e.rx_trachea %}
+                <div class="parameter">
+                    <strong>Tráquea:</strong>
+                    {{ e.rx_trachea }}
+                </div>
+                {% endif %}
+
             </div>
 
             {% if e.rx_observations %}
-            <p class="field-content"><strong>Observaciones:</strong> {{ e.rx_observations }}</p>
+            <p class="field-content">
+                <strong>Observaciones:</strong>
+                {{ e.rx_observations }}
+            </p>
             {% endif %}
 
         </div>
@@ -618,10 +1009,35 @@
             </span>
 
             <div class="parameter-grid">
-                {% if e.vaccine_name %}<div class="parameter"><strong>Vacuna:</strong> {{ e.vaccine_name }}</div>{% endif %}
-                {% if e.vaccine_lot %}<div class="parameter"><strong>Lote:</strong> {{ e.vaccine_lot }}</div>{% endif %}
-                {% if e.vaccine_expiration %}<div class="parameter"><strong>Vencimiento:</strong> {{ e.vaccine_expiration }}</div>{% endif %}
-                {% if e.next_vaccine_date %}<div class="parameter"><strong>Próxima vacuna:</strong> {{ e.next_vaccine_date.strftime('%d/%m/%Y') }}</div>{% endif %}
+
+                {% if e.vaccine_name %}
+                <div class="parameter">
+                    <strong>Vacuna:</strong>
+                    {{ e.vaccine_name }}
+                </div>
+                {% endif %}
+
+                {% if e.vaccine_lot %}
+                <div class="parameter">
+                    <strong>Lote:</strong>
+                    {{ e.vaccine_lot }}
+                </div>
+                {% endif %}
+
+                {% if e.vaccine_expiration %}
+                <div class="parameter">
+                    <strong>Vencimiento:</strong>
+                    {{ e.vaccine_expiration }}
+                </div>
+                {% endif %}
+
+                {% if e.next_vaccine_date %}
+                <div class="parameter">
+                    <strong>Próxima vacuna:</strong>
+                    {{ e.next_vaccine_date.strftime('%d/%m/%Y') }}
+                </div>
+                {% endif %}
+
             </div>
 
         </div>
@@ -635,10 +1051,35 @@
             </span>
 
             <div class="parameter-grid">
-                {% if e.dewormer_product %}<div class="parameter"><strong>Producto:</strong> {{ e.dewormer_product }}</div>{% endif %}
-                {% if e.dewormer_drug %}<div class="parameter"><strong>Droga:</strong> {{ e.dewormer_drug }}</div>{% endif %}
-                {% if e.dewormer_dose %}<div class="parameter"><strong>Dosis:</strong> {{ e.dewormer_dose }}</div>{% endif %}
-                {% if e.next_deworming_date %}<div class="parameter"><strong>Próxima desparasitación:</strong> {{ e.next_deworming_date.strftime('%d/%m/%Y') }}</div>{% endif %}
+
+                {% if e.dewormer_product %}
+                <div class="parameter">
+                    <strong>Producto:</strong>
+                    {{ e.dewormer_product }}
+                </div>
+                {% endif %}
+
+                {% if e.dewormer_drug %}
+                <div class="parameter">
+                    <strong>Droga:</strong>
+                    {{ e.dewormer_drug }}
+                </div>
+                {% endif %}
+
+                {% if e.dewormer_dose %}
+                <div class="parameter">
+                    <strong>Dosis:</strong>
+                    {{ e.dewormer_dose }}
+                </div>
+                {% endif %}
+
+                {% if e.next_deworming_date %}
+                <div class="parameter">
+                    <strong>Próxima desparasitación:</strong>
+                    {{ e.next_deworming_date.strftime('%d/%m/%Y') }}
+                </div>
+                {% endif %}
+
             </div>
 
         </div>
@@ -646,8 +1087,15 @@
 
         {% if e.reminder_date %}
         <div class="field">
-            <span class="field-label">Recordatorio</span>
-            <p class="field-content">{{ e.reminder_date.strftime('%d/%m/%Y') }}</p>
+
+            <span class="field-label">
+                Recordatorio
+            </span>
+
+            <p class="field-content">
+                {{ e.reminder_date.strftime('%d/%m/%Y') }}
+            </p>
+
         </div>
         {% endif %}
 
