@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
+
 <style>
   .check-row {
     display: flex;
@@ -14,6 +15,7 @@
     margin: 0;
   }
 </style>
+
 <h1>🩺 Módulo de Anestesia</h1>
 
 <div class="panel">
@@ -24,241 +26,513 @@
 
 <form method="post" action="/patients/{{ patient.id }}/anesthesia">
 
-<div class="panel">
-  <h2>Datos generales</h2>
-  <p><strong>Peso registrado:</strong> {{ patient.weight or 'Sin peso cargado' }} kg</p>
+  <div class="panel">
+    <h2>Datos generales</h2>
 
-<label>Peso actual para este protocolo:</label>
-<input
-    name="weight"
-    placeholder="Peso en kg"
-    value="{{ patient.weight or '' }}"
->
-  <label class="check-row">
-    <input type="checkbox" name="update_patient_weight">
-    Actualizar también el peso en la ficha del paciente
-</label>
-<input name="procedure" placeholder="Procedimiento">
-<input name="asa" placeholder="ASA">
-<input name="estimated_duration" placeholder="Duración estimada">
+    <p>
+      <strong>Peso registrado:</strong>
+      {{ patient.weight or 'Sin peso cargado' }} kg
+    </p>
+
+    <label>Peso actual para este protocolo:</label>
+
+    <input
+      name="weight"
+      placeholder="Peso en kg"
+      value="{{ patient.weight or '' }}"
+    >
+
+    <label class="check-row">
+      <input type="checkbox" name="update_patient_weight">
+      Actualizar también el peso en la ficha del paciente
+    </label>
+
+    <input name="procedure" placeholder="Procedimiento">
+    <input name="asa" placeholder="ASA">
+    <input name="estimated_duration" placeholder="Duración estimada">
   </div>
 
-<div class="panel">
-  <h2>Premedicación</h2>
+  <div class="panel">
+    <h2>Premedicación</h2>
 
-  <label class="check-row"><input type="checkbox" name="premed_acepromazine"> Acepromacina - {{ doses.acepromacina_mg }} mg / {{ doses.acepromacina_ml }} ml</label>
-  <label class="check-row"><input type="checkbox" name="premed_dexmedetomidine"> Dexmedetomidina - {{ doses.dexmedetomidina_mcg_baja }} a {{ doses.dexmedetomidina_mcg_alta }} mcg / {{ doses.dexmedetomidina_ml_baja }} a {{ doses.dexmedetomidina_ml_alta }} ml</label>
-  <label class="check-row"><input type="checkbox" name="premed_ketamine"> Ketamina IM - {{ doses.ketamina_premed_mg }} mg / {{ doses.ketamina_premed_ml }} ml</label>
-  <label class="check-row"><input type="checkbox" name="premed_midazolam"> Midazolam - {{ doses.midazolam_mg }} mg / {{ doses.midazolam_ml }} ml</label>
-  <label class="check-row"><input type="checkbox" name="premed_nalbuphine"> Nalbufina - {{ doses.nalbufina_mg }} mg / {{ doses.nalbufina_ml }} ml</label>
-  <label class="check-row"><input type="checkbox" name="premed_butorphanol"> Butorfanol - {{ doses.butorphanol_mg }} mg / {{ doses.butorphanol_ml }} ml</label>
-  <textarea name="premed_notes" placeholder="Observaciones de premedicación"></textarea>
-</div>
+    <label class="check-row">
+      <input type="checkbox" name="premed_acepromazine">
+      Acepromacina -
+      <strong>{{ doses.acepromacina_ml }} ml</strong>
+      ({{ doses.acepromacina_mg }} mg)
+    </label>
 
-<div class="panel">
-  <h2>Inducción</h2>
+    <label class="check-row">
+      <input type="checkbox" name="premed_dexmedetomidine">
+      Dexmedetomidina -
+      <strong>
+        {{ doses.dexmedetomidina_ml_baja }}
+        a
+        {{ doses.dexmedetomidina_ml_alta }} ml
+      </strong>
+      (
+        {{ doses.dexmedetomidina_mcg_baja }}
+        a
+        {{ doses.dexmedetomidina_mcg_alta }} mcg
+      )
+    </label>
 
-<label class="check-row"><input type="checkbox" name="ind_propofol"> Propofol - {{ doses.propofol_ind_mg }} mg / {{ doses.propofol_ind_ml }} ml</label>
-<label class="check-row"><input type="checkbox" name="ind_ketamine"> Ketamina - {{ doses.ketamina_ind_mg }} mg / {{ doses.ketamina_ind_ml }} ml</label>
-<label class="check-row"><input type="checkbox" name="ind_midazolam"> Midazolam - {{ doses.midazolam_ind_mg }} mg / {{ doses.midazolam_ind_ml }} ml</label>
+    <label class="check-row">
+      <input type="checkbox" name="premed_ketamine">
+      Ketamina IM -
+      <strong>{{ doses.ketamina_premed_ml }} ml</strong>
+      ({{ doses.ketamina_premed_mg }} mg)
+    </label>
 
-  <textarea name="induction_notes" placeholder="Observaciones de inducción"></textarea>
-</div>
+    <label class="check-row">
+      <input type="checkbox" name="premed_midazolam">
+      Midazolam -
+      <strong>{{ doses.midazolam_ml }} ml</strong>
+      ({{ doses.midazolam_mg }} mg)
+    </label>
 
-<div class="panel">
-  <h2>Mantenimiento</h2>
+    <label class="check-row">
+      <input type="checkbox" name="premed_nalbuphine">
+      Nalbufina -
+      <strong>{{ doses.nalbufina_ml }} ml</strong>
+      ({{ doses.nalbufina_mg }} mg)
+    </label>
 
-<label class="check-row">
-  <input type="checkbox" name="maintenance_tiva">
-  TIVA
-</label>
+    <label class="check-row">
+      <input type="checkbox" name="premed_butorphanol">
+      Butorfanol -
+      <strong>{{ doses.butorphanol_ml }} ml</strong>
+      ({{ doses.butorphanol_mg }} mg)
+    </label>
 
-<label class="check-row">
-  <input type="checkbox" name="maintenance_isoflurane">
-  Isoflurano
-</label>
+    <textarea
+      name="premed_notes"
+      placeholder="Observaciones de premedicación"
+    ></textarea>
+  </div>
 
-  <textarea name="maintenance_notes" placeholder="Observaciones de mantenimiento"></textarea>
-</div>
+  <div class="panel">
+    <h2>Inducción</h2>
 
-<div class="panel">
-  <h2>Analgesia intraoperatoria / Soporte</h2>
+    <label class="check-row">
+      <input type="checkbox" name="ind_propofol">
+      Propofol -
+      <strong>{{ doses.propofol_ind_ml }} ml</strong>
+      ({{ doses.propofol_ind_mg }} mg)
+    </label>
 
-  <label class="check-row">
-  <input type="checkbox" name="intra_fentanyl_bolus">
-  Bolo de fentanilo
-</label>
+    <label class="check-row">
+      <input type="checkbox" name="ind_ketamine">
+      Ketamina -
+      <strong>{{ doses.ketamina_ind_ml }} ml</strong>
+      ({{ doses.ketamina_ind_mg }} mg)
+    </label>
 
-<label class="check-row">
-  <input type="checkbox" name="intra_flk">
-  CRI FLK
-</label>
+    <label class="check-row">
+      <input type="checkbox" name="ind_midazolam">
+      Midazolam -
+      <strong>{{ doses.midazolam_ind_ml }} ml</strong>
+      ({{ doses.midazolam_ind_mg }} mg)
+    </label>
 
-<label class="check-row">
-  <input type="checkbox" name="intra_dobutamine">
-  Dobutamina
-</label>
+    <textarea
+      name="induction_notes"
+      placeholder="Observaciones de inducción"
+    ></textarea>
+  </div>
 
-  <textarea name="intra_notes" placeholder="Observaciones intraoperatorias"></textarea>
-<h3>Drogas de emergencia</h3>
+  <div class="panel">
+    <h2>Mantenimiento</h2>
 
-<p>
-<strong>Atropina:</strong>
-{{ doses.atropina_mg }} mg /
-{{ doses.atropina_ml }} ml
-</p>
+    <label class="check-row">
+      <input type="checkbox" name="maintenance_tiva">
+      TIVA
+    </label>
 
-<p>
-<strong>Adrenalina:</strong>
-{{ doses.adrenalina_mg_baja }} a {{ doses.adrenalina_mg_alta }} mg
-({{ doses.adrenalina_ml_baja }} a {{ doses.adrenalina_ml_alta }} ml)
-</p>
+    <label class="check-row">
+      <input type="checkbox" name="maintenance_isoflurane">
+      Isoflurano
+    </label>
 
-<p>
-<strong>Diazepam:</strong>
-{{ doses.diazepam_mg }} mg /
-{{ doses.diazepam_ml }} ml
-</p>
+    <textarea
+      name="maintenance_notes"
+      placeholder="Observaciones de mantenimiento"
+    ></textarea>
+  </div>
 
-<p>
-<strong>Dexametasona:</strong>
-{{ doses.dexametasona_mg }} mg /
-{{ doses.dexametasona_ml }} ml
-</p>
-</div>
+  <div class="panel">
+    <h2>Analgesia intraoperatoria / Soporte</h2>
+
+    <label class="check-row">
+      <input type="checkbox" name="intra_fentanyl_bolus">
+      Bolo de fentanilo
+    </label>
+
+    <label class="check-row">
+      <input type="checkbox" name="intra_flk">
+      CRI FLK
+    </label>
+
+    <label class="check-row">
+      <input type="checkbox" name="intra_dobutamine">
+      Dobutamina
+    </label>
+
+    <textarea
+      name="intra_notes"
+      placeholder="Observaciones intraoperatorias"
+    ></textarea>
+
+    <h3>Drogas de emergencia</h3>
+
+    <p>
+      <strong>Atropina:</strong>
+      {{ doses.atropina_ml }} ml
+      ({{ doses.atropina_mg }} mg)
+    </p>
+
+    <p>
+      <strong>Adrenalina:</strong>
+      {{ doses.adrenalina_ml_baja }}
+      a
+      {{ doses.adrenalina_ml_alta }} ml
+      (
+        {{ doses.adrenalina_mg_baja }}
+        a
+        {{ doses.adrenalina_mg_alta }} mg
+      )
+    </p>
+
+    <p>
+      <strong>Diazepam:</strong>
+      {{ doses.diazepam_ml }} ml
+      ({{ doses.diazepam_mg }} mg)
+    </p>
+
+    <p>
+      <strong>Dexametasona:</strong>
+      {{ doses.dexametasona_ml }} ml
+      ({{ doses.dexametasona_mg }} mg)
+    </p>
+  </div>
+
   <div class="panel">
     <h2>FLK automático</h2>
 
-    <p><strong>Bolo de fentanilo:</strong> {{ doses.fentanilo_bolo_mcg }} mcg / {{ doses.fentanilo_bolo_ml }} ml EV lento</p>
+    <p>
+      <strong>
+        Bolo de fentanilo:
+        {{ doses.fentanilo_bolo_ml }} ml EV lento
+      </strong>
+      ({{ doses.fentanilo_bolo_mcg }} mcg)
+    </p>
 
-    <p><strong>CRI FLK en 100 ml SSF:</strong></p>
-<ul>
-  <li>Fentanilo: {{ doses.flk_fentanilo_ml_100 }} ml</li>
-  <li>Lidocaína 2%: {{ doses.flk_lidocaina_ml_100 }} ml</li>
-  <li>Ketamina 5%: {{ doses.flk_ketamina_ml_100 }} ml</li>
-  <li>Total drogas: {{ doses.flk_total_drogas_ml_100 }} ml</li>
-  <li>Completar con SSF: {{ doses.flk_ssf_ml_100 }} ml</li>
-</ul>
-<p><strong>CRI FLK en 200 ml SSF:</strong></p>
-<ul>
-  <li>Fentanilo: {{ doses.flk_fentanilo_ml_200 }} ml</li>
-  <li>Lidocaína 2%: {{ doses.flk_lidocaina_ml_200 }} ml</li>
-  <li>Ketamina 5%: {{ doses.flk_ketamina_ml_200 }} ml</li>
-  <li>Total drogas: {{ doses.flk_total_drogas_ml_200 }} ml</li>
-  <li>Completar con SSF: {{ doses.flk_ssf_ml_200 }} ml</li>
-</ul>
+    <h3>CRI FLK en 100 ml SSF</h3>
 
-<p><strong>CRI FLK en 250 ml SSF:</strong></p>
-<ul>
-  <li>Fentanilo: {{ doses.flk_fentanilo_ml_250 }} ml</li>
-  <li>Lidocaína 2%: {{ doses.flk_lidocaina_ml_250 }} ml</li>
-  <li>Ketamina 5%: {{ doses.flk_ketamina_ml_250 }} ml</li>
-  <li>Total drogas: {{ doses.flk_total_drogas_ml_250 }} ml</li>
-  <li>Completar con SSF: {{ doses.flk_ssf_ml_250 }} ml</li>
-</ul>
-<p><strong>Velocidad:</strong> {{ doses.flk_velocidad_ml_h }} ml/h</p>
-<p>Macro: {{ doses.flk_macro_gtt_min }} gtt/min</p>
-<p>Micro: {{ doses.flk_micro_gtt_min }} gtt/min</p>
-</div>
+    <ul>
+      <li>
+        Fentanilo:
+        <strong>{{ doses.flk_fentanilo_ml_100 }} ml</strong>
+      </li>
+      <li>
+        Lidocaína 2 %:
+        <strong>{{ doses.flk_lidocaina_ml_100 }} ml</strong>
+      </li>
+      <li>
+        Ketamina 5 %:
+        <strong>{{ doses.flk_ketamina_ml_100 }} ml</strong>
+      </li>
+      <li>
+        Total de drogas:
+        {{ doses.flk_total_drogas_ml_100 }} ml
+      </li>
+      <li>
+        Completar con SSF:
+        {{ doses.flk_ssf_ml_100 }} ml
+      </li>
+    </ul>
+
+    <h3>CRI FLK en 200 ml SSF</h3>
+
+    <ul>
+      <li>
+        Fentanilo:
+        <strong>{{ doses.flk_fentanilo_ml_200 }} ml</strong>
+      </li>
+      <li>
+        Lidocaína 2 %:
+        <strong>{{ doses.flk_lidocaina_ml_200 }} ml</strong>
+      </li>
+      <li>
+        Ketamina 5 %:
+        <strong>{{ doses.flk_ketamina_ml_200 }} ml</strong>
+      </li>
+      <li>
+        Total de drogas:
+        {{ doses.flk_total_drogas_ml_200 }} ml
+      </li>
+      <li>
+        Completar con SSF:
+        {{ doses.flk_ssf_ml_200 }} ml
+      </li>
+    </ul>
+
+    <h3>CRI FLK en 250 ml SSF</h3>
+
+    <ul>
+      <li>
+        Fentanilo:
+        <strong>{{ doses.flk_fentanilo_ml_250 }} ml</strong>
+      </li>
+      <li>
+        Lidocaína 2 %:
+        <strong>{{ doses.flk_lidocaina_ml_250 }} ml</strong>
+      </li>
+      <li>
+        Ketamina 5 %:
+        <strong>{{ doses.flk_ketamina_ml_250 }} ml</strong>
+      </li>
+      <li>
+        Total de drogas:
+        {{ doses.flk_total_drogas_ml_250 }} ml
+      </li>
+      <li>
+        Completar con SSF:
+        {{ doses.flk_ssf_ml_250 }} ml
+      </li>
+    </ul>
+
+    <p>
+      <strong>Velocidad:</strong>
+      {{ doses.flk_velocidad_ml_h }} ml/h
+    </p>
+
+    <p>
+      <strong>Macrogotero:</strong>
+      {{ doses.flk_macro_gtt_min }} gotas/min
+    </p>
+
+    <p>
+      <strong>Microgotero:</strong>
+      {{ doses.flk_micro_gtt_min }} gotas/min
+    </p>
+  </div>
+
   <div class="panel">
     <h2>Dobutamina automática</h2>
 
-    <p><strong>Concentración:</strong> 250 mg en 20 ml = 12,5 mg/ml</p>
-    <p><strong>Dosis:</strong> 5 a 10 mcg/kg/min</p>
-
     <p>
-        <strong>Para este paciente:</strong>
-        {{ doses.dobutamina_mcg_min_baja }} a {{ doses.dobutamina_mcg_min_alta }} mcg/min
+      <strong>Concentración:</strong>
+      250 mg en 20 ml = 12,5 mg/ml
     </p>
 
     <p>
-        <strong>Velocidad:</strong>
-        {{ doses.dobutamina_ml_h_baja }} a {{ doses.dobutamina_ml_h_alta }} ml/h
+      <strong>Dosis:</strong>
+      5 a 10 mcg/kg/min
     </p>
 
     <p>
-        <strong>Macrogotero:</strong>
-        {{ doses.dobutamina_macro_gtt_min_baja }} a {{ doses.dobutamina_macro_gtt_min_alta }} gtt/min
+      <strong>Para este paciente:</strong>
+      {{ doses.dobutamina_mcg_min_baja }}
+      a
+      {{ doses.dobutamina_mcg_min_alta }} mcg/min
     </p>
+
     <p>
-        <strong>Macro:</strong>
-    1 gota cada
-    {{ doses.dobutamina_macro_seg_gota_alta }}
-    a
-    {{ doses.dobutamina_macro_seg_gota_baja }}
-    seg
+      <strong>Velocidad:</strong>
+      {{ doses.dobutamina_ml_h_baja }}
+      a
+      {{ doses.dobutamina_ml_h_alta }} ml/h
     </p>
+
     <p>
-        <strong>Microgotero:</strong>
-        {{ doses.dobutamina_micro_gtt_min_baja }} a {{ doses.dobutamina_micro_gtt_min_alta }} gtt/min
+      <strong>Macrogotero:</strong>
+      {{ doses.dobutamina_macro_gtt_min_baja }}
+      a
+      {{ doses.dobutamina_macro_gtt_min_alta }} gotas/min
     </p>
+
     <p>
-    <strong>Micro:</strong>
-    1 gota cada
-    {{ doses.dobutamina_micro_seg_gota_alta }}
-    a
-    {{ doses.dobutamina_micro_seg_gota_baja }}
-    seg
+      <strong>Macro:</strong>
+      1 gota cada
+      {{ doses.dobutamina_macro_seg_gota_alta }}
+      a
+      {{ doses.dobutamina_macro_seg_gota_baja }} segundos
     </p>
-</div>
+
+    <p>
+      <strong>Microgotero:</strong>
+      {{ doses.dobutamina_micro_gtt_min_baja }}
+      a
+      {{ doses.dobutamina_micro_gtt_min_alta }} gotas/min
+    </p>
+
+    <p>
+      <strong>Micro:</strong>
+      1 gota cada
+      {{ doses.dobutamina_micro_seg_gota_alta }}
+      a
+      {{ doses.dobutamina_micro_seg_gota_baja }} segundos
+    </p>
+  </div>
+
   <div class="panel">
     <h2>Analgesia posoperatoria</h2>
 
-    <label class="check-row"><input type="checkbox" name="meloxicam"> Meloxicam</label>
-    <label class="check-row"><input type="checkbox" name="dipyrone"> Dipirona</label>
-    <label class="check-row"><input type="checkbox" name="tramadol"> Tramadol</label>
-    <label class="check-row"><input type="checkbox" name="gabapentin"> Gabapentina</label>
-    <label class="check-row"><input type="checkbox" name="pregabalin"> Pregabalina</label>
-    <label class="check-row"><input type="checkbox" name="nalbuphine"> Nalbufina</label>
-    <label class="check-row"><input type="checkbox" name="butorphanol"> Butorfanol</label>
-    <label class="check-row"><input type="checkbox" name="dexamethasone"> Dexametasona</label>
+    <label class="check-row">
+      <input type="checkbox" name="meloxicam">
+      Meloxicam -
+      <strong>{{ doses.meloxicam_ml }} ml</strong>
+      ({{ doses.meloxicam_mg }} mg)
+    </label>
 
-    <textarea name="postop_notes" placeholder="Observaciones de analgesia posoperatoria"></textarea>
+    <label class="check-row">
+      <input type="checkbox" name="dipyrone">
+      Dipirona
+    </label>
+
+    <label class="check-row">
+      <input type="checkbox" name="tramadol">
+      Tramadol
+    </label>
+
+    <label class="check-row">
+      <input type="checkbox" name="gabapentin">
+      Gabapentina
+    </label>
+
+    <label class="check-row">
+      <input type="checkbox" name="pregabalin">
+      Pregabalina
+    </label>
+
+    <label class="check-row">
+      <input type="checkbox" name="nalbuphine">
+      Nalbufina
+    </label>
+
+    <label class="check-row">
+      <input type="checkbox" name="butorphanol">
+      Butorfanol
+    </label>
+
+    <label class="check-row">
+      <input type="checkbox" name="dexamethasone">
+      Dexametasona
+    </label>
+
+    <textarea
+      name="postop_notes"
+      placeholder="Observaciones de analgesia posoperatoria"
+    ></textarea>
   </div>
 
   <div class="panel">
     <h2>Antibioticoterapia</h2>
 
-    <label class="check-row"><input type="checkbox" name="cefazolin"> Cefazolina</label>
-    <label class="check-row"><input type="checkbox" name="amoxiclav"> Amoxicilina clavulánico</label>
-    <label class="check-row"><input type="checkbox" name="cephalexin"> Cefalexina</label>
-    <label class="check-row"><input type="checkbox" name="enrofloxacin"> Enrofloxacina</label>
-    <label class="check-row"><input type="checkbox" name="metronidazole"> Metronidazol</label>
-    <label class="check-row"><input type="checkbox" name="clindamycin"> Clindamicina</label>
+    <label class="check-row">
+      <input type="checkbox" name="cefazolin">
+      Cefazolina
+    </label>
 
-    <textarea name="antibiotic_notes" placeholder="Observaciones de antibioticoterapia"></textarea>
+    <label class="check-row">
+      <input type="checkbox" name="amoxiclav">
+      Amoxicilina clavulánico
+    </label>
+
+    <label class="check-row">
+      <input type="checkbox" name="cephalexin">
+      Cefalexina
+    </label>
+
+    <label class="check-row">
+      <input type="checkbox" name="enrofloxacin">
+      Enrofloxacina
+    </label>
+
+    <label class="check-row">
+      <input type="checkbox" name="metronidazole">
+      Metronidazol
+    </label>
+
+    <label class="check-row">
+      <input type="checkbox" name="clindamycin">
+      Clindamicina
+    </label>
+
+    <textarea
+      name="antibiotic_notes"
+      placeholder="Observaciones de antibioticoterapia"
+    ></textarea>
   </div>
 
   <div class="panel">
     <h2>Fluidoterapia</h2>
 
     <label>Tipo de equipo:</label><br>
-    <label><input type="radio" name="drip_set" value="macro" checked> Macrogotero 20 gtt/ml</label><br>
-    <label><input type="radio" name="drip_set" value="micro"> Microgotero 60 gtt/ml</label><br><br>
 
-    <input name="fluid_rate" placeholder="Velocidad ml/kg/h">
+    <label>
+      <input
+        type="radio"
+        name="drip_set"
+        value="macro"
+        checked
+      >
+      Macrogotero 20 gotas/ml
+    </label>
+
+    <br>
+
+    <label>
+      <input
+        type="radio"
+        name="drip_set"
+        value="micro"
+      >
+      Microgotero 60 gotas/ml
+    </label>
+
+    <br><br>
+
+    <input
+      name="fluid_rate"
+      placeholder="Velocidad ml/kg/h"
+    >
+
     <div style="margin-top:10px;">
-        <strong>Ringer Lactato calculado:</strong><br>
-        {{ doses.rl_ml_h }} ml/h<br>
-        Macro: {{ doses.rl_macro_gtt_min }} gtt/min<br>
-        Micro: {{ doses.rl_micro_gtt_min }} gtt/min
-</div>
+      <strong>Ringer Lactato calculado:</strong><br>
+      {{ doses.rl_ml_h }} ml/h<br>
+      Macro: {{ doses.rl_macro_gtt_min }} gotas/min<br>
+      Micro: {{ doses.rl_micro_gtt_min }} gotas/min
+    </div>
   </div>
 
-  <button type="submit" class="btn">Guardar protocolo</button>
+  <button type="submit" class="btn">
+    Guardar protocolo
+  </button>
+
   <button
-  type="submit"
-  class="btn"
-  formaction="/patients/{{ patient.id }}/anesthesia/recalculate"
->
-  Recalcular dosis sin guardar
-</button>
-  <a href="/patients/{{ patient.id }}/anesthesia/print"
-   target="_blank"
-   class="btn">
-   Imprimir protocolo
-</a>
-  <a href="/patients/{{ patient.id }}" class="btn">Volver a ficha</a>
+    type="submit"
+    class="btn"
+    formaction="/patients/{{ patient.id }}/anesthesia/recalculate"
+  >
+    Recalcular dosis sin guardar
+  </button>
+
+  <a
+    href="/patients/{{ patient.id }}/anesthesia/print"
+    target="_blank"
+    class="btn"
+  >
+    Imprimir protocolo
+  </a>
+
+  <a
+    href="/patients/{{ patient.id }}"
+    class="btn"
+  >
+    Volver a ficha
+  </a>
 
 </form>
 
