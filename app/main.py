@@ -9340,14 +9340,25 @@ def calculate_anesthesia_doses(weight: float):
         "ketamina_premed_ml": round((weight * 3) / 50, 2),
         "midazolam_mg": round(weight * 0.2, 2),
         "midazolam_ml": round((weight * 0.2) / 5, 2),
-        "nalbufina_mg": round(weight * 0.5, 2),
-        "butorfanol_mg": round(weight * 0.3, 2),
 
+        "nalbufina_mg": round(weight * 0.5, 2),
+        "nalbufina_ml": round((weight * 0.5) / 10, 2),
+
+        "butorfanol_mg": round(weight * 0.3, 2),
+        "butorfanol_ml": round((weight * 0.3) / 10, 2),
+
+        "propofol_ind_mg": round(weight * 3, 2),
         "propofol_ind_ml": round((weight * 3) / 10, 2),
+
+        "ketamina_ind_mg": round(weight * 5, 2),
         "ketamina_ind_ml": round((weight * 5) / 50, 2),
+
+        "midazolam_ind_mg": round(weight * 0.2, 2),
         "midazolam_ind_ml": round((weight * 0.2) / 5, 2),
 
         "meloxicam_mg": round(weight * 0.2, 2),
+        "meloxicam_ml": round((weight * 0.2) / 5, 2),
+
         "fentanilo_bolo_mcg": round(weight * 2, 2),
         "fentanilo_bolo_ml": round((weight * 2) / 50, 2),
 
@@ -9359,61 +9370,98 @@ def calculate_anesthesia_doses(weight: float):
 "flk_lidocaina_mg_h": round(weight * 0.6, 2),
 "flk_ketamina_mg_h": round(weight * 0.6, 2),
 
-"flk_fentanilo_ml_100": round(((weight * 5 * 1.6667) / 50), 2),
-"flk_lidocaina_ml_100": round(((weight * 0.6 * 1.6667) / 20), 2),
-"flk_ketamina_ml_100": round(((weight * 0.6 * 1.6667) / 50), 2),
-"flk_total_drogas_ml_100": round(
-    ((weight * 5 * 1.6667) / 50)
-    + ((weight * 0.6 * 1.6667) / 20)
-    + ((weight * 0.6 * 1.6667) / 50),
-    2
-),
-"flk_ssf_ml_100": round(
-    100
-    - (
-        ((weight * 5 * 1.6667) / 50)
-        + ((weight * 0.6 * 1.6667) / 20)
-        + ((weight * 0.6 * 1.6667) / 50)
-    ),
-    2
-),
-"flk_fentanilo_ml_200": round(((weight * 5 * 3.3334) / 50), 2),
-"flk_lidocaina_ml_200": round(((weight * 0.6 * 3.3334) / 20), 2),
-"flk_ketamina_ml_200": round(((weight * 0.6 * 3.3334) / 50), 2),
-"flk_total_drogas_ml_200": round(
-    ((weight * 5 * 3.3334) / 50)
-    + ((weight * 0.6 * 3.3334) / 20)
-    + ((weight * 0.6 * 3.3334) / 50),
-    2
-),
-"flk_ssf_ml_200": round(
-    200
-    - (
-        ((weight * 5 * 3.3334) / 50)
-        + ((weight * 0.6 * 3.3334) / 20)
-        + ((weight * 0.6 * 3.3334) / 50)
-    ),
-    2
-),
+        # FLK:
+        # Fentanilo 5 mcg/kg/h
+        # Lidocaína 0.6 mg/kg/h
+        # Ketamina 0.6 mg/kg/h
+        # Velocidad final 3 ml/kg/h
+        #
+        # Al mantener estas dosis y esta velocidad, la concentración
+        # requerida en la bolsa es independiente del peso del paciente.
 
-"flk_fentanilo_ml_250": round(((weight * 5 * 4.16675) / 50), 2),
-"flk_lidocaina_ml_250": round(((weight * 0.6 * 4.16675) / 20), 2),
-"flk_ketamina_ml_250": round(((weight * 0.6 * 4.16675) / 50), 2),
-"flk_total_drogas_ml_250": round(
-    ((weight * 5 * 4.16675) / 50)
-    + ((weight * 0.6 * 4.16675) / 20)
-    + ((weight * 0.6 * 4.16675) / 50),
-    2
-),
-"flk_ssf_ml_250": round(
-    250
-    - (
-        ((weight * 5 * 4.16675) / 50)
-        + ((weight * 0.6 * 4.16675) / 20)
-        + ((weight * 0.6 * 4.16675) / 50)
-    ),
-    2
-),
+        "flk_fentanilo_ml_100": round(
+            (100 * 5 / 3) / 50,
+            2
+        ),
+        "flk_lidocaina_ml_100": round(
+            (100 * 0.6 / 3) / 20,
+            2
+        ),
+        "flk_ketamina_ml_100": round(
+            (100 * 0.6 / 3) / 50,
+            2
+        ),
+        "flk_total_drogas_ml_100": round(
+            ((100 * 5 / 3) / 50)
+            + ((100 * 0.6 / 3) / 20)
+            + ((100 * 0.6 / 3) / 50),
+            2
+        ),
+        "flk_ssf_ml_100": round(
+            100
+            - (
+                ((100 * 5 / 3) / 50)
+                + ((100 * 0.6 / 3) / 20)
+                + ((100 * 0.6 / 3) / 50)
+            ),
+            2
+        ),
+
+        "flk_fentanilo_ml_200": round(
+            (200 * 5 / 3) / 50,
+            2
+        ),
+        "flk_lidocaina_ml_200": round(
+            (200 * 0.6 / 3) / 20,
+            2
+        ),
+        "flk_ketamina_ml_200": round(
+            (200 * 0.6 / 3) / 50,
+            2
+        ),
+        "flk_total_drogas_ml_200": round(
+            ((200 * 5 / 3) / 50)
+            + ((200 * 0.6 / 3) / 20)
+            + ((200 * 0.6 / 3) / 50),
+            2
+        ),
+        "flk_ssf_ml_200": round(
+            200
+            - (
+                ((200 * 5 / 3) / 50)
+                + ((200 * 0.6 / 3) / 20)
+                + ((200 * 0.6 / 3) / 50)
+            ),
+            2
+        ),
+
+        "flk_fentanilo_ml_250": round(
+            (250 * 5 / 3) / 50,
+            2
+        ),
+        "flk_lidocaina_ml_250": round(
+            (250 * 0.6 / 3) / 20,
+            2
+        ),
+        "flk_ketamina_ml_250": round(
+            (250 * 0.6 / 3) / 50,
+            2
+        ),
+        "flk_total_drogas_ml_250": round(
+            ((250 * 5 / 3) / 50)
+            + ((250 * 0.6 / 3) / 20)
+            + ((250 * 0.6 / 3) / 50),
+            2
+        ),
+        "flk_ssf_ml_250": round(
+            250
+            - (
+                ((250 * 5 / 3) / 50)
+                + ((250 * 0.6 / 3) / 20)
+                + ((250 * 0.6 / 3) / 50)
+            ),
+            2
+        ),
 "rl_ml_h": round(weight * 5, 2),
 "rl_macro_gtt_min": round((weight * 5 * 20) / 60, 1),
 "rl_micro_gtt_min": round((weight * 5 * 60) / 60, 1),
@@ -9547,7 +9595,11 @@ async def patient_anesthesia_print(
             or selected_anesthesia.event_type != 'Anestesia'
         ):
             raise HTTPException(status_code=404, detail="Protocolo anestésico no encontrado")
-    weight = patient.weight or 0
+    weight = (
+        selected_anesthesia.weight
+        if selected_anesthesia and selected_anesthesia.weight
+        else patient.weight or 0
+    )
 
     try:
         weight = float(weight)
