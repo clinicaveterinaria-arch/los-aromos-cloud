@@ -231,7 +231,7 @@
 
     .signature {
         width: 280px;
-        margin: auto 0 0 auto;
+        margin: 14px 0 0 auto;
         padding-top: 12px;
         text-align: center;
         font-size: 13px;
@@ -1230,56 +1230,7 @@
 
     </footer>
 
-    <script>
-        /*
-        Coloca la firma al pie de la última hoja impresa.
-
-        Si la historia clínica ocupa varias páginas, calcula la
-        altura necesaria para completar la última página sin
-        repetir la firma en las páginas anteriores.
-        */
-        function placeSignatureAtLastPageBottom() {
-            const body = document.body;
-            const content =
-                document.querySelector('.clinical-content');
-            const signature =
-                document.querySelector('.signature');
-
-            if (!content || !signature) {
-                return;
-            }
-
-            body.style.minHeight = '';
-
-            const millimetreInPixels = 96 / 25.4;
-            const printablePageHeight =
-                271 * millimetreInPixels;
-
-            const requiredHeight =
-                content.getBoundingClientRect().height +
-                signature.getBoundingClientRect().height;
-
-            const pageCount = Math.max(
-                1,
-                Math.ceil(
-                    (requiredHeight + 1) /
-                    printablePageHeight
-                )
-            );
-
-            body.style.minHeight =
-                `${pageCount * printablePageHeight}px`;
-        }
-
-        window.addEventListener(
-            'beforeprint',
-            placeSignatureAtLastPageBottom
-        );
-
-        window.addEventListener('afterprint', () => {
-            document.body.style.minHeight = '';
-        });
-    </script>
-
+</body>
+</html>
 </body>
 </html>    
