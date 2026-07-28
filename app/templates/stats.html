@@ -86,12 +86,12 @@
         .print-report-header p { margin:0; color:#6b7280; font-size:10px; }
         .print-period { text-align:right; color:#6b7280; line-height:1.5; white-space:nowrap; }
         .print-period b { color:#1f2937; }
-        .print-report-footer {
-            display:block !important; position:fixed; left:0; right:0; bottom:-9mm;
-            padding-top:5px; border-top:1px solid #f3c6d8; color:#8a7480;
-            font-size:8px; text-align:center;
-        }
-        .print-page-number::after { content:"Página " counter(page); }
+        /*
+         * Chromium no numera correctamente las páginas con counter(page) y
+         * repite los elementos fixed sobre el contenido de las hojas siguientes.
+         * Se oculta este pie para evitar "Página 0" y títulos superpuestos.
+         */
+        .print-report-footer { display:none !important; }
 
         .stats-hero { display:none !important; }
         .stats-card, .kpi-card, .category-card {
@@ -134,7 +134,11 @@
             margin:0 !important; break-inside:avoid !important; page-break-inside:avoid !important;
         }
         .ranking-card table { break-inside:avoid; page-break-inside:avoid; table-layout:fixed; }
-        .ranking-card th:first-child, .ranking-card td:first-child { width:58%; overflow-wrap:anywhere; }
+        .ranking-card th:first-child, .ranking-card td:first-child { width:56%; overflow-wrap:anywhere; }
+        .ranking-card th:nth-child(2), .ranking-card td:nth-child(2) { width:10%; }
+        .ranking-card th:nth-child(3), .ranking-card td:nth-child(3) { width:17%; }
+        .ranking-card th:nth-child(4), .ranking-card td:nth-child(4) { width:17%; }
+        .ranking-card th.number, .ranking-card td.number { padding-left:8px; }
     }
 </style>
 
@@ -248,7 +252,7 @@
                     <small class="{% if trend.up %}trend-up{% else %}trend-down{% endif %}">
                         {% if trend.up %}▲{% else %}▼{% endif %}
                         {% if is_money %}$ {{ "{:,.0f}".format(trend.amount|abs).replace(",", ".") }}{% else %}{{ trend.amount|abs|int }}{% endif %}
-                        · {{ "{:,.1f}".format(trend.percent|abs).replace(",", ".") }}%
+                        · {{ "{:,.1f}".format(trend.percent|abs).replace(",", "X").replace(".", ",").replace("X", ".") }}%
                     </small>
                 {% else %}
                     <small class="trend-neutral">
@@ -266,7 +270,7 @@
         <div class="kpi-card">
             <div class="kpi-icon">📊</div>
             <small>Rentabilidad</small>
-            <h2>{{ "{:,.1f}".format(current.margin_percent).replace(",", ".") }}%</h2>
+            <h2>{{ "{:,.1f}".format(current.margin_percent).replace(",", "X").replace(".", ",").replace("X", ".") }}%</h2>
             <small>Costo total: $ {{ "{:,.0f}".format(current.cost_total).replace(",", ".") }}</small>
         </div>
     </div>
@@ -282,12 +286,12 @@
                 <div class="category-row"><span>Facturación</span><strong>$ {{ "{:,.0f}".format(category.sales).replace(",", ".") }}</strong></div>
                 <div class="category-row"><span>Costo</span><strong>$ {{ "{:,.0f}".format(category.cost).replace(",", ".") }}</strong></div>
                 <div class="category-row"><span>Ganancia</span><strong>$ {{ "{:,.0f}".format(category.profit).replace(",", ".") }}</strong></div>
-                <div class="category-row"><span>Participación</span><strong>{{ "{:,.1f}".format(category.percent).replace(",", ".") }}%</strong></div>
+                <div class="category-row"><span>Participación</span><strong>{{ "{:,.1f}".format(category.percent).replace(",", "X").replace(".", ",").replace("X", ".") }}%</strong></div>
                 <div class="category-row">
                     <span>Vs. período anterior</span>
                     {% if trend.sales.has_base %}
                         <strong class="{% if trend.sales.up %}trend-up{% else %}trend-down{% endif %}">
-                            {% if trend.sales.up %}▲{% else %}▼{% endif %} {{ "{:,.1f}".format(trend.sales.percent|abs).replace(",", ".") }}%
+                            {% if trend.sales.up %}▲{% else %}▼{% endif %} {{ "{:,.1f}".format(trend.sales.percent|abs).replace(",", "X").replace(".", ",").replace("X", ".") }}%
                         </strong>
                     {% else %}
                         <strong class="trend-neutral">Sin base</strong>
@@ -328,7 +332,7 @@
                                 <td>{{ method }}</td>
                                 <td class="number">{{ data.count }}</td>
                                 <td class="number amount">$ {{ "{:,.0f}".format(data.total).replace(",", ".") }}</td>
-                                <td class="number">{{ "{:,.1f}".format(data.percent).replace(",", ".") }}%</td>
+                                <td class="number">{{ "{:,.1f}".format(data.percent).replace(",", "X").replace(".", ",").replace("X", ".") }}%</td>
                             </tr>
                         {% endfor %}
                     </tbody>
@@ -401,7 +405,7 @@
                             {% for item in rows %}
                                 <tr>
                                     <td>{{ loop.index }}. {{ item.name }}</td>
-                                    <td class="number">{{ "{:,.2f}".format(item.qty).rstrip('0').rstrip('.') }}</td>
+                                    <td class="number">{{ "{:,.2f}".format(item.qty).rstrip('0').rstrip('.').replace(",", "X").replace(".", ",").replace("X", ".") }}</td>
                                     <td class="number amount">$ {{ "{:,.0f}".format(item.sales).replace(",", ".") }}</td>
                                     <td class="number">$ {{ "{:,.0f}".format(item.profit).replace(",", ".") }}</td>
                                 </tr>
