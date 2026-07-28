@@ -60,8 +60,35 @@ td{border:1px solid #d1d5db;padding:7px;vertical-align:top}
 .event-title{font-weight:bold;font-size:14px}
 .event-body{white-space:pre-wrap;line-height:1.35;margin-top:5px;font-size:13px}
 
-.footer{margin-top:45px;display:flex;justify-content:space-between;align-items:flex-end;font-size:12px}
-.signature{width:250px;text-align:center;border-top:1px solid #111827;padding-top:8px}
+.footer{
+    margin-top:32px;
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    font-size:12px;
+    break-inside:avoid-page;
+    page-break-inside:avoid;
+}
+
+.signature{
+    width:280px;
+    margin:0 0 0 auto;
+    text-align:center;
+    font-size:12px;
+    break-inside:avoid-page;
+    page-break-inside:avoid;
+}
+
+.digital-signature{
+    display:block;
+    width:155px;
+    height:58px;
+    margin:0 auto 2px;
+    object-fit:contain;
+}
+
+.signature p{margin:0}
+.signature-name{font-weight:700}
 </style>
 </head>
 
@@ -84,12 +111,15 @@ td{border:1px solid #d1d5db;padding:7px;vertical-align:top}
     <div class="right">
         <b>Fecha de impresión</b><br>
         {{ today.strftime("%d/%m/%Y") }}<br><br>
+
         <b>Internación Nº</b><br>
         {{ hospitalization.id }}<br><br>
+
         <b>Estado</b><br>
         {{ hospitalization.status }}
     </div>
 </div>
+
 <div class="title-box">
     <h2>Paciente: {{ patient.name or "-" }}</h2>
     <p>
@@ -104,14 +134,17 @@ td{border:1px solid #d1d5db;padding:7px;vertical-align:top}
         <span>Ingreso</span>
         <b>{{ hospitalization.admission_date.strftime("%d/%m %H:%M") if hospitalization.admission_date else "-" }}</b>
     </div>
+
     <div class="summary-card">
         <span>Alta</span>
         <b>{{ hospitalization.discharge_date.strftime("%d/%m %H:%M") if hospitalization.discharge_date else "-" }}</b>
     </div>
+
     <div class="summary-card">
         <span>Medicación</span>
         <b>{{ medications|length }}</b>
     </div>
+
     <div class="summary-card">
         <span>Evoluciones</span>
         <b>{{ related_events|length }}</b>
@@ -122,32 +155,71 @@ td{border:1px solid #d1d5db;padding:7px;vertical-align:top}
 <div class="section-title">Datos del paciente y propietario</div>
 
 <div class="grid">
-    <div class="box"><label>Paciente</label><b>{{ patient.name or "-" }}</b></div>
-    <div class="box"><label>Propietario</label><b>{{ owner.name if owner else "-" }}</b></div>
-    <div class="box"><label>Teléfono / WhatsApp</label><b>{{ owner.whatsapp or owner.phone or "-" if owner else "-" }}</b></div>
-    <div class="box"><label>Especie</label><b>{{ patient.species or "-" }}</b></div>
-    <div class="box"><label>Raza</label><b>{{ patient.breed or "-" }}</b></div>
-    <div class="box"><label>Sexo</label><b>{{ patient.sex or "-" }}</b></div>
-    <div class="box"><label>Peso</label><b>{{ hospitalization.initial_weight or patient.weight or "-" }} kg</b></div>
-    <div class="box"><label>Jaula / ubicación</label><b>{{ hospitalization.cage or "-" }}</b></div>
-    <div class="box"><label>Veterinario responsable</label><b>{{ hospitalization.responsible_vet or "-" }}</b></div>
-    <div class="box"><label>Fecha de ingreso</label><b>{{ hospitalization.admission_date.strftime("%d/%m/%Y %H:%M") if hospitalization.admission_date else "-" }}</b></div>
+    <div class="box">
+        <label>Paciente</label>
+        <b>{{ patient.name or "-" }}</b>
+    </div>
+
+    <div class="box">
+        <label>Propietario</label>
+        <b>{{ owner.name if owner else "-" }}</b>
+    </div>
+
+    <div class="box">
+        <label>Teléfono / WhatsApp</label>
+        <b>{{ owner.whatsapp or owner.phone or "-" if owner else "-" }}</b>
+    </div>
+
+    <div class="box">
+        <label>Especie</label>
+        <b>{{ patient.species or "-" }}</b>
+    </div>
+
+    <div class="box">
+        <label>Raza</label>
+        <b>{{ patient.breed or "-" }}</b>
+    </div>
+
+    <div class="box">
+        <label>Sexo</label>
+        <b>{{ patient.sex or "-" }}</b>
+    </div>
+
+    <div class="box">
+        <label>Peso</label>
+        <b>{{ hospitalization.initial_weight or patient.weight or "-" }} kg</b>
+    </div>
+
+    <div class="box">
+        <label>Jaula / ubicación</label>
+        <b>{{ hospitalization.cage or "-" }}</b>
+    </div>
+
+    <div class="box">
+        <label>Veterinario responsable</label>
+        <b>{{ hospitalization.responsible_vet or "-" }}</b>
+    </div>
+
+    <div class="box">
+        <label>Fecha de ingreso</label>
+        <b>{{ hospitalization.admission_date.strftime("%d/%m/%Y %H:%M") if hospitalization.admission_date else "-" }}</b>
+    </div>
 </div>
 </div>
 
 <div class="section">
-<div class="section-title">Motivo de internación</div>
-<div class="text-box">{{ hospitalization.reason or "-" }}</div>
+    <div class="section-title">Motivo de internación</div>
+    <div class="text-box">{{ hospitalization.reason or "-" }}</div>
 </div>
 
 <div class="section">
-<div class="section-title">Diagnóstico inicial</div>
-<div class="text-box">{{ hospitalization.diagnosis or "-" }}</div>
+    <div class="section-title">Diagnóstico inicial</div>
+    <div class="text-box">{{ hospitalization.diagnosis or "-" }}</div>
 </div>
 
 <div class="section">
-<div class="section-title">Plan terapéutico</div>
-<div class="text-box">{{ hospitalization.treatment_plan or "-" }}</div>
+    <div class="section-title">Plan terapéutico</div>
+    <div class="text-box">{{ hospitalization.treatment_plan or "-" }}</div>
 </div>
 
 <div class="section">
@@ -155,104 +227,121 @@ td{border:1px solid #d1d5db;padding:7px;vertical-align:top}
 
 <table>
 <tr>
-<th>Temperatura</th>
-<th>FC</th>
-<th>FR</th>
-<th>Mucosas</th>
-<th>TRC</th>
-<th>Hidratación</th>
+    <th>Temperatura</th>
+    <th>FC</th>
+    <th>FR</th>
+    <th>Mucosas</th>
+    <th>TRC</th>
+    <th>Hidratación</th>
 </tr>
+
 <tr>
-<td>{{ hospitalization.initial_temperature or "-" }}</td>
-<td>{{ hospitalization.initial_heart_rate or "-" }}</td>
-<td>{{ hospitalization.initial_respiratory_rate or "-" }}</td>
-<td>{{ hospitalization.initial_mucous_membranes or "-" }}</td>
-<td>{{ hospitalization.initial_crt or "-" }}</td>
-<td>{{ hospitalization.initial_hydration or "-" }}</td>
+    <td>{{ hospitalization.initial_temperature or "-" }}</td>
+    <td>{{ hospitalization.initial_heart_rate or "-" }}</td>
+    <td>{{ hospitalization.initial_respiratory_rate or "-" }}</td>
+    <td>{{ hospitalization.initial_mucous_membranes or "-" }}</td>
+    <td>{{ hospitalization.initial_crt or "-" }}</td>
+    <td>{{ hospitalization.initial_hydration or "-" }}</td>
 </tr>
 </table>
 </div>
-
 <div class="section">
 <div class="section-title">Medicación administrada / programada</div>
 
 {% if medications %}
 <table>
 <tr>
-<th>Hora</th>
-<th>Medicamento</th>
-<th>Dosis</th>
-<th>Vía</th>
-<th>Frecuencia</th>
-<th>Estado</th>
-<th>Aplicación</th>
+    <th>Hora</th>
+    <th>Medicamento</th>
+    <th>Dosis</th>
+    <th>Vía</th>
+    <th>Frecuencia</th>
+    <th>Estado</th>
+    <th>Aplicación</th>
 </tr>
 
 {% for m in medications %}
 <tr>
-<td>{{ m.scheduled_time or "-" }}</td>
-<td><b>{{ m.medication_name or "-" }}</b></td>
-<td>{{ m.dose or "-" }}</td>
-<td>{{ m.route or "-" }}</td>
-<td>{{ m.frequency or "-" }}</td>
-<td>
-{% if m.status == "Aplicada" %}
-<span class="ok">✔ Aplicada</span>
-{% elif m.status == "Finalizada" %}
-<span class="closed">Finalizada</span>
-{% else %}
-<span class="pending">{{ m.status or "-" }}</span>
-{% endif %}
-</td>
-<td>
-{% if m.applied_at %}
-{{ m.applied_at.strftime("%d/%m/%Y %H:%M") }}
-{% if m.applied_by %}<br>{{ m.applied_by }}{% endif %}
-{% else %}
--
-{% endif %}
-</td>
+    <td>{{ m.scheduled_time or "-" }}</td>
+    <td><b>{{ m.medication_name or "-" }}</b></td>
+    <td>{{ m.dose or "-" }}</td>
+    <td>{{ m.route or "-" }}</td>
+    <td>{{ m.frequency or "-" }}</td>
+
+    <td>
+        {% if m.status == "Aplicada" %}
+        <span class="ok">✔ Aplicada</span>
+
+        {% elif m.status == "Finalizada" %}
+        <span class="closed">Finalizada</span>
+
+        {% else %}
+        <span class="pending">{{ m.status or "-" }}</span>
+        {% endif %}
+    </td>
+
+    <td>
+        {% if m.applied_at %}
+        {{ m.applied_at.strftime("%d/%m/%Y %H:%M") }}
+
+        {% if m.applied_by %}
+        <br>{{ m.applied_by }}
+        {% endif %}
+
+        {% else %}
+        -
+        {% endif %}
+    </td>
 </tr>
 {% endfor %}
 </table>
+
 {% else %}
 <div class="text-box">No hay medicación cargada.</div>
 {% endif %}
 </div>
+
 <div class="section">
 <div class="section-title">Fluidoterapia</div>
 
 {% if fluids %}
 <table>
 <tr>
-<th>Fluido</th>
-<th>Velocidad</th>
-<th>ml/kg/h</th>
-<th>Equipo</th>
-<th>Estado</th>
-<th>Finalización</th>
-<th>Observaciones</th>
+    <th>Fluido</th>
+    <th>Velocidad</th>
+    <th>ml/kg/h</th>
+    <th>Equipo</th>
+    <th>Estado</th>
+    <th>Finalización</th>
+    <th>Observaciones</th>
 </tr>
 
 {% for f in fluids %}
 <tr>
-<td><b>{{ f.fluid_type or "-" }}</b></td>
-<td>{{ f.fluid_rate or "-" }}</td>
-<td>{{ f.ml_kg_h or "-" }}</td>
-<td>{{ f.drip_set or "-" }}</td>
-<td>{{ f.status or "-" }}</td>
-<td>
-{% if f.finished_at %}
-{{ f.finished_at.strftime("%d/%m/%Y %H:%M") }}
-{% if f.finished_by %}<br>{{ f.finished_by }}{% endif %}
-{% else %}
--
-{% endif %}
-</td>
-<td>{{ f.notes or "-" }}</td>
+    <td><b>{{ f.fluid_type or "-" }}</b></td>
+    <td>{{ f.fluid_rate or "-" }}</td>
+    <td>{{ f.ml_kg_h or "-" }}</td>
+    <td>{{ f.drip_set or "-" }}</td>
+    <td>{{ f.status or "-" }}</td>
+
+    <td>
+        {% if f.finished_at %}
+        {{ f.finished_at.strftime("%d/%m/%Y %H:%M") }}
+
+        {% if f.finished_by %}
+        <br>{{ f.finished_by }}
+        {% endif %}
+
+        {% else %}
+        -
+        {% endif %}
+    </td>
+
+    <td>{{ f.notes or "-" }}</td>
 </tr>
 {% endfor %}
 </table>
+
 {% else %}
 <div class="text-box">No hay fluidoterapia cargada.</div>
 {% endif %}
@@ -262,8 +351,10 @@ td{border:1px solid #d1d5db;padding:7px;vertical-align:top}
 <div class="section-title">Línea de tiempo / evolución clínica</div>
 
 {% if related_events %}
+
 {% for e in related_events %}
 <div class="event">
+
     <div class="event-date">
         {{ e.event_date.strftime("%d/%m/%Y %H:%M") if e.event_date else "-" }}
     </div>
@@ -276,24 +367,31 @@ td{border:1px solid #d1d5db;padding:7px;vertical-align:top}
     <div class="event-body">
 {% if e.description %}
 {{ e.description }}
+
 {% elif e.diagnosis %}
 {{ e.diagnosis }}
+
 {% elif e.treatment %}
 {{ e.treatment }}
+
 {% else %}
 Sin detalle registrado.
 {% endif %}
     </div>
+
 </div>
 {% endfor %}
+
 {% else %}
 <div class="text-box">No existen evoluciones registradas.</div>
 {% endif %}
 </div>
 
 <div class="section">
-<div class="section-title">Observaciones generales</div>
-<div class="text-box">{{ hospitalization.notes or "Sin observaciones." }}</div>
+    <div class="section-title">Observaciones generales</div>
+    <div class="text-box">
+        {{ hospitalization.notes or "Sin observaciones." }}
+    </div>
 </div>
 
 {% if hospitalization.status != "Internado" %}
@@ -305,16 +403,17 @@ Sin detalle registrado.
 {{ hospitalization.discharge_date.strftime("%d/%m/%Y %H:%M") if hospitalization.discharge_date else "-" }}
 
 <br><br>
+
 <b>Resumen de alta:</b><br>
 {{ hospitalization.discharge_summary or "-" }}
 
 <br><br>
+
 <b>Indicaciones domiciliarias:</b><br>
 {{ hospitalization.discharge_indications or "-" }}
 </div>
 </div>
 {% endif %}
-
 <div class="footer">
     <div>
         <b>Clínica Veterinaria Los Aromos</b><br>
@@ -323,7 +422,17 @@ Sin detalle registrado.
     </div>
 
     <div class="signature">
-        Firma y sello veterinario
+        <img
+            class="digital-signature"
+            src="data:image/jpeg;base64,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"
+            alt="Firma de la Médica Veterinaria Carolina Villani"
+        >
+
+        <p class="signature-name">
+            Médica Veterinaria Carolina Villani
+        </p>
+
+        <p>MP 1525</p>
     </div>
 </div>
 
