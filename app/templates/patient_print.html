@@ -408,7 +408,11 @@
         <div class="event-head">
 
             <time class="date">
-                {{ e.event_date.strftime('%d/%m/%Y - %H:%M') }}
+                {% if e.event_date is string %}
+                    {{ e.event_date }}
+                {% else %}
+                    {{ e.event_date.strftime('%d/%m/%Y - %H:%M') }}
+                {% endif %}
             </time>
 
             {% if e.event_type %}
@@ -444,7 +448,7 @@
                     '🧠 ANÁLISIS IA'
                 )
                 |replace(
-                    '🧠 ANÁLISIS IA\n\n🧠 ANÁLISIS IA',
+                     '🧠 ANÁLISIS IA\n\n🧠 ANÁLISIS IA',
                     '🧠 ANÁLISIS IA'
                 )
             %}
@@ -1092,7 +1096,7 @@
 
                 {% if e.vaccine_expiration %}
                 <div class="parameter">
-                    <strong>Vencimiento:</strong>
+                     <strong>Vencimiento:</strong>
                     {{ e.vaccine_expiration }}
                 </div>
                 {% endif %}
@@ -1171,7 +1175,11 @@
             </span>
 
             <p class="field-content">
-                {{ e.reminder_date.strftime('%d/%m/%Y') }}
+                {% if e.reminder_date is string %}
+                    {{ e.reminder_date }}
+                {% else %}
+                    {{ e.reminder_date.strftime('%d/%m/%Y') }}
+                {% endif %}
             </p>
 
         </div>
@@ -1239,5 +1247,5 @@
     </footer>
 
 </body>
-</html>
+</html>                   
 
