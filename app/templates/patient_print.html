@@ -1146,7 +1146,11 @@
                 {% if e.next_deworming_date %}
                 <div class="parameter">
                     <strong>Próxima desparasitación:</strong>
-                    {{ e.next_deworming_date.strftime('%d/%m/%Y') }}
+                    {% if e.next_deworming_date is string %}
+                        {{ e.next_deworming_date }}
+                    {% else %}
+                        {{ e.next_deworming_date.strftime('%d/%m/%Y') }}
+                    {% endif %}
                 </div>
                 {% endif %}
 
