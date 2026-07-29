@@ -9311,7 +9311,7 @@ def patient_print(
     events = (
         db.query(ClinicalEvent)
         .filter(ClinicalEvent.patient_id == patient.id)
-        .order_by(ClinicalEvent.event_date.desc())
+        .order_by(ClinicalEvent.event_date.asc(), ClinicalEvent.id.asc())
         .all()
     )
 
