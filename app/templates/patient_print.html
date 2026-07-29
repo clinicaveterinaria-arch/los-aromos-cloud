@@ -1100,7 +1100,11 @@
                 {% if e.next_vaccine_date %}
                 <div class="parameter">
                     <strong>Próxima vacuna:</strong>
-                    {{ e.next_vaccine_date.strftime('%d/%m/%Y') }}
+                    {% if e.next_vaccine_date is string %}
+                        {{ e.next_vaccine_date }}
+                    {% else %}
+                        {{ e.next_vaccine_date.strftime('%d/%m/%Y') }}
+                    {% endif %}
                 </div>
                 {% endif %}
 
