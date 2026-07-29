@@ -3154,7 +3154,7 @@ CONTEXTO CLÍNICO INTEGRADO
                     'content': request_content
                 }
             ],
-            'max_output_tokens': 1800
+            'max_output_tokens': 6000
         }
         req = urllib.request.Request(
             'https://api.openai.com/v1/responses',
@@ -3165,7 +3165,7 @@ CONTEXTO CLÍNICO INTEGRADO
             },
             method='POST'
         )
-        with urllib.request.urlopen(req, timeout=55) as response:
+        with urllib.request.urlopen(req, timeout=120) as response:
             data = json.loads(response.read().decode('utf-8'))
 
         result = data.get('output_text', '')
