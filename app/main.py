@@ -8931,16 +8931,21 @@ def pendientes(
     end_of_month = today.replace(day=last_day)
 
     # ============================================================
-    # SINCRONIZAR TURNOS IMPORTADOS DE MYVETE CON PENDIENTES
-    # ============================================================
-    # Los turnos importados desde MyVete se guardaron originalmente
-    # como Appointment. El módulo Pendientes trabaja con
-    # ClinicalEvent, por eso se crea aquí el recordatorio equivalente.
-    #
-    # El marcador con el ID del turno evita crear duplicados cada vez
-    # que se abre esta pantalla.
+    # TURNOS MYVETE: SOLO HOY Y PRÓXIMOS DEL MES ACTUAL
     # ============================================================
 
+    month_start = datetime.combine(
+        today,
+        datetime.min.time()
+    )
+
+    month_end = datetime.combine(
+        end_of_month,
+        datetime.max.time()
+    )
+
+    # Solamente se buscan turnos importados desde hoy hasta
+    # el último día del mes actual.
     myvete_appointments = (
         db.query(Appointment)
         .filter(Appointment.status == 'Pendiente')
@@ -8950,27 +8955,64 @@ def pendientes(
             )
         )
         .filter(Appointment.patient_id != None)
+        .filter(
+            Appointment.appointment_date >= month_start
+        )
+        .filter(
+            Appointment.appointment_date <= month_end
+        )
         .all()
     )
 
-    created_from_myvete = False
+    # Se recuperan todos los pendientes MyVete ya creados
+    # en una sola consulta, evitando una consulta por turno.
+    existing_myvete_events = (
+        db.query(ClinicalEvent)
+        .filter(
+            ClinicalEvent.description.ilike(
+                '%[MYVETE_APPOINTMENT_ID:%'
+            )
+        )
+        .filter(
+            ClinicalEvent.reminder_date >= today
+        )
+        .filter(
+            ClinicalEvent.reminder_date <= end_of_month
+        )
+        .all()
+    )
+
+    existing_appointment_ids = set()
+
+    for existing_event in existing_myvete_events:
+        existing_description = (
+            existing_event.description or ''
+        )
+
+        marker_start = (
+            '[MYVETE_APPOINTMENT_ID:'
+        )
+
+        if marker_start not in existing_description:
+            continue
+
+        try:
+            imported_id = (
+                existing_description
+                .split(marker_start, 1)[1]
+                .split(']', 1)[0]
+            )
+
+            existing_appointment_ids.add(
+                int(imported_id)
+            )
+        except (ValueError, IndexError):
+            continue
+
+    new_myvete_events = []
 
     for appointment in myvete_appointments:
-        myvete_marker = (
-            f'[MYVETE_APPOINTMENT_ID:{appointment.id}]'
-        )
-
-        existing_pending = (
-            db.query(ClinicalEvent)
-            .filter(
-                ClinicalEvent.description.ilike(
-                    f'%{myvete_marker}%'
-                )
-            )
-            .first()
-        )
-
-        if existing_pending:
+        if appointment.id in existing_appointment_ids:
             continue
 
         appointment_day = appointment.appointment_date
@@ -9002,7 +9044,10 @@ def pendientes(
 
         description_parts = [
             DUE_ACTIVE_MARKER,
-            myvete_marker,
+            (
+                f'[MYVETE_APPOINTMENT_ID:'
+                f'{appointment.id}]'
+            ),
             'Importado desde agenda MyVete'
         ]
 
@@ -9016,25 +9061,26 @@ def pendientes(
                 str(appointment.notes)
             )
 
-        pending_event = ClinicalEvent(
-            patient_id=appointment.patient_id,
-            event_date=datetime.combine(
-                reminder_day,
-                datetime.min.time()
-            ),
-            event_type=event_type,
-            title=service_text,
-            description='\n'.join(description_parts),
-            reminder_date=reminder_day,
-            created_by=user.username
+        new_myvete_events.append(
+            ClinicalEvent(
+                patient_id=appointment.patient_id,
+                event_date=datetime.combine(
+                    reminder_day,
+                    datetime.min.time()
+                ),
+                event_type=event_type,
+                title=service_text,
+                description='\n'.join(
+                    description_parts
+                ),
+                reminder_date=reminder_day,
+                created_by=user.username
+            )
         )
 
-        db.add(pending_event)
-        created_from_myvete = True
-
-    if created_from_myvete:
+    if new_myvete_events:
+        db.add_all(new_myvete_events)
         db.commit()
-
     all_events = (
         db.query(ClinicalEvent)
         .filter(
@@ -9048,6 +9094,25 @@ def pendientes(
         .filter(
             ~ClinicalEvent.description.ilike(
                 f'%{DUE_CLOSED_MARKER}%'
+            )
+        )
+        .filter(
+            or_(
+                # Los pendientes normales de Aromos Cloud
+                # conservan el funcionamiento actual.
+                ~ClinicalEvent.description.ilike(
+                    '%[MYVETE_APPOINTMENT_ID:%'
+                ),
+
+                # Los importados de MyVete solamente aparecen
+                # desde hoy hasta el final del mes actual.
+                and_(
+                    ClinicalEvent.description.ilike(
+                        '%[MYVETE_APPOINTMENT_ID:%'
+                    ),
+                    ClinicalEvent.reminder_date >= today,
+                    ClinicalEvent.reminder_date <= end_of_month
+                )
             )
         )
         .order_by(
