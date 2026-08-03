@@ -22,7 +22,7 @@ from fastapi.responses import RedirectResponse, HTMLResponse, JSONResponse, Resp
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
-from sqlalchemy import or_, text
+from sqlalchemy import or_, and_, text
 from passlib.context import CryptContext
 from starlette.middleware.sessions import SessionMiddleware
 from supabase import create_client
