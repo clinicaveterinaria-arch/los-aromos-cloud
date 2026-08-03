@@ -8930,6 +8930,111 @@ def pendientes(
     last_day = monthrange(today.year, today.month)[1]
     end_of_month = today.replace(day=last_day)
 
+    # ============================================================
+    # SINCRONIZAR TURNOS IMPORTADOS DE MYVETE CON PENDIENTES
+    # ============================================================
+    # Los turnos importados desde MyVete se guardaron originalmente
+    # como Appointment. El módulo Pendientes trabaja con
+    # ClinicalEvent, por eso se crea aquí el recordatorio equivalente.
+    #
+    # El marcador con el ID del turno evita crear duplicados cada vez
+    # que se abre esta pantalla.
+    # ============================================================
+
+    myvete_appointments = (
+        db.query(Appointment)
+        .filter(Appointment.status == 'Pendiente')
+        .filter(
+            Appointment.notes.ilike(
+                '%Importado desde MyVete%'
+            )
+        )
+        .filter(Appointment.patient_id != None)
+        .all()
+    )
+
+    created_from_myvete = False
+
+    for appointment in myvete_appointments:
+        myvete_marker = (
+            f'[MYVETE_APPOINTMENT_ID:{appointment.id}]'
+        )
+
+        existing_pending = (
+            db.query(ClinicalEvent)
+            .filter(
+                ClinicalEvent.description.ilike(
+                    f'%{myvete_marker}%'
+                )
+            )
+            .first()
+        )
+
+        if existing_pending:
+            continue
+
+        appointment_day = appointment.appointment_date
+
+        if isinstance(appointment_day, datetime):
+            reminder_day = appointment_day.date()
+        else:
+            reminder_day = appointment_day
+
+        if not reminder_day:
+            continue
+
+        service_text = (
+            appointment.service
+            or appointment.title
+            or 'Turno pendiente'
+        )
+
+        service_lower = service_text.lower()
+
+        if 'vacun' in service_lower:
+            event_type = 'Vacuna'
+        elif 'despar' in service_lower:
+            event_type = 'Desparasitación'
+        elif 'control' in service_lower:
+            event_type = 'Control'
+        else:
+            event_type = 'Consulta clínica'
+
+        description_parts = [
+            DUE_ACTIVE_MARKER,
+            myvete_marker,
+            'Importado desde agenda MyVete'
+        ]
+
+        if appointment.start_time:
+            description_parts.append(
+                f'Horario: {appointment.start_time}'
+            )
+
+        if appointment.notes:
+            description_parts.append(
+                str(appointment.notes)
+            )
+
+        pending_event = ClinicalEvent(
+            patient_id=appointment.patient_id,
+            event_date=datetime.combine(
+                reminder_day,
+                datetime.min.time()
+            ),
+            event_type=event_type,
+            title=service_text,
+            description='\n'.join(description_parts),
+            reminder_date=reminder_day,
+            created_by=user.username
+        )
+
+        db.add(pending_event)
+        created_from_myvete = True
+
+    if created_from_myvete:
+        db.commit()
+
     all_events = (
         db.query(ClinicalEvent)
         .filter(
