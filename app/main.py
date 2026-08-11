@@ -47,6 +47,38 @@ ARG_TZ = ZoneInfo("America/Argentina/Buenos_Aires")
 
 def argentina_now():
     return datetime.now(ARG_TZ).replace(tzinfo=None)
+def safe_storage_filename(filename: str) -> str:
+    """
+    Convierte un nombre de archivo en una key segura para Supabase Storage.
+    El nombre original puede seguir guardándose en la base de datos.
+    """
+    original = os.path.basename(filename or "archivo")
+
+    stem, extension = os.path.splitext(original)
+
+    # Elimina tildes/diacríticos: á -> a, ó -> o, etc.
+    stem = unicodedata.normalize("NFKD", stem)
+    stem = "".join(
+        char for char in stem
+        if not unicodedata.combining(char)
+    )
+
+    # Deja únicamente caracteres seguros
+    stem = re.sub(r"[^A-Za-z0-9._-]+", "_", stem)
+
+    # Evita varios guiones bajos consecutivos
+    stem = re.sub(r"_+", "_", stem)
+
+    # Limpia extremos
+    stem = stem.strip("._-")
+
+    if not stem:
+        stem = "archivo"
+
+    # También sanitizamos la extensión
+    extension = re.sub(r"[^A-Za-z0-9.]", "", extension.lower())
+
+    return f"{stem}{extension}"    
 # ==========================================================
 # IA CLÍNICA
 # ==========================================================
@@ -2469,7 +2501,7 @@ async def patient_upload_photo(
         )
 
     original_name = os.path.basename(photo.filename)
-    safe_name = original_name.replace(" ", "_")
+    safe_name = safe_storage_filename(original_name)
     unique_name = f"{uuid.uuid4().hex}_{safe_name}"
 
     content = await photo.read()
@@ -4020,7 +4052,7 @@ async def patient_visit_create(
             )
 
         original_name = os.path.basename(file.filename)
-        safe_name = original_name.replace(" ", "_")
+        safe_name = safe_storage_filename(original_name)
         unique_name = f"{uuid.uuid4().hex}_{safe_name}"
 
         content = await file.read()
@@ -5594,7 +5626,7 @@ def event_create(
             )
 
         original_name = os.path.basename(file.filename)
-        safe_name = original_name.replace(" ", "_")
+        safe_name = safe_storage_filename(original_name)
         unique_name = f"{uuid.uuid4().hex}_{safe_name}"
 
         content = file.file.read()
