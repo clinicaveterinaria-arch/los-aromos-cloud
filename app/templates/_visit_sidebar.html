@@ -116,6 +116,13 @@
 
         </div>
 
+        
+        <button type="button"
+                onclick="openLabEvolutionV2()"
+                style="width:100%; margin-top:8px; border:1px solid #f3c6d8; background:#fff; color:#d85b9a; border-radius:12px; padding:10px 12px; font-weight:bold; cursor:pointer;">
+            🧪 Evolución de laboratorio
+        </button>
+
         <button type="button"
                 onclick="openHistoryImportModal()"
                 style="width:100%; margin-top:8px; border:1px solid #f3c6d8; background:#fff8fb; color:#d85b9a; border-radius:12px; padding:10px 12px; font-weight:bold; cursor:pointer;">
@@ -848,5 +855,59 @@ if (historyImportModal) {
     historyImportModal.addEventListener('click', function(event) {
         if (event.target === this) closeHistoryImportModal();
     });
+}
+</script>
+
+
+<div id="labEvolutionModal" style="display:none;position:fixed;inset:0;background:rgba(17,24,39,.48);z-index:10030;align-items:center;justify-content:center;padding:18px;">
+    <div style="width:100%;max-width:900px;max-height:90vh;background:white;border-radius:24px;border:1px solid #f3c6d8;overflow:hidden;display:flex;flex-direction:column;">
+        <div style="padding:15px 18px;background:#fff8fb;border-bottom:1px solid #f3c6d8;display:flex;justify-content:space-between;align-items:center;">
+            <h3 style="margin:0;">🧪 Evolución de laboratorio</h3>
+            <button type="button" onclick="closeLabEvolutionV2()" class="hc2-btn">×</button>
+        </div>
+        <div id="labEvolutionBody" style="padding:18px;overflow:auto;"></div>
+    </div>
+</div>
+<script>
+async function openLabEvolutionV2() {
+    const modal = document.getElementById('labEvolutionModal');
+    const body = document.getElementById('labEvolutionBody');
+    modal.style.display = 'flex';
+    body.innerHTML = '<div class="hc2-ai-loading"><span></span>Cargando evolución…</div>';
+    try {
+        const response = await fetch('/patients/{{ patient.id }}/laboratory/evolution');
+        const data = await response.json();
+        if (!response.ok || !data.ok) throw new Error(data.detail || 'No se pudo cargar.');
+        if (!data.series.length) {
+            body.innerHTML = '<div class="hc2-muted">Todavía no hay resultados de laboratorio estructurados.</div>';
+            return;
+        }
+        body.innerHTML = data.series.map(series => `
+            <div style="border:1px solid #f3c6d8;border-radius:14px;margin-bottom:10px;overflow:hidden;">
+                <div style="background:#fff8fb;padding:9px 11px;font-weight:bold;">${escapeClinicalAiText(series.analyte)}</div>
+                <div style="overflow:auto;">
+                    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                        ${series.points.map(point => `<tr style="border-top:1px solid #f3edf1;">
+                            <td style="padding:7px;">${escapeClinicalAiText(point.date || '-')}</td>
+                            <td style="padding:7px;"><b>${escapeClinicalAiText(point.value_text || point.value_numeric || '-')}</b> ${escapeClinicalAiText(point.unit || '')}</td>
+                            <td style="padding:7px;">${labEvolutionFlag(point.flag)}</td>
+                            <td style="padding:7px;color:#6b7280;">Ref. ${escapeClinicalAiText(point.reference_text || '-')}</td>
+                        </tr>`).join('')}
+                    </table>
+                </div>
+            </div>`).join('');
+    } catch (error) {
+        body.innerHTML = '<div style="color:#b91c1c;">' + escapeClinicalAiText(error.message || error) + '</div>';
+    }
+}
+function closeLabEvolutionV2() {
+    const modal = document.getElementById('labEvolutionModal');
+    if (modal) modal.style.display = 'none';
+}
+function labEvolutionFlag(flag) {
+    if (flag === 'high') return '🔴 Alto';
+    if (flag === 'low') return '🔵 Bajo';
+    if (flag === 'normal') return '🟢 Normal';
+    return '⚪';
 }
 </script>
