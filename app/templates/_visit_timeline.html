@@ -64,6 +64,9 @@
                                 {% if e.attachments %}
                                     <span class="hc2-tag">📎 {{ e.attachments|length }} archivo/s</span>
                                 {% endif %}
+                                {% if e.laboratory_results %}
+                                    <span class="hc2-tag">🧪 {{ e.laboratory_results|length }} resultados</span>
+                                {% endif %}
 
                                 {% if e.reminder_date %}
                                     <span class="hc2-tag">📅 {{ e.reminder_date.strftime('%d/%m/%Y') }}</span>
@@ -102,6 +105,27 @@
 
                         {% if e.dewormer_product %}
                             <p><strong>Desparasitación:</strong> {{ e.dewormer_product }}</p>
+                        {% endif %}
+
+                        {% if e.laboratory_results %}
+                            <div style="margin:10px 0;overflow:auto;">
+                                <strong>🧪 Laboratorio estructurado:</strong>
+                                <table style="width:100%;border-collapse:collapse;margin-top:7px;font-size:13px;">
+                                    {% for r in e.laboratory_results %}
+                                    <tr style="border-top:1px solid #f3edf1;">
+                                        <td style="padding:6px;"><b>{{ r.analyte }}</b></td>
+                                        <td style="padding:6px;">{{ r.value_text }} {{ r.unit }}</td>
+                                        <td style="padding:6px;">{{ r.reference_text or '' }}</td>
+                                        <td style="padding:6px;">
+                                            {% if r.flag == 'high' %}🔴 Alto
+                                            {% elif r.flag == 'low' %}🔵 Bajo
+                                            {% elif r.flag == 'normal' %}🟢 Normal
+                                            {% else %}⚪{% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </table>
+                            </div>
                         {% endif %}
 
                         {% if e.attachments %}
