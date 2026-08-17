@@ -34,7 +34,7 @@ print("SUPABASE_URL =", SUPABASE_URL)
 print("SUPABASE_KEY cargada =", bool(SUPABASE_KEY))
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY) if SUPABASE_URL and SUPABASE_KEY else None
 from .database import Base, engine, get_db
-from .models import User, Owner, Patient, ClinicalEvent, EventAttachment, Appointment, Product, Sale, SaleItem, SalePayment, WaitingListEntry, Hospitalization, HospitalizationMedication, HospitalizationFluid
+from .models import User, Owner, Patient, ClinicalEvent, EventAttachment, Appointment, Product, Sale, SaleItem, SalePayment, WaitingListEntry, Hospitalization, HospitalizationMedication, HospitalizationFluid, LaboratoryResult
 from .vademecum_parser import read_rows_from_upload, parse_vademecum_rows
 from .vademecum_importer import import_vademecum
 from .senasa_sync import update_from_senasa
@@ -2927,6 +2927,258 @@ def _ai_vademecum_context(db, medication_names):
     return '\n'.join(lines), rows_found
 
 
+
+# ==========================================================
+# LABORATORIO INTELIGENTE
+# ==========================================================
+
+def _lab_float(value):
+    if value is None:
+        return None
+    text_value = str(value).strip().replace(',', '.')
+    text_value = re.sub(r'[^0-9eE+\-.]', '', text_value)
+    if not text_value:
+        return None
+    try:
+        return float(text_value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _lab_normalize_analyte(value):
+    text_value = unicodedata.normalize("NFKD", str(value or ""))
+    text_value = "".join(c for c in text_value if not unicodedata.combining(c))
+    text_value = re.sub(r'[^a-zA-Z0-9]+', ' ', text_value.lower()).strip()
+    aliases = {
+        'hematocrito': 'hematocrito', 'hct': 'hematocrito', 'hto': 'hematocrito',
+        'hemoglobina': 'hemoglobina', 'hgb': 'hemoglobina',
+        'eritrocitos': 'eritrocitos', 'rbc': 'eritrocitos',
+        'leucocitos': 'leucocitos', 'wbc': 'leucocitos',
+        'plaquetas': 'plaquetas', 'plt': 'plaquetas',
+        'urea': 'urea', 'bun': 'bun',
+        'creatinina': 'creatinina', 'crea': 'creatinina',
+        'fosforo': 'fosforo', 'phosphorus': 'fosforo',
+        'alt': 'alt', 'gpt': 'alt', 'alat': 'alt',
+        'ast': 'ast', 'got': 'ast', 'asat': 'ast',
+        'fosfatasa alcalina': 'fosfatasa alcalina', 'alp': 'fosfatasa alcalina', 'fal': 'fosfatasa alcalina',
+        'glucosa': 'glucosa', 'glucose': 'glucosa',
+        'albumina': 'albumina', 'proteinas totales': 'proteinas totales',
+        'sodio': 'sodio', 'na': 'sodio', 'potasio': 'potasio', 'k': 'potasio',
+        'calcio': 'calcio', 'bilirrubina total': 'bilirrubina total'
+    }
+    return aliases.get(text_value, text_value)
+
+
+def _lab_results_context(db, patient_id, limit=120):
+    rows = (
+        db.query(LaboratoryResult)
+        .filter(LaboratoryResult.patient_id == patient_id)
+        .order_by(LaboratoryResult.sample_date.desc().nullslast(), LaboratoryResult.id.desc())
+        .limit(limit)
+        .all()
+    )
+    if not rows:
+        return "Sin resultados de laboratorio estructurados.", []
+
+    lines = []
+    for row in rows:
+        date_text = row.sample_date.strftime('%d/%m/%Y') if row.sample_date else '-'
+        ref = row.reference_text or (
+            f"{row.reference_low if row.reference_low is not None else ''}"
+            f"–{row.reference_high if row.reference_high is not None else ''}"
+        ).strip('–')
+        lines.append(
+            f"{date_text} | {row.analyte}: {row.value_text or row.value_numeric or '-'} "
+            f"{row.unit or ''} | Ref: {ref or '-'} | Estado: {row.flag or 'unknown'}"
+        )
+    return "\\n".join(lines), rows
+
+
+@app.post('/patients/{patient_id}/laboratory/analyze')
+async def laboratory_analyze(
+    patient_id: int,
+    files: list[UploadFile] = File(...),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    patient = db.get(Patient, patient_id)
+    if not patient:
+        raise HTTPException(status_code=404, detail='Paciente no encontrado')
+
+    api_key = os.getenv('OPENAI_API_KEY', '').strip()
+    if not api_key:
+        raise HTTPException(status_code=500, detail='Falta OPENAI_API_KEY en Render.')
+
+    request_content = [{
+        'type': 'input_text',
+        'text': f"""
+Extraé resultados de laboratorio veterinario de los archivos adjuntos.
+Paciente esperado: {patient.name}. Especie: {patient.species or '-'}.
+
+Devolvé EXCLUSIVAMENTE JSON válido, sin markdown, con esta estructura:
+{{
+  "patient_match": "yes|uncertain|no",
+  "sample_date": "YYYY-MM-DD o vacío",
+  "laboratory": "",
+  "warnings": [],
+  "results": [
+    {{
+      "panel": "Hemograma|Bioquímica|Ionograma|Orina|Otro",
+      "analyte": "nombre tal como figura",
+      "value_text": "valor tal como figura",
+      "value_numeric": 0.0,
+      "unit": "",
+      "reference_low": null,
+      "reference_high": null,
+      "reference_text": "",
+      "flag": "low|high|normal|unknown"
+    }}
+  ]
+}}
+
+Reglas:
+- No inventes valores ni rangos.
+- Si un valor es textual, dejá value_numeric en null.
+- Usá el rango de referencia impreso en el informe, no uno genérico.
+- Si el informe ya marca alto/bajo, respetalo.
+- Si no puede determinarse el estado, flag=unknown.
+- Extraé todos los analitos legibles.
+"""
+    }]
+
+    filenames = []
+    for upload in files[:5]:
+        if not upload or not upload.filename:
+            continue
+        content = await upload.read()
+        if not content:
+            continue
+        filenames.append(os.path.basename(upload.filename))
+        content_type = upload.content_type or mimetypes.guess_type(upload.filename)[0] or 'application/octet-stream'
+        encoded = base64.b64encode(content).decode('ascii')
+
+        if content_type.startswith('image/'):
+            request_content.append({
+                'type': 'input_image',
+                'image_url': f'data:{content_type};base64,{encoded}'
+            })
+        else:
+            request_content.append({
+                'type': 'input_file',
+                'filename': os.path.basename(upload.filename),
+                'file_data': f'data:{content_type};base64,{encoded}'
+            })
+
+    if len(request_content) == 1:
+        raise HTTPException(status_code=400, detail='No se recibieron archivos válidos.')
+
+    payload = {
+        'model': os.getenv('OPENAI_MODEL', 'gpt-5.4-mini'),
+        'input': [{'role': 'user', 'content': request_content}],
+        'max_output_tokens': 7000
+    }
+
+    req = urllib.request.Request(
+        'https://api.openai.com/v1/responses',
+        data=json.dumps(payload).encode('utf-8'),
+        headers={'Authorization': f'Bearer {api_key}', 'Content-Type': 'application/json'},
+        method='POST'
+    )
+
+    try:
+        with urllib.request.urlopen(req, timeout=120) as response:
+            data = json.loads(response.read().decode('utf-8'))
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f'No se pudo analizar el laboratorio: {exc}')
+
+    output_text = data.get('output_text', '')
+    if not output_text:
+        parts = []
+        for item in data.get('output', []) or []:
+            for content_item in item.get('content', []) or []:
+                if content_item.get('type') == 'output_text':
+                    parts.append(content_item.get('text', ''))
+        output_text = ''.join(parts)
+
+    output_text = output_text.strip()
+    output_text = re.sub(r'^```(?:json)?\s*|\s*```$', '', output_text, flags=re.I | re.S).strip()
+
+    try:
+        parsed = json.loads(output_text)
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=502, detail='La IA no devolvió un JSON de laboratorio válido.')
+
+    cleaned = []
+    for row in parsed.get('results', []) or []:
+        analyte = str(row.get('analyte') or '').strip()
+        if not analyte:
+            continue
+        numeric = _lab_float(row.get('value_numeric'))
+        low = _lab_float(row.get('reference_low'))
+        high = _lab_float(row.get('reference_high'))
+        flag = str(row.get('flag') or 'unknown').lower()
+        if flag not in {'low', 'high', 'normal', 'unknown'}:
+            flag = 'unknown'
+        cleaned.append({
+            'panel': str(row.get('panel') or 'Otro')[:120],
+            'analyte': analyte[:180],
+            'normalized_analyte': _lab_normalize_analyte(analyte)[:180],
+            'value_text': str(row.get('value_text') or '')[:120],
+            'value_numeric': numeric,
+            'unit': str(row.get('unit') or '')[:80],
+            'reference_low': low,
+            'reference_high': high,
+            'reference_text': str(row.get('reference_text') or '')[:120],
+            'flag': flag
+        })
+
+    return JSONResponse({
+        'ok': True,
+        'patient_match': parsed.get('patient_match', 'uncertain'),
+        'sample_date': parsed.get('sample_date', ''),
+        'laboratory': parsed.get('laboratory', ''),
+        'warnings': parsed.get('warnings', []),
+        'filenames': filenames,
+        'results': cleaned
+    })
+
+
+@app.get('/patients/{patient_id}/laboratory/evolution')
+def laboratory_evolution(
+    patient_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    patient = db.get(Patient, patient_id)
+    if not patient:
+        raise HTTPException(status_code=404, detail='Paciente no encontrado')
+
+    rows = (
+        db.query(LaboratoryResult)
+        .filter(LaboratoryResult.patient_id == patient_id)
+        .order_by(LaboratoryResult.sample_date.asc().nullslast(), LaboratoryResult.id.asc())
+        .all()
+    )
+
+    grouped = {}
+    for row in rows:
+        key = row.normalized_analyte or _lab_normalize_analyte(row.analyte)
+        grouped.setdefault(key, {
+            'analyte': row.analyte,
+            'points': []
+        })
+        grouped[key]['points'].append({
+            'date': row.sample_date.isoformat() if row.sample_date else '',
+            'value_text': row.value_text,
+            'value_numeric': row.value_numeric,
+            'unit': row.unit,
+            'flag': row.flag,
+            'reference_text': row.reference_text
+        })
+
+    return JSONResponse({'ok': True, 'series': list(grouped.values())})
+
+
 @app.post('/patients/{patient_id}/ai-center')
 async def patient_ai_center(
     patient_id: int,
@@ -3009,6 +3261,7 @@ async def patient_ai_center(
 
     history_context = '\n---\n'.join(_ai_event_text(event) for event in real_events[:25])
     lab_context = '\n---\n'.join(_ai_event_text(event) for event in lab_events) or 'Sin eventos de laboratorio cargados.'
+    structured_lab_context, structured_lab_rows = _lab_results_context(db, patient.id)
     cardio_context = '\n---\n'.join(_ai_event_text(event) for event in (ecg_events + eco_events + rx_events)[:20]) or 'Sin estudios cardiológicos cargados.'
     hospitalization_events_context = '\n---\n'.join(_ai_event_text(event) for event in hospitalization_events) or 'Sin evoluciones de internación en la historia clínica.'
 
@@ -3025,6 +3278,8 @@ async def patient_ai_center(
         source_labels.append(f'Radiografías ({len(rx_events)})')
     if lab_events:
         source_labels.append(f'Laboratorio ({len(lab_events)})')
+    if structured_lab_rows:
+        source_labels.append(f'Laboratorio estructurado ({len(structured_lab_rows)} resultados)')
     if hospitalization_medications:
         source_labels.append(f'Medicaciones ({len(hospitalization_medications)})')
     if hospitalization_fluids:
@@ -3071,8 +3326,11 @@ TENDENCIAS CLÍNICAS Y DE ESTUDIOS
 ECG, ECOCARDIOGRAFÍA Y RADIOGRAFÍAS
 {cardio_context}
 
-LABORATORIO
+LABORATORIO - EVENTOS
 {lab_context}
+
+LABORATORIO - RESULTADOS ESTRUCTURADOS Y EVOLUCIÓN
+{structured_lab_context}
 
 VADEMÉCUM, CONTRAINDICACIONES E INTERACCIONES
 {vademecum_context}
@@ -3969,6 +4227,15 @@ async def patient_visit_create(
 
     studies = getlist('studies')
     studies = [s for s in studies if s and str(s).strip()]
+    study_map = [
+        ('study_rx', 'Radiografía'),
+        ('study_ecg', 'ECG'),
+        ('study_eco', 'Ecocardiografía'),
+        ('study_lab', 'Laboratorio'),
+    ]
+    for field_name, label in study_map:
+        if get(field_name).strip() and label not in studies:
+            studies.append(label)
     reminder_types = getlist('reminder_type') or getlist('reminder_type[]') or []
     reminder_titles = getlist('reminder_title') or getlist('reminder_title[]') or []
     reminder_dates = getlist('reminder_date') or getlist('reminder_date[]') or []
@@ -4035,6 +4302,38 @@ async def patient_visit_create(
 
     db.add(event)
     db.flush()
+
+    # Resultados de laboratorio revisados en la vista previa.
+    lab_results_raw = get('lab_results_json')
+    if lab_results_raw and str(lab_results_raw).strip():
+        try:
+            lab_payload = json.loads(lab_results_raw)
+        except json.JSONDecodeError:
+            lab_payload = {}
+
+        sample_date = parse_date(lab_payload.get('sample_date', '')) or event_datetime.date()
+        source_files = ', '.join(lab_payload.get('filenames', []) or [])[:255]
+
+        for row in lab_payload.get('results', []) or []:
+            analyte = str(row.get('analyte') or '').strip()
+            if not analyte:
+                continue
+            db.add(LaboratoryResult(
+                event_id=event.id,
+                patient_id=patient.id,
+                sample_date=sample_date,
+                panel=str(row.get('panel') or 'Otro')[:120],
+                analyte=analyte[:180],
+                normalized_analyte=_lab_normalize_analyte(analyte)[:180],
+                value_text=str(row.get('value_text') or '')[:120],
+                value_numeric=_lab_float(row.get('value_numeric')),
+                unit=str(row.get('unit') or '')[:80],
+                reference_low=_lab_float(row.get('reference_low')),
+                reference_high=_lab_float(row.get('reference_high')),
+                reference_text=str(row.get('reference_text') or '')[:120],
+                flag=str(row.get('flag') or 'unknown')[:20],
+                source_filename=source_files
+            ))
 
     if get('weight') and str(get('weight')).strip():
         patient.weight = to_float(get('weight'))
@@ -12147,6 +12446,38 @@ def hospitalization_create(
     db.add(event)
     db.flush()
 
+    # Resultados de laboratorio revisados en la vista previa.
+    lab_results_raw = get('lab_results_json')
+    if lab_results_raw and str(lab_results_raw).strip():
+        try:
+            lab_payload = json.loads(lab_results_raw)
+        except json.JSONDecodeError:
+            lab_payload = {}
+
+        sample_date = parse_date(lab_payload.get('sample_date', '')) or event_datetime.date()
+        source_files = ', '.join(lab_payload.get('filenames', []) or [])[:255]
+
+        for row in lab_payload.get('results', []) or []:
+            analyte = str(row.get('analyte') or '').strip()
+            if not analyte:
+                continue
+            db.add(LaboratoryResult(
+                event_id=event.id,
+                patient_id=patient.id,
+                sample_date=sample_date,
+                panel=str(row.get('panel') or 'Otro')[:120],
+                analyte=analyte[:180],
+                normalized_analyte=_lab_normalize_analyte(analyte)[:180],
+                value_text=str(row.get('value_text') or '')[:120],
+                value_numeric=_lab_float(row.get('value_numeric')),
+                unit=str(row.get('unit') or '')[:80],
+                reference_low=_lab_float(row.get('reference_low')),
+                reference_high=_lab_float(row.get('reference_high')),
+                reference_text=str(row.get('reference_text') or '')[:120],
+                flag=str(row.get('flag') or 'unknown')[:20],
+                source_filename=source_files
+            ))
+
     hospitalization = Hospitalization(
         patient_id=patient.id,
         clinical_event_id=event.id,
@@ -13593,4 +13924,6 @@ def hospitalization_discharge(
 @app.get('/health')
 def health():
     return {'status': 'ok', 'app': 'Los Aromos Cloud'}
+    
+
     
