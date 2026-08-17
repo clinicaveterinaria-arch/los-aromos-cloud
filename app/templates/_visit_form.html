@@ -3,9 +3,10 @@
     <h2 class="hc2-title">➕ Nueva visita clínica</h2>
     <p class="hc2-muted">Cargá todo lo realizado en una sola visita y guardalo una sola vez.</p>
 
-    <form method="post"
+    <form id="visitFormV2" method="post"
           action="/patients/{{ patient.id }}/visits"
           enctype="multipart/form-data">
+        <input type="hidden" name="lab_results_json" id="labResultsJson" value="">
 
         <details class="hc2-section" open>
             <summary>📅 Datos del evento</summary>
@@ -221,6 +222,19 @@
                     <label><input type="checkbox" name="study_eco" value="1"> 🫀 Ecocardiografía</label>
                     <label><input type="checkbox" name="study_lab" value="1"> 🧪 Laboratorio</label>
                     <textarea class="hc2-full" name="study_notes" placeholder="Notas de estudios"></textarea>
+
+                <div id="labSmartBox" class="hc2-full" style="margin-top:12px;border:1px solid #f3c6d8;border-radius:16px;padding:14px;background:#fff8fb;">
+                    <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;">
+                        <div>
+                            <b>🧠 Laboratorio inteligente</b>
+                            <div class="hc2-muted">Adjuntá el PDF o una foto del laboratorio, analizalo y revisá los valores antes de guardar.</div>
+                        </div>
+                        <button type="button" class="hc2-btn primary" onclick="analyzeLabV2()">🧪 Analizar laboratorio</button>
+                    </div>
+                    <div id="labSmartStatus" class="hc2-muted" style="margin-top:9px;">Todavía no se analizó ningún laboratorio.</div>
+                    <div id="labSmartPreview" style="display:none;margin-top:12px;overflow:auto;"></div>
+                </div>
+
                 </div>
             </div>
         </details>
@@ -241,7 +255,7 @@
         <details class="hc2-section">
             <summary>📎 Archivos / fotos / estudios</summary>
             <div class="hc2-section-body">
-                <input type="file" name="attachments" multiple>
+                <input id="visitAttachmentsV2" type="file" name="attachments" multiple accept=".pdf,.jpg,.jpeg,.png,.webp">
             </div>
         </details>
 
@@ -350,4 +364,113 @@ function setReminderRowDate(button, days) {
 
     input.value = date.toISOString().split('T')[0];
 }
+
+let labSmartPayload = null;
+
+function escapeLabText(value) {
+    return String(value ?? '')
+        .replaceAll('&', '&amp;').replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;').replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+}
+
+function labFlagLabel(flag) {
+    if (flag === 'high') return '🔴 Alto';
+    if (flag === 'low') return '🔵 Bajo';
+    if (flag === 'normal') return '🟢 Normal';
+    return '⚪ Sin clasificar';
+}
+
+async function analyzeLabV2() {
+    const input = document.getElementById('visitAttachmentsV2');
+    const status = document.getElementById('labSmartStatus');
+    const preview = document.getElementById('labSmartPreview');
+    const labCheck = document.querySelector('[name="study_lab"]');
+
+    if (!input || !input.files.length) {
+        alert('Primero adjuntá el PDF o la imagen del laboratorio en "Archivos / fotos / estudios".');
+        return;
+    }
+
+    const labFiles = Array.from(input.files).filter(file =>
+        /\.(pdf|jpg|jpeg|png|webp)$/i.test(file.name)
+    );
+    if (!labFiles.length) {
+        alert('No encontré un PDF o imagen compatible para analizar.');
+        return;
+    }
+
+    if (labCheck) labCheck.checked = true;
+    status.innerHTML = '<b style="color:#d85b9a;">Analizando laboratorio…</b>';
+    preview.style.display = 'none';
+
+    const data = new FormData();
+    labFiles.slice(0, 5).forEach(file => data.append('files', file));
+
+    try {
+        const response = await fetch('/patients/{{ patient.id }}/laboratory/analyze', {
+            method: 'POST',
+            body: data
+        });
+        const result = await response.json();
+        if (!response.ok || !result.ok) throw new Error(result.detail || 'No se pudo analizar.');
+
+        labSmartPayload = result;
+        document.getElementById('labResultsJson').value = JSON.stringify(result);
+
+        const warning = result.patient_match === 'no'
+            ? '<div style="padding:9px;background:#fff1f2;color:#991b1b;border-radius:10px;margin-bottom:8px;"><b>⚠️ Atención:</b> la IA considera que el informe podría corresponder a otro paciente.</div>'
+            : (result.patient_match === 'uncertain'
+                ? '<div style="padding:9px;background:#fffbeb;color:#92400e;border-radius:10px;margin-bottom:8px;">⚠️ No se pudo confirmar con certeza el nombre del paciente.</div>'
+                : '');
+
+        const rows = (result.results || []).map((row, index) => `
+            <tr style="border-top:1px solid #f3edf1;">
+                <td style="padding:7px;"><input data-lab-index="${index}" data-lab-field="analyte" value="${escapeLabText(row.analyte)}" style="width:170px;"></td>
+                <td style="padding:7px;"><input data-lab-index="${index}" data-lab-field="value_text" value="${escapeLabText(row.value_text)}" style="width:90px;"></td>
+                <td style="padding:7px;"><input data-lab-index="${index}" data-lab-field="unit" value="${escapeLabText(row.unit)}" style="width:85px;"></td>
+                <td style="padding:7px;"><input data-lab-index="${index}" data-lab-field="reference_text" value="${escapeLabText(row.reference_text || '')}" placeholder="rango" style="width:110px;"></td>
+                <td style="padding:7px;">${labFlagLabel(row.flag)}</td>
+            </tr>`).join('');
+
+        preview.innerHTML = `
+            ${warning}
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:9px;">
+                <label><b>Fecha muestra:</b> <input id="labSampleDateV2" type="date" value="${escapeLabText(result.sample_date || '')}" onchange="syncLabPreviewV2()"></label>
+                <span><b>Resultados:</b> ${(result.results || []).length}</span>
+            </div>
+            <table style="width:100%;border-collapse:collapse;min-width:650px;background:white;">
+                <thead><tr style="background:#fff0f7;text-align:left;">
+                    <th style="padding:7px;">Analito</th><th style="padding:7px;">Valor</th>
+                    <th style="padding:7px;">Unidad</th><th style="padding:7px;">Referencia</th>
+                    <th style="padding:7px;">Estado</th>
+                </tr></thead>
+                <tbody>${rows || '<tr><td colspan="5" style="padding:10px;">No se detectaron resultados.</td></tr>'}</tbody>
+            </table>
+            <div class="hc2-muted" style="margin-top:8px;">Podés corregir nombre, valor, unidad o rango. Los cambios se guardan con la visita.</div>
+        `;
+        preview.style.display = 'block';
+        status.innerHTML = `✅ Laboratorio analizado: <b>${(result.results || []).length}</b> resultados. Revisalos antes de guardar.`;
+    } catch (error) {
+        status.innerHTML = '<span style="color:#b91c1c;">❌ ' + escapeLabText(error.message || error) + '</span>';
+    }
+}
+
+function syncLabPreviewV2() {
+    if (!labSmartPayload) return;
+    const date = document.getElementById('labSampleDateV2');
+    if (date) labSmartPayload.sample_date = date.value;
+
+    document.querySelectorAll('[data-lab-index]').forEach(input => {
+        const index = Number(input.dataset.labIndex);
+        const field = input.dataset.labField;
+        if (labSmartPayload.results[index]) labSmartPayload.results[index][field] = input.value;
+    });
+    document.getElementById('labResultsJson').value = JSON.stringify(labSmartPayload);
+}
+
+document.addEventListener('input', function(event) {
+    if (event.target && event.target.matches('[data-lab-index]')) syncLabPreviewV2();
+});
+
 </script>
