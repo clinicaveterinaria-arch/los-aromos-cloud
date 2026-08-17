@@ -38,7 +38,7 @@ from .models import User, Owner, Patient, ClinicalEvent, EventAttachment, Appoin
 from .vademecum_parser import read_rows_from_upload, parse_vademecum_rows
 from .vademecum_importer import import_vademecum
 from .senasa_sync import update_from_senasa
-# Base.metadata.create_all(bind=engine)
+  Base.metadata.create_all(bind=engine)
 # =====================================
 # Zona horaria Argentina
 # =====================================
