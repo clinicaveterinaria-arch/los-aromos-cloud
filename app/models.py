@@ -2,7 +2,7 @@ from datetime import datetime, date
 from zoneinfo import ZoneInfo
 from typing import Optional
 
-from sqlalchemy import String, Text, Date, DateTime, Float, ForeignKey, Boolean
+from sqlalchemy import String, Text, Date, DateTime, Float, ForeignKey, Boolean, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .database import Base
 
@@ -165,7 +165,40 @@ class ClinicalEvent(Base):
         back_populates='event',
         cascade='all, delete-orphan'
     )
+    laboratory_results: Mapped[list['LaboratoryResult']] = relationship(
+        cascade='all, delete-orphan'
+    )
 
+
+
+class LaboratoryResult(Base):
+    """
+    Resultado individual de laboratorio vinculado a un evento clínico.
+    Conserva el PDF original en EventAttachment y guarda cada analito
+    de forma estructurada para evolución e IA longitudinal.
+    """
+    __tablename__ = 'laboratory_results'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    event_id: Mapped[int] = mapped_column(ForeignKey('clinical_events.id'), index=True)
+    patient_id: Mapped[int] = mapped_column(ForeignKey('patients.id'), index=True)
+    sample_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True, index=True)
+
+    panel: Mapped[str] = mapped_column(String(120), default='')
+    analyte: Mapped[str] = mapped_column(String(180), index=True)
+    normalized_analyte: Mapped[str] = mapped_column(String(180), default='', index=True)
+    value_text: Mapped[str] = mapped_column(String(120), default='')
+    value_numeric: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    unit: Mapped[str] = mapped_column(String(80), default='')
+    reference_low: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    reference_high: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    reference_text: Mapped[str] = mapped_column(String(120), default='')
+    flag: Mapped[str] = mapped_column(String(20), default='')  # low / high / normal / unknown
+    source_filename: Mapped[str] = mapped_column(String(255), default='')
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=argentina_now)
+
+    event: Mapped['ClinicalEvent'] = relationship()
+    patient: Mapped['Patient'] = relationship()
 
 class Hospitalization(Base):
     __tablename__ = 'hospitalizations'
