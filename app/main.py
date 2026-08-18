@@ -4410,14 +4410,35 @@ async def patient_visit_create(
         content_type = file.content_type or mimetypes.guess_type(original_name)[0] or "application/octet-stream"
         storage_path = f"patient_{patient.id}/event_{event.id}/{unique_name}"
 
-        supabase.storage.from_("adjuntos").upload(
-            path=storage_path,
-            file=content,
-            file_options={
-                "content-type": content_type,
-                "upsert": "false"
-            }
-        )
+        upload_ok = False
+        last_upload_error = None
+        
+        for upload_attempt in range(2):
+            try:
+                supabase.storage.from_("adjuntos").upload(
+                    path=storage_path,
+                    file=content,
+                    file_options={
+                        "content-type": content_type,
+                        "upsert": "false"
+                    }
+                )
+                upload_ok = True
+                break
+        
+            except Exception as exc:
+                last_upload_error = exc
+                print(
+                    f"⚠️ Error subiendo adjunto a Supabase "
+                    f"(intento {upload_attempt + 1}/2): {exc}"
+                )
+        
+        if not upload_ok:
+            print(
+                f"❌ No se pudo subir el adjunto "
+                f"{original_name}: {last_upload_error}"
+            )
+            continue
 
         public_url = supabase.storage.from_("adjuntos").get_public_url(storage_path)
 
