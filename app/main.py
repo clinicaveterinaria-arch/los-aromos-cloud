@@ -3025,12 +3025,15 @@ Devolvé EXCLUSIVAMENTE JSON válido, sin markdown, con esta estructura:
     {{
       "panel": "Hemograma|Bioquímica|Ionograma|Orina|Otro",
       "analyte": "nombre tal como figura",
-      "value_text": "valor tal como figura",
+      "value_text": "valor principal tal como figura",
       "value_numeric": 0.0,
+      "percentage": null,
+      "absolute_value": null,
+      "absolute_unit": "",
       "unit": "",
       "reference_low": null,
       "reference_high": null,
-      "reference_text": "",
+      "reference_text": "rango completo tal como figura",
       "flag": "low|high|normal|unknown"
     }}
   ]
@@ -3039,8 +3042,14 @@ Devolvé EXCLUSIVAMENTE JSON válido, sin markdown, con esta estructura:
 Reglas:
 - No inventes valores ni rangos.
 - Si un valor es textual, dejá value_numeric en null.
+- Para el leucograma diferencial (neutrófilos segmentados, bandas, linfocitos, eosinófilos, basófilos y monocitos), NO mezcles porcentaje y recuento absoluto en value_text.
+- Si aparecen ambos, guardá percentage con el porcentaje y absolute_value con el recuento absoluto; value_text debe contener SOLO el recuento absoluto y value_numeric debe ser ese recuento absoluto. absolute_unit debe ser la unidad del recuento (por ejemplo /ul).
+- Si aparece solamente porcentaje y no hay recuento absoluto, value_text debe contener SOLO el porcentaje, value_numeric debe ser el porcentaje y percentage debe repetirlo.
+- Para analitos que no sean diferencial leucocitario, value_text y value_numeric deben representar el resultado principal del informe.
+- Copiá reference_text COMPLETO tal como aparece en el informe, incluyendo especie, límites, símbolos y unidades si son visibles. No lo resumas.
 - Usá el rango de referencia impreso en el informe, no uno genérico.
-- Si el informe ya marca alto/bajo, respetalo.
+- reference_low/reference_high deben ser numéricos solamente cuando puedan identificarse con certeza.
+- Si el informe ya marca alto/bajo, respetalo. Si no lo marca, compará únicamente contra el rango impreso.
 - Si no puede determinarse el estado, flag=unknown.
 - Extraé todos los analitos legibles.
 """
