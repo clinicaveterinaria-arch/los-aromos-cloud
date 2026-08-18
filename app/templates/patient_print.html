@@ -205,7 +205,54 @@
     .parameter strong {
         color: #3f3f46;
     }
+.laboratory-section {
+    margin-top: 10px;
+}
 
+.laboratory-table {
+    width: 100%;
+    margin-top: 5px;
+    border-collapse: collapse;
+    font-size: 11px;
+}
+
+.laboratory-table th {
+    padding: 6px 7px;
+    text-align: left;
+    background: var(--pink-soft);
+    color: #9d356c;
+    border-bottom: 1px solid var(--pink-line);
+}
+
+.laboratory-table td {
+    padding: 5px 7px;
+    border-bottom: 1px solid #eeeeee;
+    vertical-align: top;
+}
+
+.laboratory-table tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+}
+
+.lab-high {
+    color: #c62828;
+    font-weight: 700;
+}
+
+.lab-low {
+    color: #2563a8;
+    font-weight: 700;
+}
+
+.lab-normal {
+    color: #238b57;
+    font-weight: 700;
+}
+
+.lab-unknown {
+    color: #777;
+}
     .attachments {
         margin: 4px 0 0;
         padding: 0;
@@ -1184,7 +1231,78 @@
 
         </div>
         {% endif %}
+<div class="field laboratory-section">
 
+    <span class="field-label">
+        🧪 Resultados de laboratorio
+    </span>
+
+    <table class="laboratory-table">
+        <thead>
+            <tr>
+                <th>Parámetro</th>
+                <th>Resultado</th>
+                <th>Referencia</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for lab in e.laboratory_results %}
+            <tr>
+                <td>{{ lab.analyte }}</td>
+
+                <td>
+                    <strong>{{ lab.value_text }}</strong>
+                    {% if lab.unit %}
+                        {{ lab.unit }}
+                    {% endif %}
+                </td>
+
+                <td>
+                    {% if lab.reference_text %}
+                        {{ lab.reference_text }}
+                    {% elif lab.reference_low is not none
+                        or lab.reference_high is not none %}
+
+                        {% if lab.reference_low is not none %}
+                            {{ lab.reference_low }}
+                        {% endif %}
+
+                        {% if lab.reference_low is not none
+                            and lab.reference_high is not none %}
+                            –
+                        {% endif %}
+
+                        {% if lab.reference_high is not none %}
+                            {{ lab.reference_high }}
+                        {% endif %}
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+
+                <td>
+                    {% if lab.flag == 'high' %}
+                        <span class="lab-high">● Alto</span>
+
+                    {% elif lab.flag == 'low' %}
+                        <span class="lab-low">● Bajo</span>
+
+                    {% elif lab.flag == 'normal' %}
+                        <span class="lab-normal">● Normal</span>
+
+                    {% else %}
+                        <span class="lab-unknown">● Sin clasificar</span>
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+</div>
+{% endif %}
         {% if e.attachments %}
         <div class="field">
 
