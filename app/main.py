@@ -3119,6 +3119,42 @@ Reglas:
         flag = str(row.get('flag') or 'unknown').lower()
         if flag not in {'low', 'high', 'normal', 'unknown'}:
             flag = 'unknown'
+        
+        normalized_name = _lab_normalize_analyte(analyte)
+        
+        differential_terms = (
+            'neutrofil',
+            'linfocit',
+            'eosinofil',
+            'basofil',
+            'monocit',
+            'banda'
+        )
+        
+        is_differential = any(
+            term in normalized_name
+            for term in differential_terms
+        )
+        
+        absolute_value = _lab_float(row.get('absolute_value'))
+        percentage = _lab_float(row.get('percentage'))
+        
+        value_text = str(
+            row.get('value_text') or ''
+        ).strip()
+        
+        if is_differential and absolute_value is not None:
+            numeric = absolute_value
+        
+            value_text = (
+                str(int(absolute_value))
+                if float(absolute_value).is_integer()
+                else str(absolute_value)
+            )
+        
+            if row.get('absolute_unit'):
+                row['unit'] = row.get('absolute_unit')
+        
         cleaned.append({
             'panel': str(row.get('panel') or 'Otro')[:120],
             'analyte': analyte[:180],
