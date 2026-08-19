@@ -166,6 +166,7 @@ class ClinicalEvent(Base):
         cascade='all, delete-orphan'
     )
     laboratory_results: Mapped[list['LaboratoryResult']] = relationship(
+        back_populates='event',
         cascade='all, delete-orphan'
     )
 
@@ -197,7 +198,7 @@ class LaboratoryResult(Base):
     source_filename: Mapped[str] = mapped_column(String(255), default='')
     created_at: Mapped[datetime] = mapped_column(DateTime, default=argentina_now)
 
-    event: Mapped['ClinicalEvent'] = relationship()
+    event: Mapped['ClinicalEvent'] = relationship(back_populates='laboratory_results')
     patient: Mapped['Patient'] = relationship()
 
 class Hospitalization(Base):
