@@ -2969,6 +2969,73 @@ def _lab_normalize_analyte(value):
     return aliases.get(text_value, text_value)
 
 
+def _lab_result_identity(sample_date, normalized_analyte, value_text, value_numeric, unit):
+    numeric_key = None if value_numeric is None else round(float(value_numeric), 8)
+    return (
+        sample_date.isoformat() if sample_date else '',
+        (normalized_analyte or '').strip().lower(),
+        (value_text or '').strip().lower(),
+        numeric_key,
+        (unit or '').strip().lower(),
+    )
+
+
+def _lab_add_if_new(db, *, event_id, patient_id, sample_date, row, source_files=''):
+    analyte = str(row.get('analyte') or '').strip()
+    if not analyte:
+        return False
+    normalized = _lab_normalize_analyte(analyte)[:180]
+    numeric = _lab_float(row.get('value_numeric'))
+    value_text = str(row.get('value_text') or '')[:120]
+    unit = str(row.get('unit') or '')[:80]
+    existing = (
+        db.query(LaboratoryResult.id)
+        .filter(
+            LaboratoryResult.patient_id == patient_id,
+            LaboratoryResult.sample_date == sample_date,
+            LaboratoryResult.normalized_analyte == normalized,
+            LaboratoryResult.value_text == value_text,
+            LaboratoryResult.unit == unit,
+        )
+        .first()
+    )
+    if existing:
+        return False
+    db.add(LaboratoryResult(
+        event_id=event_id, patient_id=patient_id, sample_date=sample_date,
+        panel=str(row.get('panel') or 'Otro')[:120], analyte=analyte[:180],
+        normalized_analyte=normalized, value_text=value_text, value_numeric=numeric, unit=unit,
+        reference_low=_lab_float(row.get('reference_low')), reference_high=_lab_float(row.get('reference_high')),
+        reference_text=str(row.get('reference_text') or '')[:120],
+        flag=str(row.get('flag') or 'unknown')[:20], source_filename=source_files
+    ))
+    return True
+
+
+def _lab_trend_summary(rows):
+    grouped = {}
+    seen = set()
+    for row in sorted(rows, key=lambda r: (r.sample_date or date.min, r.id or 0)):
+        key = row.normalized_analyte or _lab_normalize_analyte(row.analyte)
+        identity = _lab_result_identity(row.sample_date, key, row.value_text, row.value_numeric, row.unit)
+        if identity in seen:
+            continue
+        seen.add(identity)
+        grouped.setdefault(key, []).append(row)
+    lines = []
+    for key, values in grouped.items():
+        numeric = [r for r in values if r.value_numeric is not None]
+        if len(numeric) < 2:
+            continue
+        last_two = numeric[-2:]
+        if (last_two[0].unit or '').strip().lower() != (last_two[1].unit or '').strip().lower():
+            continue
+        a, b = float(last_two[0].value_numeric), float(last_two[1].value_numeric)
+        direction = 'estable' if abs(b-a) <= max(abs(a), abs(b), 1.0)*0.01 else ('ascendente' if b>a else 'descendente')
+        lines.append(f"{values[-1].analyte}: {a:g} → {b:g} {last_two[1].unit or ''} ({direction})")
+    return '\n'.join(lines) or 'Sin series numéricas comparables suficientes para establecer tendencias.'
+
+
 def _lab_results_context(db, patient_id, limit=120):
     rows = (
         db.query(LaboratoryResult)
@@ -3209,22 +3276,35 @@ def laboratory_evolution(
     )
 
     grouped = {}
+    seen = set()
     for row in rows:
         key = row.normalized_analyte or _lab_normalize_analyte(row.analyte)
-        grouped.setdefault(key, {
-            'analyte': row.analyte,
-            'points': []
-        })
+        identity = _lab_result_identity(row.sample_date, key, row.value_text, row.value_numeric, row.unit)
+        if identity in seen:
+            continue
+        seen.add(identity)
+        grouped.setdefault(key, {'analyte': row.analyte, 'points': []})
         grouped[key]['points'].append({
             'date': row.sample_date.isoformat() if row.sample_date else '',
-            'value_text': row.value_text,
-            'value_numeric': row.value_numeric,
-            'unit': row.unit,
-            'flag': row.flag,
-            'reference_text': row.reference_text
+            'value_text': row.value_text, 'value_numeric': row.value_numeric, 'unit': row.unit,
+            'flag': row.flag, 'reference_text': row.reference_text
         })
 
-    return JSONResponse({'ok': True, 'series': list(grouped.values())})
+    series = []
+    for item in grouped.values():
+        numeric = [p for p in item['points'] if p['value_numeric'] is not None]
+        trend = 'insuficiente'
+        delta = None
+        if len(numeric) >= 2 and (numeric[-2]['unit'] or '').strip().lower() == (numeric[-1]['unit'] or '').strip().lower():
+            previous, current = float(numeric[-2]['value_numeric']), float(numeric[-1]['value_numeric'])
+            delta = current - previous
+            tolerance = max(abs(previous), abs(current), 1.0) * 0.01
+            trend = 'estable' if abs(delta) <= tolerance else ('ascendente' if delta > 0 else 'descendente')
+        item['trend'] = trend
+        item['delta'] = delta
+        series.append(item)
+
+    return JSONResponse({'ok': True, 'series': series})
 
 
 @app.post('/patients/{patient_id}/ai-center')
@@ -3310,6 +3390,7 @@ async def patient_ai_center(
     history_context = '\n---\n'.join(_ai_event_text(event) for event in real_events[:25])
     lab_context = '\n---\n'.join(_ai_event_text(event) for event in lab_events) or 'Sin eventos de laboratorio cargados.'
     structured_lab_context, structured_lab_rows = _lab_results_context(db, patient.id)
+    structured_lab_trends = _lab_trend_summary(structured_lab_rows)
     cardio_context = '\n---\n'.join(_ai_event_text(event) for event in (ecg_events + eco_events + rx_events)[:20]) or 'Sin estudios cardiológicos cargados.'
     hospitalization_events_context = '\n---\n'.join(_ai_event_text(event) for event in hospitalization_events) or 'Sin evoluciones de internación en la historia clínica.'
 
@@ -3377,8 +3458,11 @@ ECG, ECOCARDIOGRAFÍA Y RADIOGRAFÍAS
 LABORATORIO - EVENTOS
 {lab_context}
 
-LABORATORIO - RESULTADOS ESTRUCTURADOS Y EVOLUCIÓN
+LABORATORIO - RESULTADOS ESTRUCTURADOS
 {structured_lab_context}
+
+LABORATORIO - TENDENCIAS LONGITUDINALES
+{structured_lab_trends}
 
 VADEMÉCUM, CONTRAINDICACIONES E INTERACCIONES
 {vademecum_context}
@@ -4359,29 +4443,17 @@ async def patient_visit_create(
         except json.JSONDecodeError:
             lab_payload = {}
 
-        sample_date = parse_date(lab_payload.get('sample_date', '')) or event_datetime.date()
+        sample_date = parse_date(lab_payload.get('sample_date', '')) or event.event_date.date()
         source_files = ', '.join(lab_payload.get('filenames', []) or [])[:255]
 
         for row in lab_payload.get('results', []) or []:
             analyte = str(row.get('analyte') or '').strip()
             if not analyte:
                 continue
-            db.add(LaboratoryResult(
-                event_id=event.id,
-                patient_id=patient.id,
-                sample_date=sample_date,
-                panel=str(row.get('panel') or 'Otro')[:120],
-                analyte=analyte[:180],
-                normalized_analyte=_lab_normalize_analyte(analyte)[:180],
-                value_text=str(row.get('value_text') or '')[:120],
-                value_numeric=_lab_float(row.get('value_numeric')),
-                unit=str(row.get('unit') or '')[:80],
-                reference_low=_lab_float(row.get('reference_low')),
-                reference_high=_lab_float(row.get('reference_high')),
-                reference_text=str(row.get('reference_text') or '')[:120],
-                flag=str(row.get('flag') or 'unknown')[:20],
-                source_filename=source_files
-            ))
+            _lab_add_if_new(
+                db, event_id=event.id, patient_id=patient.id, sample_date=sample_date,
+                row=row, source_files=source_files
+            )
 
     if get('weight') and str(get('weight')).strip():
         patient.weight = to_float(get('weight'))
@@ -12523,29 +12595,17 @@ def hospitalization_create(
         except json.JSONDecodeError:
             lab_payload = {}
 
-        sample_date = parse_date(lab_payload.get('sample_date', '')) or event_datetime.date()
+        sample_date = parse_date(lab_payload.get('sample_date', '')) or event.event_date.date()
         source_files = ', '.join(lab_payload.get('filenames', []) or [])[:255]
 
         for row in lab_payload.get('results', []) or []:
             analyte = str(row.get('analyte') or '').strip()
             if not analyte:
                 continue
-            db.add(LaboratoryResult(
-                event_id=event.id,
-                patient_id=patient.id,
-                sample_date=sample_date,
-                panel=str(row.get('panel') or 'Otro')[:120],
-                analyte=analyte[:180],
-                normalized_analyte=_lab_normalize_analyte(analyte)[:180],
-                value_text=str(row.get('value_text') or '')[:120],
-                value_numeric=_lab_float(row.get('value_numeric')),
-                unit=str(row.get('unit') or '')[:80],
-                reference_low=_lab_float(row.get('reference_low')),
-                reference_high=_lab_float(row.get('reference_high')),
-                reference_text=str(row.get('reference_text') or '')[:120],
-                flag=str(row.get('flag') or 'unknown')[:20],
-                source_filename=source_files
-            ))
+            _lab_add_if_new(
+                db, event_id=event.id, patient_id=patient.id, sample_date=sample_date,
+                row=row, source_files=source_files
+            )
 
     hospitalization = Hospitalization(
         patient_id=patient.id,
