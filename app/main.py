@@ -12587,26 +12587,6 @@ def hospitalization_create(
     db.add(event)
     db.flush()
 
-    # Resultados de laboratorio revisados en la vista previa.
-    lab_results_raw = get('lab_results_json')
-    if lab_results_raw and str(lab_results_raw).strip():
-        try:
-            lab_payload = json.loads(lab_results_raw)
-        except json.JSONDecodeError:
-            lab_payload = {}
-
-        sample_date = parse_date(lab_payload.get('sample_date', '')) or event.event_date.date()
-        source_files = ', '.join(lab_payload.get('filenames', []) or [])[:255]
-
-        for row in lab_payload.get('results', []) or []:
-            analyte = str(row.get('analyte') or '').strip()
-            if not analyte:
-                continue
-            _lab_add_if_new(
-                db, event_id=event.id, patient_id=patient.id, sample_date=sample_date,
-                row=row, source_files=source_files
-            )
-
     hospitalization = Hospitalization(
         patient_id=patient.id,
         clinical_event_id=event.id,
