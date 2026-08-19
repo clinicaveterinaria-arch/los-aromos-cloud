@@ -884,7 +884,7 @@ async function openLabEvolutionV2() {
         }
         body.innerHTML = data.series.map(series => `
             <div style="border:1px solid #f3c6d8;border-radius:14px;margin-bottom:10px;overflow:hidden;">
-                <div style="background:#fff8fb;padding:9px 11px;font-weight:bold;">${escapeClinicalAiText(series.analyte)}</div>
+                <div style="background:#fff8fb;padding:9px 11px;font-weight:bold;display:flex;justify-content:space-between;gap:10px;"><span>${escapeClinicalAiText(series.analyte)}</span><span style="font-size:12px;color:#6b7280;">${labEvolutionTrend(series.trend)}</span></div>
                 <div style="overflow:auto;">
                     <table style="width:100%;border-collapse:collapse;font-size:13px;">
                         ${series.points.map(point => `<tr style="border-top:1px solid #f3edf1;">
@@ -903,6 +903,12 @@ async function openLabEvolutionV2() {
 function closeLabEvolutionV2() {
     const modal = document.getElementById('labEvolutionModal');
     if (modal) modal.style.display = 'none';
+}
+function labEvolutionTrend(trend) {
+    if (trend === 'ascendente') return '↗ Ascendente';
+    if (trend === 'descendente') return '↘ Descendente';
+    if (trend === 'estable') return '→ Estable';
+    return '• Sin tendencia';
 }
 function labEvolutionFlag(flag) {
     if (flag === 'high') return '🔴 Alto';
