@@ -10704,7 +10704,60 @@ def stats_page(
             return 'pharmacy'
 
         return 'other'
+    def is_surgery_product(product):
+        """Reconoce procedimientos quirurgicos vendidos como servicios."""
+        searchable = normalize(
+            ' '.join([
+                getattr(product, 'rubro', '') or '',
+                getattr(product, 'tipo', '') or '',
+                getattr(product, 'name', '') or ''
+            ])
+        )
 
+        excluded_terms = (
+            'prequirurg',
+            'pre quirurg',
+            'postquirurg',
+            'post quirurg',
+            'control quirurg'
+        )
+
+        if any(term in searchable for term in excluded_terms):
+            return False
+
+        surgery_terms = (
+            'cirugia',
+            'quirurg',
+            'castracion',
+            'ovariectomia',
+            'ovariohisterectomia',
+            'ovario histerectomia',
+            'orquiectomia',
+            'mastectomia',
+            'laparotomia',
+            'laparoscopia',
+            'herniorrafia',
+            'hernioplastia',
+            'enterotomia',
+            'enterectomia',
+            'gastrotomia',
+            'cistotomia',
+            'uretrostomia',
+            'ureterotomia',
+            'nefrectomia',
+            'esplenectomia',
+            'piometra',
+            'cesarea',
+            'amputacion',
+            'enucleacion',
+            'osteosintesis',
+            'artroplastia',
+            'artrodesis',
+            'ablacion conducto',
+            'extraccion globo ocular'
+        )
+
+        return any(term in searchable for term in surgery_terms)
     def build_period_data(range_start, range_end):
         start_dt = datetime.combine(
             range_start,
@@ -10755,7 +10808,14 @@ def stats_page(
                 'profit': 0.0
             }
         )
-
+        surgery_stats = defaultdict(
+            lambda: {
+                'name': '',
+                'qty': 0.0,
+                'sales': 0.0
+            }
+        )
+        surgery_details = []
         daily_stats = defaultdict(
             lambda: {
                 'date': None,
@@ -10852,7 +10912,26 @@ def stats_page(
             product_stats[product_key]['sales'] += allocated_sales
             product_stats[product_key]['cost'] += cost
             product_stats[product_key]['profit'] += profit
+            if is_surgery_product(product):
+                surgery_stats[product.id]['name'] = (
+                    product.name or 'Cirugia sin nombre'
+                )
+                surgery_stats[product.id]['qty'] += qty
+                surgery_stats[product.id]['sales'] += allocated_sales
 
+                patient = (
+                    db.get(Patient, sale.patient_id)
+                    if sale.patient_id
+                    else None
+                )
+
+                surgery_details.append({
+                    'date': sale.date.date() if sale.date else range_start,
+                    'name': product.name or 'Cirugia sin nombre',
+                    'patient': patient.name if patient else '',
+                    'qty': qty,
+                    'sales': allocated_sales
+                })
             sale_day = (
                 sale.date.date()
                 if sale.date
@@ -11001,7 +11080,25 @@ def stats_page(
                 key=lambda row: row['sales'],
                 reverse=True
             )[:10]
+        surgeries_by_type = sorted(
+            surgery_stats.values(),
+            key=lambda row: (-row['qty'], row['name'].lower())
+        )
 
+        surgery_details.sort(
+            key=lambda row: (row['date'], row['name'].lower()),
+            reverse=True
+        )
+
+        surgeries_count = sum(
+            row['qty']
+            for row in surgeries_by_type
+        )
+
+        surgeries_sales = sum(
+            row['sales']
+            for row in surgeries_by_type
+        )
         return {
             'sales': sales,
             'sales_total': sales_total,
@@ -11071,6 +11168,10 @@ def stats_page(
         'patients_seen': diff(
             current['patients_seen'],
             comparison['patients_seen']
+        ),
+        'surgeries_count': diff(
+            current['surgeries_count'],
+            comparison['surgeries_count']
         )
     }
 
