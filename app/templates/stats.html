@@ -268,11 +268,63 @@
         {% endfor %}
 
         <div class="kpi-card">
+            <div class="kpi-icon">✂️</div>
+            <small>Cirugías realizadas</small>
+            <h2>{{ "{:,.2f}".format(current.surgeries_count).rstrip('0').rstrip('.').replace(",", "X").replace(".", ",").replace("X", ".") }}</h2>
+            {% set trend = comparison_stats.surgeries_count %}
+            {% if trend.has_base %}
+                <small class="{% if trend.up %}trend-up{% else %}trend-down{% endif %}">
+                    {% if trend.up %}▲{% else %}▼{% endif %}
+                    {{ "{:,.2f}".format(trend.amount|abs).rstrip('0').rstrip('.').replace(",", "X").replace(".", ",").replace("X", ".") }}
+                    · {{ "{:,.1f}".format(trend.percent|abs).replace(",", "X").replace(".", ",").replace("X", ".") }}%
+                </small>
+            {% else %}
+                <small class="trend-neutral">Sin base de comparación</small>
+            {% endif %}
+        </div>
+
+        <div class="kpi-card">
             <div class="kpi-icon">📊</div>
             <small>Rentabilidad</small>
             <h2>{{ "{:,.1f}".format(current.margin_percent).replace(",", "X").replace(".", ",").replace("X", ".") }}%</h2>
             <small>Costo total: $ {{ "{:,.0f}".format(current.cost_total).replace(",", ".") }}</small>
         </div>
+    </div>
+
+    <div class="stats-card surgery-card">
+        <h2>✂️ Actividad quirúrgica</h2>
+        {% if current.surgeries_by_type %}
+            <p class="period-note" style="margin-bottom:12px;">
+                En este período se realizaron
+                <b>{{ "{:,.2f}".format(current.surgeries_count).rstrip('0').rstrip('.').replace(",", "X").replace(".", ",").replace("X", ".") }} cirugías</b>,
+                con una facturación de
+                <b>$ {{ "{:,.0f}".format(current.surgeries_sales).replace(",", ".") }}</b>.
+            </p>
+            <table class="simple-table">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Cirugía</th>
+                        <th>Paciente</th>
+                        <th class="number">Cantidad</th>
+                        <th class="number">Facturación</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for surgery in current.surgery_details %}
+                        <tr>
+                            <td><span class="day-badge">{{ surgery.date.strftime('%d/%m/%Y') }}</span></td>
+                            <td>{{ surgery.name }}</td>
+                            <td>{{ surgery.patient or 'Sin paciente vinculado' }}</td>
+                            <td class="number">{{ "{:,.2f}".format(surgery.qty).rstrip('0').rstrip('.').replace(",", "X").replace(".", ",").replace("X", ".") }}</td>
+                            <td class="number amount">$ {{ "{:,.0f}".format(surgery.sales).replace(",", ".") }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p class="empty-text">No se registraron cirugías en este período.</p>
+        {% endif %}
     </div>
 
     <div class="category-grid">
