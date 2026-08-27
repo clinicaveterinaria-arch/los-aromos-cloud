@@ -11114,7 +11114,11 @@ def stats_page(
             'daily_rows': daily_rows,
             'best_day': best_day,
             'worst_day': worst_day,
-            'top_by_category': top_by_category
+            'top_by_category': top_by_category,
+            'surgeries_count': surgeries_count,
+            'surgeries_sales': surgeries_sales,
+            'surgeries_by_type': surgeries_by_type,
+            'surgery_details': surgery_details
         }
 
     current = build_period_data(
