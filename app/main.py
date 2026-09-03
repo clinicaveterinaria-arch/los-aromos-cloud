@@ -10436,6 +10436,7 @@ def stats_page(
     period: str = 'month',
     month: str = '',
     compare_month: str = '',
+    day_date: str = '',    
     week_start: str = '',
     compare_week_start: str = '',
     db: Session = Depends(get_db),
@@ -10480,11 +10481,23 @@ def stats_page(
     compare_month_start, compare_month_end = month_bounds(compare_month)
 
     if period == 'today':
-        start_date = today
-        end_date = today
-        compare_start = today - timedelta(days=1)
+        try:
+            selected_day = datetime.strptime(
+                day_date,
+                '%Y-%m-%d'
+            ).date()
+
+            if selected_day > today:
+                selected_day = today
+        except Exception:
+            selected_day = today
+
+        day_date = selected_day.strftime('%Y-%m-%d')
+        start_date = selected_day
+        end_date = selected_day
+        compare_start = selected_day - timedelta(days=1)
         compare_end = compare_start
-        period_label = today.strftime('%d/%m/%Y')
+        period_label = selected_day.strftime('%d/%m/%Y')
         compare_label = compare_start.strftime('%d/%m/%Y')
 
     elif period == 'week':
@@ -11282,6 +11295,8 @@ def stats_page(
             'compare_label': compare_label,
             'start_date': start_date,
             'end_date': end_date,
+            'day_date': day_date,
+            'today_date': today.strftime('%Y-%m-%d'),            
             'month': month,
             'compare_month': compare_month,
             'week_start': week_start,
