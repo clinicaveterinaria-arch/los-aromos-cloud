@@ -14,7 +14,7 @@
     .stats-card h2 { margin:0 0 16px; color:#1f2937; font-size:20px; }
     .comparison-form { display:grid; grid-template-columns:1fr 1fr auto; gap:12px; align-items:end; margin-top:14px; }
     .comparison-form label { display:block; font-size:12px; color:#6b7280; font-weight:700; margin-bottom:5px; }
-    .comparison-form select { width:100%; padding:10px; border:1px solid #f3c6d8; border-radius:10px; background:white; }
+    .comparison-form select, .comparison-form input[type="date"] { width:100%; box-sizing:border-box; padding:10px; border:1px solid #f3c6d8; border-radius:10px; background:white; color:#374151; }
     .comparison-form button { background:#d85b9a; color:white; border:none; border-radius:10px; padding:11px 16px; font-weight:700; cursor:pointer; }
     .period-note { color:#6b7280; margin:0; }
     .kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:14px; margin-bottom:18px; }
@@ -166,12 +166,29 @@
         </div>
 
         <div class="stats-filters">
-            <a class="stats-filter {% if period == 'today' %}active{% endif %}" href="/stats?period=today">Día</a>
+            <a class="stats-filter {% if period == 'today' %}active{% endif %}" href="/stats?period=today&day_date={{ day_date }}">Día</a>
             <a class="stats-filter {% if period == 'week' %}active{% endif %}" href="/stats?period=week&week_start={{ week_start }}&compare_week_start={{ compare_week_start }}">Semana</a>
             <a class="stats-filter {% if period == 'month' %}active{% endif %}" href="/stats?period=month&month={{ month }}&compare_month={{ compare_month }}">Mes</a>
             <button class="export-btn" type="button" onclick="window.print()">🖨 Imprimir</button>
         </div>
     </div>
+
+    {% if period == 'today' %}
+        <div class="stats-card comparison-card">
+            <form method="get" action="/stats" class="comparison-form">
+                <input type="hidden" name="period" value="today">
+                <div>
+                    <label>Día que querés consultar</label>
+                    <input type="date" name="day_date" value="{{ day_date }}" max="{{ today_date }}">
+                </div>
+                <div>
+                    <label>Comparación</label>
+                    <div class="period-note" style="padding:10px 0;">Se compara automáticamente con el día anterior.</div>
+                </div>
+                <button type="submit">Ver día</button>
+            </form>
+        </div>
+    {% endif %}
 
     {% if period == 'week' %}
         <div class="stats-card comparison-card">
