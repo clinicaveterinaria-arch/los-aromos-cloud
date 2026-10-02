@@ -3164,6 +3164,45 @@ Reglas:
     try:
         with urllib.request.urlopen(req, timeout=120) as response:
             data = json.loads(response.read().decode('utf-8'))
+    except urllib.error.HTTPError as exc:
+        error_info = {}
+        try:
+            body = json.loads(exc.read().decode('utf-8', errors='replace'))
+            if isinstance(body, dict) and isinstance(body.get('error'), dict):
+                error_info = body['error']
+        except (ValueError, OSError):
+            pass
+
+        code = str(error_info.get('code') or '')
+        error_type = str(error_info.get('type') or '')
+        safe_code = re.sub(r'[^a-zA-Z0-9_.-]', '', code)[:80]
+        print(
+            f'Error OpenAI laboratorio: HTTP={exc.code}, '
+            f'codigo={safe_code or "desconocido"}',
+            flush=True
+        )
+
+        if code == 'insufficient_quota' or error_type == 'insufficient_quota':
+            detail = (
+                'OpenAI indica crédito insuficiente o cupo agotado. '
+                'Revisá la facturación y los límites de tu cuenta API.'
+            )
+        elif exc.code == 429:
+            detail = (
+                'OpenAI rechazó el análisis por un límite de uso. '
+                'Si es temporal, esperá unos minutos y reintentá. '
+                'Si persiste, revisá crédito y límites de la cuenta API.'
+            )
+        elif exc.code == 401:
+            detail = 'OpenAI rechazó la clave API. Revisá OPENAI_API_KEY en Render.'
+        else:
+            detail = f'OpenAI rechazó el análisis (HTTP {exc.code}).'
+
+        if safe_code:
+            detail += f' Código: {safe_code}.'
+
+        raise HTTPException(status_code=502, detail=detail) from exc
+
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f'No se pudo analizar el laboratorio: {exc}')
 
