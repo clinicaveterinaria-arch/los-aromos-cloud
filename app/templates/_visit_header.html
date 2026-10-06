@@ -1,4 +1,7 @@
-<div class="hc2-card">
+<div class="hc2-card"
+     {% if patient.death_date %}
+     style="background:#e5e7eb;border-color:#9ca3af;"
+     {% endif %}>
 
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap;">
 
