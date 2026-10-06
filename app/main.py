@@ -9518,12 +9518,7 @@ def pendientes(
                 '%[MYVETE_APPOINTMENT_ID:%'
             )
         )
-        .filter(
-            ClinicalEvent.reminder_date >= today
-        )
-        .filter(
-            ClinicalEvent.reminder_date <= end_of_month
-        )
+
         .all()
     )
 
@@ -9808,6 +9803,44 @@ def event_done(
         '/pendientes',
         status_code=303
     )
+@app.post('/events/{event_id}/dismiss-pending')
+def dismiss_pending_event(
+    event_id: int,
+    show_all: int = Form(0),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    event = db.get(ClinicalEvent, event_id)
+    if not event:
+        raise HTTPException(status_code=404, detail='Evento no encontrado')
+
+    description = event.description or ''
+
+    if DUE_CLOSED_MARKER not in description:
+        if DUE_ACTIVE_MARKER in description:
+            description = description.replace(
+                DUE_ACTIVE_MARKER,
+                DUE_CLOSED_MARKER
+            )
+        else:
+            description = (
+                description.rstrip()
+                + '\n\n'
+                + DUE_CLOSED_MARKER
+            )
+
+        event.description = (
+            description.rstrip()
+            + '\n\nPendiente quitado manualmente de la lista; '
+              'no consta como realizado.\n'
+            + f'Fecha: {argentina_now().strftime("%d/%m/%Y %H:%M")}\n'
+            + f'Registrado por: {user.username}.'
+        )
+        event.reminder_date = None
+        db.commit()
+
+    destination = '/pendientes?show_all=1' if show_all else '/pendientes'
+    return RedirectResponse(destination, status_code=303)
 
 @app.post('/events/{event_id}/complete-pending')
 def complete_pending_event(
