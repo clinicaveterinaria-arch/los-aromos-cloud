@@ -52,6 +52,7 @@ class Patient(Base):
     alerts: Mapped[str] = mapped_column(Text, default='')
     notes: Mapped[str] = mapped_column(Text, default='')
     photo_url: Mapped[str] = mapped_column(String(500), default='')
+    death_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     owner_id: Mapped[int] = mapped_column(ForeignKey('owners.id'))
     owner: Mapped['Owner'] = relationship(back_populates='patients')
     events: Mapped[list['ClinicalEvent']] = relationship(
