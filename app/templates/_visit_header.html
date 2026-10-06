@@ -69,9 +69,16 @@
 
             <div>
 
-                <h2 class="hc2-title" style="font-size:30px;">
+                <h2 class="hc2-title"
+                    style="font-size:30px;{% if patient.death_date %}color:#000;{% endif %}">
                     🐾 {{ patient.name }}
                 </h2>
+
+                {% if patient.death_date %}
+                <div style="margin-top:8px;color:#000;font-weight:bold;">
+                    Fallecido — {{ patient.death_date.strftime('%d/%m/%Y') }}
+                </div>
+                {% endif %}
 
                 <div class="hc2-muted" style="margin-top:8px;font-size:14px;">
 
@@ -140,7 +147,43 @@
                class="hc2-btn">
                 ✏️ Editar paciente
             </a>
+            <details>
+                <summary class="hc2-btn" style="color:#000;border-color:#000;">
+                    Fallecido
+                </summary>
 
+                <div style="padding:12px;border:1px solid #ddd;border-radius:12px;margin-top:8px;">
+                    <form action="/patients/{{ patient.id }}/death" method="post">
+                        <label for="death-date-{{ patient.id }}">
+                            Fecha de deceso
+                        </label>
+
+                        <input id="death-date-{{ patient.id }}"
+                               type="date"
+                               name="death_date"
+                               required
+                               value="{{ patient.death_date.isoformat() if patient.death_date else '' }}">
+
+                        <button type="submit"
+                                class="hc2-btn"
+                                style="color:#000;border-color:#000;margin-top:8px;">
+                            Guardar
+                        </button>
+                    </form>
+
+                    {% if patient.death_date %}
+                    <form action="/patients/{{ patient.id }}/death"
+                          method="post"
+                          style="margin-top:8px;">
+                        <input type="hidden" name="action" value="clear">
+
+                        <button type="submit" class="hc2-btn">
+                            Quitar marca de fallecido
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </details>
             <a href="/patients/{{ patient.id }}/hospitalize"
                class="hc2-btn">
                 🏥 Internar
