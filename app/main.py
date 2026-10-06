@@ -726,6 +726,7 @@ def init_db():
 
     with engine.begin() as conn:
         conn.execute(text("ALTER TABLE patients ADD COLUMN IF NOT EXISTS photo_url TEXT DEFAULT ''"))
+        conn.execute(text("ALTER TABLE patients ADD COLUMN IF NOT EXISTS death_date DATE"))
         conn.execute(text("ALTER TABLE clinical_events ADD COLUMN IF NOT EXISTS weight FLOAT"))
         conn.execute(text("ALTER TABLE clinical_events ADD COLUMN IF NOT EXISTS temperature FLOAT"))
         conn.execute(text("ALTER TABLE clinical_events ADD COLUMN IF NOT EXISTS heart_rate INTEGER"))
@@ -5532,6 +5533,39 @@ def patient_cardiology_print(
             "today": argentina_now().date()
         }
     )    
+@app.post('/patients/{patient_id}/death')
+def patient_death_save(
+    patient_id: int,
+    death_date: str = Form(''),
+    action: str = Form('save'),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_user)
+):
+    patient = db.get(Patient, patient_id)
+    if not patient:
+        raise HTTPException(status_code=404, detail='Paciente no encontrado')
+
+    if action == 'clear':
+        patient.death_date = None
+    elif action == 'save':
+        try:
+            selected_date = date.fromisoformat(death_date)
+        except ValueError:
+            raise HTTPException(status_code=400, detail='Elegí una fecha válida.')
+
+        if selected_date > argentina_now().date():
+            raise HTTPException(
+                status_code=400,
+                detail='La fecha de deceso no puede ser futura.'
+            )
+
+        patient.death_date = selected_date
+    else:
+        raise HTTPException(status_code=400, detail='Acción inválida.')
+
+    db.commit()
+    return RedirectResponse(f'/patients/{patient.id}/v2', status_code=303)
+
 @app.get('/patients/{patient_id}/edit', response_class=HTMLResponse)
 def patient_edit_form(request: Request, patient_id: int, db: Session = Depends(get_db), user: User = Depends(require_user)):
     patient = db.get(Patient, patient_id)
