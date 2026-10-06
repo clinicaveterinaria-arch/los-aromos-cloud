@@ -374,6 +374,16 @@
                                     ✓ Marcar realizado
                                 </button>
                             </form>
+<form method="post"
+      action="/events/{{ event.id }}/dismiss-pending"
+      style="display:inline;margin:0;">
+    <input type="hidden"
+           name="show_all"
+           value="{{ 1 if show_all else 0 }}">
+    <button type="submit" class="pending-btn">
+        × Quitar de la lista
+    </button>
+</form>                          
                         </div>
                     </div>
                 {% else %}
@@ -431,6 +441,16 @@
                         >
                             Ver ficha
                         </a>
+<form method="post"
+      action="/events/{{ event.id }}/dismiss-pending"
+      style="display:inline;margin:0;">
+    <input type="hidden"
+           name="show_all"
+           value="{{ 1 if show_all else 0 }}">
+    <button type="submit" class="pending-btn">
+        × Quitar de la lista
+    </button>
+</form>                        
                     </div>
                 </div>
             {% else %}
@@ -481,6 +501,16 @@
                         >
                             Ver ficha
                         </a>
+<form method="post"
+      action="/events/{{ event.id }}/dismiss-pending"
+      style="display:inline;margin:0;">
+    <input type="hidden"
+           name="show_all"
+           value="{{ 1 if show_all else 0 }}">
+    <button type="submit" class="pending-btn">
+        × Quitar de la lista
+    </button>
+</form>                        
                     </div>
                 </div>
             {% else %}
@@ -535,6 +565,16 @@
                         >
                             Ver ficha
                         </a>
+ <form method="post"
+      action="/events/{{ event.id }}/dismiss-pending"
+      style="display:inline;margin:0;">
+    <input type="hidden"
+           name="show_all"
+           value="{{ 1 if show_all else 0 }}">
+    <button type="submit" class="pending-btn">
+        × Quitar de la lista
+    </button>
+</form>           
                     </div>
                 </div>
             {% else %}
