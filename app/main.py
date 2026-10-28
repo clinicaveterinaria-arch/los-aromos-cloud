@@ -10542,9 +10542,13 @@ def stats_page(
     period: str = 'month',
     month: str = '',
     compare_month: str = '',
-    day_date: str = '',    
+    day_date: str = '',
     week_start: str = '',
     compare_week_start: str = '',
+    product_query: str = '',
+    product_category: str = 'all',
+    product_date_from: str = '',
+    product_date_to: str = '',
     db: Session = Depends(get_db),
     user: User = Depends(require_user)
 ):
@@ -11234,6 +11238,10 @@ def stats_page(
             'best_day': best_day,
             'worst_day': worst_day,
             'top_by_category': top_by_category,
+            'all_products': sorted(
+                product_stats.values(),
+                key=lambda row: row['name'].casefold()
+            ),
             'surgeries_count': surgeries_count,
             'surgeries_sales': surgeries_sales,
             'surgeries_by_type': surgeries_by_type,
@@ -11367,7 +11375,84 @@ def stats_page(
                 f'al {option_end.strftime("%d/%m/%Y")}'
             )
         })
+    # ===== CONSULTA DE VENTAS POR PRODUCTO O SERVICIO =====
 
+    product_start, product_end = start_date, end_date
+
+    try:
+        if product_date_from and product_date_to:
+
+            parsed_start = datetime.strptime(
+                product_date_from, '%Y-%m-%d'
+            ).date()
+
+            parsed_end = datetime.strptime(
+                product_date_to, '%Y-%m-%d'
+            ).date()
+
+            if parsed_start <= parsed_end:
+                product_start = parsed_start
+                product_end = parsed_end
+
+    except ValueError:
+        pass
+
+    # Obtener información del período seleccionado
+
+    product_period_data = (
+        current
+        if (product_start, product_end) == (start_date, end_date)
+        else build_period_data(product_start, product_end)
+    )
+
+    # Validar rubro seleccionado
+
+    valid_categories = set(category_meta)
+
+    if product_category not in valid_categories:
+        product_category = 'all'
+
+    # Normalizar búsqueda
+
+    normalized_product_query = normalize(product_query)
+
+    # Filtrar productos y servicios
+
+    filtered_products = [
+        row
+        for row in product_period_data['all_products']
+
+        if (
+            product_category == 'all'
+            or row['category'] == product_category
+        )
+
+        and normalized_product_query in normalize(row['name'])
+    ]
+
+    # Ordenar por facturación
+
+    filtered_products.sort(
+        key=lambda row: (
+            -row['sales'],
+            row['name'].casefold()
+        )
+    )
+
+    # Calcular totales
+
+    product_totals = {
+        field: sum(row[field] for row in filtered_products)
+
+        for field in (
+            'qty',
+            'sales',
+            'cost',
+            'profit'
+        )
+    }
+
+    # ===== FIN CONSULTA DE VENTAS =====
     available_months = []
     ref = today.replace(day=1)
     first_month = first_data_date.replace(day=1)
@@ -11414,7 +11499,21 @@ def stats_page(
             'comparison_has_data': comparison_has_data,
             'comparison_stats': comparison_stats,
             'category_comparison': category_comparison,
-            'category_meta': category_meta
+            'category_meta': category_meta,
+
+            # Consulta de ventas por producto o servicio
+
+            'product_query': product_query,
+            'product_category': product_category,
+
+            'product_date_from': product_date_from,
+            'product_date_to': product_date_to,
+
+            'product_start': product_start,
+            'product_end': product_end,
+
+            'filtered_products': filtered_products,
+            'product_totals': product_totals
         }
     )
 # ===== VADEMÉCUM =====
