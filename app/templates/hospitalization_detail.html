@@ -117,7 +117,6 @@
 .fake-check{
     width:18px;height:18px;border-radius:6px;border:2px solid #f3c6d8;background:#fff8fb;
 }
-
 /* ===== INTERNACIÓN V3 - BLOQUE 1 ===== */
 
 .state-compact{
@@ -216,8 +215,7 @@
     .state-mini-grid{
         grid-template-columns:1fr 1fr;
     }
-}
-
+} 
 /* ===== INTERNACIÓN V3 - BLOQUE 2 MEDICACIÓN ===== */
 
 .med-list-v3{
@@ -362,8 +360,7 @@
     .med-head-v3{
         flex-direction:column;
     }
-}
-
+} 
 /* ===== INTERNACIÓN V3 - BLOQUE 3 TIMELINE / ALERTAS ===== */
 
 .timeline-v3{
@@ -463,8 +460,7 @@
     color:#d85b9a;
     font-weight:bold;
     font-size:13px;
-}
-
+}    
 @media (max-width:900px){
 
     .hosp-page{
@@ -947,7 +943,6 @@
                 {% else %}
                     <p style="color:#6b7280;">Todavía no hay evoluciones cargadas.</p>
                 {% endif %}
-          
             </div>
 
         </div>
@@ -955,6 +950,7 @@
         <div>
 
             <div class="card state-compact">
+
                 <div class="state-head">
                     <h2>❤️ Estado del paciente</h2>
                     <div class="state-updated">
@@ -964,6 +960,7 @@
                 </div>
 
                 <div class="state-bars">
+
                     <div class="state-row">
                         <div class="state-label">🌡 Temp.</div>
                         <div class="state-bar">
@@ -995,6 +992,7 @@
                         </div>
                         <div class="state-value">{{ current_patient_status.weight or "-" }}</div>
                     </div>
+
                 </div>
 
                 <div class="state-mini-grid">
@@ -1002,15 +1000,18 @@
                         <span>👄 Mucosas</span>
                         <b>{{ current_patient_status.mucous_membranes or "-" }}</b>
                     </div>
+
                     <div class="state-mini">
                         <span>💧 Hidratación</span>
                         <b>{{ current_patient_status.hydration or "-" }}</b>
                     </div>
+
                     <div class="state-mini">
                         <span>🟢 Estado general</span>
                         <b>{{ hospitalization.status }}</b>
                     </div>
                 </div>
+
             </div>
 
             <div class="card" id="fluidoterapia">
@@ -1019,7 +1020,9 @@
                 {% if hospitalization.status == 'Internado' %}
                 <form method="post" action="/hospitalizations/{{ hospitalization.id }}/fluids" class="form-grid">
                     <input name="fluid_type" placeholder="Tipo de fluido">
+
                     <input id="fluid_ml_kg_h" name="ml_kg_h" placeholder="ml/kg/h" oninput="calculateFluids()">
+
                     <input id="fluid_rate" name="fluid_rate" placeholder="Velocidad (ml/h)">
 
                     <select id="drip_set" name="drip_set" onchange="calculateFluids()">
@@ -1034,6 +1037,7 @@
                     </div>
 
                     <textarea name="fluid_notes" class="full" placeholder="Observaciones"></textarea>
+
                     <button class="save-btn" type="submit">💧 Guardar fluidoterapia</button>
                 </form>
                 {% else %}
@@ -1055,6 +1059,7 @@
                                 <th style="padding:9px;border:1px solid #f1d6e2;">Acción</th>
                             </tr>
                         </thead>
+
                         <tbody>
                             {% for f in fluids %}
                             <tr>
@@ -1140,45 +1145,47 @@
                 result.innerHTML = text;
             }
             </script>
-
             <div class="card" id="medicacion">
                 <h2>💊 Medicación inteligente</h2>
 
                 {% if hospitalization.status == 'Internado' %}
                 <form method="post" action="/hospitalizations/{{ hospitalization.id }}/medications" class="form-grid" id="hospital-med-form">
-
                     <div class="full">
+                    
                         <label style="display:block;font-weight:bold;color:#374151;margin-bottom:6px;">
                             🔍 Buscar medicamento en el Vademécum
                         </label>
-
+                    
                         <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    
                             <input
                                 type="text"
                                 id="vademecum_search"
                                 placeholder="Ej.: cefalexina, meloxicam, tramadol..."
                                 style="flex:1;">
-
+                    
                             <button
                                 type="button"
                                 onclick="searchHospitalDrug()"
                                 style="background:#d85b9a;color:white;border:none;border-radius:10px;padding:10px 14px;font-weight:bold;cursor:pointer;">
                                 Buscar
                             </button>
+                    
                         </div>
-
-                        <div id="hospital_drug_results" style="margin-top:12px;"></div>
-                    </div>
-
+                    
+                        <div
+                            id="hospital_drug_results"
+                            style="margin-top:12px;">
+                        </div>
+                    
+                    </div>                    
                     <input name="medication_name" placeholder="Medicamento seleccionado" required>
                     <input id="med_mg_kg" name="med_mg_kg" type="hidden">
+                    
                     <input id="med_concentration" name="med_concentration" type="hidden">
-
+                    
                     <input id="med_dose" name="dose" placeholder="Dosis / volumen verificado" required>
-
-                    <small class="full" style="color:#92400e;">
-                        ⚠️ Confirmá dosis, unidad, concentración y presentación antes de programar. El cálculo del Vademécum requiere validación profesional.
-                    </small>
+                    <small class="full" style="color:#92400e;">⚠️ Confirmá dosis, unidad, concentración y presentación antes de programar. El cálculo del Vademécum requiere validación profesional.</small>
 
                     <select name="route" required>
                         <option value="">Vía</option>
@@ -1202,8 +1209,7 @@
                         <option value="PRN">PRN / según necesidad</option>
                     </select>
 
-                    <label class="full" style="font-weight:700;">
-                        🕐 Hora de inicio
+                    <label class="full" style="font-weight:700;">🕐 Hora de inicio
                         <input type="time" name="scheduled_time" required style="width:100%;margin-top:5px;">
                     </label>
 
@@ -1261,9 +1267,13 @@
                             {% set next_dose = same_pending|first %}
 
                             {% if not next_dose %}
+                            
                                 {% set treatment_status = 'Completado' %}
+                            
                             {% else %}
+                            
                                 {% set treatment_status = next_dose.ui_status or 'Pendiente' %}
+                            
                             {% endif %}
 
                             {% set total_doses = (same_pending|length) + (same_applied|length) %}
@@ -1366,6 +1376,7 @@ Sin observaciones cargadas.
                                         </button>
                                     {% endif %}
                                 </div>
+
                             </div>
                         {% endif %}
                     {% endfor %}
@@ -1373,7 +1384,6 @@ Sin observaciones cargadas.
                 {% else %}
                     <div class="note">Todavía no hay medicación activa.</div>
                 {% endif %}
-
                 {% set finished_meds = medications|selectattr("status","equalto","Finalizada")|list %}
 
                 {% if finished_meds %}
@@ -1396,14 +1406,18 @@ Sin observaciones cargadas.
                                     <th style="padding:9px;border:1px solid #e5e7eb;">Estado</th>
                                 </tr>
                             </thead>
+
                             <tbody>
                                 {% for m in finished_meds %}
-                                <tr>
+                                <tr style="background:#f9fafb;">
                                     <td style="padding:9px;border:1px solid #e5e7eb;">{{ m.scheduled_time or '-' }}</td>
-                                    <td style="padding:9px;border:1px solid #e5e7eb;">{{ m.medication_name or '-' }}</td>
+                                    <td style="padding:9px;border:1px solid #e5e7eb;">
+                                        <b>{{ m.medication_name or '-' }}</b><br>
+                                        <small>{{ m.frequency or '-' }}</small>
+                                    </td>
                                     <td style="padding:9px;border:1px solid #e5e7eb;">{{ m.dose or '-' }}</td>
                                     <td style="padding:9px;border:1px solid #e5e7eb;">{{ m.route or '-' }}</td>
-                                    <td style="padding:9px;border:1px solid #e5e7eb;">🏁 Finalizada</td>
+                                    <td style="padding:9px;border:1px solid #e5e7eb;">⚪ Finalizada</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -1412,176 +1426,228 @@ Sin observaciones cargadas.
                 </details>
                 {% endif %}
             </div>
-
             <div class="card">
-                <h2>🚨 Alertas de internación</h2>
+                <h2>🍽️ Enfermería rápida</h2>
 
-                {% if hospitalization.status == 'Internado' %}
-
-                    {% if pending_meds %}
-                        <div class="alert">
-                            💊 Hay {{ pending_meds|length }} dosis pendientes de administración.
-                        </div>
-                    {% else %}
-                        <div class="soft-alert">
-                            ✅ No hay dosis pendientes registradas.
-                        </div>
-                    {% endif %}
-
-                    {% if latest_event_time %}
-                        <div class="note">
-                            🕒 Último control registrado: {{ latest_event_time }}
-                        </div>
-                    {% else %}
-                        <div class="alert">
-                            ⚠️ Todavía no se registraron controles de evolución.
-                        </div>
-                    {% endif %}
-
-                {% else %}
-                    <div class="soft-alert">
-                        🏠 Internación finalizada.
-                    </div>
-                {% endif %}
-            </div>
-
-            <div class="card">
-                <h2>📋 Controles de enfermería</h2>
-
-                {% if checklists %}
-                    <div class="compact-panel-v3">
-                        {% for c in checklists %}
-                        <div class="compact-row-v3">
-                            <span>
-                                <b>Control de enfermería</b>
-
-                                <small>
-                                    {% if c.created_at %}
-                                        {{ c.created_at.strftime('%d/%m/%Y %H:%M') }}
-                                    {% endif %}
-                                    {% if c.created_by %}
-                                        · {{ c.created_by }}
-                                    {% endif %}
-                                </small>
-
-                                {% if c.ate %}🍽 Comió · {% endif %}
-                                {% if c.drank %}💧 Bebió · {% endif %}
-                                {% if c.urinated %}🚽 Orinó · {% endif %}
-                                {% if c.defecated %}💩 Defecó · {% endif %}
-                                {% if c.vomiting_diarrhea %}⚠️ Vómitos/diarrea · {% endif %}
-                                {% if c.cage_cleaned %}🧹 Jaula limpia{% endif %}
-
-                                {% if c.notes %}
-                                    <small>{{ c.notes }}</small>
-                                {% endif %}
-                            </span>
-                        </div>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <div class="note">Todavía no hay controles de enfermería registrados.</div>
-                {% endif %}
-            </div>
-
-            <div class="card">
-                <h2>📎 Estudios y documentación</h2>
-
-                <div class="clinical-board">
-                    <div class="board-box">
-                        <div class="icon">🩻</div>
-                        <b>Radiografías</b>
-                        <p>Consultar estudios radiográficos desde la historia clínica del paciente.</p>
+                <div class="compact-panel-v3">
+                    <div class="compact-row-v3">
+                        <span>🍽️ Comió / tomó agua<small>Último registro: {{ latest_checklist_time }} hs</small></span>
+                        <b>Checklist</b>
                     </div>
 
-                    <div class="board-box">
-                        <div class="icon">❤️</div>
-                        <b>Electrocardiogramas</b>
-                        <p>Consultar registros electrocardiográficos asociados al paciente.</p>
+                    <div class="compact-row-v3">
+                        <span>🚽 Orina / materia fecal<small>Último registro: {{ latest_checklist_time }} hs</small></span>
+                        <b>Checklist</b>
                     </div>
 
-                    <div class="board-box">
-                        <div class="icon">🧪</div>
-                        <b>Laboratorio</b>
-                        <p>Consultar resultados y archivos adjuntos.</p>
+                    <div class="compact-row-v3">
+                        <span>🤢 Vómitos / diarrea<small>Último registro: {{ latest_checklist_time }} hs</small></span>
+                        <b>Checklist</b>
                     </div>
 
-                    <div class="board-box">
-                        <div class="icon">📄</div>
-                        <b>Historia clínica</b>
-                        <p>Acceder al historial clínico completo.</p>
+                    <div class="compact-row-v3">
+                        <span>🧼 Limpieza de jaula<small>Último registro: {{ latest_checklist_time }} hs</small></span>
+                        <b>Checklist</b>
                     </div>
                 </div>
+            </div>
+            <div class="card">
+                <h2>🖥️ Monitor UTI / Prioridad</h2>
+                <div class="dashboard" style="margin-bottom:16px;">
 
-                <div class="actions">
-                    <a href="/patients/{{ patient.id }}">
-                        📂 Abrir historia clínica
-                    </a>
+                    <div class="dash-card">
+                        <span>💊 Próxima medicación</span>
+                
+                        {% set pending_meds = medications|selectattr("status","equalto","Pendiente")|list %}
+                        
+                        {% if pending_meds %}
+                            {% set next_med = pending_meds|first %}
+                            <b>⏰ {{ next_med.medication_name }}</b>
+                            <small>
+                                {{ next_med.scheduled_time or '-' }} · {{ next_med.dose or '-' }}
+                                {% if next_med.route %} · {{ next_med.route }}{% endif %}
+                            </small>
+                        {% else %}
+                            <b>Sin pendientes</b>
+                            <small>✔</small>
+                        {% endif %}
+                
+
+                    </div>
+                
+                    <div class="dash-card">
+                
+                        <span>⏰ Próximo control</span>
+                
+                        {% if hours_since_control is not none %}
+                
+                            {% if hours_since_control < 2 %}
+                                <b>🟢 OK</b>
+                            {% elif hours_since_control < 4 %}
+                                <b>🟡 Control</b>
+                            {% else %}
+                                <b>🔴 Urgente</b>
+                            {% endif %}
+                
+                            <small>Hace {{ hours_since_control|int }} h</small>
+                
+                        {% else %}
+                            <b>Sin datos</b>
+                        {% endif %}
+                
+                    </div>
+                
+                </div>
+                <div class="note"
+                     style="{% if priority_class == 'danger' %}background:#fff1f2;border-color:#fecaca;color:#991b1b;{% elif priority_class == 'warning' %}background:#fff7ed;border-color:#fed7aa;color:#9a3412;{% elif priority_class == 'watch' %}background:#fefce8;border-color:#fde68a;color:#854d0e;{% else %}background:#f0fdf4;border-color:#bbf7d0;color:#166534;{% endif %}">
+                    <b>{{ priority_icon }} {{ priority_label }}</b><br>
+                    Score automático: {{ priority_score }}/100
+                    {% if hours_since_control is not none %}
+                        · Último control hace {{ hours_since_control|int }} h
+                    {% endif %}
+                </div>
+
+                <br>
+                <div class="dashboard"
+                     style="margin-top:18px;">
+                    {% for item in uti_monitor %}
+                    <div class="dash-card"
+                         style="{% if item.class == 'danger' %}border-color:#fecaca;background:#fff1f2;{% elif item.class == 'warning' %}border-color:#fed7aa;background:#fff7ed;{% else %}border-color:#bbf7d0;background:#f0fdf4;{% endif %}">
+                        <span>{{ item.label }}</span>
+                        <b>{{ item.value }} {{ item.unit }}</b>
+                        <small>
+                            {% if item.class == 'danger' %}Crítico{% elif item.class == 'warning' %}Revisar{% else %}OK{% endif %}
+                        </small>
+                    </div>
+                    {% endfor %}
                 </div>
             </div>
 
             <div class="card">
-                <h2>🏠 Alta de internación</h2>
+                <h2>👩‍⚕️ Enfermería en tiempo real</h2>
+
+                <div class="note"
+                     style="{% if priority_class=='danger' %}background:#fff1f2;border-color:#fecaca;color:#991b1b;
+                            {% elif priority_class=='warning' %}background:#fff7ed;border-color:#fed7aa;color:#9a3412;
+                            {% elif priority_class=='watch' %}background:#fefce8;border-color:#fde68a;color:#854d0e;
+                            {% else %}background:#f0fdf4;border-color:#bbf7d0;color:#166534;
+                            {% endif %}">
+                    <b>{{ priority_icon }} {{ priority_label }}</b><br>
+                    <small>Score IA: {{ priority_score }}/100 · Último control: {{ latest_event_time }} hs</small>
+                </div>
+
+                <br>
+
+                <div class="compact-panel-v3">
+                    {% for task in nursing_tasks %}
+                    <div class="compact-row-v3">
+                        <span>
+                            {{ task.icon }} {{ task.title }}
+                            <small>{{ task.detail }}</small>
+                        </span>
+                        <b>{{ task.priority }}</b>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <br>
+
+                <details class="compact-ai-v3">
+                    <summary>▼ Ver resumen IA</summary>
+                    <div class="note" style="margin-top:10px;">
+                        <ul style="margin-top:0;margin-bottom:0;">
+                            {% for line in clinical_summary %}
+                            <li>{{ line }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </details>
+            </div>
+            <div class="card">
+                <h2>🤖 IA / Alertas clínicas</h2>
+
+                <button type="button"
+                        onclick="runHospitalizationAI()"
+                        style="background:#7c3aed;color:white;border:none;border-radius:14px;padding:11px 14px;font-weight:bold;cursor:pointer;width:100%;margin-bottom:10px;">
+                    🧠 Analizar internación
+                </button>
+
+                <div id="hospitalization_ai_result" class="note" style="display:none;margin-bottom:12px;"></div>
+
+                <div class="compact-panel-v3">
+                    {% for alert in hospital_alerts %}
+                    <div class="compact-row-v3"
+                         style="{% if alert.level == 'danger' %}border-color:#fecaca;background:#fff1f2;
+                                {% elif alert.level == 'warning' %}border-color:#fed7aa;background:#fff7ed;
+                                {% else %}border-color:#bbf7d0;background:#f0fdf4;
+                                {% endif %}">
+                        <span>
+                            {{ alert.icon }} {{ alert.title }}
+                            <small>{{ alert.detail }}</small>
+                        </span>
+                        <b>
+                            {% if alert.level == 'danger' %}
+                                Urgente
+                            {% elif alert.level == 'warning' %}
+                                Revisar
+                            {% else %}
+                                OK
+                            {% endif %}
+                        </b>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <br>
+
+                <details class="compact-ai-v3">
+                    <summary>▼ Ver resumen clínico automático</summary>
+                    <div class="note" style="margin-top:10px;">
+                        <ul style="margin-top:0;margin-bottom:0;">
+                            {% for line in clinical_summary %}
+                            <li>{{ line }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </details>
+            </div>
+
+            <div class="card">
+                <h2>🏠 Alta</h2>
 
                 {% if hospitalization.status == 'Internado' %}
-
-                <form
-                    method="post"
-                    action="/hospitalizations/{{ hospitalization.id }}/discharge"
-                    class="form-grid"
-                    onsubmit="return confirm('¿Confirmar el alta de esta internación?');"
-                >
+                <form method="post" action="/hospitalizations/{{ hospitalization.id }}/discharge" class="form-grid"
+                      onsubmit="return confirm('¿Confirmar alta de internación?');">
 
                     <textarea
                         name="discharge_summary"
                         class="full"
-                        placeholder="Resumen clínico al alta"
-                    ></textarea>
+                        placeholder="Resumen de alta"></textarea>
 
                     <textarea
                         name="discharge_indications"
                         class="full"
-                        placeholder="Indicaciones domiciliarias"
-                    ></textarea>
-
-                    <input
-                        type="text"
-                        name="discharge_diagnosis"
-                        placeholder="Diagnóstico al alta"
-                    >
-
-                    <input
-                        type="date"
-                        name="next_control_date"
-                    >
+                        placeholder="Indicaciones domiciliarias"></textarea>
 
                     <button type="submit" class="discharge-btn full">
-                        🏠 Confirmar alta
+                        🏠 Dar alta
                     </button>
-
                 </form>
-
                 {% else %}
+                    <h3>Fecha de alta</h3>
+                    <div class="note">{{ hospitalization.discharge_date.strftime('%d/%m/%Y %H:%M') if hospitalization.discharge_date else '-' }}</div>
 
-                <div class="soft-alert">
-                    Esta internación ya fue finalizada.
-                </div>
-
-                {% if hospitalization.discharge_summary %}
-                    <h3>Resumen al alta</h3>
-                    <div class="note">
-                        {{ hospitalization.discharge_summary }}
-                    </div>
-                {% endif %}
-
-                {% if hospitalization.discharge_indications %}
                     <br>
-                    <h3>Indicaciones</h3>
-                    <div class="note">
-                        {{ hospitalization.discharge_indications }}
-                    </div>
-                {% endif %}
 
+                    <h3>Resumen</h3>
+                    <div class="note">{{ hospitalization.discharge_summary or '-' }}</div>
+
+                    <br>
+
+                    <h3>Indicaciones</h3>
+                    <div class="note">{{ hospitalization.discharge_indications or '-' }}</div>
                 {% endif %}
+            </div>
             </div>
 
         </div>
@@ -1589,133 +1655,229 @@ Sin observaciones cargadas.
     </div>
 
 </div>
-
 <script>
-function searchHospitalDrug() {
-    const searchInput = document.getElementById("vademecum_search");
-    const results = document.getElementById("hospital_drug_results");
+async function runHospitalizationAI() {
+    function formatAIItem(x) {
+        if (typeof x === "string") {
+            return x;
+        }
 
-    if (!searchInput || !results) {
-        return;
+        if (typeof x === "object" && x !== null) {
+            return Object.values(x).join(" — ");
+        }
+
+        return String(x);
     }
 
-    const query = searchInput.value.trim();
+    const box = document.getElementById("hospitalization_ai_result");
+    box.style.display = "block";
+    box.innerHTML = "🧠 Analizando internación con IA clínica...";
 
-    if (query.length < 2) {
-        results.innerHTML = "Ingresá al menos dos caracteres.";
-        return;
-    }
-
-    results.innerHTML = "Buscando medicamento...";
-
-    fetch("/vademecum/api/search?q=" + encodeURIComponent(query))
-        .then(response => {
-            if (!response.ok) {
-                throw new Error("No se pudo consultar el Vademécum");
-            }
-            return response.json();
-        })
-        .then(data => {
-            const drugs = Array.isArray(data)
-                ? data
-                : (data.results || data.items || []);
-
-            if (!drugs.length) {
-                results.innerHTML = "No se encontraron medicamentos.";
-                return;
-            }
-
-            results.innerHTML = "";
-
-            drugs.forEach(drug => {
-                const button = document.createElement("button");
-
-                button.type = "button";
-                button.style.cssText =
-                    "display:block;width:100%;text-align:left;" +
-                    "background:white;border:1px solid #f3c6d8;" +
-                    "border-radius:10px;padding:10px;margin-bottom:6px;" +
-                    "cursor:pointer;color:#374151;";
-
-                button.textContent =
-                    drug.name ||
-                    drug.medication_name ||
-                    drug.product_name ||
-                    "Medicamento";
-
-                button.onclick = function() {
-                    selectHospitalDrug(drug);
-                };
-
-                results.appendChild(button);
-            });
-        })
-        .catch(error => {
-            results.textContent = error.message;
+    try {
+        const response = await fetch("/hospitalizations/{{ hospitalization.id }}/ai", {
+            method: "POST"
         });
+
+        const data = await response.json();
+
+        let html = "";
+        html += "<b>Prioridad IA:</b> " + (data.priority || "-") + "<br><br>";
+        html += "<b>Resumen clínico:</b><br>" + (data.summary || "-") + "<br><br>";
+
+        if (data.problems && data.problems.length) {
+            html += "<b>Problemas detectados:</b><ul>";
+            data.problems.forEach(x => html += "<li>" + formatAIItem(x) + "</li>");
+            html += "</ul>";
+        }
+
+        if (data.differentials && data.differentials.length) {
+            html += "<b>Diferenciales:</b><ul>";
+            data.differentials.forEach(x => html += "<li>" + formatAIItem(x) + "</li>");
+            html += "</ul>";
+        }
+
+        if (data.recommended_tests && data.recommended_tests.length) {
+            html += "<b>Estudios sugeridos:</b><ul>";
+            data.recommended_tests.forEach(x => html += "<li>" + formatAIItem(x) + "</li>");
+            html += "</ul>";
+        }
+
+        if (data.treatment && data.treatment.length) {
+            html += "<b>Conducta / tratamiento:</b><ul>";
+            data.treatment.forEach(x => html += "<li>" + formatAIItem(x) + "</li>");
+            html += "</ul>";
+        }
+
+        if (data.alerts && data.alerts.length) {
+            html += "<b>Alertas:</b><ul>";
+            data.alerts.forEach(x => html += "<li>" + formatAIItem(x) + "</li>");
+            html += "</ul>";
+        }
+
+        box.innerHTML = html;
+
+    } catch (error) {
+        box.innerHTML = "⚠️ No se pudo generar la IA clínica.";
+    }
 }
+async function searchHospitalDrug(){
 
-function selectHospitalDrug(drug) {
-    const form = document.getElementById("hospital-med-form");
+    const text = document.getElementById("vademecum_search").value.trim();
 
-    if (!form) {
+    if(!text){
         return;
     }
 
-    const nameInput = form.querySelector('[name="medication_name"]');
-    const mgKgInput = document.getElementById("med_mg_kg");
-    const concentrationInput = document.getElementById("med_concentration");
+    const resultBox = document.getElementById("hospital_drug_results");
+    resultBox.innerHTML = "🔎 Buscando...";
 
-    const drugName =
-        drug.name ||
-        drug.medication_name ||
-        drug.product_name ||
-        "";
+    try{
 
-    if (nameInput) {
-        nameInput.value = drugName;
+        const response = await fetch(
+            "/vademecum/api/search?q=" + encodeURIComponent(text)
+        );
+
+        const data = await response.json();
+
+        if(!data.length){
+            resultBox.innerHTML =
+                "<div class='alert'>No se encontraron medicamentos.</div>";
+            return;
+        }
+
+        let html = "";
+
+        data.forEach(drug=>{
+
+            html += `
+            <div
+                onclick="calculateHospitalDrug(${drug.id})"
+                style="
+                    border:1px solid #f3c6d8;
+                    border-radius:14px;
+                    padding:12px;
+                    margin-top:8px;
+                    background:white;
+                    cursor:pointer;
+                    transition:.15s;
+                "
+                onmouseover="this.style.background='#fff8fb'"
+                onmouseout="this.style.background='white'"
+            >
+
+                <b style="font-size:15px;">
+                    💊 ${drug.name}
+                </b>
+
+                <br>
+
+                <small style="color:#6b7280;">
+                    ${drug.laboratory || ""}
+                    ${drug.presentation || ""}
+                </small>
+
+                <br><br>
+
+                <small style="color:#22c55e;font-weight:bold;">
+                    👉 Hacé clic para cargar automáticamente
+                </small>
+
+            </div>
+            `;
+
+        });
+
+        resultBox.innerHTML = html;
+
+    }catch(e){
+
+        resultBox.innerHTML =
+            "<div class='alert'>Error consultando Vademécum.</div>";
+
     }
 
-    if (mgKgInput) {
-        mgKgInput.value = drug.mg_kg || drug.dose_mg_kg || "";
-    }
+}
+async function calculateHospitalDrug(activeId){
 
-    if (concentrationInput) {
-        concentrationInput.value =
-            drug.concentration_mg_ml ||
-            drug.concentration ||
-            "";
-    }
+    const resultBox = document.getElementById("hospital_drug_results");
 
-    calculateMedicationDose();
+    resultBox.innerHTML += "<div class='soft-alert'>⚖ Calculando dosis...</div>";
 
-    const results = document.getElementById("hospital_drug_results");
+    try{
 
-    if (results) {
-        results.textContent = "Seleccionado: " + drugName;
+        const response = await fetch(
+            "/hospitalizations/{{ hospitalization.id }}/vademecum-dose?active_id=" + activeId
+        );
+
+        const data = await response.json();
+
+        if(!data.ok){
+            resultBox.innerHTML += "<div class='alert'>No se pudo calcular la dosis.</div>";
+            return;
+        }
+
+        const medInput = document.querySelector("input[name='medication_name']");
+        const doseInput = document.querySelector("input[name='dose']");
+        const routeSelect = document.querySelector("select[name='route']");
+        const freqSelect = document.querySelector("select[name='frequency']");
+        const notesInput = document.querySelector("textarea[name='notes']");
+
+        medInput.value = data.brand_name || data.drug_name || "";
+        doseInput.value = data.dose_result || data.dose_text || "";
+
+        if(data.route){
+            routeSelect.value = data.route;
+        }
+
+        if(data.frequency){
+            freqSelect.value = data.frequency;
+        }
+
+        notesInput.value =
+            "Vademécum: " + (data.drug_name || "-") + "\n" +
+            "Peso: " + (data.patient_weight || "-") + " kg\n" +
+            "Dosis base: " + (data.dose_text || "-") + "\n" +
+            "Concentración: " + (data.concentration || "-") + "\n" +
+            "Cálculo: " + (data.dose_result || "-") + "\n" +
+            "Observaciones: " + (data.observations || "-") + "\n" +
+            "Advertencias: " + (data.warnings || "-");
+
+        resultBox.innerHTML += `
+            <div class="soft-alert">
+                <b>✅ Cálculo aplicado al formulario</b><br>
+                Medicamento: ${data.brand_name || data.drug_name || "-"}<br>
+                Peso: ${data.patient_weight || "-"} kg<br>
+                Dosis: ${data.dose_result || data.dose_text || "-"}<br>
+                Vía: ${data.route || "-"}<br>
+                Frecuencia: ${data.frequency || "-"}<br>
+                Ahora solo elegí hora inicial y tocá <b>💊 Programar tratamiento inteligente</b>.
+            </div>
+        `;
+
+    }catch(e){
+
+        resultBox.innerHTML += "<div class='alert'>Error calculando dosis.</div>";
+
     }
 }
-
+// Actualiza avisos al volver a la pestaña; no interrumpe formularios en edición.
+let hospitalFormEdited = false;
+document.querySelectorAll('form').forEach(form => {
+    form.addEventListener('input', () => { hospitalFormEdited = true; });
+    form.addEventListener('change', () => { hospitalFormEdited = true; });
+});
+function refreshHospitalAlerts() {
+    if (document.visibilityState === 'visible' && !hospitalFormEdited &&
+        !document.querySelector('input:focus,textarea:focus,select:focus')) {
+        window.location.reload();
+    }
+}
+setInterval(refreshHospitalAlerts, 60000);
 function calculateMedicationDose() {
-    const weight = parseFloat(
-        "{{ hospitalization.initial_weight or patient.weight or 0 }}"
-    );
-
-    const mgKgInput = document.getElementById("med_mg_kg");
-    const concentrationInput = document.getElementById("med_concentration");
+    const weight = parseFloat("{{ hospitalization.initial_weight or patient.weight or 0 }}");
+    const mgKg = parseFloat((document.getElementById("med_mg_kg").value || "").replace(",", "."));
+    const concentration = parseFloat((document.getElementById("med_concentration").value || "").replace(",", "."));
     const doseInput = document.getElementById("med_dose");
-
-    if (!mgKgInput || !concentrationInput || !doseInput) {
-        return;
-    }
-
-    const mgKg = parseFloat(
-        (mgKgInput.value || "").replace(",", ".")
-    );
-
-    const concentration = parseFloat(
-        (concentrationInput.value || "").replace(",", ".")
-    );
 
     if (!weight || !mgKg || !concentration) {
         return;
@@ -1724,12 +1886,7 @@ function calculateMedicationDose() {
     const totalMg = weight * mgKg;
     const totalMl = totalMg / concentration;
 
-    doseInput.value =
-        totalMl.toFixed(2) +
-        " ml (" +
-        totalMg.toFixed(1) +
-        " mg)";
-}
+    doseInput.value = totalMl.toFixed(2) + " ml (" + totalMg.toFixed(1) + " mg)";
+}    
 </script>
-
 {% endblock %}
