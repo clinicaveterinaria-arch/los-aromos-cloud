@@ -13543,10 +13543,27 @@ def hospitalization_detail(
             ):
                 day_offset += 1
     
-            scheduled_date = (
-                first_created_at.date()
-                + timedelta(days=day_offset)
+            # Utilizar fecha explícita cuando esté disponible.
+            explicit_date = re.search(
+                r'\[DOSIS_FECHA:(\d{4}-\d{2}-\d{2})\]',
+                medication.notes or ''
             )
+
+            if explicit_date:
+                try:
+                    scheduled_date = date.fromisoformat(
+                        explicit_date.group(1)
+                    )
+                except ValueError:
+                    scheduled_date = (
+                        first_created_at.date()
+                        + timedelta(days=day_offset)
+                    )
+            else:
+                scheduled_date = (
+                    first_created_at.date()
+                    + timedelta(days=day_offset)
+                )
     
             scheduled_datetime = datetime.combine(
                 scheduled_date,
@@ -13588,7 +13605,92 @@ def hospitalization_detail(
             medication.id
         )
     )
+    # ==========================================
+    # TARJETAS DE TRATAMIENTOS ACTIVOS
+    # ==========================================
 
+    treatment_cards_map = {}
+
+    for med in medications:
+
+        code_match = re.search(
+            r'\[TRATAMIENTO_ACTIVO:([^\]]+)\]',
+            med.notes or ''
+        )
+
+        code = (
+            code_match.group(1)
+            if code_match
+            else f'legacy-{med.id}'
+        )
+
+        if med.status not in ('Pendiente', 'Aplicada'):
+            continue
+
+        card = treatment_cards_map.setdefault(
+            code,
+            {
+                'medication': med,
+                'pending': [],
+                'applied': []
+            }
+        )
+
+        if med.status == 'Pendiente':
+            card['pending'].append(med)
+        else:
+            card['applied'].append(med)
+
+    treatment_cards = []
+
+    for card in treatment_cards_map.values():
+
+        card['pending'].sort(
+            key=lambda m: (
+                m.ui_scheduled_at or datetime.max,
+                m.id
+            )
+        )
+
+        card['applied'].sort(
+            key=lambda m: (
+                m.applied_at or datetime.min,
+                m.id
+            )
+        )
+
+        card['next_dose'] = (
+            card['pending'][0]
+            if card['pending']
+            else None
+        )
+
+        card['last_applied'] = (
+            card['applied'][-1]
+            if card['applied']
+            else None
+        )
+
+        card['total'] = (
+            len(card['pending'])
+            + len(card['applied'])
+        )
+
+        card['progress'] = (
+            round(
+                len(card['applied']) * 100 / card['total']
+            )
+            if card['total']
+            else 0
+        )
+
+        card['ui_status'] = (
+            card['next_dose'].ui_status
+            if card['next_dose']
+            else 'Completado'
+        )
+
+        treatment_cards.append(card)
     fluids = (
         db.query(HospitalizationFluid)
         .filter(HospitalizationFluid.hospitalization_id == hospitalization.id)
@@ -13681,6 +13783,7 @@ def hospitalization_detail(
             'patient': patient,
             'related_events': related_events,
             'medications': medications,
+            'treatment_cards': treatment_cards,
             'fluids': fluids,
             'hospital_alerts': hospital_ai['alerts'],
             'priority_label': hospital_ai['priority_label'],
@@ -14109,11 +14212,15 @@ def hospitalization_medication_create(
     route: str = Form(''),
     frequency: str = Form(''),
     scheduled_time: str = Form(''),
+    start_date: str = Form(''),
     notes: str = Form(''),
     db: Session = Depends(get_db),
     user: User = Depends(require_user)
 ):
-    hospitalization = db.get(Hospitalization, hospitalization_id)
+    hospitalization = db.get(
+        Hospitalization,
+        hospitalization_id
+    )
 
     if not hospitalization:
         raise HTTPException(
@@ -14121,63 +14228,84 @@ def hospitalization_medication_create(
             detail='Internación no encontrada'
         )
 
-    # Validar campos obligatorios
+    if hospitalization.status != 'Internado':
+        raise HTTPException(
+            status_code=409,
+            detail='La internación está cerrada'
+        )
+
     if not all((
         medication_name.strip(),
         dose.strip(),
         route.strip(),
         frequency.strip(),
-        scheduled_time.strip()
+        scheduled_time.strip(),
+        start_date.strip()
     )):
         raise HTTPException(
             status_code=422,
-            detail='Completá medicamento, dosis, vía, frecuencia y hora de inicio'
+            detail='Completá medicamento, dosis, vía, frecuencia, fecha y hora'
         )
 
-    # Validar formato de hora
-    try:
-        datetime.strptime(scheduled_time, '%H:%M')
-    except ValueError:
-        raise HTTPException(
-            status_code=422,
-            detail='Hora de inicio inválida'
-        )
-
-    # Validar frecuencia
     if frequency not in (
-        'SID',
-        'BID',
-        'TID',
-        'QID',
-        'q48h',
-        'q72h',
-        'PRN'
+        'SID', 'BID', 'TID', 'QID',
+        'q48h', 'q72h', 'PRN'
     ):
         raise HTTPException(
             status_code=422,
             detail='Frecuencia inválida'
         )
 
-    schedule_times = build_medication_times(
-        scheduled_time,
-        frequency
-    )
+    try:
+        initial_datetime = datetime.combine(
+            date.fromisoformat(start_date),
+            datetime.strptime(
+                scheduled_time,
+                '%H:%M'
+            ).time()
+        )
 
-    if not schedule_times:
-        schedule_times = [scheduled_time or '']
+    except ValueError:
+        raise HTTPException(
+            status_code=422,
+            detail='Fecha u hora inválida'
+        )
+
+    if initial_datetime < argentina_now() - timedelta(days=1):
+        raise HTTPException(
+            status_code=422,
+            detail='La fecha inicial es demasiado antigua'
+        )
+
+    interval = medication_interval_hours(frequency)
+
+    if interval and interval <= 24:
+        count = max(1, 24 // interval)
+    else:
+        count = 1
+
+    if interval:
+        schedule_datetimes = [
+            initial_datetime + timedelta(hours=i * interval)
+            for i in range(count)
+        ]
+    else:
+        schedule_datetimes = [initial_datetime]
 
     treatment_code = uuid.uuid4().hex[:10]
 
-    for med_time in schedule_times:
+    for med_datetime in schedule_datetimes:
+
         medication = HospitalizationMedication(
             hospitalization_id=hospitalization.id,
-            medication_name=medication_name or '',
-            dose=dose or '',
-            route=route or '',
-            frequency=frequency or '',
-            scheduled_time=med_time or '',
+            medication_name=medication_name.strip(),
+            dose=dose.strip(),
+            route=route.strip(),
+            frequency=frequency,
+            scheduled_time=med_datetime.strftime('%H:%M'),
             notes=(
                 f'[TRATAMIENTO_ACTIVO:{treatment_code}]\n'
+                f'[DOSIS_FECHA:{med_datetime.date().isoformat()}]\n'
                 f'{notes or ""}'
             ).strip(),
             created_by=user.username,
@@ -14192,23 +14320,43 @@ def hospitalization_medication_create(
         f'/hospitalizations/{hospitalization.id}#medicacion',
         status_code=303
     )
-
-
-@app.post('/hospitalizations/{hospitalization_id}/medications/{medication_id}/done')
-def hospitalization_medication_done(
+@app.post('/hospitalizations/{hospitalization_id}/medications/{medication_id}/apply')
+def hospitalization_medication_apply(
     hospitalization_id: int,
     medication_id: int,
     db: Session = Depends(get_db),
     user: User = Depends(require_user)
 ):
-    hospitalization = db.get(Hospitalization, hospitalization_id)
-    medication = db.get(HospitalizationMedication, medication_id)
+    hospitalization = db.get(
+        Hospitalization,
+        hospitalization_id
+    )
+
+    medication = db.get(
+        HospitalizationMedication,
+        medication_id
+    )
 
     if not hospitalization or not medication:
-        raise HTTPException(status_code=404, detail='Medicación no encontrada')
+        raise HTTPException(
+            status_code=404,
+            detail='Medicación no encontrada'
+        )
 
     if medication.hospitalization_id != hospitalization.id:
-        raise HTTPException(status_code=404, detail='Medicación no corresponde a esta internación')
+        raise HTTPException(
+            status_code=404,
+            detail='Medicación no corresponde a esta internación'
+        )
+
+    if (
+        hospitalization.status != 'Internado'
+        or medication.status != 'Pendiente'
+    ):
+        raise HTTPException(
+            status_code=409,
+            detail='La dosis no está pendiente o la internación está cerrada'
+        )
 
     medication.status = 'Aplicada'
     medication.applied_at = argentina_now()
@@ -14233,42 +14381,123 @@ def hospitalization_medication_done(
     db.add(event)
 
     notes = medication.notes or ''
-    treatment_code = ''
 
-    if '[TRATAMIENTO_ACTIVO:' in notes:
-        treatment_code = notes.split('[TRATAMIENTO_ACTIVO:')[1].split(']')[0]
+    code_match = re.search(
+        r'\[TRATAMIENTO_ACTIVO:([^\]]+)\]',
+        notes
+    )
 
-    if treatment_code:
+    if code_match:
+
+        treatment_code = code_match.group(1)
+
         pending_same_treatment = (
             db.query(HospitalizationMedication)
-            .filter(HospitalizationMedication.hospitalization_id == hospitalization.id)
-            .filter(HospitalizationMedication.notes.ilike(f'%[TRATAMIENTO_ACTIVO:{treatment_code}]%'))
-            .filter(HospitalizationMedication.status == 'Pendiente')
-            .filter(HospitalizationMedication.id != medication.id)
+            .filter(
+                HospitalizationMedication.hospitalization_id
+                == hospitalization.id
+            )
+            .filter(
+                HospitalizationMedication.notes.ilike(
+                    f'%[TRATAMIENTO_ACTIVO:{treatment_code}]%'
+                )
+            )
+            .filter(
+                HospitalizationMedication.status == 'Pendiente'
+            )
+            .filter(
+                HospitalizationMedication.id != medication.id
+            )
             .count()
         )
 
         if pending_same_treatment == 0:
-            schedule_times = build_medication_times(
-                medication.scheduled_time or '',
-                medication.frequency or ''
+
+            interval = medication_interval_hours(
+                medication.frequency
             )
 
-            if schedule_times:
-                for med_time in schedule_times:
+            # PRN no genera dosis periódicas automáticamente.
+            if interval:
+
+                all_group = (
+                    db.query(HospitalizationMedication)
+                    .filter(
+                        HospitalizationMedication.hospitalization_id
+                        == hospitalization.id
+                    )
+                    .filter(
+                        HospitalizationMedication.notes.ilike(
+                            f'%[TRATAMIENTO_ACTIVO:{treatment_code}]%'
+                        )
+                    )
+                    .all()
+                )
+
+                def scheduled_dt(item):
+
+                    match = re.search(
+                        r'\[DOSIS_FECHA:(\d{4}-\d{2}-\d{2})\]',
+                        item.notes or ''
+                    )
+
+                    item_time = datetime.strptime(
+                        item.scheduled_time,
+                        '%H:%M'
+                    ).time()
+
+                    if match:
+                        item_date = date.fromisoformat(
+                            match.group(1)
+                        )
+                    else:
+                        item_date = (
+                            item.created_at or argentina_now()
+                        ).date()
+
+                    return datetime.combine(
+                        item_date,
+                        item_time
+                    )
+
+                try:
+                    last_scheduled = max(
+                        scheduled_dt(item)
+                        for item in all_group
+                    )
+
+                    next_scheduled = (
+                        last_scheduled
+                        + timedelta(hours=interval)
+                    )
+
+                    clean_notes = re.sub(
+                        r'\[DOSIS_FECHA:[^\]]+\]\s*',
+                        '',
+                        medication.notes or ''
+                    )
+
                     new_med = HospitalizationMedication(
                         hospitalization_id=hospitalization.id,
                         medication_name=medication.medication_name or '',
                         dose=medication.dose or '',
                         route=medication.route or '',
                         frequency=medication.frequency or '',
-                        scheduled_time=med_time or '',
-                        notes=medication.notes or '',
+                        scheduled_time=next_scheduled.strftime('%H:%M'),
+                        notes=(
+                            f'[DOSIS_FECHA:{next_scheduled.date().isoformat()}]\n'
+                            f'{clean_notes}'
+                        ),
                         created_by=user.username,
                         status='Pendiente'
                     )
 
                     db.add(new_med)
+
+                except (ValueError, TypeError):
+                    # No generar una fecha incorrecta
+                    # a partir de registros inconsistentes.
+                    pass
 
     db.commit()
 
@@ -14276,8 +14505,6 @@ def hospitalization_medication_done(
         f'/hospitalizations/{hospitalization.id}#medicacion',
         status_code=303
     )
-
-
 @app.post('/hospitalizations/{hospitalization_id}/medications/{medication_id}/finish')
 def hospitalization_medication_finish(
     hospitalization_id: int,
