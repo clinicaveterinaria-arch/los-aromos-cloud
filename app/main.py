@@ -13613,6 +13613,11 @@ def hospitalization_detail(
 
     for med in medications:
 
+        # Las dosis de tratamientos finalizados permanecen en el historial,
+        # pero no deben generar tarjetas de tratamientos activos.
+        if '[TRATAMIENTO_FINALIZADO:' in (med.notes or ''):
+            continue
+
         code_match = re.search(
             r'\[TRATAMIENTO_ACTIVO:([^\]]+)\]',
             med.notes or ''
@@ -14554,12 +14559,6 @@ def hospitalization_medication_finish(
             med.status = 'Finalizada'
 
         # Desactivar el tratamiento en todas sus dosis, incluidas las aplicadas.
-        med.notes = (med.notes or '').replace(
-            '[TRATAMIENTO_ACTIVO:',
-            '[TRATAMIENTO_FINALIZADO:'
-        )
-
-        # Todas las dosis dejan de pertenecer a un tratamiento activo.
         med.notes = (med.notes or '').replace(
             '[TRATAMIENTO_ACTIVO:',
             '[TRATAMIENTO_FINALIZADO:'
