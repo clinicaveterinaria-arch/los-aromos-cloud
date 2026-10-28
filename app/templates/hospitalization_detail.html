@@ -512,7 +512,6 @@
         padding:10px 8px;
         font-size:13px;
     }
-
     .dashboard{
         grid-template-columns:repeat(2,1fr);
         gap:10px;
@@ -1184,22 +1183,21 @@
                     
                     <input id="med_concentration" name="med_concentration" type="hidden">
                     
-                    <input id="med_dose" name="dose" placeholder="Dosis / volumen verificado" required>
-                    <div class="full" id="hospital_concentration_box" style="display:none;">
-                        <label style="font-weight:700;">
-                            💉 Concentración final confirmada (mg/ml)
-                        </label>
-                        <input
-                            type="number"
-                            id="hospital_final_concentration"
-                            min="0.001"
-                            step="any"
-                            placeholder="Ej.: 200"
-                            oninput="updateHospitalVolume()"
-                            style="width:100%;margin-top:5px;"
-                        >
-                        <div id="hospital_final_volume" style="margin-top:8px;font-weight:700;"></div>
+                    <div class="full" id="hospital_injectable_calculator" style="display:none;border:1px solid #bbf7d0;border-radius:12px;padding:14px;background:#f0fdf4;">
+                        <strong>💉 Calculadora de volumen inyectable</strong>
+                        <div id="hospital_calc_reference" style="font-size:13px;margin:8px 0;"></div>
+                        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;">
+                            <label>Dosis elegida (mg/kg)
+                                <input type="number" id="hospital_selected_mgkg" min="0.000001" step="any" oninput="updateHospitalInjectableVolume()" placeholder="Ingresar dosis en mg/kg" style="width:100%;">
+                            </label>
+                            <label>Concentración final (mg/ml)
+                                <input type="number" id="hospital_final_mgml" min="0.000001" step="any" oninput="updateHospitalInjectableVolume()" placeholder="Concentración confirmada" style="width:100%;">
+                            </label>
+                        </div>
+                        <div id="hospital_injectable_result" aria-live="polite" style="margin-top:10px;font-weight:700;"></div>
+                        <small style="display:block;margin-top:8px;color:#92400e;">⚠️ Verificá dosis, especie, vía y concentración final real. Para polvos reconstituidos, confirmá el volumen final de la solución. El resultado es una ayuda de cálculo, no una indicación terapéutica automática.</small>
                     </div>
+                    <input id="med_dose" name="dose" placeholder="Dosis / volumen verificado" required>
                     <small class="full" style="color:#92400e;">⚠️ Confirmá dosis, unidad, concentración y presentación antes de programar. El cálculo del Vademécum requiere validación profesional.</small>
 
                     <select name="route" required>
@@ -1545,7 +1543,7 @@ Sin observaciones cargadas.
                     <div class="compact-row-v3">
                         <span>🚽 Orina / materia fecal<small>Último registro: {{ latest_checklist_time }} hs</small></span>
                         <b>Checklist</b>
-                    </div>
+                     </div>
 
                     <div class="compact-row-v3">
                         <span>🤢 Vómitos / diarrea<small>Último registro: {{ latest_checklist_time }} hs</small></span>
@@ -1904,6 +1902,45 @@ async function searchHospitalDrug(){
     }
 
 }
+let hospitalInjectableData = null;
+
+function hospitalInjectableNumber(value) {
+    const n = Number(String(value ?? '').replace(',', '.'));
+    return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+function hospitalKnownMgMl(raw) {
+    const text = String(raw || '').replace(',', '.');
+    const match = text.match(/(\d+(?:\.\d+)?)\s*mg\s*\/\s*m[lL]\b/i);
+    return match ? hospitalInjectableNumber(match[1]) : null;
+}
+
+function updateHospitalInjectableVolume() {
+    const result = document.getElementById('hospital_injectable_result');
+    if (!hospitalInjectableData) return;
+    const weight = hospitalInjectableNumber(hospitalInjectableData.patient_weight);
+    const mgkg = hospitalInjectableNumber(document.getElementById('hospital_selected_mgkg').value);
+    const mgml = hospitalInjectableNumber(document.getElementById('hospital_final_mgml').value);
+    if (!weight || !mgkg || !mgml) {
+        result.textContent = 'Ingresá una dosis y una concentración final válidas para calcular los ml.';
+        return;
+    }
+    const min = hospitalInjectableNumber(hospitalInjectableData.mgkg_min);
+    const max = hospitalInjectableNumber(hospitalInjectableData.mgkg_max);
+    if ((min && mgkg < min) || (max && mgkg > max)) {
+        result.textContent = '⚠️ La dosis elegida está fuera del intervalo registrado en el Vademécum. Revisala antes de continuar.';
+        return;
+    }
+    const totalMg = weight * mgkg;
+    const volumeMl = totalMg / mgml;
+    if (!Number.isFinite(volumeMl) || volumeMl <= 0) return;
+    const fmt = n => Number(n.toPrecision(4)).toLocaleString('es-AR', {maximumFractionDigits: 6});
+    result.textContent = `💉 VOLUMEN CALCULADO: ${fmt(volumeMl)} ml (${fmt(totalMg)} mg). Verificar antes de administrar.`;
+    document.getElementById('med_dose').value = `${fmt(volumeMl)} ml (${fmt(totalMg)} mg)`;
+    document.getElementById('med_concentration').value = String(mgml);
+    document.getElementById('med_mg_kg').value = String(mgkg);
+}
+
 async function calculateHospitalDrug(activeId){
 
     const resultBox = document.getElementById("hospital_drug_results");
@@ -1922,22 +1959,30 @@ async function calculateHospitalDrug(activeId){
             resultBox.innerHTML += "<div class='alert'>No se pudo calcular la dosis.</div>";
             return;
         }
-        hospitalDoseData = data;
-        
-        const concentrationBox = document.getElementById(
-            "hospital_concentration_box"
-        );
-        
-        const concentrationInput = document.getElementById(
-            "hospital_final_concentration"
-        );
-        
-        concentrationInput.value = "";
-        
-        concentrationBox.style.display =
-            data.mg_total_min > 0 && !data.amount_text ? "block" : "none";
-        
-        document.getElementById("hospital_final_volume").textContent = "";
+
+        const calcBox = document.getElementById('hospital_injectable_calculator');
+        const routeText = String(data.route || '').toUpperCase().trim();
+        const injectableRoute = /^(EV|IV|IM|SC|SUBCUT[ÁA]NEA|INTRAMUSCULAR|ENDOVENOSA|INTRAVENOSA)$/.test(routeText) ||
+            /\b(EV|IV|IM|SC)\b/.test(routeText);
+        const hasMgKg = hospitalInjectableNumber(data.mgkg_min) && hospitalInjectableNumber(data.patient_weight);
+        // Solo habilitar si el esquema realmente se expresa en mg/kg.
+        const doseUnitOk = /mg\s*\/\s*kg/i.test(String(data.dose_text || '')) &&
+            !/(?:µg|mcg|ug|UI|IU)\s*\/\s*kg/i.test(String(data.dose_text || ''));
+        hospitalInjectableData = injectableRoute && hasMgKg && doseUnitOk ? data : null;
+        calcBox.style.display = hospitalInjectableData ? 'block' : 'none';
+        document.getElementById('hospital_selected_mgkg').value = '';
+        document.getElementById('hospital_final_mgml').value = '';
+        document.getElementById('hospital_injectable_result').textContent = '';
+        if (hospitalInjectableData) {
+            const min = data.mgkg_min, max = data.mgkg_max;
+            document.getElementById('hospital_calc_reference').textContent =
+                `Peso: ${data.patient_weight} kg · Referencia del Vademécum: ${min}${max && max !== min ? ' a ' + max : ''} mg/kg · Presentación: ${data.presentation || 'sin especificar'}`;
+            const knownConcentration = hospitalKnownMgMl(data.concentration);
+            if (knownConcentration) document.getElementById('hospital_final_mgml').value = knownConcentration;
+            if (min && max && Number(min) === Number(max)) document.getElementById('hospital_selected_mgkg').value = min;
+            updateHospitalInjectableVolume();
+        }
+
         const medInput = document.querySelector("input[name='medication_name']");
         const doseInput = document.querySelector("input[name='dose']");
         const routeSelect = document.querySelector("select[name='route']");
@@ -1945,7 +1990,9 @@ async function calculateHospitalDrug(activeId){
         const notesInput = document.querySelector("textarea[name='notes']");
 
         medInput.value = data.brand_name || data.drug_name || "";
-        doseInput.value = data.dose_result || data.dose_text || "";
+        if (!hospitalInjectableData || !document.getElementById('hospital_selected_mgkg').value || !document.getElementById('hospital_final_mgml').value) {
+            doseInput.value = data.dose_result || data.dose_text || "";
+        }
 
         if(data.route){
             routeSelect.value = data.route;
@@ -1972,7 +2019,7 @@ async function calculateHospitalDrug(activeId){
                 Dosis: ${data.dose_result || data.dose_text || "-"}<br>
                 Vía: ${data.route || "-"}<br>
                 Frecuencia: ${data.frequency || "-"}<br>
-                Ahora solo elegí hora inicial y tocá <b>💊 Programar tratamiento inteligente</b>.
+                Verificá la dosis, el volumen y la concentración antes de programar el tratamiento.
             </div>
         `;
 
@@ -1982,43 +2029,6 @@ async function calculateHospitalDrug(activeId){
 
     }
 }
-let hospitalDoseData = null;
-
-function updateHospitalVolume() {
-    if (!hospitalDoseData) return;
-
-    const concentration = Number(
-        document.getElementById("hospital_final_concentration").value
-    );
-
-    const result = document.getElementById("hospital_final_volume");
-
-    if (!(concentration > 0)) {
-        result.textContent = "";
-        return;
-    }
-
-    const minMg = hospitalDoseData.mg_total_min;
-    const maxMg = hospitalDoseData.mg_total_max ?? minMg;
-
-    if (!(minMg > 0)) {
-        result.textContent = "No hay una dosis en mg válida.";
-        return;
-    }
-
-    const minMl = minMg / concentration;
-    const maxMl = maxMg / concentration;
-
-    const format = value => value.toFixed(3).replace(/\.?0+$/, "");
-
-    const volumeText = minMl === maxMl
-        ? `${format(minMl)} ml`
-        : `${format(minMl)} a ${format(maxMl)} ml`;
-
-    result.textContent = "💉 VOLUMEN CALCULADO: " + volumeText;
-
-    document.getElementById("med_dose").value = volumeText;
-}    
 // Actualiza avisos al volver a la pestaña; no interrumpe formularios en edición.
 let hospitalFormEdited = false;
 document.querySelectorAll('form').forEach(form => {
@@ -2048,4 +2058,4 @@ function calculateMedicationDose() {
     doseInput.value = totalMl.toFixed(2) + " ml (" + totalMg.toFixed(1) + " mg)";
 }    
 </script>
-{% endblock %}
+{% endblock %}                       
