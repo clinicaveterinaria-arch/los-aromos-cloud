@@ -14541,17 +14541,30 @@ def hospitalization_medication_finish(
     if treatment_code:
         meds_to_finish = (
             db.query(HospitalizationMedication)
-            .filter(HospitalizationMedication.hospitalization_id == hospitalization.id)
-            .filter(HospitalizationMedication.notes.ilike(f'%[TRATAMIENTO_ACTIVO:{treatment_code}]%'))
-            .filter(HospitalizationMedication.status == 'Pendiente')
+            .filter(
+                HospitalizationMedication.hospitalization_id == hospitalization.id
+            )
+            .filter(
+                HospitalizationMedication.notes.ilike(
+                    f'%[TRATAMIENTO_ACTIVO:{treatment_code}]%'
+                )
+            )
             .all()
         )
     else:
         meds_to_finish = [medication]
 
     for med in meds_to_finish:
-        med.status = 'Finalizada'
-        med.notes = (med.notes or '').replace('[TRATAMIENTO_ACTIVO:', '[TRATAMIENTO_FINALIZADO:')
+
+        # Las dosis administradas conservan su estado clínico.
+        if med.status == 'Pendiente':
+            med.status = 'Finalizada'
+
+        # Todas las dosis dejan de pertenecer a un tratamiento activo.
+        med.notes = (med.notes or '').replace(
+            '[TRATAMIENTO_ACTIVO:',
+            '[TRATAMIENTO_FINALIZADO:'
+        )
 
     event = ClinicalEvent(
         patient_id=hospitalization.patient_id,
