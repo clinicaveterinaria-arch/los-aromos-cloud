@@ -14234,17 +14234,28 @@ def hospitalization_medication_create(
             detail='La internación está cerrada'
         )
 
-    if not all((
-        medication_name.strip(),
-        dose.strip(),
-        route.strip(),
-        frequency.strip(),
-        scheduled_time.strip(),
-        start_date.strip()
-    )):
+    required_fields = {
+        'medication_name': medication_name,
+        'dose': dose,
+        'route': route,
+        'frequency': frequency,
+        'scheduled_time': scheduled_time,
+        'start_date': start_date
+    }
+
+    missing_fields = [
+        name
+        for name, value in required_fields.items()
+        if not str(value or '').strip()
+    ]
+
+    if missing_fields:
         raise HTTPException(
             status_code=422,
-            detail='Completá medicamento, dosis, vía, frecuencia, fecha y hora'
+            detail=(
+                'Faltan campos obligatorios: '
+                + ', '.join(missing_fields)
+            )
         )
 
     if frequency not in (
