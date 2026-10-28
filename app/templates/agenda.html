@@ -995,11 +995,14 @@
                                                 </form>
                                             {% endif %}
 
-                                            {% if a.status|default('Pendiente') == 'Confirmado' %}
+                                            {% if a.status|default('Pendiente') in ['Pendiente', 'Confirmado'] %}
                                                 <form method="post" action="/agenda/{{ a.id }}/status" class="mini-form">
                                                     <input type="hidden" name="date" value="{{ selected_day }}">
                                                     <input type="hidden" name="status" value="Realizado">
-                                                    <button type="submit">✔ Realizado</button>
+                                                    <button type="submit"
+                                                            style="background:#dcfce7; color:#166534; border-color:#86efac;">
+                                                        ✔ Realizado
+                                                    </button>
                                                 </form>
                                             {% endif %}
 
