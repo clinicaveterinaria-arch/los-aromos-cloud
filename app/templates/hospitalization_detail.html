@@ -1318,7 +1318,6 @@
                             {% endif %}
 
                             {% set total_doses = (same_pending|length) + (same_applied|length) %}
-                            {% set progress_percent = ((same_applied|length) * 100 / total_doses)|round(0) if total_doses > 0 else 0 %}
 
                             {% set clean_notes = m.notes or '' %}
                             {% if "[TRATAMIENTO_ACTIVO:" in clean_notes %}
@@ -1346,33 +1345,102 @@
                                     </div>
                                 </div>
 
-                                <div class="med-progress-v3">
-                                    <div class="med-progress-top">
-                                        <span>Progreso</span>
-                                        <b>{{ progress_percent }}%</b>
+                                <!-- INDICADOR CLÍNICO DE TRATAMIENTO CONTINUO -->
+                                
+                                <div class="med-progress-v3"
+                                     style="background:#f0fdf4;
+                                            border:1px solid #bbf7d0;
+                                            border-radius:12px;
+                                            padding:12px;
+                                            margin:12px 0;">
+                                
+                                    <div style="font-weight:800;
+                                                color:#166534;
+                                                margin-bottom:12px;
+                                                font-size:14px;">
+                                        🔄 Tratamiento continuo activo
                                     </div>
-
-                                    <div class="med-bar-v3">
-                                        <div class="med-fill-v3" style="width:{{ progress_percent }}%;"></div>
+                                
+                                    <div style="display:grid;
+                                                grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+                                                gap:12px;
+                                                font-size:13px;">
+                                
+                                        <!-- ADMINISTRACIONES REALIZADAS -->
+                                        <div>
+                                            <div style="color:#64748b;">
+                                                💉 Administraciones realizadas
+                                            </div>
+                                
+                                            <strong style="font-size:18px;color:#166534;">
+                                                {{ same_applied|length }}
+                                            </strong>
+                                        </div>
+                                
+                                        <!-- PRÓXIMA DOSIS -->
+                                        <div>
+                                            <div style="color:#64748b;">
+                                                📅 Próxima dosis
+                                            </div>
+                                
+                                            <strong style="color:#1e293b;">
+                                                {% if next_dose %}
+                                                    {% if next_dose.ui_scheduled_at %}
+                                                        {{ next_dose.ui_scheduled_at.strftime('%d/%m/%Y %H:%M') }}
+                                                    {% else %}
+                                                        {{ next_dose.scheduled_time or '-' }}
+                                                    {% endif %}
+                                                {% else %}
+                                                    Sin dosis programadas
+                                                {% endif %}
+                                            </strong>
+                                        </div>
+                                
+                                        <!-- ÚLTIMA ADMINISTRACIÓN -->
+                                        <div>
+                                            <div style="color:#64748b;">
+                                                🕒 Última administración
+                                            </div>
+                                
+                                            {% if last_applied and last_applied.applied_at %}
+                                
+                                                <strong style="color:#1e293b;">
+                                                    {{ last_applied.applied_at.strftime('%d/%m/%Y %H:%M') }}
+                                                </strong>
+                                
+                                                <div style="font-size:12px;color:#64748b;">
+                                                    👤 {{ last_applied.applied_by or 'No registrado' }}
+                                                </div>
+                                
+                                            {% else %}
+                                
+                                                <strong style="color:#94a3b8;">
+                                                    Sin administraciones
+                                                </strong>
+                                
+                                            {% endif %}
+                                        </div>
+                                
                                     </div>
                                 </div>
 
                                 <div class="med-meta-v3">
-                                    <span class="med-pill-v3">🕐 {{ next_dose.scheduled_time if next_dose else '-' }}</span>
-                                    <span class="med-pill-v3">✔ {{ same_applied|length }} aplicadas</span>
-                                    <span class="med-pill-v3">⏳ {{ same_pending|length }} pendientes</span>
-                                    <span class="med-pill-v3">📊 {{ total_doses }} dosis</span>
+                                
+                                    <span class="med-pill-v3">
+                                        💊 {{ m.frequency or '-' }}
+                                    </span>
+                                
+                                    <span class="med-pill-v3">
+                                        ⏳ {{ same_pending|length }} dosis programadas
+                                    </span>
+                                
+                                    <span class="med-pill-v3">
+                                        ✔ {{ same_applied|length }} realizadas
+                                    </span>
+                                
                                 </div>
 
-                                {% if last_applied and last_applied.applied_at %}
-                                <div class="med-last-v3">
-                                    Última aplicación:
-                                    {{ last_applied.applied_at.strftime('%d/%m %H:%M') }}
-                                    {% if last_applied.applied_by %}
-                                        · {{ last_applied.applied_by }}
-                                    {% endif %}
-                                </div>
-                                {% endif %}
+
 
                                 <div class="med-actions-v3">
                                     {% if next_dose %}
