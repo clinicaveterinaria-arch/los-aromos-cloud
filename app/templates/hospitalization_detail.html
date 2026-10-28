@@ -1185,6 +1185,21 @@
                     <input id="med_concentration" name="med_concentration" type="hidden">
                     
                     <input id="med_dose" name="dose" placeholder="Dosis / volumen verificado" required>
+                    <div class="full" id="hospital_concentration_box" style="display:none;">
+                        <label style="font-weight:700;">
+                            💉 Concentración final confirmada (mg/ml)
+                        </label>
+                        <input
+                            type="number"
+                            id="hospital_final_concentration"
+                            min="0.001"
+                            step="any"
+                            placeholder="Ej.: 200"
+                            oninput="updateHospitalVolume()"
+                            style="width:100%;margin-top:5px;"
+                        >
+                        <div id="hospital_final_volume" style="margin-top:8px;font-weight:700;"></div>
+                    </div>
                     <small class="full" style="color:#92400e;">⚠️ Confirmá dosis, unidad, concentración y presentación antes de programar. El cálculo del Vademécum requiere validación profesional.</small>
 
                     <select name="route" required>
@@ -1907,7 +1922,22 @@ async function calculateHospitalDrug(activeId){
             resultBox.innerHTML += "<div class='alert'>No se pudo calcular la dosis.</div>";
             return;
         }
-
+        hospitalDoseData = data;
+        
+        const concentrationBox = document.getElementById(
+            "hospital_concentration_box"
+        );
+        
+        const concentrationInput = document.getElementById(
+            "hospital_final_concentration"
+        );
+        
+        concentrationInput.value = "";
+        
+        concentrationBox.style.display =
+            data.mg_total_min > 0 && !data.amount_text ? "block" : "none";
+        
+        document.getElementById("hospital_final_volume").textContent = "";
         const medInput = document.querySelector("input[name='medication_name']");
         const doseInput = document.querySelector("input[name='dose']");
         const routeSelect = document.querySelector("select[name='route']");
@@ -1952,6 +1982,43 @@ async function calculateHospitalDrug(activeId){
 
     }
 }
+let hospitalDoseData = null;
+
+function updateHospitalVolume() {
+    if (!hospitalDoseData) return;
+
+    const concentration = Number(
+        document.getElementById("hospital_final_concentration").value
+    );
+
+    const result = document.getElementById("hospital_final_volume");
+
+    if (!(concentration > 0)) {
+        result.textContent = "";
+        return;
+    }
+
+    const minMg = hospitalDoseData.mg_total_min;
+    const maxMg = hospitalDoseData.mg_total_max ?? minMg;
+
+    if (!(minMg > 0)) {
+        result.textContent = "No hay una dosis en mg válida.";
+        return;
+    }
+
+    const minMl = minMg / concentration;
+    const maxMl = maxMg / concentration;
+
+    const format = value => value.toFixed(3).replace(/\.?0+$/, "");
+
+    const volumeText = minMl === maxMl
+        ? `${format(minMl)} ml`
+        : `${format(minMl)} a ${format(maxMl)} ml`;
+
+    result.textContent = "💉 VOLUMEN CALCULADO: " + volumeText;
+
+    document.getElementById("med_dose").value = volumeText;
+}    
 // Actualiza avisos al volver a la pestaña; no interrumpe formularios en edición.
 let hospitalFormEdited = false;
 document.querySelectorAll('form').forEach(form => {
