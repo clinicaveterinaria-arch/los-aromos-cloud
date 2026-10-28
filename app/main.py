@@ -13569,14 +13569,15 @@ def hospitalization_detail(
                     now_argentina - scheduled_datetime
                 ).total_seconds() / 60
     
-                if minutes_difference < 0:
+                # Estados automáticos de medicación
+                if minutes_difference < -15:
+                    medication.ui_status = 'Programada'
+
+                elif minutes_difference < 0:
                     medication.ui_status = 'Próxima'
-    
-                elif minutes_difference <= 30:
-                    medication.ui_status = 'Pendiente'
-    
+
                 else:
-                    medication.ui_status = 'Atrasada'
+                    medication.ui_status = 'Pendiente'
     
             previous_minutes = scheduled_minutes
     
@@ -14115,9 +14116,52 @@ def hospitalization_medication_create(
     hospitalization = db.get(Hospitalization, hospitalization_id)
 
     if not hospitalization:
-        raise HTTPException(status_code=404, detail='Internación no encontrada')
+        raise HTTPException(
+            status_code=404,
+            detail='Internación no encontrada'
+        )
 
-    schedule_times = build_medication_times(scheduled_time, frequency)
+    # Validar campos obligatorios
+    if not all((
+        medication_name.strip(),
+        dose.strip(),
+        route.strip(),
+        frequency.strip(),
+        scheduled_time.strip()
+    )):
+        raise HTTPException(
+            status_code=422,
+            detail='Completá medicamento, dosis, vía, frecuencia y hora de inicio'
+        )
+
+    # Validar formato de hora
+    try:
+        datetime.strptime(scheduled_time, '%H:%M')
+    except ValueError:
+        raise HTTPException(
+            status_code=422,
+            detail='Hora de inicio inválida'
+        )
+
+    # Validar frecuencia
+    if frequency not in (
+        'SID',
+        'BID',
+        'TID',
+        'QID',
+        'q48h',
+        'q72h',
+        'PRN'
+    ):
+        raise HTTPException(
+            status_code=422,
+            detail='Frecuencia inválida'
+        )
+
+    schedule_times = build_medication_times(
+        scheduled_time,
+        frequency
+    )
 
     if not schedule_times:
         schedule_times = [scheduled_time or '']
