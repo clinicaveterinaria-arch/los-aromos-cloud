@@ -2,6 +2,63 @@
 {% block content %}
 
 <style>
+/* CONSULTA DE PRODUCTOS Y SERVICIOS */
+
+.product-lookup-form {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr auto;
+    gap: 10px;
+    align-items: end;
+}
+
+.product-lookup-form label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: #6b7280;
+    margin-bottom: 5px;
+}
+
+.product-lookup-form input,
+.product-lookup-form select {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px;
+    border: 1px solid #f3c6d8;
+    border-radius: 10px;
+    background: white;
+}
+
+.product-lookup-form button {
+    background: #d85b9a;
+    color: white;
+    border: 0;
+    border-radius: 10px;
+    padding: 11px 16px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.product-totals {
+    margin: 14px 0;
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    color: #374151;
+}
+
+.product-lookup-details > summary {
+    cursor: pointer;
+    font-size: 19px;
+    font-weight: 700;
+    padding: 8px 0;
+}
+
+@media (max-width: 900px) {
+    .product-lookup-form {
+        grid-template-columns: 1fr;
+    }
+}
     .stats-page { padding:24px 28px; }
     .stats-hero { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; margin-bottom:18px; }
     .stats-title h1 { margin:0 0 6px; font-size:32px; color:#1f2937; }
@@ -453,7 +510,228 @@
             </tbody>
         </table>
     </div>
+    <!-- CONSULTA DE VENTAS POR PRODUCTO O SERVICIO -->
 
+    <div class="stats-card" id="consulta-productos">
+
+        <details class="product-lookup-details"
+                 {% if product_query or product_category != 'all'
+                    or product_date_from or product_date_to %}open{% endif %}>
+
+            <summary>
+                🔎 Consulta de ventas por producto o servicio
+            </summary>
+
+            <div style="margin-top:18px;">
+
+                <p class="period-note">
+                    Buscá por nombre, filtrá por rubro o elegí
+                    un rango de fechas personalizado.
+                </p>
+
+                <form method="get"
+                      action="/stats#consulta-productos"
+                      class="product-lookup-form"
+                      style="margin-top:16px;">
+
+                    <input type="hidden" name="period" value="{{ period }}">
+                    <input type="hidden" name="month" value="{{ month }}">
+                    <input type="hidden" name="compare_month" value="{{ compare_month }}">
+                    <input type="hidden" name="day_date" value="{{ day_date }}">
+                    <input type="hidden" name="week_start" value="{{ week_start }}">
+                    <input type="hidden" name="compare_week_start" value="{{ compare_week_start }}">
+
+                    <!-- BUSCADOR -->
+
+                    <div>
+                        <label for="product_query">
+                            Producto / servicio
+                        </label>
+
+                        <input
+                            type="text"
+                            id="product_query"
+                            name="product_query"
+                            value="{{ product_query }}"
+                            placeholder="Ej.: Pregabalina, RX, Consulta">
+                    </div>
+
+                    <!-- RUBRO -->
+
+                    <div>
+                        <label for="product_category">
+                            Rubro
+                        </label>
+
+                        <select id="product_category"
+                                name="product_category">
+
+                            <option value="all"
+                                {% if product_category == 'all' %}selected{% endif %}>
+                                Todos los rubros
+                            </option>
+
+                            {% for key, meta in category_meta.items() %}
+
+                                <option value="{{ key }}"
+                                    {% if product_category == key %}selected{% endif %}>
+                                    {{ meta.label }}
+                                </option>
+
+                            {% endfor %}
+
+                        </select>
+                    </div>
+
+                    <!-- FECHA DESDE -->
+
+                    <div>
+                        <label for="product_date_from">
+                            Desde
+                        </label>
+
+                        <input
+                            type="date"
+                            id="product_date_from"
+                            name="product_date_from"
+                            value="{{ product_date_from }}">
+                    </div>
+
+                    <!-- FECHA HASTA -->
+
+                    <div>
+                        <label for="product_date_to">
+                            Hasta
+                        </label>
+
+                        <input
+                            type="date"
+                            id="product_date_to"
+                            name="product_date_to"
+                            value="{{ product_date_to }}">
+                    </div>
+
+                    <!-- BOTÓN -->
+
+                    <button type="submit">
+                        Consultar
+                    </button>
+
+                </form>
+
+                <!-- PERÍODO -->
+
+                <p class="period-note" style="margin-top:15px;">
+
+                    Período consultado:
+
+                    <strong>
+                        {{ product_start.strftime('%d/%m/%Y') }}
+                        al
+                        {{ product_end.strftime('%d/%m/%Y') }}
+                    </strong>
+
+                </p>
+
+                <!-- TOTALES -->
+
+                <div class="product-totals">
+
+                    <span>
+                        <b>Unidades:</b>
+                        {{ "{:,.2f}".format(product_totals.qty).rstrip('0').rstrip('.').replace(',', 'X').replace('.', ',').replace('X', '.') }}
+                    </span>
+
+                    <span>
+                        <b>Facturación:</b>
+                        $ {{ "{:,.0f}".format(product_totals.sales).replace(',', '.') }}
+                    </span>
+
+                    <span>
+                        <b>Costo:</b>
+                        $ {{ "{:,.0f}".format(product_totals.cost).replace(',', '.') }}
+                    </span>
+
+                    <span>
+                        <b>Ganancia bruta:</b>
+                        $ {{ "{:,.0f}".format(product_totals.profit).replace(',', '.') }}
+                    </span>
+
+                </div>
+
+                <!-- RESULTADOS -->
+
+                {% if filtered_products %}
+
+                <div style="overflow-x:auto;">
+
+                    <table class="simple-table">
+
+                        <thead>
+                            <tr>
+                                <th>Producto / servicio</th>
+                                <th>Rubro</th>
+                                <th class="number">Unidades</th>
+                                <th class="number">Facturación</th>
+                                <th class="number">Costo</th>
+                                <th class="number">Ganancia bruta</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            {% for item in filtered_products %}
+
+                            <tr>
+
+                                <td>{{ item.name }}</td>
+
+                                <td>
+                                    {{ category_meta[item.category].label }}
+                                </td>
+
+                                <td class="number">
+                                    {{ "{:,.2f}".format(item.qty).rstrip('0').rstrip('.').replace(',', 'X').replace('.', ',').replace('X', '.') }}
+                                </td>
+
+                                <td class="number amount">
+                                    $ {{ "{:,.0f}".format(item.sales).replace(',', '.') }}
+                                </td>
+
+                                <td class="number">
+                                    $ {{ "{:,.0f}".format(item.cost).replace(',', '.') }}
+                                </td>
+
+                                <td class="number">
+                                    $ {{ "{:,.0f}".format(item.profit).replace(',', '.') }}
+                                </td>
+
+                            </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+                {% else %}
+
+                    <p class="empty-text">
+                        No hay productos o servicios que coincidan
+                        con los filtros seleccionados.
+                    </p>
+
+                {% endif %}
+
+            </div>
+
+        </details>
+
+    </div>
+
+    <!-- FIN CONSULTA DE VENTAS -->
     <div class="ranking-grid">
         {% for category_key in ['clinical', 'pharmacy', 'food', 'petshop'] %}
             {% set rows = current.top_by_category[category_key] %}
