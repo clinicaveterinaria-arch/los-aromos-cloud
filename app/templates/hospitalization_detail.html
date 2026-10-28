@@ -1209,9 +1209,50 @@
                         <option value="PRN">PRN / según necesidad</option>
                     </select>
 
-                    <label class="full" style="font-weight:700;">🕐 Hora de inicio
-                        <input type="time" name="scheduled_time" required style="width:100%;margin-top:5px;">
+                    <!-- FECHA Y HORA DE INICIO DEL TRATAMIENTO -->
+                    
+                    <label class="full" style="font-weight:700;">
+                        📅 Fecha de inicio
+                    
+                        <input
+                            type="date"
+                            id="med_start_date"
+                            name="start_date"
+                            required
+                            style="width:100%;margin-top:5px;"
+                        >
                     </label>
+                    
+                    <label class="full" style="font-weight:700;">
+                        🕐 Hora de inicio
+                    
+                        <input
+                            type="time"
+                            id="med_scheduled_time"
+                            name="scheduled_time"
+                            required
+                            style="width:100%;margin-top:5px;"
+                        >
+                    </label>
+                    
+                    <script>
+                    (function () {
+                        const dateInput = document.getElementById("med_start_date");
+                    
+                        if (dateInput && !dateInput.value) {
+                            const now = new Date();
+                    
+                            const argentinaDate = new Intl.DateTimeFormat("en-CA", {
+                                timeZone: "America/Argentina/Buenos_Aires",
+                                year: "numeric",
+                                month: "2-digit",
+                                day: "2-digit"
+                            }).format(now);
+                    
+                            dateInput.value = argentinaDate;
+                        }
+                    })();
+                    </script>
 
                     <details class="full" style="padding:8px 0;">
                         <summary style="cursor:pointer;">📝 Indicaciones especiales (opcional)</summary>
@@ -1335,7 +1376,7 @@
 
                                 <div class="med-actions-v3">
                                     {% if next_dose %}
-                                    <form method="post" action="/hospitalizations/{{ hospitalization.id }}/medications/{{ next_dose.id }}/done"
+                                    <form method="post" action="/hospitalizations/{{ hospitalization.id }}/medications/{{ next_dose.id }}/apply"
                                           onsubmit="return confirm('¿Aplicar la próxima dosis de {{ m.medication_name }}?');">
                                         <button type="submit" class="med-btn-v3" style="background:#22c55e;">
                                             ✔ Realizado
