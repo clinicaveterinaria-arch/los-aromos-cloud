@@ -1269,60 +1269,43 @@
 
                 <br>
 
-                {% set pending_meds = medications|selectattr("status","equalto","Pendiente")|list %}
-                {% set applied_meds = medications|selectattr("status","equalto","Aplicada")|list %}
-                {% set active_meds = pending_meds + applied_meds %}
+                {% set ns_counts = namespace(pending=0, applied=0) %}
+                
+                {% for card in treatment_cards %}
+                    {% set ns_counts.pending = ns_counts.pending + (card.pending|length) %}
+                    {% set ns_counts.applied = ns_counts.applied + (card.applied|length) %}
+                {% endfor %}
 
-                {% if active_meds %}
+                {% if treatment_cards %}
                 <div class="soft-alert">
                     <b>💊 Medicación activa</b><br>
-                    Dosis pendientes: {{ pending_meds|length }} · Dosis aplicadas: {{ applied_meds|length }}
+                    Dosis pendientes: {{ ns_counts.pending }} · Dosis aplicadas: {{ ns_counts.applied }}
                 </div>
 
                 <h3>💊 Tratamientos activos</h3>
 
                 <div class="med-list-v3">
-                    {% set ns = namespace(seen=[]) %}
-
-                    {% for m in active_meds %}
-                        {% set med_key = (m.medication_name or '') ~ '|' ~ (m.dose or '') ~ '|' ~ (m.route or '') ~ '|' ~ (m.frequency or '') %}
-
-                        {% if med_key not in ns.seen %}
-                            {% set ns.seen = ns.seen + [med_key] %}
-
-                            {% set same_pending = pending_meds
-                                | selectattr("medication_name","equalto",m.medication_name)
-                                | selectattr("dose","equalto",m.dose)
-                                | selectattr("route","equalto",m.route)
-                                | selectattr("frequency","equalto",m.frequency)
-                                | list %}
-
-                            {% set same_applied = applied_meds
-                                | selectattr("medication_name","equalto",m.medication_name)
-                                | selectattr("dose","equalto",m.dose)
-                                | selectattr("route","equalto",m.route)
-                                | selectattr("frequency","equalto",m.frequency)
-                                | list %}
-
-                            {% set last_applied = same_applied|last %}
-                            {% set next_dose = same_pending|first %}
-
-                            {% if not next_dose %}
-                            
-                                {% set treatment_status = 'Completado' %}
-                            
-                            {% else %}
-                            
-                                {% set treatment_status = next_dose.ui_status or 'Pendiente' %}
-                            
-                            {% endif %}
-
-                            {% set total_doses = (same_pending|length) + (same_applied|length) %}
-
-                            {% set clean_notes = m.notes or '' %}
-                            {% if "[TRATAMIENTO_ACTIVO:" in clean_notes %}
-                                {% set clean_notes = clean_notes.split("]")[-1].strip() %}
-                            {% endif %}
+                    {% for card in treatment_cards %}
+                    
+                        {% set m = card.medication %}
+                        {% set same_pending = card.pending %}
+                        {% set same_applied = card.applied %}
+                    
+                        {% set last_applied = card.last_applied %}
+                        {% set next_dose = card.next_dose %}
+                    
+                        {% set treatment_status = card.ui_status %}
+                        {% set total_doses = card.total %}
+                    
+                        {% set clean_notes = m.notes or '' %}
+                    
+                        {% if '[TRATAMIENTO_ACTIVO:' in clean_notes %}
+                            {% set clean_notes = clean_notes.split(']', 1)[1].strip() %}
+                        {% endif %}
+                    
+                        {% if '[DOSIS_FECHA:' in clean_notes %}
+                            {% set clean_notes = clean_notes.split(']', 1)[1].strip() %}
+                        {% endif %}
 
                             <div class="med-card-v3 {% if treatment_status == 'Atrasada' %}danger{% elif treatment_status == 'Próxima' %}next{% elif treatment_status == 'Pendiente' %}pending{% else %}done{% endif %}">
 
@@ -1487,7 +1470,7 @@ Sin observaciones cargadas.
                                 </div>
 
                             </div>
-                        {% endif %}
+
                     {% endfor %}
                 </div>
                 {% else %}
